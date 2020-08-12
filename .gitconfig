@@ -1,0 +1,50 @@
+[remote "origin"]
+	tagOpt = --no-tags
+	prune = true
+	pruneTags = true
+[core]
+	whitespace = cr-at-eol,trailing-space,space-before-tab,indent-with-non-tab,tabwidth=4
+	preloadIndex = true
+	splitIndex = true
+	commitGraph = true
+	autocrlf = false
+	safecrlf = false
+	fscache = true
+	checkStat = minimal
+	trustctime = false
+[rerere]
+	enabled = true
+	autoupdate = true
+[index]
+	threads = true
+[merge]
+	conflictstyle = diff3
+	stat = false
+[blame]
+	coloring = highlightRecent
+[fetch]
+	prune = true
+	pruneTags = true
+[help]
+	autoCorrect = 5
+[pack]
+	threads = 0
+	useBitmaps = false
+	useSparse = true
+[pull]
+	rebase = merges
+[repack]
+	writeBitmaps = false
+[rebase]
+	autoStash = true
+[feature]
+	manyFiles = true
+	experimental = true
+[checkout]
+	optimizenewbranch = true
+[am]
+	keepcr = true
+[reset]
+	quiet = true
+[status]
+	aheadbehind = false
