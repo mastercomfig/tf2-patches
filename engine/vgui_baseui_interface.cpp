@@ -1730,7 +1730,10 @@ void CEngineVGui::Paint( PaintMode_t mode )
 		staticClientDLLPanel->SetVisible( false );
 		staticClientDLLToolsPanel->SetVisible( false );
 
-		vgui::surface()->PaintTraverseEx(pVPanel, true );
+		if (saveVisible || saveToolsVisible)
+		{
+			vgui::surface()->PaintTraverseEx(pVPanel, true);
+		}
 
 		staticClientDLLPanel->SetVisible( saveVisible );
 		staticClientDLLToolsPanel->SetVisible( saveToolsVisible );
@@ -1744,19 +1747,22 @@ void CEngineVGui::Paint( PaintMode_t mode )
 		// Remove the client .dll from the main hierarchy so that popups will only paint for the client .dll here
 		// NOTE: Disconnect each surface one at a time so that we don't draw popups twice
 
-		// Paint the client .dll only
-		vgui::VPANEL ingameRoot = staticClientDLLPanel->GetVPanel();
-		vgui::VPANEL saveParent = vgui::ipanel()->GetParent( ingameRoot );
-		vgui::ipanel()->SetParent( ingameRoot, 0 );
-		vgui::surface()->PaintTraverseEx( ingameRoot, true );
-		vgui::ipanel()->SetParent( ingameRoot, saveParent );
+		if (bSaveVisible)
+		{
+			// Paint the client .dll only
+			vgui::VPANEL ingameRoot = staticClientDLLPanel->GetVPanel();
+			vgui::VPANEL saveParent = vgui::ipanel()->GetParent(ingameRoot);
+			vgui::ipanel()->SetParent(ingameRoot, 0);
+			vgui::surface()->PaintTraverseEx(ingameRoot, true);
+			vgui::ipanel()->SetParent(ingameRoot, saveParent);
 
-		// Overlay the client .dll tools next
-		vgui::VPANEL ingameToolsRoot = staticClientDLLToolsPanel->GetVPanel();
-		vgui::VPANEL saveToolParent = vgui::ipanel()->GetParent( ingameToolsRoot );
-		vgui::ipanel()->SetParent( ingameToolsRoot, 0 );
-		vgui::surface()->PaintTraverseEx( ingameToolsRoot, true );
-		vgui::ipanel()->SetParent( ingameToolsRoot, saveToolParent );
+			// Overlay the client .dll tools next
+			vgui::VPANEL ingameToolsRoot = staticClientDLLToolsPanel->GetVPanel();
+			vgui::VPANEL saveToolParent = vgui::ipanel()->GetParent(ingameToolsRoot);
+			vgui::ipanel()->SetParent(ingameToolsRoot, 0);
+			vgui::surface()->PaintTraverseEx(ingameToolsRoot, true);
+			vgui::ipanel()->SetParent(ingameToolsRoot, saveToolParent);
+		}
 
 		vgui::ipanel()->SetVisible( pVPanel, bSaveVisible );
 	}

@@ -1126,4 +1126,16 @@ CDispUtilsHelper* CDispInfo::GetDispUtilsByIndex( int index )
 	return GetDispByIndex( index );	
 }
 
+CDispShadowFragment::~CDispShadowFragment()
+{
+	if (bUsingVertexCache)
+	{
+		CDispInfo::s_ShadowVertexCount -= m_nVerts;
+	}
+	else
+	{
+		delete[] m_ShadowVerts;
+		m_ShadowVerts = NULL;
+	}
+}
 

@@ -2309,7 +2309,6 @@ void CHLClient::FrameStageNotify( ClientFrameStage_t curStage )
 			// Mark the frame as open for client fx additions
 			SetFXCreationAllowed( true );
 			SetBeamCreationAllowed( true );
-			C_BaseEntity::CheckCLInterpChanged();
 		}
 		break;
 	}

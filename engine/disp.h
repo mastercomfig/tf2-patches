@@ -198,6 +198,11 @@ public:
 	void GenerateDecalFragments( CVertIndex const &nodeIndex, 
 		int iNodeBitIndex, unsigned short decalHandle, CDispDecalBase *pDispDecal );
 
+	static CUtlMemory<ShadowVertex_t> s_ShadowVertexCache;
+	static ShadowVertex_t* s_ShadowVertexCurr;
+	static int s_ShadowVertexCount;
+	static int s_ShadowVertexCurrPos;
+
 private:
 	// Two functions for adding decals
 	void TestAddDecalTri( int iIndexStart, unsigned short decalHandle, CDispDecal *pDispDecal );

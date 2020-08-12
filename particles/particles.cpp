@@ -4,6 +4,7 @@
 //
 //===========================================================================//
 
+#include "tier0/icommandline.h"
 #include "tier0/platform.h"
 #include "particles/particles.h"
 #include "psheet.h"
@@ -3284,7 +3285,6 @@ bool CParticleSystemMgr::ReadParticleConfigFile( CUtlBuffer &buf, bool bPrecache
 	return ReadParticleDefinitions( buf, pFileName, bPrecache, bDecommitTempMemory );
 }
 
-
 //-----------------------------------------------------------------------------
 // Read the particle config file from a utlbuffer
 //-----------------------------------------------------------------------------
@@ -3328,8 +3328,10 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 		{
 			pExt = "pcf";
 		}
+
+		static const int ParticleFallbackMode = CommandLine()->ParmValue("-particle_fallback", 0);
 		
-		if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
+		if ( ParticleFallbackMode >= 2 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx80.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )
@@ -3337,7 +3339,7 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 				pFileName = pFallbackBuf;
 			}
 		}
-		else if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 &&  g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
+		else if (ParticleFallbackMode == 1 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 && g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx90_slow.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )

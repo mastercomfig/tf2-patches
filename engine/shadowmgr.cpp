@@ -564,6 +564,8 @@ void CShadowMgr::LevelInit( int nSurfCount )
 
 	m_pSurfaceBounds = new SurfaceBoundsCacheIndex_t[nSurfCount];
 
+	CDispInfo::s_ShadowVertexCache.Init(512, MAX_SHADOW_DECAL_CACHE_COUNT * CDispShadowFragment::MAX_VERTS * 32);
+
 	// NOTE: Need to memset to 0 if we switch to integer SurfaceBoundsCacheIndex_t here
 	COMPILE_TIME_ASSERT( sizeof(SurfaceBoundsCacheIndex_t) == 2 );
 	memset( m_pSurfaceBounds, 0xFF, nSurfCount * sizeof(SurfaceBoundsCacheIndex_t) );
@@ -579,6 +581,8 @@ void CShadowMgr::LevelShutdown()
 		delete[] m_pSurfaceBounds;
 		m_pSurfaceBounds = NULL;
 	}
+
+	CDispInfo::s_ShadowVertexCache.Purge();
 
 	m_SurfaceBoundsCache.RemoveAll();
 	m_bInitialized = false;
@@ -2755,6 +2759,17 @@ void CShadowMgr::RenderShadowList( IMatRenderContext *pRenderContext, ShadowDeca
 	// HPE_END
 	//=============================================================================
 
+	// if we have nothing in the cache, or if we're getting close to filling it, we can loop back around to the start.
+	// this is theoretically risky, but there is such a low probability of a shadow vertex getting reused from head
+	// when we've reached the top of our cache. if this does even happen, shadows will glitch out for about a frame or so
+	// which isn't very noticeable.
+	if (CDispInfo::s_ShadowVertexCount <= 0 || CDispInfo::s_ShadowVertexCurrPos >= CDispInfo::s_ShadowVertexCache.Count() - (1024 * 64))
+	{
+		CDispInfo::s_ShadowVertexCurr = CDispInfo::s_ShadowVertexCache.Base();
+		CDispInfo::s_ShadowVertexCount = 0;
+		CDispInfo::s_ShadowVertexCurrPos = 0;
+	}
+
 	info.m_pModelToWorld = pModelToWorld;
 	if ( pModelToWorld )
 	{
@@ -2766,6 +2781,7 @@ void CShadowMgr::RenderShadowList( IMatRenderContext *pRenderContext, ShadowDeca
 	// Iterate over all decals in the decal list and generate polygon lists
 	// Creating them from scratch if their shadow poly cache is invalid
 	GenerateShadowRenderInfo(pRenderContext, decalHandle, info);
+
 	Assert( info.m_Count <= m_DecalsToRender );
 	Assert( info.m_DispCount <= m_DecalsToRender );
 	//=============================================================================

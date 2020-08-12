@@ -484,7 +484,7 @@ void CWorldCollideContextData::CalculatePlanes( CParticleCollection *pParticles,
 	{
 		case COLLISION_MODE_INITIAL_TRACE_DOWN:
 		{
-			SetBaseTrace( 0, rayStart, 1000.0 * Vector( -1, 0, 0 ), nCollisionGroup, false );
+			SetBaseTrace( 0, rayStart, 1000.0f * Vector( -1, 0, 0 ), nCollisionGroup, false );
 			m_nActivePlanes = 1;
 			m_nNumFixedPlanes = 1;
 			break;
@@ -498,7 +498,7 @@ void CWorldCollideContextData::CalculatePlanes( CParticleCollection *pParticles,
 					{
 						if ( i || j || k )
 						{
-							SetBaseTrace( nIndexOut++, rayStart, 1000.0 * Vector( i, j, k ), nCollisionGroup, false );
+							SetBaseTrace( nIndexOut++, rayStart, 1000.0f * Vector( i, j, k ), nCollisionGroup, false );
 						}
 					}
 			m_nNumFixedPlanes = nIndexOut;
@@ -507,13 +507,11 @@ void CWorldCollideContextData::CalculatePlanes( CParticleCollection *pParticles,
 		// Long missing break. Added to Source2 in change 700053.
 		// It's a bug, but changing it now could cause regressions, so
 		// leaving it for now until someone decides it's worth fixing.
-#ifdef FP_EXCEPTIONS_ENABLED
 		// This break is necessary when exceptions are enabled because otherwise
 		// m_bPlaneActive[21] is set even though that plane is filled with
 		// NaNs. We should perhaps put this break in, but we need to do
 		// careful particle testing.
 		break;
-#endif
 
 		case COLLISION_MODE_USE_NEAREST_TRACE:
 		{
@@ -524,7 +522,7 @@ void CWorldCollideContextData::CalculatePlanes( CParticleCollection *pParticles,
 					{
 						if ( i || j || k )
 						{
-							SetBaseTrace( nIndexOut++, rayStart, 1000.0 * Vector( i, j, k ), nCollisionGroup, true );
+							SetBaseTrace( nIndexOut++, rayStart, 1000.0f * Vector( i, j, k ), nCollisionGroup, true );
 						}
 					}
 			m_nNumFixedPlanes = nIndexOut;
@@ -704,7 +702,7 @@ struct ISectData_t
 static void WorldIntersectTNew( FourVectors const *pStartPnt, FourVectors const *pEndPnt, 
 								int nCollisionGroup, int nMask, ISectData_t *pISectData,
 								int nCollisionMode, CWorldCollideContextData *pCtx, fltx4 const &fl4ParticleValidMask,
-								float flTolerance = 0.0 )
+								float flTolerance = 0.0f )
 {
 	pISectData->m_ISectT = Four_Zeros;
 	pISectData->m_LeftOverT = Four_Zeros;
@@ -893,13 +891,16 @@ bool C_OP_WorldTraceConstraint::EnforceConstraint( int nStartBlock,
 												   CParticleCollection *pParticles,
 												   void *pContext, int nNumValidParticlesInLastChunk ) const
 {
+#ifdef VALVE_PURE
 	if ( m_nCollisionMode == COLLISION_MODE_USE_NEAREST_TRACE )
+#endif
 	{
 		if ( m_bKillonContact )
 			return EnforceConstraintInternal<true, true>( nStartBlock, nNumBlocks, pParticles, pContext, nNumValidParticlesInLastChunk );
 		else
 			return EnforceConstraintInternal<false, true>( nStartBlock, nNumBlocks, pParticles, pContext, nNumValidParticlesInLastChunk );
 	}
+#ifdef VALVE_PURE
 	else
 	{
 		if ( m_bKillonContact )
@@ -907,6 +908,7 @@ bool C_OP_WorldTraceConstraint::EnforceConstraint( int nStartBlock,
 		else
 			return EnforceConstraintInternal<false, false>( nStartBlock, nNumBlocks, pParticles, pContext, nNumValidParticlesInLastChunk );
 	}
+#endif
 }
 
 template<bool bKillonContact, bool bCached> bool C_OP_WorldTraceConstraint::EnforceConstraintInternal( 
@@ -956,9 +958,11 @@ template<bool bKillonContact, bool bCached> bool C_OP_WorldTraceConstraint::Enfo
 		ppCtx = &( pParticles->m_pCollisionCacheData[m_nCollisionMode] );
 
 	CWorldCollideContextData *pCtx = NULL;
+#ifdef VALVE_PURE
 	if ( ( m_nCollisionMode == COLLISION_MODE_PER_FRAME_PLANESET ) ||
 		 ( m_nCollisionMode == COLLISION_MODE_USE_NEAREST_TRACE ) ||
 		 ( m_nCollisionMode == COLLISION_MODE_INITIAL_TRACE_DOWN ) )
+#endif
 	{
 		if ( ! *ppCtx )
 		{
@@ -969,7 +973,7 @@ template<bool bKillonContact, bool bCached> bool C_OP_WorldTraceConstraint::Enfo
 		pCtx = *ppCtx;
 		if ( pCtx->m_flLastUpdateTime != pParticles->m_flCurTime )
 		{
-			pCtx->CalculatePlanes( pParticles, m_nCollisionMode, m_nCollisionGroupNumber, &m_vecCpOffset, m_flCpMovementTolerance );
+			pCtx->CalculatePlanes( pParticles, COLLISION_MODE_USE_NEAREST_TRACE, m_nCollisionGroupNumber, &m_vecCpOffset, m_flCpMovementTolerance );
 			pCtx->m_flLastUpdateTime = pParticles->m_flCurTime;
 		}
 	}
@@ -1014,7 +1018,7 @@ template<bool bKillonContact, bool bCached> bool C_OP_WorldTraceConstraint::Enfo
 			else
 				fl4TailMask = LoadAlignedIntSIMD( g_SIMD_SkipTailMask[nNumValidParticlesInLastChunk] );
 			
-			WorldIntersectTNew( pPrevXYZ, &endPnt, m_nCollisionGroupNumber, nMask, &iData, m_nCollisionMode, pCtx, fl4TailMask, flTol );
+			WorldIntersectTNew( pPrevXYZ, &endPnt, m_nCollisionGroupNumber, nMask, &iData, COLLISION_MODE_USE_NEAREST_TRACE, pCtx, fl4TailMask, flTol );
 		}
 		else
 			WorldIntersectT( pPrevXYZ, &endPnt, m_nCollisionGroupNumber, nMask, &iData, pCtx );

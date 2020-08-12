@@ -107,7 +107,7 @@ public:
 
 	  virtual float GetFloat() const
 	  {
-		  static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
+		  const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
 		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
 		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 )
 		  {
@@ -118,6 +118,12 @@ public:
 			  return GetBaseFloatValue();
 		  }
 	  }
+
+	virtual void SetValue(const char* value)
+	{
+		ConVar_ServerBounded::SetValue(value);
+		C_BaseEntity::CheckCLInterpChanged();
+	}
 };
 
 static CBoundedCvar_Interp cl_interp_var;
@@ -125,7 +131,7 @@ ConVar_ServerBounded *cl_interp = &cl_interp_var;
 
 float GetClientInterpAmount()
 {
-	static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
+	const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
 	if ( pUpdateRate )
 	{
 		// #define FIXME_INTERP_RATIO

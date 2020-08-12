@@ -26,6 +26,11 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+CUtlMemory<ShadowVertex_t> CDispInfo::s_ShadowVertexCache;
+ShadowVertex_t* CDispInfo::s_ShadowVertexCurr = NULL;
+int CDispInfo::s_ShadowVertexCount = 0;
+int CDispInfo::s_ShadowVertexCurrPos = 0;
+
 // ----------------------------------------------------------------------------- //
 // 	Shadow decals + fragments
 // ----------------------------------------------------------------------------- //
@@ -325,7 +330,20 @@ CDispShadowFragment* CDispInfo::AllocateShadowDecalFragment( DispShadowHandle_t 
 	s_DispShadowDecals[h].m_FirstFragment = f;
 	CDispShadowFragment* pf = &s_DispShadowFragments[f];
 	pf->m_nVerts = nCount;
-	pf->m_ShadowVerts = new ShadowVertex_t[nCount];
+	if (s_ShadowVertexCurrPos + nCount > s_ShadowVertexCache.Count())
+	{
+		pf->m_ShadowVerts = new ShadowVertex_t[nCount];
+		pf->bUsingVertexCache = false;
+	}
+	else
+	{
+		pf->m_ShadowVerts = s_ShadowVertexCurr;
+		// these track how many have actually been allocated in cache
+		s_ShadowVertexCurr += nCount;
+		s_ShadowVertexCount += nCount;
+	}
+	// increment to let the cache system know it's overflowing
+	s_ShadowVertexCurrPos += nCount;
 	return pf;
 }
 

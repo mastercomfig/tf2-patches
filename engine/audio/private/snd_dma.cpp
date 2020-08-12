@@ -6602,7 +6602,7 @@ void S_ShutdownMixThread()
 
 void S_Update_( float mixAheadTime )
 {
-	if ( !IsConsole() || !snd_mix_async.GetBool() )
+	if ( !snd_mix_async.GetBool() )
 	{
 		S_ShutdownMixThread();
 		S_Update_Guts( mixAheadTime );

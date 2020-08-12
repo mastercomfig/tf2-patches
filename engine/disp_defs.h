@@ -190,13 +190,10 @@ public:
 	enum				{ MAX_VERTS = 12 };
 
 	int	m_nVerts;
+	bool bUsingVertexCache = true;
 	ShadowVertex_t*	m_ShadowVerts;
 
-	~CDispShadowFragment()
-	{
-		delete[] m_ShadowVerts;
-		m_ShadowVerts = NULL;
-	}
+	~CDispShadowFragment();
 };
 
 
