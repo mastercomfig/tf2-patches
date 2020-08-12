@@ -145,6 +145,8 @@ $Configuration "Release"
 		// http://randomascii.wordpress.com/2013/09/11/debugging-optimized-codenew-in-visual-studio-2012/
 		$AdditionalOptions					"$BASE /Zo"
 		$AdditionalOptions					"$BASE /Oy-"	[$NOFPO]
+		// Fix mismatch with protocollib release
+		$AdditionalOptions					"$BASE /D_ITERATOR_DEBUG_LEVEL=0"
 	}
 
 	$Librarian
