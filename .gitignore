@@ -1,5 +1,3 @@
-# Files to ignore when considering what GIT should commit.
-
 # Visual Studio 
 *.suo
 *.user
@@ -65,19 +63,6 @@ config.cfg
 # ignore vs-generated folders
 .vs/
 Release/
-Debug/
-*.tlog/
-
-# ignore generated protobufs
-generated_proto*/
-
-+# ignore external dependencies for now
-thirdparty/protobuf-2.5.0
-dx9sdk
-
-# ignore vs-generated folders
-.vs/
-Release/
 Release_*/
 Debug/
 *.tlog/
@@ -89,10 +74,3 @@ generated_proto*/
 *.a
 *.dylib
 *.xz
-*.vpc.sentinel
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.vpc_crc
-*.obj
-*.pch
-*.pdb
