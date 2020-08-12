@@ -218,9 +218,9 @@ ALLOC_CALL void *_realloc_base( void *pMem, size_t nSize )
 	return ReallocUnattributed( pMem, nSize );
 }
 
-ALLOC_CALL void *_recalloc_base( void *pMem, size_t nSize )
+ALLOC_CALL void *_recalloc_base( void *pMem, size_t nCount, size_t nSize )
 {
-	void *pMemOut = ReallocUnattributed( pMem, nSize );
+	void *pMemOut = ReallocUnattributed( pMem, nSize * nCount );
 	if ( !pMem )
 	{
 		memset( pMemOut, 0, nSize );
@@ -257,12 +257,12 @@ void * __cdecl _realloc_crt(void *ptr, size_t size)
 
 void * __cdecl _recalloc_crt(void *ptr, size_t count, size_t size)
 {
-	return _recalloc_base( ptr, size * count );
+	return _recalloc_base( ptr, count, size );
 }
 
-ALLOC_CALL void * __cdecl _recalloc ( void * memblock, size_t size )
+ALLOC_CALL void * __cdecl _recalloc ( void * memblock, size_t count, size_t size )
 {
-	void *pMem = ReallocUnattributed( memblock, size );
+	void *pMem = ReallocUnattributed( memblock, size * count );
 	if ( !memblock )
 	{
 		memset( pMem, 0, size );

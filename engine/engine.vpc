@@ -18,7 +18,7 @@ $Configuration
 	{
 		$AdditionalIncludeDirectories	"$BASE;.\;audio;audio\private;audio\public;$SRCDIR\vgui2\include;$SRCDIR\vgui2\controls"
 		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\dx9sdk\include" [$WINDOWS]
-		$PreprocessorDefinitions		"$BASE;USE_CONVARS;VOICE_OVER_IP;BUMPMAP;__USEA3D;_ADD_EAX_;ENGINE_DLL;VERSION_SAFE_STEAM_API_INTERFACES;USE_BREAKPAD_HANDLER"
+		$PreprocessorDefinitions		"$BASE;USE_CONVARS;VOICE_OVER_IP;BUMPMAP;__USEA3D;_ADD_EAX_;ENGINE_DLL;VERSION_SAFE_STEAM_API_INTERFACES;USE_BREAKPAD_HANDLER;NEW_DXSDK"
 		$PreprocessorDefinitions		"$BASE;DEDICATED;SWDS" [$DEDICATED]
 		$PreprocessorDefinitions		"$BASE;USE_WEBM_FOR_REPLAY" [$LINUXALL]
 

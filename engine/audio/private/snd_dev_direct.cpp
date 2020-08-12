@@ -9,7 +9,7 @@
 #pragma warning(disable : 4201)		// nameless struct/union
 #include <ks.h>
 // Fix for VS 2010 build errors copied from Dota
-#if !defined( NEW_DXSDK ) && ( _MSC_VER >= 1600 )
+#if defined( NEW_DXSDK ) && ( _MSC_VER >= 1600 )
 #undef KSDATAFORMAT_SUBTYPE_WAVEFORMATEX
 #undef KSDATAFORMAT_SUBTYPE_PCM
 #undef KSDATAFORMAT_SUBTYPE_IEEE_FLOAT

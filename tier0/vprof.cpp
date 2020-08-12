@@ -1774,9 +1774,10 @@ void CVProfile::Validate( CValidator &validator, tchar *pchName )
 
 #endif // VPROF_ENABLED
 
+TelemetryData g_Telemetry;
+
 #ifdef RAD_TELEMETRY_ENABLED
 
-TelemetryData g_Telemetry;
 static HTELEMETRY g_tmContext;
 static TmU8 *g_pTmMemoryArena = NULL;
 static bool g_TelemetryLoaded = false;

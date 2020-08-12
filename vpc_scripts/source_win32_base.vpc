@@ -16,8 +16,10 @@ $Configuration
 		$PlatformToolset "v110" [$VS2012 && $ANALYZE] // VS 2012 for /analyze
 		$PlatformToolset "v120_xp" [$VS2013 && !$ANALYZE] // VS 2013 targeting Windows XP - http://msdn.microsoft.com/en-us/library/vstudio/jj851139.aspx
 		$PlatformToolset "v120" [$VS2013 && $ANALYZE] // VS 2013 for /analyze
-		$PlatformToolset "v140_xp" [$VS2015 && !$ANALYZE] // VS 2015 for /analyze
-		$PlatformToolset "v140" [$VS2015 && $ANALYZE] // VS 2015 for /analyze
+		// HACK(mastercoms): only use v142 (no _xp)
+		// $PlatformToolset "v140_xp" [$VS2015 && !$ANALYZE] // VS 2015 for /analyze
+		// HACK(mastercoms): use VS2019 in place of VS2015, because there's too many VS2015 definitions
+		$PlatformToolset "v142" [$VS2015] // VS 2015 for /analyze
 	}
 
 	$General
@@ -48,7 +50,9 @@ $Configuration
 		// window since F8 stops on both warnings and errors. The only way to
 		// keep the warning count down is to have warnings-as-errors.
 		// We will not be warning free on 64-bit for a while...
-		$TreatWarningsAsErrors				"Yes (/WX)" [!$ANALYZE && !$WIN64]
+		// HACK(mastercoms): disable warnings for now
+		//$TreatWarningsAsErrors				"Yes (/WX)" [!$ANALYZE && !$WIN64]
+		$TreatWarningsAsErrors				"No (/WX-)"
 
 		// Defines to differentiate 32 from 64 bit builds
 		$PreprocessorDefinitions			"$BASE;PLATFORM_64BITS;WIN64;_WIN64;COMPILER_MSVC64" [$WIN64]

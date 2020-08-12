@@ -18,8 +18,8 @@ REM @set TOOLS32=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin
 REM @set TOOLS64=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64
 
 REM Visual Studio 2013
-@set TOOLS32=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin
-@set TOOLS64=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64
+@set TOOLS32=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.26.28801\bin\Hostx64\x86
+@set TOOLS64=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.26.28801\bin\Hostx64\x64
 
 @set MASM="%TOOLS32%\ml.exe"
 @set MASM64="%TOOLS64%\ml64.exe"

@@ -25,6 +25,19 @@
 //
 #include "tmapi_dummy.h"
 
+struct TelemetryData
+{
+	HTELEMETRY tmContext[32];
+	float flRDTSCToMilliSeconds;	// Conversion from tmFastTime() (rdtsc) to milliseconds.
+	uint32 FrameCount;				// Count of frames to capture before turning off.
+	char ServerAddress[128];		// Server name to connect to.
+	int playbacktick;				// GetPlaybackTick() value from demo file (or 0 if not playing a demo).
+	uint32 DemoTickStart;			// Start telemetry on demo tick #
+	uint32 DemoTickEnd;				// End telemetry on demo tick #
+	uint32 Level;					// Current Telemetry level (Use TelemetrySetLevel to modify)
+};
+PLATFORM_INTERFACE TelemetryData g_Telemetry;
+
 inline void TelemetryTick() {}
 inline void TelemetrySetLevel( unsigned int Level ) {}
 #define TelemetrySetLockName( _ctx, _location, _description ) 
