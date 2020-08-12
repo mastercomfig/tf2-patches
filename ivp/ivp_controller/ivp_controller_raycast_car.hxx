@@ -194,7 +194,7 @@ public:
   
     /**** Methods: 2nd Level, based on primitives ****/
     /**** Methods: 2nd Level, based on primitives ****/
-    virtual void do_steering(IVP_FLOAT steering_angle_in); // default implementation updates this->steering_angle
+    virtual void do_steering(IVP_FLOAT steering_angle_in, bool bAnalog = false); // default implementation updates this->steering_angle
     
     virtual void set_booster_acceleration( IVP_FLOAT acceleration);
     virtual void activate_booster(IVP_FLOAT thrust, IVP_FLOAT duration, IVP_FLOAT delay);

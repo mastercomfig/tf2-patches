@@ -43,6 +43,9 @@ public:
      *			at the point of contact
      ********************************************************************************/
     static IVP_FLOAT get_vert_force(IVP_Contact_Point *friction_handle);
+
+	// IVP(mastercoms): add interface
+	static void get_surface_normal_ws(IVP_Contact_Point* friction_handle, IVP_U_Float_Point* normal);
 };
 
 

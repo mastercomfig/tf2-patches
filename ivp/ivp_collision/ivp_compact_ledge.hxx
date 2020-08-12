@@ -132,6 +132,7 @@ class IVP_Compact_Ledge {
     friend class IVP_SurfaceBuilder_Ledge_Soup;
     friend class IVP_SurfaceBuilder_Mopp;
     friend class IVP_GridBuilder_Array;
+    friend class CVPhysicsVirtualMeshWriter;
 private:
     int c_point_offset; // byte offset from 'this' to (ledge) point array
     union {

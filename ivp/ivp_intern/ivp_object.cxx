@@ -873,6 +873,17 @@ void IVP_Real_Object::init_object_core(IVP_Environment *i_environment, const IVP
     core->calc_next_PSI_matrix_zero_speed( &es );
 }
 
+void IVP_Real_Object::unlink_contact_points_for_object( IVP_Real_Object *other_object ){
+    // HACK(mastercoms): guessed based on delete_all_contact_points_of_object()
+    IVP_Synapse_Friction * syn0 = get_first_friction_synapse();
+    do {
+        if (syn0->get_object() == other_object){
+            IVP_Contact_Point *md = syn0->get_contact_point();
+            P_DELETE(md);
+        }
+    } while (syn0 = syn0->get_next());
+}
+
 
 int IVP_Real_Object::get_collision_check_reference_count(){ // see IVP_Universe_Manager for details
     IVP_OV_Element *ov = get_ov_element();

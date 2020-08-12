@@ -96,6 +96,7 @@ protected:
     friend class IVP_SurfaceManager_Grid;
 	friend class IVP_SurfaceManager_Mopp;
 	friend class hkMoppLongRayVirtualMachine;
+    friend class IVP_SurfaceManager_VirtualMesh;
     IVP_U_Point ray_start_point;
     IVP_U_Float_Point ray_center_point;
     IVP_U_Point ray_end_point;

@@ -118,6 +118,14 @@ public:
   IVP_U_Set_Active<IVP_Core> *get_intruding_cores() const { return set_of_cores ; };  // returns NULL if manage_set was IVP_FALSE 
   IVP_U_Set_Active<IVP_Mindist_Base> *get_intruding_mindists(){ return &set_of_mindists ; };             // returns mindist
   IVP_Real_Object *get_object() const { return object; };
+  void wake_all_sleeping_objects()
+  {
+      if (object)
+      {
+          object->ensure_in_simulation();
+      }
+      // TODO(mastercoms): what is all?
+  }
   
   void add_listener_phantom( IVP_Listener_Phantom *listener);
   void remove_listener_phantom( IVP_Listener_Phantom *listener);

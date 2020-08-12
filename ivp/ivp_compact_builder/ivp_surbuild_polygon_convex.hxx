@@ -25,6 +25,7 @@ class IVP_SurfaceBuilder_Polygon_Convex {
     friend class IVP_SurfaceBuilder_Q12;
     friend class IVP_SurfaceBuilder_Halfspacesoup;
     friend class IVP_SurfaceBuilder_Pointsoup;
+    friend class CPhysicsCollision;
     
 protected:
     IVP_Object_Polygon_Tetra *tetras;

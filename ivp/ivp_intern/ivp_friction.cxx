@@ -664,6 +664,10 @@ void IVP_Friction_System::calc_friction_forces(const IVP_Event_Sim *es) {
     //printf("\n");
 }
 
+IVP_FLOAT IVP_Contact_Point::get_friction_factor() {
+	return span_friction_s[0] * span_friction_s[1];
+}
+
 void IVP_Contact_Point::set_friction_to_neutral(){
     span_friction_s[0] = 0.0f;
     span_friction_s[1] = 0.0f;    
@@ -1058,6 +1062,12 @@ void  IVP_Contact_Point_API::reset_eliminated_energy(IVP_Contact_Point *friction
 IVP_FLOAT IVP_Contact_Point_API::get_vert_force(IVP_Contact_Point *friction_handle){
     return friction_handle->now_friction_pressure;
 };
+
+
+void IVP_Contact_Point_API::get_surface_normal_ws(IVP_Contact_Point* friction_handle, IVP_U_Float_Point* normal){
+	normal = &friction_handle->tmp_contact_info->surf_normal;
+}
+
 
 void IVP_Friction_Info_For_Core::friction_info_insert_friction_dist(IVP_Contact_Point *dist)
 {
