@@ -116,7 +116,8 @@ ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_CHEAT );
 #endif
 static ConVar r_drawtranslucentrenderables( "r_drawtranslucentrenderables", "1", FCVAR_CHEAT );
 static ConVar r_drawopaquerenderables( "r_drawopaquerenderables", "1", FCVAR_CHEAT );
-static ConVar r_threaded_renderables( "r_threaded_renderables", "0" );
+static ConVar r_threaded_renderables( "r_threaded_renderables", "1" );
+static ConVar r_threaded_character_rendering("r_threaded_character_rendering", "1");
 
 // FIXME: This is not static because we needed to turn it off for TF2 playtests
 ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe" );
@@ -1320,7 +1321,7 @@ void CViewRender::ViewDrawScene( bool bDrew3dSkybox, SkyboxVisibility_t nSkyboxV
 	// (e.g. once for a monitor scene and once for the main scene)
 	g_viewscene_refractUpdateFrame = gpGlobals->framecount - 1;
 
-	g_pClientShadowMgr->PreRender();
+	//g_pClientShadowMgr->PreRender();
 
 	// Shadowed flashlights supported on ps_2_b and up...
 	if ( r_flashlightdepthtexture.GetBool() && (viewID == VIEW_MAIN) )
@@ -3917,6 +3918,46 @@ static void DrawOpaqueRenderables_Range( CClientRenderablesList::CEntry *pEntiti
 	}
 }
 
+static void DrawOpaqueRenderable_Parallel_Normal(CClientRenderablesList::CEntry& Entity)
+{
+	if (Entity.m_pRenderable)
+	{
+		DrawOpaqueRenderable(Entity.m_pRenderable, (Entity.m_TwoPass != 0), DEPTH_MODE_NORMAL);
+	}
+}
+
+static void DrawOpaqueRenderable_Parallel_Shadow(CClientRenderablesList::CEntry& Entity)
+{
+	if (Entity.m_pRenderable)
+	{
+		DrawOpaqueRenderable(Entity.m_pRenderable, (Entity.m_TwoPass != 0), DEPTH_MODE_SHADOW);
+	}
+}
+
+static void DrawOpaqueRenderable_Parallel_SSA0(CClientRenderablesList::CEntry& Entity)
+{
+	if (Entity.m_pRenderable)
+	{
+		DrawOpaqueRenderable(Entity.m_pRenderable, (Entity.m_TwoPass != 0), DEPTH_MODE_SSA0);
+	}
+}
+
+static void DrawOpaqueRenderables_Parallel(CClientRenderablesList::CEntry* pEntitiesBegin, int nCount, ERenderDepthMode DepthMode, const char* pszDescription)
+{
+	switch (DepthMode)
+	{
+	case DEPTH_MODE_NORMAL:
+		ParallelProcess(pszDescription, pEntitiesBegin, nCount, &DrawOpaqueRenderable_Parallel_Normal);
+		break;
+	case DEPTH_MODE_SHADOW:
+		ParallelProcess(pszDescription, pEntitiesBegin, nCount, &DrawOpaqueRenderable_Parallel_Shadow);
+		break;
+	case DEPTH_MODE_SSA0:
+		ParallelProcess(pszDescription, pEntitiesBegin, nCount, &DrawOpaqueRenderable_Parallel_SSA0);
+		break;
+	}
+}
+
 void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 {
 	VPROF_BUDGET("CViewRender::DrawOpaqueRenderables", "DrawOpaqueRenderables" );
@@ -4039,7 +4080,7 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 		}
 	}
 
-	if ( 0 && r_threaded_renderables.GetBool() )
+	if ( r_threaded_renderables.GetBool() )
 	{
 		ParallelProcess( "BoneSetupNpcsLast", arrBoneSetupNpcsLast.Base() + numOpaqueEnts - numNpcs, numNpcs, &SetupBonesOnBaseAnimating );
 		ParallelProcess( "BoneSetupNpcsLast NonNPCs", arrBoneSetupNpcsLast.Base(), numNonNpcsAnimating, &SetupBonesOnBaseAnimating );
@@ -4056,10 +4097,10 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 		for ( int bucket = 0; bucket < RENDER_GROUP_CFG_NUM_OPAQUE_ENT_BUCKETS; ++ bucket )
 		{
 			pEnts[bucket][0] = m_pRenderablesList->m_RenderGroups[ RENDER_GROUP_OPAQUE_ENTITY_HUGE + 2 * bucket ];
-			pEnts[bucket][1] = pEnts[bucket][0] + m_pRenderablesList->m_RenderGroupCounts[ RENDER_GROUP_OPAQUE_ENTITY_HUGE + 2 * bucket ];
+			pEnts[bucket][1] = pEnts[bucket][0] + m_pRenderablesList->m_RenderGroupCounts[RENDER_GROUP_OPAQUE_ENTITY_HUGE + 2 * bucket];
 			
 			pProps[bucket][0] = m_pRenderablesList->m_RenderGroups[ RENDER_GROUP_OPAQUE_STATIC_HUGE + 2 * bucket ];
-			pProps[bucket][1] = pProps[bucket][0] + m_pRenderablesList->m_RenderGroupCounts[ RENDER_GROUP_OPAQUE_STATIC_HUGE + 2 * bucket ];
+			pProps[bucket][1] = pProps[bucket][0] + m_pRenderablesList->m_RenderGroupCounts[RENDER_GROUP_OPAQUE_STATIC_HUGE + 2 * bucket];
 
 			// Render sequence debugging
 			#if DEBUG_BUCKETS
@@ -4107,7 +4148,7 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 			// when needed.
 			//if ( bDrawopaquestaticpropslast )
 			{
-				DrawOpaqueRenderables_Range( pEnts[bucket][0], pEnts[bucket][1], DepthMode );
+				DrawOpaqueRenderables_Range(pEnts[bucket][0], pEnts[bucket][1], DepthMode);
 				DrawOpaqueRenderables_DrawStaticProps( pProps[bucket][0], pProps[bucket][1], DepthMode );
 			}
 			/*else
@@ -4123,7 +4164,14 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 	//
 	// Draw NPCs now
 	//
-	DrawOpaqueRenderables_Range( arrRenderEntsNpcsFirst.Base(), arrRenderEntsNpcsFirst.Base() + numNpcs, DepthMode );
+	if (r_threaded_character_rendering.GetBool())
+	{
+		DrawOpaqueRenderables_Parallel(arrRenderEntsNpcsFirst.Base(), numNpcs, DepthMode, "Draw NPCs");
+	}
+	else
+	{
+		DrawOpaqueRenderables_Range(arrRenderEntsNpcsFirst.Base(), arrRenderEntsNpcsFirst.Base() + numNpcs, DepthMode);
+	}
 
 	//
 	// Ropes and particles
@@ -4868,7 +4916,7 @@ void CSkyboxView::Draw()
 		pRTDepth = g_pSourceVR->GetRenderTarget( (ISourceVirtualReality::VREye)(m_eStereoEye-1), ISourceVirtualReality::RT_Depth );
 	}
 
-	DrawInternal(VIEW_3DSKY, true, pRTColor, pRTDepth );
+	DrawInternal(VIEW_3DSKY, false, pRTColor, pRTDepth );
 }
 
 

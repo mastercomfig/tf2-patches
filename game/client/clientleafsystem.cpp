@@ -32,7 +32,7 @@ class VMatrix;  // forward decl
 static ConVar cl_drawleaf("cl_drawleaf", "-1", FCVAR_CHEAT );
 static ConVar r_PortalTestEnts( "r_PortalTestEnts", "1", FCVAR_CHEAT, "Clip entities against portal frustums." );
 static ConVar r_portalsopenall( "r_portalsopenall", "0", FCVAR_CHEAT, "Open all portals" );
-static ConVar cl_threaded_client_leaf_system("cl_threaded_client_leaf_system", "0"  );
+static ConVar cl_threaded_client_leaf_system("cl_threaded_client_leaf_system", "1"  );
 
 
 DEFINE_FIXEDSIZE_ALLOCATOR( CClientRenderablesList, 1, CUtlMemoryPool::GROW_SLOW );
@@ -550,7 +550,7 @@ void CClientLeafSystem::PreRender()
 			RemoveFromTree( handle );
 		}
 
-		bool bThreaded = false;//( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
+		bool bThreaded = ( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
 
 		if ( !bThreaded )
 		{
@@ -1379,7 +1379,7 @@ void CClientLeafSystem::ComputeTranslucentRenderLeaf( int count, const LeafIndex
 
 	// For better sorting, we're gonna choose the leaf that is closest to the camera.
 	// The leaf list passed in here is sorted front to back
-	bool bThreaded = false;//( cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
+	bool bThreaded = ( cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
 	int globalFrameCount = gpGlobals->framecount;
 	int i;
 

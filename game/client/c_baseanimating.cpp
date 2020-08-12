@@ -2727,7 +2727,8 @@ ConVar cl_warn_thread_contested_bone_setup("cl_warn_thread_contested_bone_setup"
 
 // Marked this developmentonly because it currently crashes, and users are enabling it and complaining because of
 // course.  Once this actually works it should just be FCVAR_INTERNAL_USE.
-ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "0", FCVAR_DEVELOPMENTONLY | FCVAR_INTERNAL_USE,
+// UNDONE(mastercoms)
+ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "1", FCVAR_INTERNAL_USE,
                               "Enable parallel processing of C_BaseAnimating::SetupBones()" );
 
 //-----------------------------------------------------------------------------

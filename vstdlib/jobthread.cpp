@@ -313,8 +313,8 @@ public:
 		}
 		else
 		{
-			// Cap the GlobPool threads at 4.
-			startParams.nThreadsMax = 4;
+			// Cap the GlobPool threads at 12.
+			startParams.nThreadsMax = 12;
 		}
 		return CThreadPool::Start( startParams, "Glob" );
 	}

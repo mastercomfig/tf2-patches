@@ -146,7 +146,7 @@ static ConVar r_dscale_fardist( "r_dscale_fardist", "2000", FCVAR_CHEAT );
 static ConVar r_dscale_basefov( "r_dscale_basefov", "90", FCVAR_CHEAT );
 
 ConVar r_spray_lifetime( "r_spray_lifetime", "2", 0, "Number of rounds player sprays are visible" );
-ConVar r_queued_decals( "r_queued_decals", "0", 0, "Offloads a bit of decal rendering setup work to the material system queue when enabled." );
+ConVar r_queued_decals( "r_queued_decals", "1", 0, "Offloads a bit of decal rendering setup work to the material system queue when enabled." );
 
 
 // This makes sure all the decals got freed before the engine is shutdown.

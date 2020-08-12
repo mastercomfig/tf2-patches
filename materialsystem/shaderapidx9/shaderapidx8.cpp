@@ -11129,6 +11129,7 @@ void CShaderAPIDx8::CommitPixelShaderLighting( int pshReg )
 
 	// First, gotta sort the lights by their type
 	int lightIndex[MAX_NUM_LIGHTS];
+	memset(lightIndex, 0, sizeof(lightIndex));
 	SortLights( lightIndex );
 
 	// Offset to create a point light from directional

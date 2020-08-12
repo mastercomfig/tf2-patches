@@ -24,10 +24,8 @@
 #endif
 #include "tier0/memdbgon.h"
 
-#ifndef NDEBUG
 // Comment this out when we release.
 #define ALLOW_DEVELOPMENT_CVARS
-#endif
 
 
 

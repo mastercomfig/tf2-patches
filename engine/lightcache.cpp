@@ -864,8 +864,8 @@ static float LightIntensityAndDirectionAtPointOld( dworldlight_t* pLight,
 
 	// Early out for really low-intensity lights
 	// That way we don't need to ray-cast or normalize
-	float intensity = max( pLight->intensity[0], pLight->intensity[1] );
-	intensity = max(intensity, pLight->intensity[2] );
+	float intensity = fpmax( pLight->intensity[0], pLight->intensity[1] );
+	intensity = fpmax(intensity, pLight->intensity[2] );
 
 	// This is about 1/256
 	// See the comment titled "EMIT_SURFACE LIGHTS" at the top for info about why we don't 
