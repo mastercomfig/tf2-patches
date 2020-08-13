@@ -47,7 +47,7 @@
 #include "materialsystem/imaterialvar.h"
 #include "coordsize.h"
 #include "mempool.h"
-//#include "DirectXMath.h"
+#include "mathlib/ssemath.h"
 #ifndef SWDS
 #include "Overlay.h"
 #endif
@@ -4840,11 +4840,9 @@ static bool EnumerateLeafInBox_R(mnode_t *node, EnumLeafBoxInfo_t& info )
 	}
 }
 
-#if 0
 static fltx4 AlignThatVector(const Vector &vc)
 {
-	fltx4 out = DirectX::XMLoadFloat(vc.Base());
-	
+	fltx4 out = VectorLoad(&vc);
 
 	/*
 	out.x = vc.x;
@@ -4981,7 +4979,6 @@ static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_
 	}
 	*/
 }
-#endif
 
 //-----------------------------------------------------------------------------
 // Returns all leaves that lie within a spherical volume
@@ -5332,14 +5329,10 @@ bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& max
 	info.m_nContext = context;
 	info.m_vecBoxMax = maxs;
 	info.m_vecBoxMin = mins;
-#ifdef _X360
 	if (opt_EnumerateLeavesFastAlgorithm.GetBool())
 		return EnumerateLeafInBox_R( host_state.worldbrush->nodes, &info );
 	else
 		return EnumerateLeafInBox_R( host_state.worldbrush->nodes, info );
-#else
-	return EnumerateLeafInBox_R( host_state.worldbrush->nodes, info );
-#endif
 }
 
 

@@ -96,12 +96,10 @@ void C_ObjectDispenser::OnDataChanged( DataUpdateType_t updateType )
 {
 	BaseClass::OnDataChanged( updateType );
 
-#ifdef STAGING_ONLY
 	if ( updateType == DATA_UPDATE_CREATED )
 	{
 		SetNextClientThink( CLIENT_THINK_ALWAYS );
 	}
-#endif // STAGING_ONLY
 
 	if ( m_bUpdateHealingTargets )
 	{
@@ -117,13 +115,11 @@ void C_ObjectDispenser::ClientThink()
 {
 	BaseClass::ClientThink();
 
-#ifdef STAGING_ONLY
 	C_TFPlayer *pTFOwner = GetOwner();
 	if ( pTFOwner && pTFOwner->m_Shared.IsEnteringOrExitingFullyInvisible() )
 	{
 		UpdateEffects();
 	}
-#endif // STAGING_ONLY
 }
 
 //-----------------------------------------------------------------------------

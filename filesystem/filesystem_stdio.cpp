@@ -237,7 +237,7 @@ bool UseOptimalBufferAllocation()
 ConVar filesystem_unbuffered_io( "filesystem_unbuffered_io", "1", 0, "" );
 #define UseUnbufferedIO() ( UseOptimalBufferAllocation() && filesystem_unbuffered_io.GetBool() )
 #else
-#define UseUnbufferedIO() true
+#define UseUnbufferedIO() false
 #endif
 
 ConVar filesystem_native( "filesystem_native", "1", 0, "Use native FS or STDIO" );

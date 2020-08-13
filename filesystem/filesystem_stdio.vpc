@@ -39,10 +39,6 @@ $Configuration
 		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE" [$WIN64]
 		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE;_USE_32BIT_TIME_T" [!$WIN64]
 
-		// Enable super-fun workaround for using MSVC2015 to target Windows XP
-		// https://connect.microsoft.com/VisualStudio/feedback/details/1600505/stat-not-working-on-windows-xp-using-v14-xp-platform-toolset-vs2015
-		$PreprocessorDefinitions	"$BASE;FILESYSTEM_MSVC2015_STAT_BUG_WORKAROUND" [$VS2015]
-
 		// Add VPK support
 		$PreprocessorDefinitions	"$BASE;SUPPORT_PACKED_STORE" [!$WIN64]
 	}

@@ -18,6 +18,7 @@
 #include "mathlib/vector.h"
 #include "mathlib/vector4d.h"
 #include "mathlib/compressed_vector.h"
+#include "mathlib/ssemath.h"
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
 #include "mathlib/mathlib.h"

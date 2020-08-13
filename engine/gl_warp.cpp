@@ -94,6 +94,8 @@ void R_UnloadSkys( void )
 	}	
 }
 
+static ConVar r_skybox_lowend("r_skybox_lowend", "0");
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *name - 
@@ -106,7 +108,7 @@ bool R_LoadNamedSkys( const char *skyname )
 	bool		success = true;
 	const char	*skyboxsuffix[ 6 ] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
-	bool bUseDx8Skyboxes = ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 );
+	bool bUseDx8Skyboxes = (g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90) || r_skybox_lowend.GetBool();
 	for ( int i = 0; i < 6; i++ )
 	{
 		skies[i] = NULL;

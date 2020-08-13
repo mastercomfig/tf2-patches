@@ -635,11 +635,34 @@ inline void Vector4DMultiplyAligned( Vector4DAligned const& a, Vector4DAligned c
 #endif
 }
 
+inline void Vector4DWeightMADSSE(vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB)
+{
+	Assert(vInA.IsValid() && vInB.IsValid() && IsFinite(w));
+
+#if !defined( _X360 )
+	// Replicate scalar float out to 4 components
+	__m128 packed = _mm_set1_ps(w);
+
+	// 4D SSE Vector MAD
+	vOutA.AsM128() = _mm_add_ps(vOutA.AsM128(), _mm_mul_ps(vInA.AsM128(), packed));
+	vOutB.AsM128() = _mm_add_ps(vOutB.AsM128(), _mm_mul_ps(vInB.AsM128(), packed));
+#else
+	__vector4 temp;
+
+	temp = __lvlx(&w, 0);
+	temp = __vspltw(temp, 0);
+
+	vOutA.AsM128() = __vmaddfp(vInA.AsM128(), temp, vOutA.AsM128());
+	vOutB.AsM128() = __vmaddfp(vInB.AsM128(), temp, vOutB.AsM128());
+#endif
+}
+
 inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
 {
 	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
 
 #if !defined( _X360 )
+#if 0
 	vOutA.x += vInA.x * w;
 	vOutA.y += vInA.y * w;
 	vOutA.z += vInA.z * w;
@@ -650,27 +673,8 @@ inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAli
 	vOutB.z += vInB.z * w;
 	vOutB.w += vInB.w * w;
 #else
-    __vector4 temp;
-
-    temp = __lvlx( &w, 0 );
-    temp = __vspltw( temp, 0 );
-
-	vOutA.AsM128() = __vmaddfp( vInA.AsM128(), temp, vOutA.AsM128() );
-	vOutB.AsM128() = __vmaddfp( vInB.AsM128(), temp, vOutB.AsM128() );
+	Vector4DWeightMADSSE(w, vInA, vOutA, vInB, vOutB);
 #endif
-}
-
-inline void Vector4DWeightMADSSE( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
-{
-	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
-
-#if !defined( _X360 )
-	// Replicate scalar float out to 4 components
-    __m128 packed = _mm_set1_ps( w );
-
-	// 4D SSE Vector MAD
-	vOutA.AsM128() = _mm_add_ps( vOutA.AsM128(), _mm_mul_ps( vInA.AsM128(), packed ) );
-	vOutB.AsM128() = _mm_add_ps( vOutB.AsM128(), _mm_mul_ps( vInB.AsM128(), packed ) );
 #else
     __vector4 temp;
 

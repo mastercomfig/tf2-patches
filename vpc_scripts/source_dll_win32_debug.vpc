@@ -133,7 +133,7 @@ $Configuration "Debug"
 		$OmitDefaultLibraryNames
 		$ErrorReporting						"Prompt Immediately (/errorReport:prompt)"
 
-		$AdditionalOptions					"/Zm200"
+		$AdditionalOptions					"/Zm750"
 	}
 
 	$Linker

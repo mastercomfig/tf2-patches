@@ -7326,6 +7326,8 @@ void C_TFPlayer::RecalcBodygroupsIfDirty( void )
 	}
 }
 
+static ConVar tf_skip_halloween_bomb_hat_translucency("tf_skip_halloween_bomb_hat_translucency", "0");
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -7340,7 +7342,7 @@ int C_TFPlayer::DrawModel( int flags )
 	// Don't draw the model at all if we're fully invisible
 	if ( GetEffectiveInvisibilityLevel() >= 1.0f )
 	{
-		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 ) && !m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
+		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 || tf_skip_halloween_bomb_hat_translucency.GetBool() ) && !m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
 		{
 			m_hHalloweenBombHat->SetEffects( EF_NODRAW );
 		}
@@ -7348,7 +7350,7 @@ int C_TFPlayer::DrawModel( int flags )
 	}
 	else
 	{
-		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 ) && m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
+		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 || tf_skip_halloween_bomb_hat_translucency.GetBool() ) && m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
 		{
 			m_hHalloweenBombHat->RemoveEffects( EF_NODRAW );
 		}
@@ -9325,12 +9327,7 @@ bool C_TFPlayer::CanShowTeamMenu( void )
 	if ( IsHLTV() )
 		return false;
 
-#ifdef STAGING_ONLY
 	if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
-#else
-	if ( TFGameRules() && ( TFGameRules()->IsCompetitiveMode() || TFGameRules()->IsPowerupMode() ) )
-#endif // STAGING_ONLY
-	
 		return false;
 
 	return ( GetTeamNumber() != TEAM_UNASSIGNED );

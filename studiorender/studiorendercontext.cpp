@@ -810,7 +810,8 @@ void CStudioRenderContext::R_StudioBuildMorph( studiohdr_t *pStudioHdr,
 	studiomeshgroup_t* pMeshGroup, mstudiomesh_t* pMesh, 
 	OptimizedModel::StripGroupHeader_t *pStripGroup )
 {
-	if ( !g_pMaterialSystemHardwareConfig->HasFastVertexTextures() || 
+	if ( g_pMaterialSystem->GetThreadMode() != MATERIAL_SINGLE_THREADED ||
+		!g_pMaterialSystemHardwareConfig->HasFastVertexTextures() || 
 		( ( pMeshGroup->m_Flags & MESHGROUP_IS_DELTA_FLEXED ) == 0 ) ||
 		( ( pStripGroup->flags & OptimizedModel::STRIPGROUP_SUPPRESS_HW_MORPH ) != 0 ) )
 	{

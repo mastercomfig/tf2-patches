@@ -63,11 +63,8 @@
 ConVar mat_loadtextures( "mat_loadtextures", "1", FCVAR_CHEAT );
 
 // OS X and Linux are blowing up right now due to this.  Benefits vs possible regressions on DX less clear.
-#if defined( DX_TO_GL_ABSTRACTION ) || defined( STAGING_ONLY )
-	#define CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH "1"
-#else
-	#define CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH "0"
-#endif
+#define CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH "1"
+
 static ConVar mod_offline_hdr_switch( "mod_offline_hdr_switch", CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH, FCVAR_INTERNAL_USE,
                                       "Re-order the HDR/LDR mode switch to do most of the material system "
                                       "reloading with the device offline. This reduces unnecessary device "

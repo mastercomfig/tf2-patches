@@ -8,7 +8,7 @@ $IgnoreRedundancyWarning	"ON"
 
 // Disable frame pointer omission to allow fast stack walking, necessary for
 // good ETW profiling.
-$Conditional  NOFPO  "1"
+//$Conditional  NOFPO  "1"
 
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTBINNAME"
@@ -141,7 +141,7 @@ $Configuration "Release"
 		$OmitDefaultLibraryNames
 		$ErrorReporting						"Prompt Immediately (/errorReport:prompt)"
 
-		$AdditionalOptions					"/Zm200"
+		$AdditionalOptions					"/Zm750"
 		// Enable extra debugging information. This switch requires VS 2013 Update 3.
 		// With VS 2013 make sure that Edit-And-Continue is disabled in the debugger settings so that
 		// the debugger uses the enhanced debug information.

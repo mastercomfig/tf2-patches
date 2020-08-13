@@ -2024,7 +2024,7 @@ void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if 1
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( &angles.x );
 	scale = ReplicateX4( 0.5f ); 

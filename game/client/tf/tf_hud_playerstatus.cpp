@@ -38,9 +38,7 @@ using namespace vgui;
 
 ConVar cl_hud_playerclass_use_playermodel( "cl_hud_playerclass_use_playermodel", "1", FCVAR_ARCHIVE, "Use player model in player class HUD." );
 
-#ifdef STAGING_ONLY
 ConVar cl_hud_playerclass_playermodel_lod( "cl_hud_playerclass_playermodel_lod", "0", FCVAR_ARCHIVE, "Adjust lod on player model in the player class HUD." );
-#endif // STAGING_ONLY
 
 ConVar cl_hud_playerclass_playermodel_showed_confirm_dialog( "cl_hud_playerclass_playermodel_showed_confirm_dialog", "0", FCVAR_ARCHIVE | FCVAR_HIDDEN );
 
@@ -109,9 +107,7 @@ CTFHudPlayerClass::CTFHudPlayerClass( Panel *parent, const char *name ) : Editab
 	m_hDisguiseWeapon = NULL;
 	m_flNextThink = 0.0f;
 	m_nKillStreak = 0;
-#ifdef STAGING_ONLY
 	m_nLOD = -1;
-#endif // STAGING_ONLY
 
 	m_bUsePlayerModel = cl_hud_playerclass_use_playermodel.GetBool();
 
@@ -239,13 +235,11 @@ void CTFHudPlayerClass::OnThink()
 		bPlayerClassModeChange = true;
 	}
 
-#ifdef STAGING_ONLY
 	if ( m_nLOD != cl_hud_playerclass_playermodel_lod.GetInt() && m_pPlayerModelPanel )
 	{
 		m_nLOD = cl_hud_playerclass_playermodel_lod.GetInt();
 		m_pPlayerModelPanel->SetLOD( m_nLOD );
 	}
-#endif // STAGING_ONLY
 
 	bool bForceEyeUpdate = false;
 	// set our class image

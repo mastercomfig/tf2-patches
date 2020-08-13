@@ -84,9 +84,7 @@ private:
 	int					m_nLoadoutPosition;
 	int					m_nKillStreak;
 
-#ifdef STAGING_ONLY
 	int					m_nLOD;
-#endif // STAGING_ONLY
 	
 	bool				m_bUsePlayerModel;
 };

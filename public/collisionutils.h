@@ -16,7 +16,6 @@
 #endif
 
 #include "mathlib/ssemath.h"
-//#include "DirectXMath.h"
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -224,8 +223,8 @@ bool IsBoxIntersectingBoxExtents( const Vector& boxCenter1, const Vector& boxHal
 
 
 // inline version:
-/*inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
-								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );*/
+inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );
 
 
 //-----------------------------------------------------------------------------
@@ -426,7 +425,7 @@ bool RayHasFullyContainedIntersectionWithQuad( const Ray_t &ray,
 // INLINES
 //-----------------------------------------------------------------------------
 
-/*inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 )
 {
 	fltx4 vecDelta, vecSize;
@@ -440,7 +439,7 @@ bool RayHasFullyContainedIntersectionWithQuad( const Ray_t &ray,
 
 
 	return DirectX::XMComparisonAllInBounds( condition );
-}*/
+}
 
 
 #endif // COLLISIONUTILS_H

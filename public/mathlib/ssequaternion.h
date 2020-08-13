@@ -38,16 +38,16 @@
 // the SSE2 registers, which lessens this problem a little.
 
 // permitted only on 360, as we've done careful tuning on its Altivec math:
-#ifdef _X360
+
+// UNDONE(mastercoms)
 #define ALLOW_SIMD_QUATERNION_MATH 1  // not on PC!
-#endif
 
 
 
 //---------------------------------------------------------------------
 // Load/store quaternions
 //---------------------------------------------------------------------
-#ifndef _X360
+#if 0
 #if ALLOW_SIMD_QUATERNION_MATH
 // Using STDC or SSE
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned & pSIMD )
@@ -72,19 +72,19 @@ FORCEINLINE void StoreAlignedSIMD( QuaternionAligned * RESTRICT pSIMD, const flt
 // for the transitional class -- load a QuaternionAligned
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned & pSIMD )
 {
-	fltx4 retval = XMLoadVector4A( pSIMD.Base() );
+	fltx4 retval = VectorLoad(&pSIMD);
 	return retval;
 }
 
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned * RESTRICT pSIMD )
 {
-	fltx4 retval = XMLoadVector4A( pSIMD );
+	fltx4 retval = VectorLoad(pSIMD);
 	return retval;
 }
 
 FORCEINLINE void StoreAlignedSIMD( QuaternionAligned * RESTRICT pSIMD, const fltx4 & a )
 {
-	XMStoreVector4A( pSIMD->Base(), a );
+	VectorStore(a, pSIMD);
 }
 
 #endif
@@ -172,7 +172,7 @@ FORCEINLINE fltx4 QuaternionBlendSIMD( const fltx4 &p, const fltx4 &q, float t )
 //---------------------------------------------------------------------
 // Multiply Quaternions
 //---------------------------------------------------------------------
-#ifndef _X360
+#if 1
 
 // SSE and STDC
 FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
@@ -196,16 +196,16 @@ FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
 	fltx4 q2, row, result;
 	q2 = QuaternionAlignSIMD( p, q );
 
-	row = XMVectorSwizzle( q2, 3, 2, 1, 0 );
+	row = DirectX::XMVectorSwizzle( q2, 3, 2, 1, 0 );
 	row = MulSIMD( row, g_QuatMultRowSign[0] );
 	result = Dot4SIMD( row, p );
 
-	row = XMVectorSwizzle( q2, 2, 3, 0, 1 );
+	row = DirectX::XMVectorSwizzle( q2, 2, 3, 0, 1 );
 	row = MulSIMD( row, g_QuatMultRowSign[1] );
 	row = Dot4SIMD( row, p );
 	result = __vrlimi( result, row, 4, 0 );
 	
-	row = XMVectorSwizzle( q2, 1, 0, 3, 2 );
+	row = DirectX::XMVectorSwizzle( q2, 1, 0, 3, 2 );
 	row = MulSIMD( row, g_QuatMultRowSign[2] );
 	row = Dot4SIMD( row, p );
 	result = __vrlimi( result, row, 2, 0 );
@@ -292,7 +292,7 @@ FORCEINLINE fltx4 QuaternionScaleSIMD( const fltx4 &p, float t )
 //-----------------------------------------------------------------------------
 // Quaternion sphereical linear interpolation
 //-----------------------------------------------------------------------------
-#ifndef _X360
+#if 0
 
 // SSE and STDC
 FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, float t )
@@ -346,7 +346,7 @@ FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, fl
 // X360
 FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, float t )
 {
-	return XMQuaternionSlerp( p, q, t );
+	return DirectX::XMQuaternionSlerp( p, q, t );
 }
 
 #endif

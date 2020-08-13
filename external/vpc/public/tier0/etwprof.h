@@ -27,7 +27,7 @@
 #ifdef IS_WINDOWS_PC
 // ETW support should be compiled in for all Windows PC platforms. It isn't
 // supported on Windows XP but that is determined at run-time.
-#if !defined(STANDALONE_VPC)
+#if !defined(STANDALONE_VPC) && !defined(DISABLE_ETW)
 #define	ETW_MARKS_ENABLED
 #endif
 #endif
