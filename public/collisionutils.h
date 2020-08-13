@@ -16,6 +16,7 @@
 #endif
 
 #include "mathlib/ssemath.h"
+//#include "DirectXMath.h"
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -222,12 +223,10 @@ bool IsBoxIntersectingBoxExtents( const Vector& boxCenter1, const Vector& boxHal
 						   const Vector& boxCenter2, const Vector& boxHalfDiagonal2 );
 
 
-#ifdef _X360
 // inline version:
-#include "mathlib/ssemath.h"
-inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
-								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );
-#endif
+/*inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );*/
+
 
 //-----------------------------------------------------------------------------
 // 
@@ -427,9 +426,7 @@ bool RayHasFullyContainedIntersectionWithQuad( const Ray_t &ray,
 // INLINES
 //-----------------------------------------------------------------------------
 
-
-#ifdef _X360
-inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+/*inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 )
 {
 	fltx4 vecDelta, vecSize;
@@ -438,13 +435,12 @@ inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 box
 	vecSize = AddSIMD(boxHalfDiagonal1, boxHalfDiagonal2);
 
 	uint condition;
-	XMVectorInBoundsR(&condition, vecDelta, vecSize);
+    DirectX::XMVectorInBoundsR(&condition, vecDelta, vecSize);
 	// we want the top three words to be all 1's ; that means in bounds
 
 
-	return XMComparisonAllInBounds( condition );
-}
-#endif
+	return DirectX::XMComparisonAllInBounds( condition );
+}*/
 
 
 #endif // COLLISIONUTILS_H

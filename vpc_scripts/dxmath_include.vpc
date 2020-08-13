@@ -1,0 +1,17 @@
+//-----------------------------------------------------------------------------
+//	dxmath_include.vpc
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$MacroRequired "PLATFORM"
+
+$Configuration
+{
+	$Compiler
+	{
+		// General
+		$AdditionalIncludeDirectories		"$BASE;$SRCDIR\thirdparty\DirectXMath-apr2020\Inc;$SRCDIR\thirdparty\DirectXMath-apr2020\Extensions;$SRCDIR\thirdparty\DirectXMath-apr2020\XDSP"
+		$AdditionalIncludeDirectories		"$BASE;$SRCDIR\thirdparty\DirectXMath-apr2020\Native" [$OSXALL||$LINUXALL]
+	}
+}
