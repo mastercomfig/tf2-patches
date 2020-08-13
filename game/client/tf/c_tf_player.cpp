@@ -1619,6 +1619,9 @@ bool C_TFRagdoll::IsRagdollVisible()
 #define DISSOLVE_FADE_OUT_START_TIME		2.0f
 #define DISSOLVE_FADE_OUT_END_TIME			2.0f
 
+extern ConVar g_ragdoll_lvfadespeed;
+extern ConVar g_ragdoll_fadespeed;
+
 void C_TFRagdoll::ClientThink( void )
 {
 	SetNextClientThink( CLIENT_THINK_ALWAYS );
@@ -1760,9 +1763,16 @@ void C_TFRagdoll::ClientThink( void )
 	if ( m_bFadingOut == true )
 	{
 		int iAlpha = GetRenderColor().a;
-		int iFadeSpeed = 600.0f;
+		int iFadeSpeed = (g_RagdollLVManager.IsLowViolence()) ? g_ragdoll_lvfadespeed.GetInt() : g_ragdoll_fadespeed.GetInt();
 
-		iAlpha = MAX( iAlpha - ( iFadeSpeed * gpGlobals->frametime ), 0 );
+		if (iFadeSpeed < 1)
+		{
+			iAlpha = 0;
+		}
+		else
+		{
+			iAlpha = MAX(iAlpha - (iFadeSpeed * gpGlobals->frametime), 0);
+		}
 
 		SetRenderMode( kRenderTransAlpha );
 		SetRenderColorA( iAlpha );
@@ -1782,14 +1792,22 @@ void C_TFRagdoll::ClientThink( void )
 		{
 			m_bFadingOut = true;
 			float flDelay = cl_ragdoll_fade_time.GetFloat() * 0.33f;
-			m_fDeathTime = gpGlobals->curtime + flDelay;
 
 			RemoveAllDecals();
-		}
 
-		// Fade out after the specified delay.
-		StartFadeOut( cl_ragdoll_fade_time.GetFloat() * 0.33f );
-		return;
+			if (flDelay > 0.01f)
+			{
+				m_fDeathTime = gpGlobals->curtime + flDelay;
+				return;
+			}
+			m_fDeathTime = -1;
+		}
+		else
+		{
+			// Fade out after the specified delay.
+			StartFadeOut(cl_ragdoll_fade_time.GetFloat() * 0.33f);
+			return;
+		}
 	}
 
 	// Remove us if our death time has passed.
@@ -8001,7 +8019,7 @@ void C_TFPlayer::DropWearable( C_TFWearable *pItem, const breakablepropparams_t 
 	}
 
 	pEntity->m_nSkin = m_nSkin;
-	pEntity->StartFadeOut( 15.0f );
+	pEntity->StartFadeOut( cl_ragdoll_fade_time.GetFloat());
 
 	IPhysicsObject *pPhysicsObject = pEntity->VPhysicsGetObject();
 	if ( !pPhysicsObject )
