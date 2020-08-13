@@ -2071,19 +2071,20 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 {
 	if ( IsPC() )
 	{
-		// If not async loaded, start mixing right away
-		if ( !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() )
-		{
-			return true;
-		}
-
+		// Notify load
 		bool bCacheValid;
 		bool bLoaded = wavedatacache->IsDataLoadCompleted( m_hCache, &bCacheValid );
 		if ( !bCacheValid )
 		{
 			wavedatacache->RestartDataLoad( &m_hCache, GetFileName(), m_dataSize, m_dataStart );
 		}
-		return bLoaded;
+
+		// Start mixing right away unless not loaded
+		if (bLoaded || !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool())
+		{
+			return true;
+		}
+		return false;
 	}
 
 	if ( IsX360() )
@@ -2334,11 +2335,10 @@ bool CWaveDataMemoryAsync::IsReadyToMix()
 	if ( !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() )
 	{
 		// Wait until we're pending at least
-		if ( m_source.GetCacheStatus() == CAudioSource::AUDIO_NOT_LOADED )
+		if ( m_source.GetCacheStatus() != CAudioSource::AUDIO_NOT_LOADED )
 		{
-			return false;
+			return true;
 		}
-		return true;
 	}
 
 	if ( m_source.IsCached() )

@@ -116,8 +116,7 @@ ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_CHEAT );
 #endif
 static ConVar r_drawtranslucentrenderables( "r_drawtranslucentrenderables", "1", FCVAR_CHEAT );
 static ConVar r_drawopaquerenderables( "r_drawopaquerenderables", "1", FCVAR_CHEAT );
-static ConVar r_threaded_renderables( "r_threaded_renderables", "1" );
-static ConVar r_threaded_character_rendering("r_threaded_character_rendering", "1");
+static ConVar r_threaded_renderables( "r_threaded_renderables", "0" );
 
 // FIXME: This is not static because we needed to turn it off for TF2 playtests
 ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe" );
@@ -4159,14 +4158,7 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 	//
 	// Draw NPCs now
 	//
-	if (r_threaded_character_rendering.GetBool())
-	{
-		DrawOpaqueRenderables_Parallel(arrRenderEntsNpcsFirst.Base(), numNpcs, DepthMode, "Draw NPCs");
-	}
-	else
-	{
-		DrawOpaqueRenderables_Range(arrRenderEntsNpcsFirst.Base(), arrRenderEntsNpcsFirst.Base() + numNpcs, DepthMode);
-	}
+	DrawOpaqueRenderables_Range(arrRenderEntsNpcsFirst.Base(), arrRenderEntsNpcsFirst.Base() + numNpcs, DepthMode);
 
 	//
 	// Ropes and particles

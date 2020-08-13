@@ -823,16 +823,29 @@ static decal_t *R_DecalAlloc( int flags )
 
 	if ( iSlot == -1 )
 	{
-		iSlot = R_FindDynamicDecalSlot( g_iLastReplacedDynamic+1 );
-		if ( iSlot == -1 )
+		// if the user has requested 0 decals, let them
+		if (dynamicDecalLimit > 0)
 		{
-			if ( !bWarningOnce )
-			{
-				// Can't find a free slot. Just kill the first one.
-				DevWarning( 1, "Exceeded MAX_DECALS (%d).\n", g_nMaxDecals );
-				bWarningOnce = true;
-			}
+			iSlot = R_FindDynamicDecalSlot(g_iLastReplacedDynamic + 1);
+		    if ( iSlot == -1 )
+		    {
+			    if ( !bWarningOnce )
+			    {
+				    // Can't find a free slot. Just kill the first one.
+				    DevWarning( 1, "Exceeded MAX_DECALS (%d).\n", g_nMaxDecals );
+				    bWarningOnce = true;
+			    }
+			    iSlot = 0;
+		    }
+		}
+		else if (bPermanent)
+		{
 			iSlot = 0;
+		}
+
+		if (iSlot == -1)
+		{
+			return NULL;
 		}
 
 		R_DecalUnlink( s_aDecalPool[iSlot], host_state.worldbrush );
@@ -1700,6 +1713,11 @@ static void R_DecalCreate( decalinfo_t* decalinfo, SurfaceHandle_t surfID, float
 	}
 
 	pdecal = R_DecalAlloc( decalinfo->m_Flags );
+
+	if (!pdecal)
+	{
+		return;
+	}
 	
 	pdecal->flags = decalinfo->m_Flags;
 	pdecal->color = decalinfo->m_Color;
