@@ -101,6 +101,7 @@ BEGIN_VS_SHADER( WorldTwoTextureBlend_DX8,
 
 	SHADER_DRAW
 	{
+#if SUPPORT_DX8
 		bool hasFlashlight = UsingFlashlight( params );
 		if( hasFlashlight )
 		{
@@ -108,6 +109,7 @@ BEGIN_VS_SHADER( WorldTwoTextureBlend_DX8,
 				FLASHLIGHTTEXTURE, FLASHLIGHTTEXTUREFRAME, true, false, 0, -1, -1 );
 			return;
 		}
+#endif
 
 		bool bHasBaseTexture = params[BASETEXTURE]->IsTexture();
 		bool bHasDetailTexture = params[DETAIL]->IsTexture();

@@ -57,14 +57,19 @@ config.cfg
 *.vcxproj.filters
 *.vcxproj.vpc_crc
 *.obj
+*.iobj
 *.pch
 *.pdb
+*.ipdb
 
 # ignore vs-generated folders
 .vs/
+Retail/
+Retail_*/
 Release/
 Release_*/
 Debug/
+Debug_*/
 *.tlog/
 
 # ignore generated protobufs

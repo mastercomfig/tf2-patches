@@ -122,12 +122,14 @@ BEGIN_VS_SHADER( LightmappedGeneric_Decal,
 
 	SHADER_DRAW
 	{
+#if SUPPORT_DX8
 		if( UsingFlashlight( params ) )
 		{
 			DrawFlashlight_dx80( params, pShaderAPI, pShaderShadow, false, -1, -1, -1, 
 				FLASHLIGHTTEXTURE, FLASHLIGHTTEXTUREFRAME, true, false, 0, -1, -1 );
 		}
 		else
+#endif
 		{
 			DrawDecal( params, pShaderAPI, pShaderShadow );
 		}

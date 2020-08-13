@@ -688,15 +688,19 @@ BEGIN_VS_SHADER( VertexLitGeneric_DX8,
 		if ( bDrawStandardPass )
 		{
 			// FLASHLIGHTFIXME: need to make these the same.
-			bool hasFlashlight = UsingFlashlight( params );
 			bool bBump = g_pConfig->UseBumpmapping() && params[BUMPMAP]->IsTexture();
+#if SUPPORT_DX8
+			bool hasFlashlight = UsingFlashlight(params);
 
 			if( hasFlashlight )
 			{
 				DrawFlashlight_dx80( params, pShaderAPI, pShaderShadow, bBump, BUMPMAP, BUMPFRAME, BUMPTRANSFORM, 
 					FLASHLIGHTTEXTURE, FLASHLIGHTTEXTUREFRAME, false, false, 0, -1, -1 );
 			}
-			else if( bBump )
+			else if (bBump)
+#else
+			if (bBump)
+#endif		
 			{
 				bool bSkipEnvmap = true;
 				DrawUnbumpedUsingVertexShader( params, pShaderAPI, pShaderShadow, bSkipEnvmap );

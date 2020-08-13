@@ -76,7 +76,7 @@ $Configuration "Release"
 		$InlineFunctionExpansion			"Any Suitable (/Ob2)"
 		$EnableIntrinsicFunctions			"Yes (/Oi)"
 		$FavorSizeOrSpeed					"Favor Fast Code (/Ot)"
-		$OmitFramePointers
+		$OmitFramePointers					"Yes (/Oy)" [!$NOFPO]
 		$EnableFiberSafeOptimizations
 		$WholeProgramOptimization
 

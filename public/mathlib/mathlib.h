@@ -20,6 +20,11 @@
 #if defined(__i386__) || defined(_M_IX86)
 // For MMX intrinsics
 #include <xmmintrin.h>
+#ifndef VectorLoad
+#include "../thirdparty/DirectXMath-apr2020/Inc/DirectXMath.h"
+#define VectorLoad( Ptr ) DirectX::XMLoadFloat4( (const DirectX::XMFLOAT4*)(Ptr) )
+#define VectorStore( Vec, Ptr )	DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)(Ptr), Vec )
+#endif
 #endif
 
 // XXX remove me
@@ -440,8 +445,8 @@ int Q_log2(int val);
 // Math routines done in optimized assembly math package routines
 void inline SinCos( float radians, float *sine, float *cosine )
 {
-#if defined( _X360 )
-	XMScalarSinCos( sine, cosine, radians );
+#if 1
+    DirectX::XMScalarSinCos( sine, cosine, radians );
 #elif defined( PLATFORM_WINDOWS_PC32 )
 	_asm
 	{
@@ -2169,7 +2174,7 @@ inline bool CloseEnough( const Vector &a, const Vector &b, float epsilon = EQUAL
 // Fast compare
 // maxUlps is the maximum error in terms of Units in the Last Place. This 
 // specifies how big an error we are willing to accept in terms of the value
-// of the least significant digit of the floating point number’s 
+// of the least significant digit of the floating point numberï¿½s 
 // representation. maxUlps can also be interpreted in terms of how many 
 // representable floats we are willing to accept between A and B. 
 // This function will allow maxUlps-1 floats between A and B.

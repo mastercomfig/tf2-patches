@@ -269,9 +269,11 @@ BEGIN_VS_SHADER( WorldVertexTransition_DX8,
 
 	void DrawFlashlightPass( IMaterialVar** params, IShaderDynamicAPI *pShaderAPI, IShaderShadow* pShaderShadow, int passID )
 	{
+#if SUPPORT_DX8
 		bool bBump = ( passID == 0 ) && ShouldUseBumpmapping( params ) && params[BUMPMAP]->IsTexture();
 		DrawFlashlight_dx80( params, pShaderAPI, pShaderShadow, bBump, BUMPMAP, BUMPFRAME, BUMPTRANSFORM, 
 			FLASHLIGHTTEXTURE, FLASHLIGHTTEXTUREFRAME, true, true, passID, BASETEXTURE2, FRAME2 );
+#endif
 	}
 
 	bool ShouldUseBumpmapping( IMaterialVar **params ) 

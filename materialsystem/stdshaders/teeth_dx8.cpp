@@ -100,6 +100,7 @@ BEGIN_VS_SHADER( Teeth_DX8, "Help for Teeth_DX8" )
 		{
 			SET_FLAGS2( MATERIAL_VAR2_LIGHTING_VERTEX_LIT );
 		}
+#if SUPPORT_DX8
 		bool hasFlashlight = UsingFlashlight( params );
 		if( hasFlashlight )
 		{
@@ -109,6 +110,7 @@ BEGIN_VS_SHADER( Teeth_DX8, "Help for Teeth_DX8" )
 								 true, FORWARD, ILLUMFACTOR );
 		}
 		else
+#endif
 		{
 			DrawUsingVertexShader( params, pShaderAPI, pShaderShadow );
 		}

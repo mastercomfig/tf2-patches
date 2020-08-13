@@ -733,17 +733,21 @@ BEGIN_VS_SHADER( LightmappedGeneric_DX8,
 
 	SHADER_DRAW
 	{
-		bool hasFlashlight = UsingFlashlight( params );
 		bool bBump = ShouldUseBumpmapping( params ) && params[BUMPMAP]->IsTexture() && 
 			(params[NODIFFUSEBUMPLIGHTING]->GetIntValue() == 0);
 		bool bSSBump = bBump && ( params[SSBUMP]->GetIntValue() != 0 );
 
+#if SUPPORT_DX8
+		bool hasFlashlight = UsingFlashlight(params);
 		if( hasFlashlight )
 		{
 			DrawFlashlight_dx80( params, pShaderAPI, pShaderShadow, bBump, BUMPMAP, BUMPFRAME, BUMPTRANSFORM, 
 				FLASHLIGHTTEXTURE, FLASHLIGHTTEXTUREFRAME, true, false, 0, -1, -1 );
 		}
 		else if( bBump )
+#else
+		if (bBump)
+#endif
 		{
 			DrawWorldBumpedUsingVertexShader( 
 				BASETEXTURE, BASETEXTURETRANSFORM,
