@@ -435,18 +435,29 @@ public:
 		m_pColorCorrection->SetEnabled( mat_dxlevel.GetInt() >= 90 );
 		m_pMotionBlur->SetEnabled( mat_dxlevel.GetInt() >= 90 );
 		
-		if ( g_pCVar->FindVar( "fov_desired" ) == NULL )
+		if ( ConVar* fovVar = g_pCVar->FindVar( "fov_desired" ) )
 		{
-			Panel *pFOV = FindChildByName( "FovSlider" );
-			if ( pFOV )
+			CCvarSlider* pFOV = (CCvarSlider*)FindChildByName("FovSlider");
+			if (pFOV)
 			{
-				pFOV->SetVisible( false );
+				float minVar, maxVar;
+				fovVar->GetMin(minVar);
+				fovVar->GetMax(maxVar);
+				pFOV->SetMinMaxValues(max(75.0f, minVar), maxVar);
+			}
+		}
+		else
+		{
+			Panel* pFOV = FindChildByName("FovSlider");
+			if (pFOV)
+			{
+				pFOV->SetVisible(false);
 			}
 
-			pFOV = FindChildByName( "FovLabel" );
-			if ( pFOV )
+			pFOV = FindChildByName("FovLabel");
+			if (pFOV)
 			{
-				pFOV->SetVisible( false );
+				pFOV->SetVisible(false);
 			}
 		}
 		
