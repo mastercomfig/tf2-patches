@@ -12,7 +12,7 @@ Required depot (and manifest, optionally):
 | 440   | |
 | 232251 | 2174530283606128348 |
 
-1. Use [Depot Downloader](https://github.com/SteamRE/DepotDownloader) to download these depots.
+1. Use [Depot Downloader](https://github.com/SteamRE/DepotDownloader) to download these depots from app `440`.
 2. Combine them together into one folder.
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
 4. Extract the contents of the download to your folder, replacing existing files.
