@@ -619,6 +619,7 @@ END_RECV_TABLE()
 // Client ragdoll entity.
 // ----------------------------------------------------------------------------- //
 ConVar cl_ragdoll_physics_enable( "cl_ragdoll_physics_enable", "1", 0, "Enable/disable ragdoll physics." );
+ConVar cl_ragdoll_disable("cl_ragdoll_disable", "0", 0, "Disable spawning ragdolls/gibs.");
 ConVar cl_ragdoll_fade_time( "cl_ragdoll_fade_time", "15", FCVAR_CLIENTDLL );
 ConVar cl_ragdoll_forcefade( "cl_ragdoll_forcefade", "0", FCVAR_CLIENTDLL );
 ConVar cl_ragdoll_pronecheck_distance( "cl_ragdoll_pronecheck_distance", "64", FCVAR_GAMEDLL );
@@ -1406,6 +1407,11 @@ void C_TFRagdoll::OnDataChanged( DataUpdateType_t type )
 
 	if ( type == DATA_UPDATE_CREATED )
 	{
+		if (cl_ragdoll_disable.GetBool())
+		{
+			return;
+		}
+
 		bool bCreateRagdoll = true;
 
 		// Get the player.
@@ -1513,7 +1519,7 @@ void C_TFRagdoll::OnDataChanged( DataUpdateType_t type )
 	}
 	else 
 	{
-		if ( !cl_ragdoll_physics_enable.GetBool() )
+		if ( !cl_ragdoll_physics_enable.GetBool() || cl_ragdoll_disable.GetBool() )
 		{
 			// Don't let it set us back to a ragdoll with data from the server.
 			m_nRenderFX = kRenderFxNone;

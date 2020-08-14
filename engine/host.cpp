@@ -1896,7 +1896,7 @@ void Host_AccumulateTime( float dt )
 #if !defined(SWDS)
 		&& ( CanCheat() || demoplayer->IsPlayingBack() ) 
 #endif
-		)
+		) [[unlikely]]
 	{
 		float fullscale = host_timescale.GetFloat();
 
