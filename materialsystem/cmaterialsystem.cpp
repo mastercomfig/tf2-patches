@@ -51,10 +51,6 @@ ConVar mat_supportflashlight( "mat_supportflashlight", "-1", FCVAR_HIDDEN, "0 - 
 ConVar mat_texture_reload_frame_swap_workaround( "mat_texture_reload_frame_swap_workaround", CV_FRAME_SWAP_WORKAROUND_DEFAULT, FCVAR_INTERNAL_USE,
                                                  "Workaround certain GL drivers holding unnecessary amounts of data when loading many materials by forcing synthetic frame swaps" );
 
-// This ConVar allows us to skip ~40% of our map load time, but it doesn't work on GPUs older
-// than ~2005. We set it automatically and don't expose it to players. 
-ConVar mat_requires_rt_alloc_first( "mat_requires_rt_alloc_first", "0", FCVAR_HIDDEN );
-
 // Make sure this convar gets created before videocfg.lib is initialized, so it can be driven by dxsupport.cfg
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
 
@@ -1766,7 +1762,7 @@ static ConVar mat_showmiplevels(	"mat_showmiplevels", "0", FCVAR_CHEAT, "color-c
 static ConVar mat_specular(			"mat_specular", "1", FCVAR_ALLOWED_IN_COMPETITIVE, "Enable/Disable specularity for perf testing.  Will cause a material reload upon change." );
 static ConVar mat_bumpmap(			"mat_bumpmap", "1", FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_phong(			"mat_phong", "1" );
-static ConVar mat_parallaxmap(		"mat_parallaxmap", "1", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar mat_parallaxmap(		"mat_parallaxmap", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_reducefillrate(	"mat_reducefillrate", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 #if defined( OSX ) && !defined( STAGING_ONLY ) && !defined( _DEBUG )
@@ -1811,11 +1807,7 @@ static ConVar mat_normalmaps(		"mat_normalmaps", "0", FCVAR_CHEAT );
 static ConVar mat_measurefillrate(	"mat_measurefillrate", "0", FCVAR_CHEAT );
 static ConVar mat_fillrate(			"mat_fillrate", "0", FCVAR_CHEAT );
 static ConVar mat_reversedepth(		"mat_reversedepth", "0", FCVAR_CHEAT );
-#ifdef DX_TO_GL_ABSTRACTION
-static ConVar mat_bufferprimitives( "mat_bufferprimitives", "0" );	// I'm not seeing any benefit speed wise for buffered primitives on GLM/POSIX (checked via TF2 timedemo) - default to zero
-#else
 static ConVar mat_bufferprimitives( "mat_bufferprimitives", "1" );
-#endif
 static ConVar mat_drawflat(			"mat_drawflat","0", FCVAR_CHEAT );
 static ConVar mat_softwarelighting( "mat_softwarelighting", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_proxy(			"mat_proxy", "0", FCVAR_CHEAT, "", MatProxyCallback );
@@ -1911,7 +1903,6 @@ void CMaterialSystem::ReadConfigFromConVars( MaterialSystem_Config_t *pConfig )
 	}
 	if ( pConfig->dxSupportLevel < 90 )
 	{
-		mat_requires_rt_alloc_first.SetValue( 1 );
 		r_flashlightdepthtexture.SetValue( 0 );
 		mat_motion_blur_enabled.SetValue( 0 );
 		pConfig->m_bShadowDepthTexture = false;
@@ -4661,19 +4652,8 @@ void CMaterialSystem::BeginRenderTargetAllocation( void )
 
 void CMaterialSystem::EndRenderTargetAllocation( void )
 {
-	// Any GPU newer than 2005 doesn't need to do this, and it eats up ~40% of our level load time! 
-	const bool cbRequiresRenderTargetAllocationFirst = mat_requires_rt_alloc_first.GetBool();
-
 	g_pShaderAPI->FlushBufferedPrimitives();
 	m_bAllocatingRenderTargets = false;
-
-	if ( IsPC() && cbRequiresRenderTargetAllocationFirst && g_pShaderAPI->CanDownloadTextures() )
-	{
-		// Simulate an Alt-Tab...will cause RTs to be allocated first
-
-		g_pShaderDevice->ReleaseResources();
-		g_pShaderDevice->ReacquireResources();
-	}
 
 	TextureManager()->CacheExternalStandardRenderTargets();
 }

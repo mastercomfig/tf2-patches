@@ -120,7 +120,7 @@ CBaseFileSystem *BaseFileSystem()
 	return g_pBaseFileSystem;
 }
 
-ConVar filesystem_buffer_size( "filesystem_buffer_size", "0", 0, "Size of per file buffers. 0 for none" );
+ConVar filesystem_buffer_size( "filesystem_buffer_size", "1", 0, "Size of per file buffers. 0 for none" );
 
 #if defined( TRACK_BLOCKING_IO )
 

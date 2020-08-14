@@ -2668,7 +2668,10 @@ void CShaderDeviceDx8::ReleaseResources()
 	}
 
 	LOCK_SHADERAPI();
+
+#ifndef _RETAIL
 	CPixEvent( PIX_VALVE_ORANGE, "ReleaseResources" );
+#endif
 
 	FreeFrameSyncObjects();
 	FreeNonInteractiveRefreshObjects();

@@ -82,7 +82,7 @@ static ConVar tv_password( "tv_password", "", FCVAR_NOTIFY | FCVAR_PROTECTED | F
 
 static ConVar tv_overridemaster( "tv_overridemaster", "0", 0, "Overrides the SourceTV master root address." );
 static ConVar tv_dispatchmode( "tv_dispatchmode", "1", 0, "Dispatch clients to relay proxies: 0=never, 1=if appropriate, 2=always" );
-ConVar tv_transmitall( "tv_transmitall", "0", FCVAR_REPLICATED, "Transmit all entities (not only director view)" );
+ConVar tv_transmitall( "tv_transmitall", "1", FCVAR_REPLICATED, "Transmit all entities (not only director view)" );
 ConVar tv_debug( "tv_debug", "0", 0, "SourceTV debug info." );
 ConVar tv_title( "tv_title", "SourceTV", 0, "Set title for SourceTV spectator UI", tv_title_changed_f );
 static ConVar tv_deltacache( "tv_deltacache", "2", 0, "Enable delta entity bit stream cache" );

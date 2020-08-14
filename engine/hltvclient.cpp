@@ -21,7 +21,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static ConVar tv_maxrate( "tv_maxrate", "8000", 0, "Max SourceTV spectator bandwidth rate allowed, 0 == unlimited" );
+static ConVar tv_maxrate( "tv_maxrate", V_STRINGIFY(DEFAULT_RATE), 0, "Max SourceTV spectator bandwidth rate allowed, 0 == unlimited" );
 static ConVar tv_relaypassword( "tv_relaypassword", "", FCVAR_NOTIFY | FCVAR_PROTECTED | FCVAR_DONTRECORD, "SourceTV password for relay proxies" );
 static ConVar tv_chattimelimit( "tv_chattimelimit", "8", 0, "Limits spectators to chat only every n seconds" );
 static ConVar tv_chatgroupsize( "tv_chatgroupsize", "0", 0, "Set the default chat group size" );

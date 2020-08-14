@@ -1817,7 +1817,7 @@ static void AddDLightsForStaticProps( LightingStateInfo_t& info, LightingState_t
 //-----------------------------------------------------------------------------
 
 
-ConVar r_lightcache_zbuffercache( "r_lightcache_zbuffercache", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
+ConVar r_lightcache_zbuffercache( "r_lightcache_zbuffercache", IsPC() ? "1" : "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 static void AddStaticLighting( 
 	CBaseLightCache* pCache, 
@@ -1847,7 +1847,7 @@ static void AddStaticLighting(
 	{
 		dworldlight_t *wl = &host_state.worldbrush->worldlights[i];
 		lightzbuffer_t *pZBuf;
-		if ( r_lightcache_zbuffercache.GetInt() )
+		if ( r_lightcache_zbuffercache.GetInt() && host_state.worldbrush->shadowzbuffers != NULL )
 			pZBuf = &host_state.worldbrush->shadowzbuffers[i];
 		else
 			pZBuf = NULL;

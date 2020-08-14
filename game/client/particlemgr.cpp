@@ -1525,8 +1525,9 @@ void BeginSimulateParticles( void )
 	g_flStartSimTime = Plat_FloatTime();
 }
 
-
+#if MEASURE_PARTICLE_PERF
 static ConVar r_particle_sim_spike_threshold_ms( "r_particle_sim_spike_threshold_ms", "5" );
+#endif
 
 void EndSimulateParticles( void )
 {
@@ -1535,7 +1536,9 @@ void EndSimulateParticles( void )
 	{
 		g_nNumUSSpentSimulatingParticles += 1.0e6 * flETime;
 	}
+#if MEASURE_PARTICLE_PERF
 	g_pParticleSystemMgr->CommitProfileInformation( flETime > .001 * r_particle_sim_spike_threshold_ms.GetInt() );
+#endif
 }
 
 
@@ -1619,7 +1622,7 @@ int CParticleMgr::ComputeParticleDefScreenArea( int nInfoCount, RetireInfo_t *pI
 		Vector3DMultiplyPositionProjective( worldToPixels, vecCenter, vecScreenCenter );
 		float lSqr = vecCenter.DistToSqr( viewParticle.origin );
 
-		float flProjRadius = ( lSqr > flCullRadiusSqr ) ? 0.5f * flFocalDist * flCullRadius / sqrt( lSqr - flCullRadiusSqr ) : 1.0f;
+		float flProjRadius = ( lSqr > flCullRadiusSqr ) ? 0.5f * flFocalDist * flCullRadius / sqrtf( lSqr - flCullRadiusSqr ) : 1.0f;
 		flProjRadius *= viewParticle.width;
 
 		float flMinX = MAX( viewParticle.x, vecScreenCenter.x - flProjRadius );
@@ -1688,7 +1691,7 @@ bool CParticleMgr::RetireParticleCollections( CParticleSystemDefinition* pDef,
 }
 
 // Next, see if there are new particle systems that need early retirement
-static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "0", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 bool CParticleMgr::EarlyRetireParticleSystems( int nCount, ParticleSimListEntry_t *ppEffects )
 {

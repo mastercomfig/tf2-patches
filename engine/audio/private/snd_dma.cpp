@@ -245,7 +245,7 @@ float			g_ClockSyncArray[NUM_CLOCK_SYNCS] = {0};
 int				g_SoundClockPaintTime[NUM_CLOCK_SYNCS] = {0};
 
 // default 10ms
-ConVar snd_delay_sound_shift("snd_delay_sound_shift","0.01");
+ConVar snd_delay_sound_shift("snd_delay_sound_shift","0");
 // this forces the clock to resync on the next delayed/sync sound
 void S_SyncClockAdjust( clocksync_index_t syncIndex )
 {
@@ -451,7 +451,7 @@ static soundfade_t soundfade;  // Client sound fading singleton object
 // autodetected from windows settings
 ConVar snd_surround( "snd_surround_speakers", "-1", FCVAR_INTERNAL_USE );
 ConVar snd_legacy_surround( "snd_legacy_surround", "0", FCVAR_ARCHIVE );
-ConVar snd_noextraupdate( "snd_noextraupdate", "0" );
+ConVar snd_noextraupdate( "snd_noextraupdate", "1" );
 ConVar snd_show( "snd_show", "0", FCVAR_CHEAT, "Show sounds info" );
 ConVar snd_visualize ("snd_visualize", "0", FCVAR_CHEAT, "Show sounds location in world" );
 ConVar snd_pitchquality( "snd_pitchquality", "1", FCVAR_ARCHIVE );		// 1) use high quality pitch shifters

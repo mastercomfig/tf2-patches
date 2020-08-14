@@ -217,7 +217,7 @@ static ConVar sv_voicecodec( "sv_voicecodec", "vaudio_celt", 0,
 
 ConVar  sv_mincmdrate( "sv_mincmdrate", "10", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdrate. 0 == unlimited." );
 ConVar  sv_maxcmdrate( "sv_maxcmdrate", "66", FCVAR_REPLICATED, "(If sv_mincmdrate is > 0), this sets the maximum value for cl_cmdrate." );
-ConVar  sv_client_cmdrate_difference( "sv_client_cmdrate_difference", "20", FCVAR_REPLICATED, 
+ConVar  sv_client_cmdrate_difference( "sv_client_cmdrate_difference", "0", FCVAR_REPLICATED, 
 	"cl_cmdrate is moved to within sv_client_cmdrate_difference units of cl_updaterate before it "
 	"is clamped between sv_mincmdrate and sv_maxcmdrate." );
 
@@ -1824,7 +1824,13 @@ void CGameServer::CopyTempEntities( CFrameSnapshot* pSnapshot )
 //   are running many instances anyway. It's off in Dota and CSGO dedicated servers.
 //
 // Bruce also had a patch to disable this in //ValveGames/staging/game/tf/cfg/unencrypted/print_instance_config.py
-static ConVar sv_parallel_sendsnapshot( "sv_parallel_sendsnapshot", "0" );
+static ConVar sv_parallel_sendsnapshot( "sv_parallel_sendsnapshot", 
+#ifndef SWDS
+	"1"
+#else
+    "0",
+#endif 
+);
 
 static void SV_ParallelSendSnapshot( CGameClient *& pClient )
 {

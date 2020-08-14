@@ -60,18 +60,21 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#if defined( _X360 )
+#define AsyncMdlCache() 0	// Explicitly OFF for 360 (incompatible)
+#else
+#define AsyncMdlCache() 1
+#endif
+
 ConVar mat_loadtextures( "mat_loadtextures", "1", FCVAR_CHEAT );
 
-// OS X and Linux are blowing up right now due to this.  Benefits vs possible regressions on DX less clear.
-#define CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH "1"
-
-static ConVar mod_offline_hdr_switch( "mod_offline_hdr_switch", CONVAR_DEFAULT_MOD_OFFLINE_HDR_SWITCH, FCVAR_INTERNAL_USE,
+static ConVar mod_offline_hdr_switch( "mod_offline_hdr_switch", "1", FCVAR_INTERNAL_USE,
                                       "Re-order the HDR/LDR mode switch to do most of the material system "
                                       "reloading with the device offline. This reduces unnecessary device "
                                       "resource uploads and may drastically reduce load time and memory pressure "
                                       "on certain drivers, but may trigger bugs in some very old source engine "
                                       "pathways." );
-static ConVar mod_touchalldata( "mod_touchalldata", "1", 0, "Touch model data during level startup" );
+static ConVar mod_touchalldata( "mod_touchalldata",  AsyncMdlCache() ? "0" : "1", 0, "Touch model data during level startup" );
 static ConVar mod_forcetouchdata( "mod_forcetouchdata", "1", 0, "Forces all model file data into cache on model load." );
 ConVar mat_excludetextures( "mat_excludetextures", "0", FCVAR_CHEAT );
 
@@ -81,7 +84,7 @@ extern ConVar r_lightcache_zbuffercache;
 
 
 static ConVar mod_dynamicunloadtime( "mod_dynamicunloadtime", "150", FCVAR_HIDDEN | FCVAR_DONTRECORD );
-static ConVar mod_dynamicunloadtextures( "mod_dynamicunloadtex", "1", FCVAR_HIDDEN | FCVAR_DONTRECORD );
+static ConVar mod_dynamicunloadtextures( "mod_dynamicunloadtex", "0", FCVAR_HIDDEN | FCVAR_DONTRECORD );
 static ConVar mod_dynamicloadpause( "mod_dynamicloadpause", "0", FCVAR_CHEAT | FCVAR_HIDDEN | FCVAR_DONTRECORD );
 static ConVar mod_dynamicloadthrottle( "mod_dynamicloadthrottle", "0", FCVAR_CHEAT | FCVAR_HIDDEN | FCVAR_DONTRECORD );
 static ConVar mod_dynamicloadspew( "mod_dynamicloadspew", "0", FCVAR_HIDDEN | FCVAR_DONTRECORD );
@@ -1146,9 +1149,12 @@ void Mod_LoadWorldlights( CMapLoadHelper &lh, bool bIsHDR )
 #if !defined( SWDS )
 	if ( r_lightcache_zbuffercache.GetInt() )
 	{
-		size_t zbufSize = lh.GetMap()->numworldlights * sizeof( lightzbuffer_t );
-		lh.GetMap()->shadowzbuffers = ( lightzbuffer_t *) Hunk_AllocName( zbufSize, va( "%s [%s]", lh.GetLoadName(), "shadowzbuffers" ) );
-		memset( lh.GetMap()->shadowzbuffers, 0, zbufSize );		// mark empty
+		const size_t zbufSize = lh.GetMap()->numworldlights * sizeof( lightzbuffer_t );
+		if (Hunk_Available() >= (int) zbufSize)
+		{
+			lh.GetMap()->shadowzbuffers = (lightzbuffer_t*)Hunk_AllocName(zbufSize, va("%s [%s]", lh.GetLoadName(), "shadowzbuffers"));
+			memset(lh.GetMap()->shadowzbuffers, 0, zbufSize);		// mark empty
+		}
 	}
 #endif
 

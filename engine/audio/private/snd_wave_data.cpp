@@ -42,7 +42,7 @@ extern double realtime;
 #define TF_XBOX_WAV_MEMORY_CACHE ( 24 * 1024 * 1024 ) // Team Fortress uses a larger cache
 
 // Dev builds will be missing soundcaches and hitch sometimes, we only care if its being properly launched from steam where sound caches should be complete.
-ConVar snd_async_spew_blocking( "snd_async_spew_blocking", "1", 0, "Spew message to console any time async sound loading blocks on file i/o. ( 0=Off, 1=With -steam only, 2=Always" );
+ConVar snd_async_spew_blocking( "snd_async_spew_blocking", "0", 0, "Spew message to console any time async sound loading blocks on file i/o. ( 0=Off, 1=With -steam only, 2=Always" );
 ConVar snd_async_spew( "snd_async_spew", "0", 0, "Spew all async sound reads, including success" );
 ConVar snd_async_fullyasync( "snd_async_fullyasync", "0", 0, "All playback is fully async (sound doesn't play until data arrives)." );
 ConVar snd_async_stream_spew( "snd_async_stream_spew", "0", 0, "Spew streaming info ( 0=Off, 1=streams, 2=buffers" );

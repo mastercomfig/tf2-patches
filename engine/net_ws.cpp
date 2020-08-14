@@ -2960,7 +2960,10 @@ void NET_SetTime( double flRealtime )
 	}
 
 	// adjust network time so fakelag works with host_timescale
-	net_time += frametime * host_timescale.GetFloat();
+	if (host_timescale.GetFloat() > 0)
+	{
+		net_time += frametime * host_timescale.GetFloat();
+	}
 }
 
 /*

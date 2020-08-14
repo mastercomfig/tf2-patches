@@ -60,14 +60,7 @@ static ConVar cl_soundfile( "cl_soundfile", "sound/player/jingle.wav", FCVAR_ARC
 static ConVar cl_allowdownload ( "cl_allowdownload", "1", FCVAR_ARCHIVE, "Client downloads customization files" );
 static ConVar cl_downloadfilter( "cl_downloadfilter", "all", FCVAR_ARCHIVE, "Determines which files can be downloaded from the server (all, none, nosounds, mapsonly)" );
 
-#ifdef OSX
-	// OS X is barely making it due to virtual memory pressure on 32bit, our behavior of load new models -> unload
-	// unused is far too abusive for its estimated margin of maybe two or three bytes before crashing.
-	#define CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS "1"
-#else
-	#define CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS "0"
-#endif
-static ConVar cl_always_flush_models( "cl_always_flush_models", CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS, FCVAR_INTERNAL_USE,
+static ConVar cl_always_flush_models( "cl_always_flush_models", "0", FCVAR_INTERNAL_USE,
                                       "If set, always flush models between map loads.  Useful on systems under memory pressure." );
 
 extern ConVar sv_downloadurl;

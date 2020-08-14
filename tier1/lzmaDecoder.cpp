@@ -26,15 +26,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#ifdef OSX
-// OS X is having fragmentation issues, and I suspect this 16meg buffer being recreated many times during load is
-// hitting a bad case in the default allocator. So this is an experiment to see if it reduces crash rates there.
-#define LZMA_DEFAULT_PERSISTENT_BUFFER "1"
-#else
-#define LZMA_DEFAULT_PERSISTENT_BUFFER "0"
-#endif
-
-ConVar lzma_persistent_buffer( "lzma_persistent_buffer", LZMA_DEFAULT_PERSISTENT_BUFFER, FCVAR_NONE,
+ConVar lzma_persistent_buffer( "lzma_persistent_buffer", "1", FCVAR_NONE,
                                "If set, attempt to keep a persistent buffer for the LZMA decoder dictionary. " \
                                "This avoids re-allocating a ~16-64meg buffer for each operation, " \
                                "at the expensive of keeping extra memory around when it is not in-use." );

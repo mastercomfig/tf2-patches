@@ -1153,6 +1153,7 @@ public:
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 		m_bQuit = true;
+		condition.notify_all();
 		ThreadJoin( m_HelperThread );
 	}
 
@@ -1181,6 +1182,7 @@ public:
 					{
 						// Stick it in the queue for the other thread to work on it.
 						m_pendingJobs.PushItem( pMapped );
+						condition.notify_all();
 					}
 					else
 					{
@@ -1285,16 +1287,17 @@ private:
 		while ( !m_bQuit )
 		{
 			AsyncReadJob_t *pJob = NULL;
-			if ( m_pendingJobs.PopItem( &pJob ) )
+			std::unique_lock<std::mutex> job_lock(mu);
+			condition.wait(job_lock, [this]() {return m_bQuit || m_pendingJobs.Count() > 0; });
+			if (m_bQuit)
 			{
-				Assert( pJob != NULL );
-				ThreadReader_ProcessRead( pJob );
+				return;
 			}
-			else
-			{
-				// "awhile"
-				ThreadSleep( 8 );
-			}
+			m_pendingJobs.PopItem(&pJob);
+			Assert(pJob != NULL);
+			job_lock.unlock();
+			condition.notify_all();
+			ThreadReader_ProcessRead(pJob);
 		}
 	}
 
@@ -1422,6 +1425,8 @@ private:
 	}
 
 	ThreadHandle_t m_HelperThread;
+	std::mutex mu;
+	std::condition_variable condition;
 	volatile bool m_bQuit;
 
 	CTSQueue< AsyncReadJob_t*> m_requestedCopies;

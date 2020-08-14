@@ -38,7 +38,7 @@ CLIENTEFFECT_REGISTER_END()
 
 PMaterialHandle g_Material_Spark = NULL;
 
-static ConVar fx_drawmetalspark( "fx_drawmetalspark", "1", FCVAR_DEVELOPMENTONLY, "Draw metal spark effects." );
+static ConVar fx_drawmetalspark( "fx_drawmetalspark", "1", 0, "Draw metal spark effects." );
 
 //-----------------------------------------------------------------------------
 // Purpose: 

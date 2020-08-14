@@ -37,7 +37,7 @@ static bool g_bWarnedOverflow;
 
 static int GetTargetCacheSize()
 {
-	int nMemLimit = host_parms.memsize - Hunk_Size();
+	int nMemLimit = host_parms.memsize - Hunk_MaxSize();
 	if ( nMemLimit < 0x100000 )
 	{
 		nMemLimit = 0x100000;
@@ -115,6 +115,21 @@ int Hunk_Size()
 #endif
 }
 
+int Hunk_MaxSize()
+{
+#ifdef HUNK_USE_16MB_PAGE
+	return g_HunkMemoryStack.GetMaxSize() + g_HunkOverflow.GetMaxSize();
+#else
+	return g_HunkMemoryStack.GetMaxSize();
+#endif
+}
+
+int Hunk_Available()
+{
+	return Hunk_MaxSize() - Hunk_Size();
+}
+
+
 void Hunk_Print()
 {
 #ifdef HUNK_USE_16MB_PAGE
@@ -133,7 +148,11 @@ void Hunk_Print()
 void Memory_Init( void )
 {
 	MEM_ALLOC_CREDIT();
+#ifdef _X360
 	int nMaxBytes = 48*1024*1024;
+#else
+	int nMaxBytes = 48*1024*1024;
+#endif
 	const int nMinCommitBytes = 0x8000;
 #ifndef HUNK_USE_16MB_PAGE
 	const int nInitialCommit = 0x280000;

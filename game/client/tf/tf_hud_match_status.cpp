@@ -34,7 +34,7 @@ using namespace vgui;
 
 void AddSubKeyNamed( KeyValues *pKeys, const char *pszName );
 
-static ConVar tf_use_match_hud("tf_use_match_hud", "1", FCVAR_ARCHIVE);
+static ConVar tf_use_match_hud("tf_use_match_hud", "0", FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Purpose: Use the new match HUD or the old?  Right now, Comp is the key

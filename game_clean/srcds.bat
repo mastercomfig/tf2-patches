@@ -1,1 +1,2 @@
-srcds.exe -console -game tf +maxplayers 32
+@echo off
+srcds.exe -console -game tf %*

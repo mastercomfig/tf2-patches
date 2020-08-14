@@ -53,8 +53,8 @@ ConVar engine_no_focus_sleep( "engine_no_focus_sleep", "50", FCVAR_ARCHIVE );
 // sleep time when not focus
 #define NOT_FOCUS_SLEEP	50				
 
-#define DEFAULT_FPS_MAX	300
-#define DEFAULT_FPS_MAX_S "300"
+#define DEFAULT_FPS_MAX	400
+#define DEFAULT_FPS_MAX_S "400"
 static int s_nDesiredFPSMax = DEFAULT_FPS_MAX;
 static bool s_bFPSMaxDrivenByPowerSavings = false;
 
@@ -244,13 +244,13 @@ bool CEngine::FilterTime( double dt )
 	// Dedicated's tic_rate regulates server frame rate.  Don't apply fps filter here.
 	// Only do this restriction on the client. Prevents clients from accomplishing certain
 	// hacks by pausing their client for a period of time.
-	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 30 )
+	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 49 )
 	{
 		// Don't do anything if fps_max=0 (which means it's unlimited).
 		if ( fps_max.GetFloat() != 0.0f )
 		{
-			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 30 (or set to 0).\n" );
-			fps_max.SetValue( 30.0f );
+			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 49 (or set to 0).\n" );
+			fps_max.SetValue( 49.0f );
 		}
 	}
 

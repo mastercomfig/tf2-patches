@@ -50,7 +50,7 @@ extern CUtlLinkedList< CRecvDecoder *, unsigned short > g_RecvDecoders;
 extern	ConVar tv_autorecord;
 static	ConVar tv_autoretry( "tv_autoretry", "1", 0, "Relay proxies retry connection after network timeout" );
 static	ConVar tv_timeout( "tv_timeout", "30", 0, "SourceTV connection timeout in seconds." );
-		ConVar tv_snapshotrate("tv_snapshotrate", "16", 0, "Snapshots broadcasted per second" );
+		ConVar tv_snapshotrate("tv_snapshotrate", "33", 0, "Snapshots broadcasted per second" );
 
 
 //////////////////////////////////////////////////////////////////////
