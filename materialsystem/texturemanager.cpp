@@ -42,6 +42,8 @@
 #include "cmaterialsystem.h"
 #undef MATSYS_INTERNAL
 
+#include <mutex>
+
 #include "tier0/memdbgon.h"
 
 #define ERROR_TEXTURE_SIZE				32
@@ -1003,7 +1005,7 @@ public:
 		while ( m_asyncScratchVTFs.Count() > 0 )
 		{
 			IVTFTexture* pScratchVTF = NULL;
-			m_asyncScratchVTFs.PopItem( &pScratchVTF );
+			m_asyncScratchVTFs.PopItem(&pScratchVTF);
 			delete pScratchVTF;
 		}
 	}
@@ -1014,6 +1016,7 @@ public:
 
 		// TODO: This could be made faster by keeping a pool of these things.
 		m_pendingJobs.PushItem( new AsyncLoadJob_t( job ) );
+		condition_job.notify_all();
 	}
 
 	void Shutdown()
@@ -1021,6 +1024,8 @@ public:
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 		m_bQuit = true;
+		condition_job.notify_all();
+		condition_vtf.notify_all();
 		ThreadJoin( m_LoaderThread );		
 	}
 
@@ -1045,7 +1050,8 @@ public:
 	void ReleaseAsyncReadBuffer( IVTFTexture *pScratchVTF )
 	{
 		Assert( pScratchVTF != NULL );
-		m_asyncScratchVTFs.PushItem( pScratchVTF  );	
+		m_asyncScratchVTFs.PushItem( pScratchVTF  );
+		condition_vtf.notify_all();
 	}
 
 private:
@@ -1062,22 +1068,25 @@ private:
 		{
 			AsyncLoadJob_t *pJob = NULL;
 			IVTFTexture *pScratchVTF = NULL;
-			while ( !m_pendingJobs.PopItem( &pJob ) )
-			{
-				// "awhile"
-				ThreadSleep( 8 );
-				if ( m_bQuit )
-					return;
-			}
+
+			std::unique_lock<std::mutex> job_lock(mu_job);
+			condition_job.wait(job_lock, [this]() {return m_bQuit || m_pendingJobs.Count() > 0; });
+			if (m_bQuit)
+				return;
+			m_pendingJobs.PopItem(&pJob);
+			job_lock.unlock();
+			condition_job.notify_all();
+
 			Assert( pJob != NULL );
 
-			while ( !m_asyncScratchVTFs.PopItem( &pScratchVTF ) )
-			{
-				// Also awhile, but not as long..
-				ThreadSleep( 4 );
-				if ( m_bQuit )
-					return;
-			}
+			std::unique_lock<std::mutex> vtf_lock(mu_vtf);
+			condition_vtf.wait(vtf_lock, [this]() {return m_bQuit || m_asyncScratchVTFs.Count() > 0; });
+			if (m_bQuit)
+				return;
+			m_asyncScratchVTFs.PopItem(&pScratchVTF);
+			vtf_lock.unlock();
+			condition_vtf.notify_all();
+
 			Assert( pScratchVTF != NULL );
 
 			ThreadLoader_ProcessLoad( pJob, pScratchVTF );
@@ -1091,8 +1100,8 @@ private:
 
 		Assert( pJob->m_pResultData );
 
-		if ( !pJob->m_pResultData->AsyncReadTextureFromFile( pScratchVTF, pJob->m_nAdditionalCreationFlags ) )
-			m_asyncScratchVTFs.PushItem( pScratchVTF );
+		if (!pJob->m_pResultData->AsyncReadTextureFromFile(pScratchVTF, pJob->m_nAdditionalCreationFlags))
+			ReleaseAsyncReadBuffer(pScratchVTF);
 
 		m_completedJobs.PushItem( pJob );
 	}
@@ -1107,7 +1116,11 @@ private:
 		return 0;
 	}
 
-	ThreadHandle_t m_LoaderThread; 
+	ThreadHandle_t m_LoaderThread;
+	std::mutex mu_job;
+	std::mutex mu_vtf;
+	std::condition_variable condition_vtf;
+	std::condition_variable condition_job;
 	volatile bool m_bQuit;
 
 	CTSQueue< AsyncLoadJob_t *> m_pendingJobs;

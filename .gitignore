@@ -35,11 +35,8 @@ server.dll
 server.lib
 
 client.so
-client.so.dbg
 server.so
-server.so.dbg
 server_srv.so
-server_srv.so.dbg
 
 client.dylib
 client.dylib.dSYM/
@@ -61,6 +58,7 @@ config.cfg
 *.pch
 *.pdb
 *.ipdb
+*.dbg
 
 # ignore vs-generated folders
 .vs/

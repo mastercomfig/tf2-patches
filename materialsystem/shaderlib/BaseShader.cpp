@@ -516,7 +516,7 @@ int CBaseShader::ComputeModulationFlags( IMaterialVar** params, IShaderDynamicAP
 	{
 		mod |= SHADER_USING_FLASHLIGHT;
 	}
-	
+
 	if ( UsingEditor(params) )
 	{
 		mod |= SHADER_USING_EDITOR;

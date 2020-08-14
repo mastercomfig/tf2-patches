@@ -52,6 +52,23 @@
 //
 // In the case of studio models, we need a separate operation to remove
 // the shadow from all studio models
+//
+// DEFERRED SHADOW RENDERING
+//
+// When deferred shadow rendering (currently 360 only) is enabled. The
+// ClientShadowMgr bypasses most calls to the engine shadow mgr to avoid the
+// CPU overhead of clipping world geometry against shadow frustums. Instead,
+// We render each shadow frustum and use the depth buffer to back-project each
+// covered screen pixel into shadow space and apply the shadow. This causes
+// everything that rendered into the depth buffer during the opaque renderables
+// pass to be a shadow receiver (shadows on static props are free). Because this
+// approach requires a lot of fill-rate, we impose the limitation that shadow
+// casters can't receive shadows. Shadow casters are marked in the stencil buffer
+// (using stencil mask 0x4) AND in the 360's heirarchical stencil buffer, which
+// is most important for controlling fill rate. Initializing the stencil mask
+// for shadow casters currently happens in several places: the staticpropmgr,
+// c_baseanimating rendering code, and L4D-specific entity classes.
+//
 //===========================================================================//
 
 
@@ -155,15 +172,22 @@ public:
 
 	void			DebugPrintCache( void );
 
+	void InitRenderTargets( void );
+
 private:
 	typedef unsigned short FragmentHandle_t;
 
 	enum
 	{
 		INVALID_FRAGMENT_HANDLE = (FragmentHandle_t)~0,
+#ifdef RTT_TEXTURE_SIZE_640
+		TEXTURE_PAGE_SIZE	    = 640,
+		MAX_TEXTURE_POWER    	= 7,
+#else
 		TEXTURE_PAGE_SIZE	    = 1024,
 		MAX_TEXTURE_POWER    	= 8,
-#if !defined( _X360 )
+#endif
+#if !defined( _GAMECONSOLE )
 		MIN_TEXTURE_POWER	    = 4,
 #else
 		MIN_TEXTURE_POWER	    = 5,	// per resolve requirements to ensure 32x32 aligned offsets
@@ -174,7 +198,6 @@ private:
 		BLOCKS_PER_ROW		    = (TEXTURE_PAGE_SIZE / MAX_TEXTURE_SIZE),
 		BLOCK_COUNT			    = (BLOCKS_PER_ROW * BLOCKS_PER_ROW),
 	};
-
 	struct TextureInfo_t
 	{
 		FragmentHandle_t	m_Fragment;
@@ -240,7 +263,11 @@ void CTextureAllocator::Init()
 	{
 		m_Cache[i].m_List = m_Fragments.InvalidIndex();
 	}
+	InitRenderTargets();
+}
 
+void CTextureAllocator::InitRenderTargets( void )
+{
 #if !defined( _X360 )
 	// don't need depth buffer for shadows
 	m_TexturePage.InitRenderTarget( TEXTURE_PAGE_SIZE, TEXTURE_PAGE_SIZE, RT_SIZE_NO_CHANGE, IMAGE_FORMAT_ARGB8888, MATERIAL_RT_DEPTH_NONE, false, "_rt_Shadows" );
@@ -250,11 +277,17 @@ void CTextureAllocator::Init()
 	// because full-res 1024x1024 shadow buffer is too large for EDRAM
 	m_TexturePage.InitRenderTargetTexture( TEXTURE_PAGE_SIZE, TEXTURE_PAGE_SIZE, RT_SIZE_NO_CHANGE, IMAGE_FORMAT_ARGB8888, MATERIAL_RT_DEPTH_NONE, false, "_rt_Shadows" );
 
+#ifdef RTT_TEXTURE_SIZE_640
+	// use 4x multisampling for smoother shadows
+	m_TexturePage.InitRenderTargetSurface( MAX_TEXTURE_SIZE, MAX_TEXTURE_SIZE, IMAGE_FORMAT_ARGB8888, false, RT_MULTISAMPLE_4_SAMPLES );
+#else
 	// edram footprint is only 256x256x4 = 256K
 	m_TexturePage.InitRenderTargetSurface( MAX_TEXTURE_SIZE, MAX_TEXTURE_SIZE, IMAGE_FORMAT_ARGB8888, false );
+#endif
 
 	// due to texture/surface size mismatch, ensure texture page is entirely cleared translucent
 	// otherwise border artifacts at edge of shadows due to pixel shader averaging of unwanted bits
+	// should also set m_bRenderTargetNeedsClear
 	m_TexturePage->ClearTexture( 0, 0, 0, 0 );
 #endif
 }
@@ -276,8 +309,37 @@ void CTextureAllocator::Reset()
 	m_Fragments.EnsureCapacity(256);
 
 	// Set up the block sizes....
+#ifdef RTT_TEXTURE_SIZE_640
+	// Going to 640x640 gives us roughly the same number of texture slots than the 1024x1024 texture
+	// and thus won't change cache thrashing patterns
+	m_Blocks[0].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[1].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[2].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[3].m_FragmentPower  = MAX_TEXTURE_POWER-2;		 
+	m_Blocks[4].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[5].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[6].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[7].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[8].m_FragmentPower  = MAX_TEXTURE_POWER-2;
+	m_Blocks[9].m_FragmentPower  = MAX_TEXTURE_POWER-2;	// 10 * 16 = 160
+	m_Blocks[10].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[11].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[12].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[13].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[14].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[15].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[16].m_FragmentPower = MAX_TEXTURE_POWER-1;
+	m_Blocks[17].m_FragmentPower = MAX_TEXTURE_POWER-1;	// 8 * 4 = 32
+	m_Blocks[18].m_FragmentPower = MAX_TEXTURE_POWER;	// 7
+	m_Blocks[19].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[20].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[21].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[22].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[23].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[24].m_FragmentPower = MAX_TEXTURE_POWER;	// 199 slots total
+#else
 	// FIXME: Improve heuristic?!?
-#if !defined( _X360 )
+#if !defined( _GAMECONSOLE )
 	m_Blocks[0].m_FragmentPower  = MAX_TEXTURE_POWER-4;	// 128 cells at ExE resolution
 #else
 	m_Blocks[0].m_FragmentPower  = MAX_TEXTURE_POWER-3;	// 64 cells at DxD resolution
@@ -296,7 +358,8 @@ void CTextureAllocator::Reset()
 	m_Blocks[12].m_FragmentPower = MAX_TEXTURE_POWER;
 	m_Blocks[13].m_FragmentPower = MAX_TEXTURE_POWER;
 	m_Blocks[14].m_FragmentPower = MAX_TEXTURE_POWER;
-	m_Blocks[15].m_FragmentPower = MAX_TEXTURE_POWER;
+	m_Blocks[15].m_FragmentPower = MAX_TEXTURE_POWER;	// 190 slots total on 360
+#endif
 
 	// Initialize the LRU
 	int i;

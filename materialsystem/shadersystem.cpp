@@ -935,7 +935,7 @@ void CShaderSystem::PrepForShaderDraw( IShader *pShader,
 
 	// 360 runs the console remotely, spew cannot cause the matsys to be reentrant
 	// 360 sidesteps the other negative affect that *all* buffered spew redirects as warning text
-	if ( IsPC() || !IsX360() )
+	if ( (IsPC() && !IsRetail()) || !IsX360() )
 	{
 		Assert( !m_SaveSpewOutput );
 		m_SaveSpewOutput = GetSpewOutputFunc();
@@ -949,7 +949,7 @@ void CShaderSystem::PrepForShaderDraw( IShader *pShader,
 
 void CShaderSystem::DoneWithShaderDraw()
 {
-	if ( IsPC() || !IsX360() )
+	if ((IsPC() && !IsRetail()) || !IsX360() )
 	{
 		SpewOutputFunc( m_SaveSpewOutput );
 		PrintBufferedSpew();

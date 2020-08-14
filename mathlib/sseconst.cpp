@@ -377,6 +377,7 @@ void FourVectors_TransformManyGroupsOfEightBy(FourVectors * RESTRICT pVectors, u
 #undef COMPUTE_GROUP
 #undef WRITE_GROUP
 }
+#endif
 
 #ifdef _X360
 // Loop-scheduled code to process FourVectors in groups of eight quite efficiently. This is the version
@@ -972,9 +973,6 @@ void FourVectors::TransformManyBy(FourVectors * RESTRICT pVectors, unsigned int 
 		} while(numVectors > 0);
 	}
 }
-
-
-#endif
 
 // Transform many (horizontal) points in-place by a 3x4 matrix,
 // here already loaded onto three fltx4 registers but not transposed. 

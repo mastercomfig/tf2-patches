@@ -141,7 +141,7 @@ public:
 	void			SetQuitting( int quittype );
 
 private:
-	bool			FilterTime( float t );
+	bool			FilterTime( double t );
 
 	int				m_nQuitting;
 
@@ -152,7 +152,7 @@ private:
 	double			m_flFrameTime;
 	double			m_flPreviousTime;
 	float			m_flFilteredTime;
-	float			m_flMinFrameTime; // Expected duration of a frame, or zero if it is unlimited.
+	double			m_flMinFrameTime; // Expected duration of a frame, or zero if it is unlimited.
 	float			m_flLastRemainder; // 'Unused' time on the last render loop.
 	bool			m_bCatchupTime;
 };
@@ -231,7 +231,7 @@ bool CEngine::Load( bool bDedicated, const char *rootdir )
 // Input  : dt - 
 // Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
-bool CEngine::FilterTime( float dt )
+bool CEngine::FilterTime( double dt )
 {
 	if ( sv.IsDedicated() && !g_bDedicatedServerBenchmarkMode )
 	{
@@ -239,7 +239,7 @@ bool CEngine::FilterTime( float dt )
 		return ( dt >= host_nexttick );
 	}
 
-	m_flMinFrameTime = 0.0f;
+	m_flMinFrameTime = 0.0;
 
 	// Dedicated's tic_rate regulates server frame rate.  Don't apply fps filter here.
 	// Only do this restriction on the client. Prevents clients from accomplishing certain
@@ -258,10 +258,10 @@ bool CEngine::FilterTime( float dt )
 	if ( fps > 0.0f )
 	{
 		// Limit fps to withing tolerable range
-//		fps = max( MIN_FPS, fps ); // red herring - since we're only checking if dt < 1/fps, clamping against MIN_FPS has no effect
-		fps = min( MAX_FPS, (double)fps );
+        // fps = max( MIN_FPS, fps ); // red herring - since we're only checking if dt < 1/fps, clamping against MIN_FPS has no effect
+		const double new_fps = min( MAX_FPS, (double)fps );
 
-		float minframetime = 1.0 / fps;
+		const double minframetime = 1.0 / new_fps;
 
 		m_flMinFrameTime = minframetime;
 
@@ -299,7 +299,7 @@ void CEngine::Frame( void )
 
 	if ( m_flPreviousTime == 0 )
 	{
-		(void) FilterTime( 0.0f );
+		(void) FilterTime( 0.0 );
 		m_flPreviousTime = Sys_FloatTime() - m_flMinFrameTime;
 	}
 
@@ -324,8 +324,8 @@ void CEngine::Frame( void )
 		m_flFrameTime = m_flCurrentTime - m_flPreviousTime;
 
 		// This should never happen...
-		Assert( m_flFrameTime >= 0.0f );
-		if ( m_flFrameTime < 0.0f )
+		Assert( m_flFrameTime >= 0.0 );
+		if ( m_flFrameTime < 0.0 )
 		{
 			// ... but if the clock ever went backwards due to a bug,
 			// we'd have no idea how much time has elapsed, so just 
@@ -339,45 +339,40 @@ void CEngine::Frame( void )
 			break;
 		}
 
-		if ( IsPC() && ( !sv.IsDedicated() || host_timer_spin_ms.GetFloat() != 0 ) )
+		const bool bCustomBusyWait = host_timer_spin_ms.GetFloat() != 0;
+
+		if ( IsPC() && ( !sv.IsDedicated() || bCustomBusyWait) )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
-			// for the last one or two milliseconds to ensure very tight timing.
-			float fBusyWaitMS = IsWindows() ? 2.25f : 1.5f;
-			if ( sv.IsDedicated() )
+			// for the last two milliseconds to ensure very tight timing.
+			double fBusyWaitMS = 2.0f;
+			double fWaitTime = m_flMinFrameTime - m_flFrameTime;
+			double fWaitEnd = m_flCurrentTime + fWaitTime;
+			if ( sv.IsDedicated() || bCustomBusyWait)
 			{
 				fBusyWaitMS = host_timer_spin_ms.GetFloat();
-				fBusyWaitMS = MAX( fBusyWaitMS, 0.5f );
+				fBusyWaitMS = MAX( fBusyWaitMS, 0.5 );
 			}
 
 			// If we are meeting our frame rate then go idle for a while
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
-			int nSleepMS = (int)( ( m_flMinFrameTime - m_flFrameTime ) * 1000 - fBusyWaitMS );
-			if ( nSleepMS > 0 )
+			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
+			if ( nSleepMS > 3 )
 			{
-				ThreadSleep( nSleepMS );
+				ThreadSleep(nSleepMS);
 			}
-			else
+
+			while (Sys_FloatTime() < fWaitEnd)
 			{
-				// On x86, busy-wait using PAUSE instruction which encourages
-				// power savings by idling for ~10 cycles (also yielding to
-				// the other logical hyperthread core if the CPU supports it)
-				for (int i = 2000; i >= 0; --i)
-				{
-#if defined(POSIX)
-					__asm( "pause" ); __asm( "pause" ); __asm( "pause" ); __asm( "pause" );
-#elif defined(IS_WINDOWS_PC)
-					_asm { pause }; _asm { pause }; _asm { pause }; _asm { pause };
-#endif
-				}
+				ThreadSleep();
 			}
 
 			// Go back to the top of the loop and see if it is time yet.
 		}
 		else
 		{
-			int nSleepMicrosecs = (int) ceilf( clamp( ( m_flMinFrameTime - m_flFrameTime ) * 1000000.f, 1.f, 1000000.f ) );
+			int nSleepMicrosecs = (int) ceil( clamp<double>( ( m_flMinFrameTime - m_flFrameTime ) * 1000000, 1, 1000000 ) );
 #ifdef POSIX
 			usleep( nSleepMicrosecs );
 #else
@@ -404,7 +399,7 @@ void CEngine::Frame( void )
 	}
 
 #ifdef VPROF_ENABLED
-	PreUpdateProfile( m_flFrameTime );
+	PreUpdateProfile( (float)m_flFrameTime );
 #endif
 	
 	// Reset swallowed time...
@@ -442,7 +437,7 @@ void CEngine::Frame( void )
 	case DLL_CLOSE:				// closing down dll
 	case DLL_RESTART:			// engine is shutting down but will restart right away
 		// Run the engine frame
-		HostState_Frame( m_flFrameTime );
+		HostState_Frame( (float)m_flFrameTime );
 		break;
 	}
 

@@ -1206,7 +1206,7 @@ ConVarRef::ConVarRef( IConVar *pConVar )
 
 bool ConVarRef::IsValid() const
 {
-	return m_pConVar != &s_EmptyConVar;
+	return m_pConVar != &s_EmptyConVar && m_pConVarState;
 }
 
 

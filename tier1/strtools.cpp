@@ -83,10 +83,10 @@
 static int FastToLower( char c )
 {
 	int i = (unsigned char) c;
-	if ( i < 0x80 )
+	if ( i & 0xffffff80 == 0 )
 	{
 		// Brutally fast branchless ASCII tolower():
-		i += (((('A'-1) - i) & (i - ('Z'+1))) >> 26) & 0x20;
+		i += ((uint32(c) - 'A' < 26u) << 5);
 	}
 	else
 	{
@@ -281,9 +281,9 @@ int V_stricmp( const char *str1, const char *str2 )
 	{
 		return 0;
 	}
-#if 1
-	const unsigned char* s1 = (const unsigned char*)str1;
-	const unsigned char* s2 = (const unsigned char*)str2;
+#if 0
+	auto* s1 = (const unsigned char*)str1;
+	auto* s2 = (const unsigned char*)str2;
 	for ( ; *s1; ++s1, ++s2 )
 	{
 		if ( *s1 != *s2 )
@@ -304,27 +304,35 @@ int V_stricmp( const char *str1, const char *str2 )
 	}
 	return *s2 ? -1 : 0;
 #else
+	auto* s1 = str1;
+	auto* s2 = str2;
 	while (true)
 	{
-		unsigned char s1 = *str1++;
-		unsigned char s2 = *str2++;
-		if (s1 == s2)
+		char c1 = *s1++;
+		char c2 = *s2++;
+		if (c1 == c2)
 		{
-		    if (s1)
+		    if (c1)
 		    {
 				continue;
 		    }
 
 			return 0;
 		}
-		if ((((uint32)s1 | (uint32)s2) & 0xffffff80) == 0)
+		else if ((((uint32)c1 | (uint32)c2) & 0xffffff80) == 0)
 		{
-		    if (int32 Diff = LowerAscii[s1] - LowerAscii[s2])
+		    if (int32 Diff = LowerAscii[(uint8)c1] - LowerAscii[(uint8)c2])
 		    {
 				return Diff;
 		    }
 		}
-		return s1 - s2;
+		else
+		{
+			if (int32 Diff = FastToLower(c1) - FastToLower(c2))
+			{
+				return Diff;
+			}
+		}
 	}
 #endif
 }
