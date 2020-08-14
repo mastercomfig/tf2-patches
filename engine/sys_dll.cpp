@@ -75,7 +75,7 @@
 #define ONE_HUNDRED_TWENTY_EIGHT_MB	(128 * 1024 * 1024)
 
 ConVar mem_min_heapsize( "mem_min_heapsize", "48", FCVAR_INTERNAL_USE, "Minimum amount of memory to dedicate to engine hunk and datacache (in mb)" );
-ConVar mem_max_heapsize( "mem_max_heapsize", "256", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache (in mb)" );
+ConVar mem_max_heapsize( "mem_max_heapsize", "576", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache (in mb)" );
 ConVar mem_max_heapsize_dedicated( "mem_max_heapsize_dedicated", "64", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache, for dedicated server (in mb)" );
 
 #define MINIMUM_WIN_MEMORY			(unsigned)(mem_min_heapsize.GetInt()*1024*1024)
@@ -809,7 +809,7 @@ static CThreadFastMutex g_SpewMutex;
 
 static void AddSpewRecord( char const *pMsg )
 {
-#if !defined( _X360 )
+#if !defined( _X360 ) && !defined(_RETAIL)
 	AUTO_LOCK( g_SpewMutex );
 
 	static bool s_bReentrancyGuard = false;
