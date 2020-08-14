@@ -8,8 +8,6 @@ What is Team Comtress 2? It's a version of Team Fortress 2, based on the recent 
 
 Obviously, as a leaked build, it's not useful for getting better performance in Casual on its own (you can't use this build to connect to any existing servers), but it can help me a lot if you all can test it, so that I am more confident in sending many of these changes to Valve for them to include in the base game! Please let me know how it works for you!
 
-By the way, you can still use [mastercomfig](https://mastercomfig.com/) with it, install it like usual! (and obviously I'd recommend it)
-
 ## Install
 
 Required depot (and manifest, optionally):
