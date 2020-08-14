@@ -56,6 +56,7 @@ config.cfg
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.vpc_crc
+*.vcxproj.FileListAbsolute.txt
 *.obj
 *.pch
 *.pdb
