@@ -3425,7 +3425,9 @@ void CShaderDeviceDx8::Present()
 		}
 	}
 
+#ifdef _X360
 	UpdatePresentStats();
+#endif
 
 	if ( IsWindows() )
 	{

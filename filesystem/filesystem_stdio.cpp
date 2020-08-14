@@ -237,11 +237,12 @@ bool UseOptimalBufferAllocation()
 ConVar filesystem_unbuffered_io( "filesystem_unbuffered_io", "1", 0, "" );
 #define UseUnbufferedIO() ( UseOptimalBufferAllocation() && filesystem_unbuffered_io.GetBool() )
 #else
+#define UseOptimalBufferAllocation() false
 #define UseUnbufferedIO() false
 #endif
 
 ConVar filesystem_native( "filesystem_native", "1", 0, "Use native FS or STDIO" );
-ConVar filesystem_max_stdio_read( "filesystem_max_stdio_read", IsX360() ? "64" : "16", 0, "" );
+ConVar filesystem_max_stdio_read( "filesystem_max_stdio_read", "64", 0, "" );
 ConVar filesystem_report_buffered_io( "filesystem_report_buffered_io", "0" );
 
 //-----------------------------------------------------------------------------

@@ -2808,7 +2808,7 @@ bool FASTCALL IsBoxIntersectingRayNoLowest( fltx4 boxMin, fltx4  boxMax,
 	*/
 #if defined(DBGFLAG_ASSERT)
 	unsigned int r;
-	AssertMsg( (XMVectorGreaterOrEqualR(&r, SetWToZeroSIMD(boxMax),SetWToZeroSIMD(boxMin)), XMComparisonAllTrue(r)), "IsBoxIntersectingRay : boxmax < boxmin" );
+	AssertMsg( (DirectX::XMVectorGreaterOrEqualR(&r, SetWToZeroSIMD(boxMax),SetWToZeroSIMD(boxMin)), DirectX::XMComparisonAllTrue(r)), "IsBoxIntersectingRay : boxmax < boxmin" );
 #endif
 
 	// test if delta is tiny along any dimension
