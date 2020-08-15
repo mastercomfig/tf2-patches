@@ -36,6 +36,17 @@ DISCLAIMER: This is the big kids zone. If you are not a professional, building t
 1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) (for building TF2)
 1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader)
 
+### Depot downloader
+1. Open `cmd.exe` (Windows-R + type cmd.exe + enter) or any other shell
+1. Type `cd ` and drag the Depot Downloader folder (unzipped) to the window
+1. Hit enter
+1. Run the following, where `USERNAME` is your Steam username and `PASSWORD` is your Steam password:
+    - `dotnet DepotDownloader.dll -app 440 -depot 441 -manifest 7707612755534478338 -username USERNAME -password PASSWORD`
+    - `dotnet DepotDownloader.dll -app 440 -depot 440 -username USERNAME -password PASSWORD`
+    - `dotnet DepotDownloader.dll -app 440 -depot 232251 -manifest 2174530283606128348 -username USERNAME -password PASSWORD`
+  
+If prompted for Steam Guard code, enter it
+
 ### Building
 1. Download this repo
 1. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcproj`
@@ -46,16 +57,43 @@ DISCLAIMER: This is the big kids zone. If you are not a professional, building t
 1. Change file permissions to allow execution on `/thirdparty/protobuf-2.5.0/protoc.exe`
 1. From the `441` depot, copy `tf/tf2_misc_dir.vpk/scripts/hudanimations_tf.txt` and `.../resource/clientscheme.res`, `.../resource/modevents.res`, and `.../resource/tf_english.txt` to the corresponding folders (`scripts` and `resource`) under `../game/tf/`. Yes, this is _outside_ the project directory
 1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
+1. You will need to find copies of some libraries that are not included in this repository. They are either in the CS:GO leak or the TF2 leak:
+    - `/lib/public/nvtc.lib`
+    - `/lib/public/ftol.obj`
+    - `/lib/public/open_vr_api.lib`
+    - `/lib/public/steam_api.lib`
+    - `/lib/public/ati_compress_mt_vc10.lib`
+    - `/lib/public/steamnetworkingsockets.lib`
+    - `/lib/public/socketlib.lib`
+    - `/lib/public/SDL2.lib`
+    - `/lib/common/win32/2015/release/libjpeg.lib`
+    - `/lib/common/win32/2015/release/libpng.lib`
+    - `/lib/common/win32/2015/release/d3dx9.lib`
+    - `/lib/common/win32/2015/release/binkw32.lib`
+    - `/lib/common/win32/2015/debug/cryptlib.lib`
+    - `/dx9sdk/lib/d3dx9.lib`
+    - `/dx9sdk/lib/d3d9.lib`
+    - `/dx9sdk/lib/dinput8.lib`
+    - `/dx9sdk/lib/ddraw.lib`
+    - `/dx9sdk/lib/dsound.lib`
+    - `/dx9sdk/lib/dxguid.lib`
+    - `/tier0/DESKey/ALGO32.LIB`
+    - `/tier0/DESKey/DK2WIN.LIB`
 1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true`
 1. Change file permissions to allow execution on
-  - `/devtools/bin/mc.exe`
-  - `/devtools/bin/vpc.exe`
-  - `/creategameprojects_dev.bat`
+    - `/devtools/bin/mc.exe`
+    - `/devtools/bin/vpc.exe`
+    - `/creategameprojects_dev.bat`
 1. Run `/creategameprojects_dev.bat`
 1. Open `/games.sln`
-1. Set `Client (TF)` as the startup project in VS
 1. Build the VS project
 1. The executable is under `/launcher_main/Debug/default.exe` for the client and under `/dedicated_main/Debug/srcds.exe` for the server
+
+### Running and Debugging
+1. For the compiled binaries to run, you will need all (some, but we are not sure which exactly) of the `.dll` and `.asi` files under `bin`. Copy them from the corresponding folder of depot `232251` to your game installation i.e. `../game/bin` (yes, this is _outside_ the project directory).
+1. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-allowdebug -dev -condebug -game tf -sw` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
+
+See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last step.
 
 ## Legal
 
