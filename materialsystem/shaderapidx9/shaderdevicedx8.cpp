@@ -743,7 +743,14 @@ bool CShaderDeviceMgrDx8::ComputeCapsFromD3D( HardwareCaps_t *pCaps, int nAdapte
 	pCaps->m_NumSamplers = min( pCaps->m_NumSamplers, (int)MAX_SAMPLERS );
 	pCaps->m_NumTextureStages = min( pCaps->m_NumTextureStages, (int)MAX_TEXTURE_STAGES );
 
-	if ( D3DSupportsCompressedTextures() )
+	// Determine the adapter format
+	ShaderDisplayMode_t mode;
+	g_pShaderDeviceMgrDx8->GetCurrentModeInfo(&mode, nAdapter);
+	ImageFormat	adapterFormat = mode.m_Format;
+
+	InitializeColorInformation(nAdapter, DX8_DEVTYPE, adapterFormat);
+
+	if (D3DSupportsCompressedTextures())
 	{
 		pCaps->m_SupportsCompressedTextures = COMPRESSED_TEXTURES_ON;
 	}
@@ -1174,6 +1181,12 @@ void CShaderDeviceMgrDx8::ComputeDXSupportLevel( HardwareCaps_t &caps )
 	}
 
 	bool bIsOpenGL = IsOpenGL();
+
+	if ( caps.m_bDX10Card && !bIsOpenGL )
+	{
+		caps.m_nMaxDXSupportLevel = 100;
+		return;
+	}
 
 	if ( caps.m_SupportsShaderModel_3_0 && !bIsOpenGL ) // Note that we don't tie vertex textures to 30 shaders anymore
 	{
@@ -2297,12 +2310,8 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	// Determine the adapter format
 	ShaderDisplayMode_t mode;
-	g_pShaderDeviceMgrDx8->GetCurrentModeInfo( &mode, nAdapter );
+	g_pShaderDeviceMgrDx8->GetCurrentModeInfo(&mode, nAdapter);
 	m_AdapterFormat = mode.m_Format;
-
-	// FIXME: Need to do this prior to SetPresentParameters. Fix.
-	// Make it part of HardwareCaps_t
-	InitializeColorInformation( nAdapter, DX8_DEVTYPE, m_AdapterFormat );
 
 	const HardwareCaps_t &adapterCaps = g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter );
 	DWORD deviceCreationFlags = ComputeDeviceCreationFlags( caps, adapterCaps.m_bSoftwareVertexProcessing );
@@ -2416,7 +2425,6 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	return ( !FAILED( hr ) );
 }
-
 
 //-----------------------------------------------------------------------------
 // Frame sync
