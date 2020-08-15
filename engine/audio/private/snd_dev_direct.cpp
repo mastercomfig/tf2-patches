@@ -333,38 +333,26 @@ IAudioDevice *Audio_CreateDirectSoundDevice( void )
 	return NULL;
 }
 
-int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int lpaintedtime )
+int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int paintedtime )
 {
-	//  soundtime - total full samples that have been played out to hardware at dmaspeed
-	//  paintedtime - total full samples that have been mixed at speed
-	//  endtime - target for full samples in mixahead buffer at speed
-	//  samps - size of output buffer in full samples
-	
-	int mixaheadtime = mixAheadTime * DeviceDmaSpeed();
-	int endtime = soundtime + mixaheadtime;
+	//  soundtime - total samples that have been played out to hardware at dmaspeed
+	//  paintedtime - total samples that have been mixed at speed
+	//  endtime - target for samples in mixahead buffer at speed
+	int endtime = soundtime + mixAheadTime * DeviceDmaSpeed();
 
-	if ( endtime <= lpaintedtime )
+	if (endtime <= paintedtime)
 		return endtime;
 
-	uint nSamples = endtime - lpaintedtime;
-	if ( nSamples & 0x3 )
+	int samps = DeviceSampleCount() / DeviceChannels();
+
+	if ((int)(endtime - soundtime) > samps)
+		endtime = soundtime + samps;
+
+	if ((endtime - paintedtime) & 0x3)
 	{
 		// The difference between endtime and painted time should align on 
 		// boundaries of 4 samples.  This is important when upsampling from 11khz -> 44khz.
-		nSamples += (4 - (nSamples & 3));
-	}
-	// clamp to min 512 samples per mix
-	if ( nSamples > 0 && nSamples < 512 )
-	{
-		nSamples = 512;
-	}
-	endtime = lpaintedtime + nSamples;
-
-	int fullsamps = DeviceSampleCount() / DeviceChannels();
-	if ( (endtime - soundtime) > fullsamps)
-	{
-		endtime = soundtime + fullsamps;
-		endtime += (4 - (endtime & 3));
+		endtime -= (endtime - paintedtime) & 0x3;
 	}
 
 	DWORD	dwStatus;

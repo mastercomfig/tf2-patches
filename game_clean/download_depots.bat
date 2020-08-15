@@ -1,7 +1,9 @@
 @echo off
+pushd %~dp0
 setlocal EnableDelayedExpansion
 
-set dd="DepotDownloader\depotdownloader.bat"
+set df=DepotDownloader\DepotDownloader.dll
+set dd="dotnet %df%"
 set dp=depots
 
 echo.
@@ -16,7 +18,7 @@ if %ERRORLEVEL% NEQ 0 (
 	exit 1
 )
 
-if exist %dd% (
+if exist %df% (
 	rem exists
 ) else (
 	echo Please download DepotDownloader from https://github.com/SteamRE/DepotDownloader/releases/latest and place it in a folder called DepotDownloader.
@@ -30,12 +32,13 @@ set /p steam_password="Steam Password: "
 
 set passes=true
 if %passes% equ true (
-	%dd% -app 440 -depot 440
-	%dd% -app 440 -depot 232251 -manifest 2174530283606128348 -username %steam_username% -password %steam_password%
-	%dd% -app 440 -depot 441 -manifest 7707612755534478338 -username %steam_username% -password %steam_password%
+	"%dd%" -app 440 -depot 440
+	"%dd%" -app 440 -depot 232251 -manifest 2174530283606128348 -username %steam_username% -password %steam_password%
+	"%dd%" -app 440 -depot 441 -manifest 7707612755534478338 -username %steam_username% -password %steam_password%
 	robocopy "%dp%\440\5249752" . /E /XC /XN /XO /XD .DepotDownloader /MOV
 	robocopy "%dp%\232251\5249752" . /E /XC /XN /XO /XD .DepotDownloader /MOV
 	robocopy "%dp%\441\5249752" . /E /XC /XN /XO /XD .DepotDownloader /MOV
 )
 
+popd
 PAUSE

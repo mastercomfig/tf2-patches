@@ -461,7 +461,7 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 // user configurable music volume
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
-ConVar snd_mixahead( "snd_mixahead", "0", FCVAR_ARCHIVE );
+ConVar snd_mixahead( "snd_mixahead", "0.05");
 ConVar snd_mix_async( "snd_mix_async", "1" );
 #ifdef _DEBUG
 static ConCommand snd_mixvol("snd_mixvol", MXR_DebugSetMixGroupVolume, "Set named Mixgroup to mix volume.");
@@ -6564,11 +6564,15 @@ void S_Update_Thread()
 
 	while ( !g_bMixThreadExit )
 	{
+#ifdef _X360
+		float t0 = Plat_FloatTime();
+#endif
+		S_Update_Guts(frameTime + snd_mixahead.GetFloat());
+#ifdef _X360
+
 		// mixing (for 360) needs to be updated at a steady rate
 		// large update times causes the mixer to demand more audio data
 		// the 360 decoder has finite latency and cannot fulfill spike requests
-		float t0 = Plat_FloatTime();
-		S_Update_Guts( frameTime + snd_mixahead.GetFloat() );
 		float tf = Plat_FloatTime();
 		float dt = tf - t0;
 		float nextFrameTime = tf + THREADED_MIX_TIME_S - dt;
@@ -6586,7 +6590,10 @@ void S_Update_Thread()
 		{
 			ThreadSleep();
 		}
-
+#else
+		// Give up our time slice
+		ThreadSleep();
+#endif
 		// mimic a frametime needed for sound update
 		double t1 = Plat_FloatTime();
 		frameTime = t1 - lastFrameTime;
