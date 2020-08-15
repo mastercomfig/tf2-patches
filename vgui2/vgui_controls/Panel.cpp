@@ -4177,19 +4177,28 @@ void Panel::ApplyAutoResizeSettings(KeyValues *inResourceData)
 	AutoResize_e autoResize = (AutoResize_e)inResourceData->GetInt( "AutoResize", AUTORESIZE_NO );
 	PinCorner_e pinCorner = (PinCorner_e)inResourceData->GetInt( "PinCorner", PIN_TOPLEFT );
 
+#if defined( _DEBUG )
+	// We want to detect panels that use parents' size before the parent was sized
+	// If the panel does not actually use the parents' size it's okay
+	bool parentWasUnsized = false;
+	bool paramUsedParentDimension[] = {
+		pinCorner == PIN_TOPRIGHT || pinCorner == PIN_BOTTOMRIGHT,
+		pinCorner == PIN_BOTTOMLEFT || pinCorner == PIN_BOTTOMRIGHT,
+		pinCorner == PIN_TOPLEFT || pinCorner == PIN_BOTTOMLEFT,
+		pinCorner == PIN_TOPLEFT || pinCorner == PIN_TOPRIGHT
+	};
+#endif
+
 	// By default, measure unpinned corner for the offset
 	int pw = wide, pt = tall;
 	if ( GetParent() )
 	{
 		GetParent()->GetSize( pw, pt );
 #if defined( _DEBUG )
-		if ( pw == 64 && pt == 24 )
+		if ( pw == 64 && pt == 24 && GetParent() != lastWarningParent )
 		{
-			if ( GetParent() != lastWarningParent )
-			{
-				lastWarningParent = GetParent();
-				Warning( "Resize parent (panel(%s) -> parent(%s)) not sized yet!!!\n", GetName(), GetParent()->GetName() );
-			}
+			lastWarningParent = GetParent();
+			parentWasUnsized = true;
 		}
 #endif
 	}
@@ -4232,33 +4241,68 @@ void Panel::ApplyAutoResizeSettings(KeyValues *inResourceData)
 	{
 		if ( inResourceData->FindKey( "PinnedCornerOffsetX" ) )
 		{
+			DEBUG_LINE paramUsedParentDimension[0] = false;
 			nPinnedCornerOffsetX = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "PinnedCornerOffsetX" ) );
 		}
 		if ( inResourceData->FindKey( "PinnedCornerOffsetY" ) )
 		{
+			DEBUG_LINE paramUsedParentDimension[1] = false;
 			nPinnedCornerOffsetY =	scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "PinnedCornerOffsetY" ) );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetX" ) )
 		{
+			DEBUG_LINE paramUsedParentDimension[2] = false;
 			nUnpinnedCornerOffsetX = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "UnpinnedCornerOffsetX" ) );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetY" ) )
 		{
+			DEBUG_LINE paramUsedParentDimension[3] = false;
 			nUnpinnedCornerOffsetY = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "UnpinnedCornerOffsetY" ) );
 		}
 	}
 	else
 	{
-		nPinnedCornerOffsetX = inResourceData->GetInt( "PinnedCornerOffsetX", nPinnedCornerOffsetX );
-		nPinnedCornerOffsetY = inResourceData->GetInt( "PinnedCornerOffsetY", nPinnedCornerOffsetY );
-		nUnpinnedCornerOffsetX = inResourceData->GetInt( "UnpinnedCornerOffsetX", nUnpinnedCornerOffsetX );
-		nUnpinnedCornerOffsetY = inResourceData->GetInt( "UnpinnedCornerOffsetY", nUnpinnedCornerOffsetY );
+		if ( inResourceData->FindKey( "PinnedCornerOffsetX" ) )
+		{
+			DEBUG_LINE paramUsedParentDimension[0] = false;
+			nPinnedCornerOffsetX = inResourceData->GetInt( "PinnedCornerOffsetX" );
+		}
+		if ( inResourceData->FindKey( "PinnedCornerOffsetY" ) )
+		{
+			DEBUG_LINE paramUsedParentDimension[1] = false;
+			nPinnedCornerOffsetY = inResourceData->GetInt( "PinnedCornerOffsetY" );
+		}
+		if ( inResourceData->FindKey( "UnpinnedCornerOffsetX" ) )
+		{
+			DEBUG_LINE paramUsedParentDimension[2] = false;
+			nUnpinnedCornerOffsetX = inResourceData->GetInt( "UnpinnedCornerOffsetX" );
+		}
+		if ( inResourceData->FindKey( "UnpinnedCornerOffsetY" ) )
+		{
+			DEBUG_LINE paramUsedParentDimension[3] = false;
+			nUnpinnedCornerOffsetY = inResourceData->GetInt( "UnpinnedCornerOffsetY" );
+		}
 	}
 
 	if ( autoResize == AUTORESIZE_NO )
 	{
 		nUnpinnedCornerOffsetX = nUnpinnedCornerOffsetY = 0;
+		DEBUG_LINE paramUsedParentDimension[2] = false;
+		DEBUG_LINE paramUsedParentDimension[3] = false;
 	}
+
+#if defined( _DEBUG )
+	bool anyParamUsedParentDimension = false;
+	for ( int i = 0; i < 4; ++i )
+	{
+		anyParamUsedParentDimension = anyParamUsedParentDimension || paramUsedParentDimension[i];
+	}
+
+	if ( parentWasUnsized && anyParamUsedParentDimension )
+	{
+		Warning( "Resize parent (panel(%s) -> parent(%s)) not sized yet!!!\n", GetName(), GetParent()->GetName() );
+	}
+#endif
 
 	SetAutoResize( pinCorner, autoResize, nPinnedCornerOffsetX, nPinnedCornerOffsetY, nUnpinnedCornerOffsetX, nUnpinnedCornerOffsetY );
 }
