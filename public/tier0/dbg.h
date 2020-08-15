@@ -1,6 +1,6 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose:  
+// Purpose:
 //
 // $NoKeywords: $
 //
@@ -41,8 +41,8 @@
 #else // BUILD_AS_DLL
 
 #define DBG_INTERFACE	extern
-#define DBG_OVERLOAD	
-#define DBG_CLASS		
+#define DBG_OVERLOAD
+#define DBG_CLASS
 #endif // BUILD_AS_DLL
 
 
@@ -53,12 +53,12 @@ class Color;
 // Usage model for the Dbg library
 //
 // 1. Spew.
-// 
+//
 //   Spew can be used in a static and a dynamic mode. The static
 //   mode allows us to display assertions and other messages either only
 //   in debug builds, or in non-release builds. The dynamic mode allows us to
 //   turn on and off certain spew messages while the application is running.
-// 
+//
 //   Static Spew messages:
 //
 //     Assertions are used to detect and warn about invalid states
@@ -73,14 +73,14 @@ class Color;
 //     AssertFloatEquals( f, 5.0f, 1e-3 );
 //
 //     The first will simply report that an assertion failed on a particular
-//     code file and line. The second version will display a print-f formatted message 
+//     code file and line. The second version will display a print-f formatted message
 //	   along with the file and line, the third will display a generic message and
 //     will also cause the function BadFunc to be executed, and the last two
 //	   will report an error if f is not equal to 5 (the last one asserts within
 //	   a particular tolerance).
 //
 //     To use a warning, use
-//      
+//
 //     Warning("Oh I feel so %s all over\n", "yummy");
 //
 //     Warning will do its magic in only Debug builds. To perform spew in *all*
@@ -94,24 +94,24 @@ class Color;
 //
 //   Dynamic Spew messages
 //
-//     It is possible to dynamically turn spew on and off. Dynamic spew is 
-//     identified by a spew group and priority level. To turn spew on for a 
-//     particular spew group, use SpewActivate( "group", level ). This will 
-//     cause all spew in that particular group with priority levels <= the 
-//     level specified in the SpewActivate function to be printed. Use DSpew 
+//     It is possible to dynamically turn spew on and off. Dynamic spew is
+//     identified by a spew group and priority level. To turn spew on for a
+//     particular spew group, use SpewActivate( "group", level ). This will
+//     cause all spew in that particular group with priority levels <= the
+//     level specified in the SpewActivate function to be printed. Use DSpew
 //     to perform the spew:
 //
 //     DWarning( "group", level, "Oh I feel even yummier!\n" );
 //
 //     Priority level 0 means that the spew will *always* be printed, and group
-//     '*' is the default spew group. If a DWarning is encountered using a group 
-//     whose priority has not been set, it will use the priority of the default 
-//     group. The priority of the default group is initially set to 0.      
+//     '*' is the default spew group. If a DWarning is encountered using a group
+//     whose priority has not been set, it will use the priority of the default
+//     group. The priority of the default group is initially set to 0.
 //
 //   Spew output
-//   
+//
 //     The output of the spew system can be redirected to an externally-supplied
-//     function which is responsible for outputting the spew. By default, the 
+//     function which is responsible for outputting the spew. By default, the
 //     spew is simply printed using printf.
 //
 //     To redirect spew output, call SpewOutput.
@@ -121,8 +121,8 @@ class Color;
 //     This will cause OutputFunc to be called every time a spew message is
 //     generated. OutputFunc will be passed a spew type and a message to print.
 //     It must return a value indicating whether the debugger should be invoked,
-//     whether the program should continue running, or whether the program 
-//     should abort. 
+//     whether the program should continue running, or whether the program
+//     should abort.
 //
 // 2. Code activation
 //
@@ -134,10 +134,10 @@ class Color;
 //					int x = 5;
 //					++x;
 //				}
-//           ); 
+//           );
 //
 //   Code can be activated based on the dynamic spew groups also. Use
-//  
+//
 //   DBG_DCODE( "group", level,
 //              { int x = 5; ++x; }
 //            );
@@ -291,7 +291,7 @@ DBG_INTERFACE struct SDL_Window * GetAssertDialogParent();
 #define  AssertFatalMsg( _exp, _msg, ... )						_AssertMsg( _exp, (const tchar *)CDbgFmtMsg( _msg, ##__VA_ARGS__ ), ((void)0), true )
 #define  AssertFatalMsgOnce( _exp, _msg )						_AssertMsgOnce( _exp, _msg, true )
 #define  AssertFatalFunc( _exp, _f )							_AssertMsg( _exp, _T("Assertion Failed: " _T(#_exp), _f, true )
-#define  AssertFatalEquals( _exp, _expectedValue )				AssertFatalMsg2( (_exp) == (_expectedValue), _T("Expected %d but got %d!"), (_expectedValue), (_exp) ) 
+#define  AssertFatalEquals( _exp, _expectedValue )				AssertFatalMsg2( (_exp) == (_expectedValue), _T("Expected %d but got %d!"), (_expectedValue), (_exp) )
 #define  AssertFatalFloatEquals( _exp, _expectedValue, _tol )   AssertFatalMsg2( fabs((_exp) - (_expectedValue)) <= (_tol), _T("Expected %f but got %f!"), (_expectedValue), (_exp) )
 #define  VerifyFatal( _exp )									AssertFatal( _exp )
 #define  VerifyEqualsFatal( _exp, _expectedValue )				AssertFatalEquals( _exp, _expectedValue )
@@ -341,7 +341,7 @@ DBG_INTERFACE struct SDL_Window * GetAssertDialogParent();
 #define  AssertOnce( _exp )       							_AssertMsgOnce( _exp, _T("Assertion Failed: ") _T(#_exp), false )
 #define  AssertMsgOnce( _exp, _msg )  						_AssertMsgOnce( _exp, _msg, false )
 #define  AssertFunc( _exp, _f )   							_AssertMsg( _exp, _T("Assertion Failed: ") _T(#_exp), _f, false )
-#define  AssertEquals( _exp, _expectedValue )              	AssertMsg2( (_exp) == (_expectedValue), _T("Expected %d but got %d!"), (_expectedValue), (_exp) ) 
+#define  AssertEquals( _exp, _expectedValue )              	AssertMsg2( (_exp) == (_expectedValue), _T("Expected %d but got %d!"), (_expectedValue), (_exp) )
 #define  AssertFloatEquals( _exp, _expectedValue, _tol )  	AssertMsg2( fabs((_exp) - (_expectedValue)) <= (_tol), _T("Expected %f but got %f!"), (_expectedValue), (_exp) )
 #define  Verify( _exp )           							Assert( _exp )
 #define  VerifyMsg1( _exp, _msg, a1 )						AssertMsg1( _exp, _msg, a1 )
@@ -389,7 +389,7 @@ DBG_INTERFACE struct SDL_Window * GetAssertDialogParent();
 
 #endif // DBGFLAG_ASSERT
 
-// The Always version of the assert macros are defined even when DBGFLAG_ASSERT is not, 
+// The Always version of the assert macros are defined even when DBGFLAG_ASSERT is not,
 // so they will be available even in release.
 #define  AssertAlways( _exp )           							_AssertMsg( _exp, _T("Assertion Failed: ") _T(#_exp), ((void)0), false )
 #define  AssertMsgAlways( _exp, _msg )  							_AssertMsg( _exp, _msg, ((void)0), false )
@@ -524,12 +524,12 @@ DBG_INTERFACE void COM_TimestampedLog( PRINTF_FORMAT_STRING char const *fmt, ...
 #define DBG_CODE( _code )            if (0) ; else { _code }
 #define DBG_CODE_NOSCOPE( _code )	 _code
 #define DBG_DCODE( _g, _l, _code )   if (IsSpewActive( _g, _l )) { _code } else {}
-#define DBG_BREAK()                  DebuggerBreak()	/* defined in platform.h */ 
+#define DBG_BREAK()                  DebuggerBreak()	/* defined in platform.h */
 
 #else /* not _DEBUG */
 
 #define DBG_CODE( _code )            ((void)0)
-#define DBG_CODE_NOSCOPE( _code )	 
+#define DBG_CODE_NOSCOPE( _code )
 #define DBG_DCODE( _g, _l, _code )   ((void)0)
 #define DBG_BREAK()                  ((void)0)
 
@@ -567,7 +567,7 @@ public:
 #define ASSERT_INVARIANT( pred )	COMPILE_TIME_ASSERT( pred )
 
 // NOTE: On GCC / Clang, assert_cast can sometimes fire even if the type is correct. We should just workaround these.
-// The situation where this would occur is 
+// The situation where this would occur is
 // 1. You create an object of a low level type in a DLL, and it really gets created there.
 // 2. You pass it across a DLL boundary
 // 3. You use assert_cast to verify it in the second DLL boundary (where it also could've been created).
@@ -621,12 +621,12 @@ public:
 	{
 		++(*m_pSemaphore);
 	}
-	
+
 	~CReentryGuard()
 	{
 		--(*m_pSemaphore);
 	}
-	
+
 private:
 	int *m_pSemaphore;
 };
@@ -649,7 +649,7 @@ class CDbgFmtMsg
 {
 public:
 	CDbgFmtMsg(PRINTF_FORMAT_STRING const tchar *pszFormat, ...) FMTFUNCTION( 2, 3 )
-	{ 
+	{
 		va_list arg_ptr;
 
 		va_start(arg_ptr, pszFormat);
@@ -659,9 +659,9 @@ public:
 		m_szBuf[sizeof(m_szBuf)-1] = 0;
 	}
 
-	operator const tchar *() const				
-	{ 
-		return m_szBuf; 
+	operator const tchar *() const
+	{
+		return m_szBuf;
 	}
 
 private:
@@ -692,108 +692,108 @@ template< class Type >
 class CDataWatcher
 {
 public:
-	const Type& operator=( const Type &val ) 
-	{ 
-		return Set( val ); 
+	const Type& operator=( const Type &val )
+	{
+		return Set( val );
 	}
-	
-	const Type& operator=( const CDataWatcher<Type> &val ) 
-	{ 
-		return Set( val.m_Value ); 
+
+	const Type& operator=( const CDataWatcher<Type> &val )
+	{
+		return Set( val.m_Value );
 	}
-	
+
 	const Type& Set( const Type &val )
 	{
 		// Put your breakpoint here
 		m_Value = val;
 		return m_Value;
 	}
-	
+
 	Type& GetForModify()
 	{
 		return m_Value;
 	}
-	
-	const Type& operator+=( const Type &val ) 
+
+	const Type& operator+=( const Type &val )
 	{
-		return Set( m_Value + val ); 
+		return Set( m_Value + val );
 	}
-	
-	const Type& operator-=( const Type &val ) 
+
+	const Type& operator-=( const Type &val )
 	{
-		return Set( m_Value - val ); 
+		return Set( m_Value - val );
 	}
-	
-	const Type& operator/=( const Type &val ) 
+
+	const Type& operator/=( const Type &val )
 	{
-		return Set( m_Value / val ); 
+		return Set( m_Value / val );
 	}
-	
-	const Type& operator*=( const Type &val ) 
+
+	const Type& operator*=( const Type &val )
 	{
-		return Set( m_Value * val ); 
+		return Set( m_Value * val );
 	}
-	
-	const Type& operator^=( const Type &val ) 
+
+	const Type& operator^=( const Type &val )
 	{
-		return Set( m_Value ^ val ); 
+		return Set( m_Value ^ val );
 	}
-	
-	const Type& operator|=( const Type &val ) 
+
+	const Type& operator|=( const Type &val )
 	{
-		return Set( m_Value | val ); 
+		return Set( m_Value | val );
 	}
-	
+
 	const Type& operator++()
 	{
 		return (*this += 1);
 	}
-	
+
 	Type operator--()
 	{
 		return (*this -= 1);
 	}
-	
+
 	Type operator++( int ) // postfix version..
 	{
 		Type val = m_Value;
 		(*this += 1);
 		return val;
 	}
-	
+
 	Type operator--( int ) // postfix version..
 	{
 		Type val = m_Value;
 		(*this -= 1);
 		return val;
 	}
-	
-	// For some reason the compiler only generates type conversion warnings for this operator when used like 
+
+	// For some reason the compiler only generates type conversion warnings for this operator when used like
 	// CNetworkVarBase<unsigned tchar> = 0x1
 	// (it warns about converting from an int to an unsigned char).
 	template< class C >
-	const Type& operator&=( C val ) 
-	{ 
-		return Set( m_Value & val ); 
-	}
-	
-	operator const Type&() const 
+	const Type& operator&=( C val )
 	{
-		return m_Value; 
+		return Set( m_Value & val );
 	}
-	
-	const Type& Get() const 
+
+	operator const Type&() const
 	{
-		return m_Value; 
+		return m_Value;
 	}
-	
-	const Type* operator->() const 
+
+	const Type& Get() const
 	{
-		return &m_Value; 
+		return m_Value;
 	}
-	
+
+	const Type* operator->() const
+	{
+		return &m_Value;
+	}
+
 	Type m_Value;
-	
+
 };
 
 #else
@@ -816,5 +816,11 @@ private:
 #define Log_Error( ignore, ... )		::Error( __VA_ARGS__ );
 #define DEFINE_LOGGING_CHANNEL_NO_TAGS( ... );
 #define Plat_FatalError( ... ) do { Log_Error( LOG_GENERAL, __VA_ARGS__ ); Plat_ExitProcess( EXIT_FAILURE ); } while( 0 )
+
+#ifdef _DEBUG
+#define DEBUG_LINE
+#else
+#define DEBUG_LINE if (0)
+#endif
 
 #endif /* DBG_H */
