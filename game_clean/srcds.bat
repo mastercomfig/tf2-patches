@@ -1,2 +1,2 @@
 @echo off
-srcds.exe -console -game tf %*
+srcds.exe -nomaster -console -game tf %*
