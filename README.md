@@ -46,7 +46,7 @@ DISCLAIMER: This is the big kids zone. If you are not a professional, building t
 1. Change file permissions to allow execution on `/thirdparty/protobuf-2.5.0/protoc.exe`
 1. From the `441` depot, copy `tf/tf2_misc_dir.vpk/scripts/hudanimations_tf.txt` and `.../resource/clientscheme.res`, `.../resource/modevents.res`, and `.../resource/tf_english.txt` to the corresponding folders (`scripts` and `resource`) under `../game/tf/`. Yes, this is _outside_ the project directory
 1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
-<!-- 1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true` -->
+1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true`
 1. Change file permissions to allow execution on
   - `/devtools/bin/mc.exe`
   - `/devtools/bin/vpc.exe`
