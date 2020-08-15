@@ -343,7 +343,7 @@ int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int painte
 	if (endtime <= paintedtime)
 		return endtime;
 
-	int samps = DeviceSampleCount() / DeviceChannels();
+	int samps = max(1, DeviceSampleCount() / DeviceChannels());
 
 	if ((int)(endtime - soundtime) > samps)
 		endtime = soundtime + samps;
