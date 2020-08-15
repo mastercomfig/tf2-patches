@@ -8534,7 +8534,15 @@ int CTFPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	CTFWeaponBase *pWeapon = dynamic_cast< CTFWeaponBase * >( inputInfo.GetWeapon() );
 
 	if ( GetFlags() & FL_GODMODE )
+	{
+		if (info.GetInflictor() == this)
+		{
+			Vector vecDir;
+			GetAttackVector(info, vecDir);
+			ApplyPushFromDamage(info, vecDir);
+		}
 		return 0;
+	}
 
 	if ( IsInCommentaryMode() )
 		return 0;
@@ -8550,6 +8558,12 @@ int CTFPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	{
 		if ( ( m_iHealth - info.GetDamage() ) <= 0 )
 		{
+			if (info.GetInflictor() == this)
+			{
+				Vector vecDir;
+				GetAttackVector(info, vecDir);
+				ApplyPushFromDamage(info, vecDir);
+			}
 			m_iHealth = 1;
 			return 0;
 		}
@@ -10002,6 +10016,17 @@ void CTFPlayer::PlayDamageResistSound( float flStartDamage, float flModifiedDama
 	}
 }
 
+void CTFPlayer::GetAttackVector(const CTakeDamageInfo& info, Vector& vecDir)
+{
+    vecDir = vec3_origin;
+    if ( info.GetInflictor() )
+    {
+        vecDir = info.GetInflictor()->WorldSpaceCenter() - Vector ( 0.0f, 0.0f, 10.0f ) - WorldSpaceCenter();
+        info.GetInflictor()->AdjustDamageDirection( info, vecDir, this );
+        VectorNormalize( vecDir );
+    }
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : &info - 
@@ -10042,14 +10067,9 @@ int CTFPlayer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	// Grab the vector of the incoming attack. 
 	// (Pretend that the inflictor is a little lower than it really is, so the body will tend to fly upward a bit).
-	Vector vecDir = vec3_origin;
-	if ( info.GetInflictor() )
-	{
-		vecDir = info.GetInflictor()->WorldSpaceCenter() - Vector ( 0.0f, 0.0f, 10.0f ) - WorldSpaceCenter();
-		info.GetInflictor()->AdjustDamageDirection( info, vecDir, this );
-		VectorNormalize( vecDir );
-	}
-	g_vecAttackDir = vecDir;
+    Vector vecDir;
+    GetAttackVector(info, vecDir);
+    g_vecAttackDir = vecDir;
 
 	// Do the damage.
 	m_bitsDamageType |= info.GetDamageType();
