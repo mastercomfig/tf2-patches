@@ -10,19 +10,10 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 
 ## Install
 
-Required depot (and manifest, optionally):
-
-| depot | manifest |
-| ----- | -------- |
-| 441   | 7707612755534478338 |
-| 440   | |
-| 232251 | 2174530283606128348 |
-
-1. Use [Depot Downloader](https://github.com/SteamRE/DepotDownloader) to download these depots from app `440`.
-2. Combine them together into one folder.
-3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
-4. Extract the contents of the download to your folder, replacing existing files.
-5. Double click `start_tf2.bat`.
+1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
+2. Extract to a folder of your choosing.
+3. Run `download_depots.bat`.
+5. Double click `start_tf2.bat`. Note that you must have Steam running.
 6. Enjoy!
 
 ## Legal
