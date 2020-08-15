@@ -1762,7 +1762,7 @@ void CShaderDeviceDx8::SetPresentParameters( void* hWnd, int nAdapter, const Sha
 		m_PresentParameters.BackBufferCount = 1;
 	}
 
-	if ( info.m_nAASamples >= 0 && ( m_PresentParameters.SwapEffect == D3DSWAPEFFECT_DISCARD ) )
+	if ( info.m_nAASamples > 1 && ( m_PresentParameters.SwapEffect == D3DSWAPEFFECT_DISCARD ) )
 	{
 		D3DMULTISAMPLE_TYPE multiSampleType = ComputeMultisampleType( info.m_nAASamples );
 		DWORD nQualityLevel;

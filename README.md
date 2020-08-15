@@ -22,10 +22,8 @@ Required depot (and manifest, optionally):
 2. Combine them together into one folder.
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
 4. Extract the contents of the download to your folder, replacing existing files.
-5. [Download](https://mr_goldberg.gitlab.io/goldberg_emulator/) Goldberg Emulator.
-6. Extract steam_api.dll into the `bin/` folder.
-7. Double click `start_tf2.bat`.
-8. Enjoy!
+5. Double click `start_tf2.bat`.
+6. Enjoy!
 
 ## Legal
 

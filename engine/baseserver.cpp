@@ -1772,6 +1772,9 @@ void CBaseServer::CheckMasterServerRequestRestart()
 {
 	if ( !Steam3Server().SteamGameServer() || !Steam3Server().SteamGameServer()->WasRestartRequested() )
 		return;
+
+	// HACK(mastercoms): stop nagging
+	return;
 	
 	// Connection was rejected by the HLMaster (out of date version)
 

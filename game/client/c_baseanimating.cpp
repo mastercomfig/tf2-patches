@@ -2737,7 +2737,7 @@ ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "1", FCVAR_INTERNAL_USE,
 
 static void SetupBonesOnBaseAnimating( C_BaseAnimating *&pBaseAnimating )
 {
-	if ( !pBaseAnimating->GetMoveParent() )
+	if ( pBaseAnimating && !pBaseAnimating->GetMoveParent() )
 		pBaseAnimating->SetupBones( NULL, -1, -1, gpGlobals->curtime );
 }
 
