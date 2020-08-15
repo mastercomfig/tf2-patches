@@ -27,6 +27,36 @@ Required depot (and manifest, optionally):
 7. Double click `start_tf2.bat`.
 8. Enjoy!
 
+## Build
+
+DISCLAIMER: This is the big kids zone. If you are not a professional, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. It might be much more complicated (or not)
+
+### Setup
+1. Get [.Net Core Runtime](https://dotnet.microsoft.com/download) (for Depot Downloader, latest version is fine)
+1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) (for building TF2)
+1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader)
+
+### Building
+1. Download this repo
+1. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcproj`
+1. When prompted to "upgrade" project, agree
+1. For the Debug configuration, set `Properties->Configuration Properties->C/C++->Code Generation->Runtime Library` to `Multi-threaded Debug (/MTd)`. For Relase, set it to to `Multi-threaded (/MT)`
+1. For both configurations, add `_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS` under `Properties->Configuration Properties->C/C++->Preprocessor`
+1. Run both the Debug and the Release builds
+1. Change file permissions to allow execution on `/thirdparty/protobuf-2.5.0/protoc.exe`
+1. From the `441` depot, copy `tf/tf2_misc_dir.vpk/scripts/hudanimations_tf.txt` and `.../resource/clientscheme.res`, `.../resource/modevents.res`, and `.../resource/tf_english.txt` to the corresponding folders (`scripts` and `resource`) under `../game/tf/`. Yes, this is _outside_ the project directory
+1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
+<!-- 1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true` -->
+1. Change file permissions to allow execution on
+  - `/devtools/bin/mc.exe`
+  - `/devtools/bin/vpc.exe`
+  - `/creategameprojects_dev.bat`
+1. Run `/creategameprojects_dev.bat`
+1. Open `/games.sln`
+1. Set `Client (TF)` as the startup project in VS
+1. Build the VS project
+1. The executable is under `/launcher_main/Debug/default.exe` for the client and under `/dedicated_main/Debug/srcds.exe` for the server
+
 ## Legal
 
 Valve, the Valve logo, Steam, the Steam logo, Team Fortress, the Team Fortress logo, Source, the Source logo are trademarks and/or registered trademarks of Valve Corporation in the U.S. and/or other countries.
