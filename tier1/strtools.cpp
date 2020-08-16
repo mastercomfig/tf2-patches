@@ -83,7 +83,7 @@
 static int FastToLower( char c )
 {
 	int i = (unsigned char) c;
-	if ( i & 0xffffff80 == 0 )
+	if ( (i & 0xffffff80) == 0 )
 	{
 		// Brutally fast branchless ASCII tolower():
 		i += ((uint32(c) - 'A' < 26u) << 5);

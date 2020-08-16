@@ -4870,8 +4870,8 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 					cornermax = DirectX::XMVectorSelect(vecBoxMin, vecBoxMax, control);
 
 					// compute dot products
-					fltx4 dotCornerMax = DirectX::XMVectorAdd(planeNormal, cornermax); // TODO: vsumfp ignores w component
-					fltx4 dotCornerMin = DirectX::XMVectorAdd(planeNormal, cornermin);
+					fltx4 dotCornerMax = DirectX::XMVector3Dot(planeNormal, cornermax);
+					fltx4 dotCornerMin = DirectX::XMVector3Dot(planeNormal, cornermin);
 					fltx4 vPlaneDist = ReplicateX4(plane->dist);
 					uint conditionRegister;
                     DirectX::XMVectorGreaterR(&conditionRegister, vPlaneDist, dotCornerMax);

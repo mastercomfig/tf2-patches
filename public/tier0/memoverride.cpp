@@ -31,6 +31,9 @@
 #endif
 #endif
 
+#ifdef _X360
+#include "tier0/threadtools.h"
+#endif
 #include "tier0/dbg.h"
 #include "tier0/memalloc.h"
 #include <string.h>
@@ -1285,7 +1288,7 @@ void XMemAlloc_RegisterAllocation( void *p, DWORD dwAllocAttributes )
 		return;
 	}
 
-	AUTO_LOCK_FM( g_XMemAllocMutex );
+	AUTO_LOCK( g_XMemAllocMutex );
 	int size = XMemSize( p, dwAllocAttributes );
 	MemAlloc_RegisterExternalAllocation( XMem, p, size );
 }
@@ -1298,7 +1301,7 @@ void XMemAlloc_RegisterDeallocation( void *p, DWORD dwAllocAttributes )
 		return;
 	}
 
-	AUTO_LOCK_FM( g_XMemAllocMutex );
+	AUTO_LOCK( g_XMemAllocMutex );
 	int size = XMemSize( p, dwAllocAttributes );
 	MemAlloc_RegisterExternalDeallocation( XMem, p, size );
 }

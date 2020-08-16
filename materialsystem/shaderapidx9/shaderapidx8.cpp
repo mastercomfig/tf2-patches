@@ -88,6 +88,7 @@ mat_fullbright 1 doesn't work properly on alpha materials in testroom_standards
 #include "xbox/xbox_console.h"
 #include "xbox/xbox_win32stubs.h"
 #include "xbox/xbox_launch.h"
+#include "tier0/threadtools.h"
 #endif
 #include "tier0/tslist.h"
 #ifndef _X360
@@ -13558,7 +13559,7 @@ bool CShaderAPIDx8::GetTrueTypeGlyphs( HXUIFONT hFont, int numChars, wchar_t *pW
 		return false;
 
 	// Ensure this doesn't talk to D3D at the same time as the loading bar
-	AUTO_LOCK_FM( m_nonInteractiveModeMutex );
+	AUTO_LOCK( m_nonInteractiveModeMutex );
 
 
 	LOCK_SHADERAPI();

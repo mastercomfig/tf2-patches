@@ -115,9 +115,11 @@ public:
 	virtual void DrawStaticProps( bool enable );
 	virtual void DrawSmallEntities( bool enable );
 	virtual void EnableAlternateSorting( ClientRenderHandle_t handle, bool bEnable );
+	virtual void EnableBloatedBounds(ClientRenderHandle_t handle, bool bEnable);
 
 	// Adds a renderable to a set of leaves
 	virtual void AddRenderableToLeaves( ClientRenderHandle_t handle, int nLeafCount, unsigned short *pLeaves );
+	void AddRenderableToLeaves(ClientRenderHandle_t handle, int nLeafCount, unsigned short* pLeaves, bool bReceiveShadows);
 
 	// The following methods are related to shadows...
 	virtual ClientLeafShadowHandle_t AddShadow( ClientShadowHandle_t userId, unsigned short flags );
@@ -177,15 +179,13 @@ private:
 		signed char			m_TranslucencyCalculatedView;
 		Vector				m_vecBloatedAbsMins;		// Use this for tree insertion
 		Vector				m_vecBloatedAbsMaxs;
-		Vector				m_vecAbsMins;			// NOTE: These members are not threadsafe!!
-		Vector				m_vecAbsMaxs;			// They can be updated from any viewpoint (based on RENDER_FLAGS_BOUNDS_VALID)
 	};
 
 	// Creates a new renderable
 	void NewRenderable( IClientRenderable* pRenderable, RenderGroup_t type, int flags = 0 );
 
 	// Adds a renderable to the list of renderables
-	void AddRenderableToLeaf( int leaf, ClientRenderHandle_t handle );
+	void AddRenderableToLeaf(int leaf, ClientRenderHandle_t handle, bool bReceiveShadows);
 
 	void SortEntities(  const Vector &vecRenderOrigin, const Vector &vecRenderForward, CClientRenderablesList::CEntry *pEntities, int nEntities );
 
@@ -332,6 +332,8 @@ private:
 	int	m_ShadowEnum;
 
 	CTSList<EnumResultList_t> m_DeferredInserts;
+
+	CThreadFastMutex m_DirtyRenderablesMutex;
 };
 
 
@@ -537,6 +539,8 @@ void CClientLeafSystem::PreRender()
 {
 	VPROF_BUDGET( "CClientLeafSystem::PreRender", "PreRender" );
 
+	AUTO_LOCK(m_DirtyRenderablesMutex);
+
 	int i;
 	int nIterations = 0;
 
@@ -550,7 +554,8 @@ void CClientLeafSystem::PreRender()
 
 		int nDirty = m_DirtyRenderables.Count();
 
-		bool bThreaded = ( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
+		//bool bThreaded = ( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
+		bool bThreaded = false;
 
 		if ( !bThreaded )
 		{
@@ -574,11 +579,12 @@ void CClientLeafSystem::PreRender()
 			while ( m_DeferredInserts.PopItem( &enumResultList ) )
 			{
 				m_ShadowEnum++;
+				const bool bReceiveShadows = ShouldRenderableReceiveShadow(enumResultList.handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
 				while ( enumResultList.pHead )
 				{
 					EnumResult_t *p = enumResultList.pHead;
 					enumResultList.pHead = p->pNext;
-					AddRenderableToLeaf( p->leaf, enumResultList.handle );
+					AddRenderableToLeaf( p->leaf, enumResultList.handle, bReceiveShadows );
 					delete p;
 				}
 			}
@@ -627,6 +633,7 @@ void CClientLeafSystem::NewRenderable( IClientRenderable* pRenderable, RenderGro
 		flags |= RENDER_FLAGS_STUDIO_MODEL;
 	}
 
+	info.m_Area = -1;
 	info.m_pRenderable = pRenderable;
 	info.m_RenderFrame = -1;
 	info.m_RenderFrame2 = -1;
@@ -638,6 +645,9 @@ void CClientLeafSystem::NewRenderable( IClientRenderable* pRenderable, RenderGro
 	info.m_RenderGroup = (unsigned char)type;
 	info.m_EnumCount = 0;
 	info.m_RenderLeaf = m_RenderablesInLeaf.InvalidIndex();
+	info.m_vecBloatedAbsMins.Init(FLT_MAX, FLT_MAX, FLT_MAX);
+	info.m_vecBloatedAbsMaxs.Init(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
 	if ( IsViewModelRenderGroup( (RenderGroup_t)info.m_RenderGroup ) )
 	{
 		AddToViewModelList( handle );
@@ -705,6 +715,28 @@ void CClientLeafSystem::EnableAlternateSorting( ClientRenderHandle_t handle, boo
 	else
 	{
 		info.m_Flags &= ~RENDER_FLAGS_ALTERNATE_SORTING; 
+	}
+}
+
+void CClientLeafSystem::EnableBloatedBounds(ClientRenderHandle_t handle, bool bEnable)
+{
+	if (handle == INVALID_CLIENT_RENDER_HANDLE)
+		return;
+
+	RenderableInfo_t& info = m_Renderables[handle];
+	if (bEnable)
+	{
+		info.m_Flags |= RENDER_FLAGS_BLOAT_BOUNDS;
+	}
+	else
+	{
+		if (info.m_Flags & RENDER_FLAGS_BLOAT_BOUNDS)
+		{
+			info.m_Flags &= ~RENDER_FLAGS_BLOAT_BOUNDS;
+
+			// Necessary to generate unbloated bounds later
+			RenderableChanged(handle);
+		}
 	}
 }
 
@@ -1141,12 +1173,11 @@ void CClientLeafSystem::EnumerateShadowsInLeaves( int leafCount, LeafIndex_t* pL
 //-----------------------------------------------------------------------------
 // Adds a renderable to a leaf
 //-----------------------------------------------------------------------------
-void CClientLeafSystem::AddRenderableToLeaf( int leaf, ClientRenderHandle_t renderable )
+void CClientLeafSystem::AddRenderableToLeaf( int leaf, ClientRenderHandle_t renderable, bool bReceiveShadows )
 {
 #ifdef VALIDATE_CLIENT_LEAF_SYSTEM
 	m_RenderablesInLeaf.ValidateAddElementToBucket( leaf, renderable );
 #endif
-
 #ifdef DUMP_RENDERABLE_LEAFS
 	static uint32 count = 0;
 	if (count < m_RenderablesInLeaf.NumAllocated())
@@ -1195,7 +1226,7 @@ void CClientLeafSystem::AddRenderableToLeaf( int leaf, ClientRenderHandle_t rend
 
 	m_RenderablesInLeaf.AddElementToBucket(leaf, renderable);
 
-	if ( !ShouldRenderableReceiveShadow( renderable, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK ) )
+	if ( !bReceiveShadows )
 		return;
 
 	// Add all shadows in the leaf to the renderable...
@@ -1220,13 +1251,19 @@ void CClientLeafSystem::AddRenderableToLeaf( int leaf, ClientRenderHandle_t rend
 //-----------------------------------------------------------------------------
 // Adds a renderable to a set of leaves
 //-----------------------------------------------------------------------------
-void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t handle, int nLeafCount, unsigned short *pLeaves )
-{ 
+void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t handle, int nLeafCount, unsigned short *pLeaves, bool bReceiveShadows)
+{
 	for (int j = 0; j < nLeafCount; ++j)
 	{
-		AddRenderableToLeaf( pLeaves[j], handle ); 
+		AddRenderableToLeaf(pLeaves[j], handle, bReceiveShadows);
 	}
 	m_Renderables[handle].m_Area = engine->GetLeavesArea(pLeaves, nLeafCount);
+}
+
+void CClientLeafSystem::AddRenderableToLeaves(ClientRenderHandle_t handle, int nLeafCount, unsigned short* pLeaves)
+{
+	const bool bReceiveShadows = ShouldRenderableReceiveShadow(handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
+	AddRenderableToLeaves(handle, nLeafCount, pLeaves, bReceiveShadows);
 }
 
 
@@ -1238,7 +1275,8 @@ bool CClientLeafSystem::EnumerateLeaf( int leaf, int context )
 	EnumResultList_t *pList = (EnumResultList_t *)context;
 	if ( ThreadInMainThread() )
 	{
-		AddRenderableToLeaf( leaf, pList->handle );
+		const bool bReceiveShadows = ShouldRenderableReceiveShadow(pList->handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
+		AddRenderableToLeaf( leaf, pList->handle, bReceiveShadows );
 	}
 	else
 	{
