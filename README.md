@@ -55,7 +55,6 @@ If prompted for Steam Guard code, enter it
 1. For both configurations, add `_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS` under `Properties->Configuration Properties->C/C++->Preprocessor`
 1. Run both the Debug and the Release builds
 1. Change file permissions to allow execution on `/thirdparty/protobuf-2.5.0/protoc.exe`
-1. From the `441` depot, copy `tf/tf2_misc_dir.vpk/scripts/hudanimations_tf.txt` and `.../resource/clientscheme.res`, `.../resource/modevents.res`, and `.../resource/tf_english.txt` to the corresponding folders (`scripts` and `resource`) under `../game/tf/`. Yes, this is _outside_ the project directory
 1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
 1. You will need to find copies of some libraries that are not included in this repository. They are either in the CS:GO leak or the TF2 leak:
     - `/lib/public/nvtc.lib`
