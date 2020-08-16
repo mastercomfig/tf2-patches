@@ -348,7 +348,7 @@ CClientLeafSystem CClientLeafSystem::s_ClientLeafSystem;
 IClientLeafSystem *g_pClientLeafSystem = &CClientLeafSystem::s_ClientLeafSystem;
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CClientLeafSystem, IClientLeafSystem, CLIENTLEAFSYSTEM_INTERFACE_VERSION, CClientLeafSystem::s_ClientLeafSystem );
 
-void CalcRenderableWorldSpaceAABB_Fast( IClientRenderable *pRenderable, Vector &absMin, Vector &absMax );
+void CalcRenderableWorldSpaceAABB( IClientRenderable *pRenderable, Vector &absMin, Vector &absMax );
 
 //-----------------------------------------------------------------------------
 // Helper functions.
@@ -357,25 +357,25 @@ void DefaultRenderBoundsWorldspace( IClientRenderable *pRenderable, Vector &absM
 {
 	// Tracker 37433:  This fixes a bug where if the stunstick is being wielded by a combine soldier, the fact that the stick was
 	//  attached to the soldier's hand would move it such that it would get frustum culled near the edge of the screen.
-	IClientUnknown *pUnk = pRenderable->GetIClientUnknown();
-	C_BaseEntity *pEnt = pUnk->GetBaseEntity();
-	if ( pEnt && pEnt->IsFollowingEntity() )
+	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
+	if ( pEnt && (pEnt->IsFollowingEntity() || pEnt->GetParentAttachment() > 0) )
 	{
-		C_BaseEntity *pParent = pEnt->GetFollowedEntity();
+		C_BaseEntity *pParent = pEnt->GetMoveParent();
 		if ( pParent )
 		{
 			// Get the parent's abs space world bounds.
-			CalcRenderableWorldSpaceAABB_Fast( pParent, absMins, absMaxs );
+			CalcRenderableWorldSpaceAABB( pParent, absMins, absMaxs );
 
 			// Add the maximum of our local render bounds. This is making the assumption that we can be at any
 			// point and at any angle within the parent's world space bounds.
 			Vector vAddMins, vAddMaxs;
 			pEnt->GetRenderBounds( vAddMins, vAddMaxs );
 			// if our origin is actually farther away than that, expand again
-			float radius = pEnt->GetLocalOrigin().Length();
+			float radius = pEnt->GetLocalOrigin().LengthSqr();
 
-			float flBloatSize = MAX( vAddMins.Length(), vAddMaxs.Length() );
+			float flBloatSize = MAX( vAddMins.LengthSqr(), vAddMaxs.LengthSqr() );
 			flBloatSize = MAX(flBloatSize, radius);
+			flBloatSize = FastSqrt(flBloatSize);
 			absMins -= Vector( flBloatSize, flBloatSize, flBloatSize );
 			absMaxs += Vector( flBloatSize, flBloatSize, flBloatSize );
 			return;
@@ -410,42 +410,14 @@ inline void CalcRenderableWorldSpaceAABB(
 	Vector &absMins,
 	Vector &absMaxs )
 {
+	if (!pRenderable)
+	{
+		AssertMsg(false, "Cannot calculate WorldSpaceAABB for NULL renderable!\n");
+		return;
+	}
+
 	pRenderable->GetRenderBoundsWorldspace( absMins, absMaxs );
 }
-
-
-// This gets an AABB for the renderable, but it doesn't cause a parent's bones to be setup.
-// This is used for placement in the leaves, but the more expensive version is used for culling.
-void CalcRenderableWorldSpaceAABB_Fast( IClientRenderable *pRenderable, Vector &absMin, Vector &absMax )
-{
-	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
-	if ( pEnt && pEnt->IsFollowingEntity() )
-	{
-		C_BaseEntity *pParent = pEnt->GetMoveParent();
-		Assert( pParent );
-
-		// Get the parent's abs space world bounds.
-		CalcRenderableWorldSpaceAABB_Fast( pParent, absMin, absMax );
-
-		// Add the maximum of our local render bounds. This is making the assumption that we can be at any
-		// point and at any angle within the parent's world space bounds.
-		Vector vAddMins, vAddMaxs;
-		pEnt->GetRenderBounds( vAddMins, vAddMaxs );
-		// if our origin is actually farther away than that, expand again
-		float radius = pEnt->GetLocalOrigin().Length();
-
-		float flBloatSize = MAX( vAddMins.Length(), vAddMaxs.Length() );
-		flBloatSize = MAX(flBloatSize, radius);
-		absMin -= Vector( flBloatSize, flBloatSize, flBloatSize );
-		absMax += Vector( flBloatSize, flBloatSize, flBloatSize );
-	}
-	else
-	{
-		// Start out with our own render bounds. Since we don't have a parent, this won't incur any nasty 
-		CalcRenderableWorldSpaceAABB( pRenderable, absMin, absMax );
-	}
-}
-
 
 //-----------------------------------------------------------------------------
 // constructor, destructor
@@ -1071,7 +1043,7 @@ void CClientLeafSystem::ProcessDirtyRenderable(ClientRenderHandle_t& handle)
 void CClientLeafSystem::CalcRenderableWorldSpaceAABB_Bloated(const RenderableInfo_t& info, Vector& absMin,
     Vector& absMax)
 {
-	CalcRenderableWorldSpaceAABB_Fast(info.m_pRenderable, absMin, absMax);
+	CalcRenderableWorldSpaceAABB(info.m_pRenderable, absMin, absMax);
 
 	// Bloat bounds to avoid reinsertion into tree
 	absMin.x = floor(absMin.x / BBOX_GRANULARITY) * BBOX_GRANULARITY;
