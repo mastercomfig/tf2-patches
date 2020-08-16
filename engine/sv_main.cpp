@@ -215,7 +215,7 @@ static ConVar sv_voicecodec( "sv_voicecodec", "vaudio_celt", 0,
                              "steam - Use Steam voice API" );
 
 
-ConVar  sv_mincmdrate( "sv_mincmdrate", "10", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdrate. 0 == unlimited." );
+ConVar  sv_mincmdrate( "sv_mincmdrate", "66", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdrate. 0 == unlimited." );
 ConVar  sv_maxcmdrate( "sv_maxcmdrate", "66", FCVAR_REPLICATED, "(If sv_mincmdrate is > 0), this sets the maximum value for cl_cmdrate." );
 ConVar  sv_client_cmdrate_difference( "sv_client_cmdrate_difference", "0", FCVAR_REPLICATED, 
 	"cl_cmdrate is moved to within sv_client_cmdrate_difference units of cl_updaterate before it "
@@ -240,7 +240,7 @@ ConVar  sv_client_predict( "sv_client_predict", "-1", FCVAR_REPLICATED,
 	"    1 = force cl_predict to 1"
 	);
 
-ConVar  sv_restrict_aspect_ratio_fov( "sv_restrict_aspect_ratio_fov", "1", FCVAR_REPLICATED, 
+ConVar  sv_restrict_aspect_ratio_fov( "sv_restrict_aspect_ratio_fov", "2", FCVAR_REPLICATED, 
 									 "This can be used to limit the effective FOV of users using wide-screen\n"
 									 "resolutions with aspect ratios wider than 1.85:1 (slightly wider than 16:9).\n"
 									 "    0 = do not cap effective FOV\n"

@@ -42,7 +42,7 @@ static ConVar net_drawslider( "net_drawslider", "0", 0, "Draw completion slider 
 static ConVar net_chokeloopback( "net_chokeloop", "0", 0, "Apply bandwidth choke to loopback packets" );
 static ConVar net_maxfilesize( "net_maxfilesize", "16", 0, "Maximum allowed file size for uploading in MB", true, 0, true, 64 );
 static ConVar net_compresspackets( "net_compresspackets", "1", 0, "Use compression on game packets." );
-static ConVar net_compresspackets_minsize( "net_compresspackets_minsize", "1024", 0, "Don't bother compressing packets below this size." );
+static ConVar net_compresspackets_minsize( "net_compresspackets_minsize", "1000", 0, "Don't bother compressing packets below this size." );
 static ConVar net_maxcleartime( "net_maxcleartime", "4.0", 0, "Max # of seconds we can wait for next packets to be sent based on rate setting (0 == no limit)." );
 static ConVar net_maxpacketdrop( "net_maxpacketdrop", "0", 0, "Ignore any packets with the sequence number more than this ahead (0 == no limit)" );
 

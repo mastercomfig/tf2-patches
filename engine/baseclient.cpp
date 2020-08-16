@@ -37,7 +37,7 @@
 extern IServerGameDLL	*serverGameDLL;
 extern ConVar tv_enable;
 
-ConVar sv_namechange_cooldown_seconds( "sv_namechange_cooldown_seconds", "30.0", FCVAR_NONE, "When a client name change is received, wait N seconds before allowing another name change" );
+ConVar sv_namechange_cooldown_seconds( "sv_namechange_cooldown_seconds", "300.0", FCVAR_NONE, "When a client name change is received, wait N seconds before allowing another name change" );
 ConVar sv_netspike_on_reliable_snapshot_overflow( "sv_netspike_on_reliable_snapshot_overflow", "0", FCVAR_NONE, "If nonzero, the server will dump a netspike trace if a client is dropped due to reliable snapshot overflow" );
 ConVar sv_netspike_sendtime_ms( "sv_netspike_sendtime_ms", "0", FCVAR_NONE, "If nonzero, the server will dump a netspike trace if it takes more than N ms to prepare a snapshot to a single client.  This feature does take some CPU cycles, so it should be left off when not in use." );
 ConVar sv_netspike_output( "sv_netspike_output", "1", FCVAR_NONE, "Where the netspike data be written?  Sum of the following values: 1=netspike.txt, 2=ordinary server log" );
