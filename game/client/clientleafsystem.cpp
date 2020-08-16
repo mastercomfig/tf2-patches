@@ -331,7 +331,9 @@ private:
 	bool m_DrawSmallObjects;
 
 	// A little enumerator to help us when adding shadows to renderables
-	std::atomic<int> m_ShadowEnum{ 1 };
+	// TODO: fix client leaf system infinitely adding shadows
+	//std::atomic<int> m_ShadowEnum{ 0 };
+	int m_ShadowEnum;
 
 	CTSList<EnumResultList_t> m_DeferredInserts;
 
