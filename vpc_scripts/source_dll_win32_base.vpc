@@ -9,7 +9,7 @@ $Include "$SRCDIR\vpc_scripts\version.vpc"
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTBINNAME"	"$PROJECTNAME"
 $MacroRequired				"OUTBINDIR"
-		
+
 $Macro OUTBINDIR	"$OUTBINDIR$PLATSUBDIR"
 $Macro LIBPUBLIC	"$SRCDIR\lib\public$PLATSUBDIR"
 $Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
@@ -34,16 +34,16 @@ $Configuration
 	$Compiler
 	{
 		$PreprocessorDefinitions			"$BASE;PLATFORM_64BITS;WIN64;_WIN64;COMPILER_MSVC64" [$WIN64]
-		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC32" [$WIN32]		
+		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC32" [$WIN32]
 		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC;_DLL_EXT=$_DLL_EXT"
-		$PreprocessorDefinitions			"$BASE;DLLNAME=$OUTBINNAME"		
+		$PreprocessorDefinitions			"$BASE;DLLNAME=$OUTBINNAME"
 	}
 
 	$Compiler [$WIN32]
 	{
 		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions 2 (/arch:SSE2)"
 	}
-	
+
 	$Linker
 	{
 		$AdditionalDependencies				"$BASE shell32.lib user32.lib advapi32.lib gdi32.lib comdlg32.lib ole32.lib" [$WIN32||$WIN64]
@@ -54,7 +54,7 @@ $Configuration
 		$AdditionalOptions					"$BASE /ignore:4221"
 		$AdditionalOptions					"$BASE $SRCDIR\lib\public\ftol3.obj" [$VS2013 && $WIN32 && !$DISABLE_FTOL3_OVERRIDE && !$SOURCESDK] // Work around CRT bug https://connect.microsoft.com/VisualStudio/feedback/details/806362/vc12-pollutes-the-floating-point-stack-when-casting-infinity-nan-to-unsigned-long#
 	}
-	
+
 	$PreBuildEvent
 	{
 		$CommandLine		"if EXIST $OUTBINDIR\$(TargetFileName) for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
@@ -63,14 +63,14 @@ $Configuration
 							"$CRCCHECK" "\n"
 	}
 
-	$PostBuildEvent [!$ANALYZE]
+	$CustomBuildStep [!$ANALYZE]
 	{
-		$CommandLine		"if not exist $QUOTE$OUTBINDIR$QUOTE mkdir $QUOTE$OUTBINDIR$QUOTE" "\n" 
+		$CommandLine		"if not exist $QUOTE$OUTBINDIR$QUOTE mkdir $QUOTE$OUTBINDIR$QUOTE" "\n"
 		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE $SRCDIR" "\n" [!$SOURCESDK]
 		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetFileName)$QUOTE $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE" "\n" \
 							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
-							"if exist $QUOTE$(TargetDir)$(TargetName).map$QUOTE copy $QUOTE$(TargetDir)$(TargetName).map$QUOTE $OUTBINDIR\$(TargetName).map" "\n" 
-		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetName).pdb$QUOTE $SRCDIR" "\n"  [!$SOURCESDK] 
+							"if exist $QUOTE$(TargetDir)$(TargetName).map$QUOTE copy $QUOTE$(TargetDir)$(TargetName).map$QUOTE $OUTBINDIR\$(TargetName).map" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetName).pdb$QUOTE $SRCDIR" "\n"  [!$SOURCESDK]
 		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetName).pdb$QUOTE $OUTBINDIR\$(TargetName).pdb" "\n" \
 							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
 							"goto BuildEventOK" "\n" \
@@ -78,10 +78,11 @@ $Configuration
 							"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
 							"del /q $QUOTE$(TargetDir)$(TargetFileName)$QUOTE" "\n" \
 							"exit 1" "\n" \
-							":BuildEventOK" "\n" 
+							":BuildEventOK" "\n"
+
+		$Outputs "$OUTBINDIR\$(TargetFileName)"
 
 		$Description		"Publishing to $OUTBINDIR"
-		$ExcludedFromBuild	"No"
 	}
 }
 
@@ -101,7 +102,7 @@ $Project
 			}
 		}
 
-		$File	"$SRCDIR\common\debug_dll_check.cpp"	[!$SOURCESDK]	
+		$File	"$SRCDIR\common\debug_dll_check.cpp"	[!$SOURCESDK]
 		{
 			$Configuration
 			{
