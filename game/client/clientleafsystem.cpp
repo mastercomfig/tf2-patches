@@ -32,7 +32,7 @@ class VMatrix;  // forward decl
 static ConVar cl_drawleaf("cl_drawleaf", "-1", FCVAR_CHEAT );
 static ConVar r_PortalTestEnts( "r_PortalTestEnts", "1", FCVAR_CHEAT, "Clip entities against portal frustums." );
 static ConVar r_portalsopenall( "r_portalsopenall", "0", FCVAR_CHEAT, "Open all portals" );
-static ConVar cl_threaded_client_leaf_system("cl_threaded_client_leaf_system", "1"  );
+static ConVar cl_threaded_client_leaf_system("cl_threaded_client_leaf_system", "0"  );
 
 
 DEFINE_FIXEDSIZE_ALLOCATOR( CClientRenderablesList, 1, CUtlMemoryPool::GROW_SLOW );
@@ -148,6 +148,39 @@ public:
 	static CClientLeafSystem s_ClientLeafSystem;
 
 private:
+
+	enum
+	{
+		RENDER_FLAGS_TWOPASS = 0x01,
+		RENDER_FLAGS_STATIC_PROP = 0x02,
+		RENDER_FLAGS_BRUSH_MODEL = 0x04,
+		RENDER_FLAGS_STUDIO_MODEL = 0x08,
+		RENDER_FLAGS_HASCHANGED = 0x10,
+		RENDER_FLAGS_ALTERNATE_SORTING = 0x20,
+		RENDER_FLAGS_BLOAT_BOUNDS = 0x40,
+	};
+
+	// All the information associated with a particular handle
+	struct RenderableInfo_t
+	{
+		IClientRenderable* m_pRenderable;
+		int					m_RenderFrame;	// which frame did I render it in?
+		int					m_RenderFrame2;
+		int					m_EnumCount;	// Have I been added to a particular shadow yet?
+		int					m_TranslucencyCalculated;
+		unsigned int		m_LeafList;		// What leafs is it in?
+		unsigned int		m_RenderLeaf;	// What leaf do I render in?
+		unsigned char		m_Flags;		// rendering flags
+		unsigned char		m_RenderGroup;	// RenderGroup_t type
+		unsigned short		m_FirstShadow;	// The first shadow caster that cast on it
+		short m_Area;	// -1 if the renderable spans multiple areas.
+		signed char			m_TranslucencyCalculatedView;
+		Vector				m_vecBloatedAbsMins;		// Use this for tree insertion
+		Vector				m_vecBloatedAbsMaxs;
+		Vector				m_vecAbsMins;			// NOTE: These members are not threadsafe!!
+		Vector				m_vecAbsMaxs;			// They can be updated from any viewpoint (based on RENDER_FLAGS_BOUNDS_VALID)
+	};
+
 	// Creates a new renderable
 	void NewRenderable( IClientRenderable* pRenderable, RenderGroup_t type, int flags = 0 );
 
@@ -156,11 +189,8 @@ private:
 
 	void SortEntities(  const Vector &vecRenderOrigin, const Vector &vecRenderForward, CClientRenderablesList::CEntry *pEntities, int nEntities );
 
-	// Returns -1 if the renderable spans more than one area. If it's totally in one area, then this returns the leaf.
-	short GetRenderableArea( ClientRenderHandle_t handle );
-
 	// remove renderables from leaves
-	void InsertIntoTree( ClientRenderHandle_t &handle );
+	void InsertIntoTree(ClientRenderHandle_t& handle, const Vector& absMins, const Vector& absMaxs);
 	void RemoveFromTree( ClientRenderHandle_t handle );
 
 	// Returns if it's a view model render group
@@ -187,6 +217,10 @@ private:
 
 	// Adds a shadow to a leaf/removes shadow from leaf
 	void RemoveShadowFromLeaves( ClientLeafShadowHandle_t handle );
+
+	void ProcessDirtyRenderable(ClientRenderHandle_t& handle);
+
+	void CalcRenderableWorldSpaceAABB_Bloated(const RenderableInfo_t& info, Vector& absMin, Vector& absMax);
 
 	// Methods associated with the various bi-directional sets
 	static unsigned int& FirstRenderableInLeaf( int leaf ) 
@@ -230,32 +264,6 @@ private:
 	}
 
 private:
-	enum
-	{
-		RENDER_FLAGS_TWOPASS		= 0x01,
-		RENDER_FLAGS_STATIC_PROP	= 0x02,
-		RENDER_FLAGS_BRUSH_MODEL	= 0x04,
-		RENDER_FLAGS_STUDIO_MODEL	= 0x08,
-		RENDER_FLAGS_HASCHANGED		= 0x10,
-		RENDER_FLAGS_ALTERNATE_SORTING = 0x20,
-	};
-
-	// All the information associated with a particular handle
-	struct RenderableInfo_t
-	{
-		IClientRenderable*	m_pRenderable;
-		int					m_RenderFrame;	// which frame did I render it in?
-		int					m_RenderFrame2;
-		int					m_EnumCount;	// Have I been added to a particular shadow yet?
-		int					m_TranslucencyCalculated;
-		unsigned int		m_LeafList;		// What leafs is it in?
-		unsigned int		m_RenderLeaf;	// What leaf do I render in?
-		unsigned char		m_Flags;		// rendering flags
-		unsigned char		m_RenderGroup;	// RenderGroup_t type
-		unsigned short		m_FirstShadow;	// The first shadow caster that cast on it
-		short m_Area;	// -1 if the renderable spans multiple areas.
-		signed char			m_TranslucencyCalculatedView;
-	};
 
 	// The leaf contains an index into a list of renderables
 	struct ClientLeaf_t
@@ -541,14 +549,6 @@ void CClientLeafSystem::PreRender()
 		}
 
 		int nDirty = m_DirtyRenderables.Count();
-		for ( i = nDirty; --i >= 0; )
-		{
-			ClientRenderHandle_t handle = m_DirtyRenderables[i];
-			Assert( m_Renderables[ handle ].m_Flags & RENDER_FLAGS_HASCHANGED );
-
-			// Update position in leaf system
-			RemoveFromTree( handle );
-		}
 
 		bool bThreaded = ( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumThreads() );
 
@@ -556,7 +556,8 @@ void CClientLeafSystem::PreRender()
 		{
 			for ( i = nDirty; --i >= 0; )
 			{
-				InsertIntoTree( m_DirtyRenderables[i] );
+				ClientRenderHandle_t handle = m_DirtyRenderables[i];
+				ProcessDirtyRenderable(handle);
 			}
 		}
 		else
@@ -564,7 +565,7 @@ void CClientLeafSystem::PreRender()
 			// InsertIntoTree can result in new renderables being added, so copy:
 			ClientRenderHandle_t *pDirtyRenderables = (ClientRenderHandle_t *)alloca( sizeof(ClientRenderHandle_t) * nDirty );
 			memcpy( pDirtyRenderables, m_DirtyRenderables.Base(), sizeof(ClientRenderHandle_t) * nDirty );
-			ParallelProcess( "CClientLeafSystem::PreRender", pDirtyRenderables, nDirty, this, &CClientLeafSystem::InsertIntoTree, &CClientLeafSystem::FrameLock, &CClientLeafSystem::FrameUnlock );
+			ParallelProcess( "CClientLeafSystem::PreRender", pDirtyRenderables, nDirty, this, &CClientLeafSystem::ProcessDirtyRenderable, &CClientLeafSystem::FrameLock, &CClientLeafSystem::FrameUnlock );
 		}
 
 		if ( m_DeferredInserts.Count() )
@@ -583,6 +584,12 @@ void CClientLeafSystem::PreRender()
 			}
 		}
 
+		// NOTE: If we get the following error displayed in the console spew
+		//       "Re-entrancy found in CClientLeafSystem::RenderableChanged\n"
+		//		 We'll have to reenable this code and remove the line that
+		//		 removes the RENDER_FLAGS_HASCHANGED in the loop above.
+		// UNDONE(mastercoms): doesn't seem like there are re-entrancy problems
+		/*
 		for ( i = nDirty; --i >= 0; )
 		{
 			// Cache off the area it's sitting in.
@@ -590,8 +597,8 @@ void CClientLeafSystem::PreRender()
 			RenderableInfo_t& renderable = m_Renderables[ handle ];
 
 			renderable.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
-			m_Renderables[handle].m_Area = GetRenderableArea( handle );
 		}
+		*/
 
 		m_DirtyRenderables.RemoveMultiple( 0, nDirty );
 	}
@@ -852,17 +859,6 @@ bool CClientLeafSystem::IsRenderableInPVS( IClientRenderable *pRenderable )
 	return render->AreAnyLeavesVisible( leaves, nLeaves );
 }
 
-short CClientLeafSystem::GetRenderableArea( ClientRenderHandle_t handle )
-{
-	int leaves[128];
-	int nLeaves = GetRenderableLeaves( handle, leaves );
-	if ( nLeaves == -1 )
-		return 0;
-
-	// Now ask the 
-	return engine->GetLeavesArea( leaves, nLeaves );
-}
-
 
 void CClientLeafSystem::SetSubSystemDataInLeaf( int leaf, int nSubSystemIdx, CClientLeafSubSystemData *pData )
 {
@@ -1009,6 +1005,63 @@ void CClientLeafSystem::AddShadowToLeaf( int leaf, ClientLeafShadowHandle_t shad
 void CClientLeafSystem::RemoveShadowFromLeaves( ClientLeafShadowHandle_t handle )
 {
 	m_ShadowsInLeaf.RemoveElement( handle );
+}
+
+void CClientLeafSystem::ProcessDirtyRenderable(ClientRenderHandle_t& handle)
+{
+	RenderableInfo_t& info = m_Renderables[handle];
+
+	Assert(m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED);
+
+	// See note at the end of PreRender
+	info.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
+
+	Vector absMins, absMaxs;
+	CalcRenderableWorldSpaceAABB_Bloated(info, absMins, absMaxs);
+	if (absMins != info.m_vecBloatedAbsMins || absMaxs != info.m_vecBloatedAbsMaxs)
+	{
+		// Update position in leaf system
+		RemoveFromTree(handle);
+		InsertIntoTree(handle, absMins, absMaxs);
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+// Computes a bloated bounding box to reduce insertions into the tree
+//-----------------------------------------------------------------------------
+#define BBOX_GRANULARITY 32.0f
+#define MIN_SHRINK_VOLUME ( 32.0f * 32.0f * 32.0f )
+
+void CClientLeafSystem::CalcRenderableWorldSpaceAABB_Bloated(const RenderableInfo_t& info, Vector& absMin,
+    Vector& absMax)
+{
+	CalcRenderableWorldSpaceAABB_Fast(info.m_pRenderable, absMin, absMax);
+
+	// Bloat bounds to avoid reinsertion into tree
+	absMin.x = floor(absMin.x / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+	absMin.y = floor(absMin.y / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+	absMin.z = floor(absMin.z / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+
+	absMax.x = ceil(absMax.x / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+	absMax.y = ceil(absMax.y / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+	absMax.z = ceil(absMax.z / BBOX_GRANULARITY) * BBOX_GRANULARITY;
+
+	// Optimization to make particle systems not re-insert themselves
+	if (info.m_Flags & RENDER_FLAGS_BLOAT_BOUNDS)
+	{
+		Vector vecTempMin, vecTempMax;
+		VectorMin(info.m_vecBloatedAbsMins, absMin, vecTempMin);
+		VectorMax(info.m_vecBloatedAbsMaxs, absMax, vecTempMax);
+		float flTempVolume = ComputeVolume(vecTempMin, vecTempMax);
+		float flCurrVolume = ComputeVolume(absMin, absMax);
+
+		if ((flTempVolume <= MIN_SHRINK_VOLUME) || (flCurrVolume * 2.0f >= flTempVolume))
+		{
+			absMin = vecTempMin;
+			absMax = vecTempMax;
+		}
+	}
 }
 
 
@@ -1173,7 +1226,7 @@ void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t handle, int 
 	{
 		AddRenderableToLeaf( pLeaves[j], handle ); 
 	}
-	m_Renderables[handle].m_Area = GetRenderableArea( handle );
+	m_Renderables[handle].m_Area = engine->GetLeavesArea(pLeaves, nLeafCount);
 }
 
 
@@ -1197,9 +1250,17 @@ bool CClientLeafSystem::EnumerateLeaf( int leaf, int context )
 	return true;
 }
 
-void CClientLeafSystem::InsertIntoTree( ClientRenderHandle_t &handle )
+void CClientLeafSystem::InsertIntoTree( ClientRenderHandle_t &handle, const Vector& absMins, const Vector& absMaxs)
 {
-	if ( ThreadInMainThread() )
+	Assert(absMins.IsValid() && absMaxs.IsValid());
+
+	// NOTE: The render bounds here are relative to the renderable's coordinate system
+	RenderableInfo_t& info = m_Renderables[handle];
+	info.m_vecBloatedAbsMins = absMins;
+	info.m_vecBloatedAbsMaxs = absMaxs;
+
+	bool bInMainThread = ThreadInMainThread();
+	if (bInMainThread)
 	{
 		// When we insert into the tree, increase the shadow enumerator
 		// to make sure each shadow is added exactly once to each renderable
@@ -1208,19 +1269,25 @@ void CClientLeafSystem::InsertIntoTree( ClientRenderHandle_t &handle )
 
 	EnumResultList_t list = { NULL, handle };
 
-	// NOTE: The render bounds here are relative to the renderable's coordinate system
-	IClientRenderable* pRenderable = m_Renderables[handle].m_pRenderable;
-	Vector absMins, absMaxs;
-	
-	CalcRenderableWorldSpaceAABB_Fast( pRenderable, absMins, absMaxs );
-	Assert( absMins.IsValid() && absMaxs.IsValid() );
-
+	unsigned short leafList[1024];
 	ISpatialQuery* pQuery = engine->GetBSPTreeQuery();
-	pQuery->EnumerateLeavesInBox( absMins, absMaxs, this, (int)&list );
+	int leafCount = pQuery->ListLeavesInBox(absMins, absMaxs, leafList, ARRAYSIZE(leafList));
 
-	if ( list.pHead )
+	if (bInMainThread)
 	{
-		m_DeferredInserts.PushItem( list );
+		AddRenderableToLeaves(handle, leafCount, leafList);
+	}
+	else
+	{
+		for (int i = 0; i < leafCount; i++)
+		{
+			EnumResult_t* p = new EnumResult_t;
+			p->leaf = leafList[i];
+			p->pNext = list.pHead;
+			list.pHead = p;
+		}
+		m_DeferredInserts.PushItem(list);
+		m_Renderables[handle].m_Area = engine->GetLeavesArea(leafList, leafCount);
 	}
 }
 
@@ -1244,6 +1311,11 @@ void CClientLeafSystem::RemoveFromTree( ClientRenderHandle_t handle )
 	{
 		g_pClientShadowMgr->RemoveAllShadowsFromReceiver( 
 			m_Renderables[handle].m_pRenderable, SHADOW_RECEIVER_STUDIO_MODEL );
+	}
+	else if ( m_Renderables[handle].m_Flags & RENDER_FLAGS_STATIC_PROP )
+	{
+		g_pClientShadowMgr->RemoveAllShadowsFromReceiver(
+			m_Renderables[handle].m_pRenderable, SHADOW_RECEIVER_STATIC_PROP);
 	}
 }
 

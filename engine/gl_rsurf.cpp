@@ -4759,87 +4759,15 @@ struct EnumLeafSphereInfo_t
 	int	m_nContext;
 };
 
-//-----------------------------------------------------------------------------
-// Finds all leaves of the BSP tree within a particular volume
-//-----------------------------------------------------------------------------
-static bool EnumerateLeafInBox_R(mnode_t *node, EnumLeafBoxInfo_t& info )
+struct ListLeafBoxInfo_t
 {
-	// no polygons in solid nodes (don't report these leaves either)
-	if (node->contents == CONTENTS_SOLID)
-		return true;		// solid
+	VectorAligned m_vecBoxMax;
+	VectorAligned m_vecBoxMin;
+	VectorAligned m_vecBoxCenter;
+	VectorAligned m_vecBoxHalfDiagonal;
+};
 
-	// rough cull...
-	if (!IsBoxIntersectingBoxExtents(node->m_vecCenter, node->m_vecHalfDiagonal, 
-		info.m_vecBoxCenter, info.m_vecBoxHalfDiagonal))
-	{
-		return true;
-	}
-	
-	if (node->contents >= 0)
-	{
-		// if a leaf node, report it to the iterator...
-		return info.m_pIterator->EnumerateLeaf( LeafToIndex( (mleaf_t *)node ), info.m_nContext ); 
-	}
-
-	// Does the node plane split the box?
-	// find which side of the node we are on
-	cplane_t* plane = node->plane;
-	if ( plane->type <= PLANE_Z )
-	{
-		if (info.m_vecBoxMax[plane->type] <= plane->dist)
-		{
-			return EnumerateLeafInBox_R( node->children[1], info );
-		}
-		else if (info.m_vecBoxMin[plane->type] >= plane->dist)
-		{
-			return EnumerateLeafInBox_R( node->children[0], info );
-		}
-		else
-		{
-			// Here the box is split by the node
-			bool ret = EnumerateLeafInBox_R( node->children[0], info );
-			if (!ret)
-				return false;
-
-			return EnumerateLeafInBox_R( node->children[1], info );
-		}
-	}
-
-	// Arbitrary split plane here
-	Vector cornermin, cornermax;
-	for (int i = 0; i < 3; ++i)
-	{
-		if (plane->normal[i] >= 0)
-		{
-			cornermin[i] = info.m_vecBoxMin[i];
-			cornermax[i] = info.m_vecBoxMax[i];
-		}
-		else
-		{
-			cornermin[i] = info.m_vecBoxMax[i];
-			cornermax[i] = info.m_vecBoxMin[i];
-		}
-	}
-
-	if (DotProduct( plane->normal, cornermax ) <= plane->dist)
-	{
-		return EnumerateLeafInBox_R( node->children[1], info );
-	}
-	else if (DotProduct( plane->normal, cornermin ) >= plane->dist)
-	{
-		return EnumerateLeafInBox_R( node->children[0], info );
-	}
-	else
-	{
-		// Here the box is split by the node
-		bool ret = EnumerateLeafInBox_R( node->children[0], info );
-		if (!ret)
-			return false;
-
-		return EnumerateLeafInBox_R( node->children[1], info );
-	}
-}
-
+#ifdef DBGFLAG_ASSERT
 static fltx4 AlignThatVector(const Vector &vc)
 {
 	fltx4 out = VectorLoad(&vc);
@@ -4854,130 +4782,179 @@ static fltx4 AlignThatVector(const Vector &vc)
 	//return __vrlimi( out, DirectX::g_XMZero, 1, 0 );
 	return DirectX::XMVectorSetW(out, 0);
 }
+#endif
 
-//-----------------------------------------------------------------------------
-// Finds all leaves of the BSP tree within a particular volume
-//-----------------------------------------------------------------------------
-static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_t * RESTRICT pInfo )
+static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pInfo, unsigned short* RESTRICT pList, int listMax)
 {
-	// no polygons in solid nodes (don't report these leaves either)
-	if (node->contents == CONTENTS_SOLID)
-		return true;		// solid
+	int leafCount = 0;
+	const int NODELIST_MAX = 2048;
+	mnode_t* nodeList[NODELIST_MAX];
+	int nodeReadIndex = 0;
+	int nodeWriteIndex = 0;
 
-	// speculatively get the children into the cache
-	//__dcbt(0,node->children[0]);
-	//__dcbt(0,node->children[1]);
-
-	// constructing these here prevents LHS if we spill.
-	// it's not quite a quick enough operation to do extemporaneously.
-	fltx4 infoBoxCenter = LoadAlignedSIMD(pInfo->m_vecBoxCenter);
-	fltx4 infoBoxHalfDiagonal = LoadAlignedSIMD(pInfo->m_vecBoxHalfDiagonal);
-
-	Assert(IsBoxIntersectingBoxExtents(AlignThatVector(node->m_vecCenter), AlignThatVector(node->m_vecHalfDiagonal), 
-			LoadAlignedSIMD(pInfo->m_vecBoxCenter), LoadAlignedSIMD(pInfo->m_vecBoxHalfDiagonal)) ==
-			IsBoxIntersectingBoxExtents((node->m_vecCenter), node->m_vecHalfDiagonal,
-			pInfo->m_vecBoxCenter, pInfo->m_vecBoxHalfDiagonal));
-
-
-	// rough cull...
-	if (!IsBoxIntersectingBoxExtents(LoadAlignedSIMD(node->m_vecCenter), LoadAlignedSIMD(node->m_vecHalfDiagonal), 
-		infoBoxCenter, infoBoxHalfDiagonal))
+	while (1)
 	{
-		return true;
-	}
-
-	if (node->contents >= 0)
-	{
-		// if a leaf node, report it to the iterator...
-		return pInfo->m_pIterator->EnumerateLeaf( LeafToIndex( (mleaf_t *)node ), pInfo->m_nContext ); 
-	}
-
-	// Does the node plane split the box?
-	// find which side of the node we are on
-	cplane_t* RESTRICT plane = node->plane;
-	if ( plane->type <= PLANE_Z )
-	{
-		if (pInfo->m_vecBoxMax[plane->type] <= plane->dist)
+		// no polygons in solid nodes (don't report these leaves either)
+		if (node->contents >= 0)
 		{
-			return EnumerateLeafInBox_R( node->children[1], pInfo );
-		}
-		else if (pInfo->m_vecBoxMin[plane->type] >= plane->dist)
-		{
-			return EnumerateLeafInBox_R( node->children[0], pInfo );
+			if (node->contents != CONTENTS_SOLID)
+			{
+				// if a leaf node, report it to the iterator...
+				if (leafCount < listMax)
+				{
+					pList[leafCount++] = LeafToIndex((mleaf_t*)node);
+				}
+			}
+			if (nodeReadIndex == nodeWriteIndex)
+				return leafCount;
+			node = nodeList[nodeReadIndex];
+			nodeReadIndex = (nodeReadIndex + 1) & (NODELIST_MAX - 1);
 		}
 		else
 		{
-			// Here the box is split by the node
-			return EnumerateLeafInBox_R( node->children[0], pInfo ) && 
-				   EnumerateLeafInBox_R( node->children[1], pInfo );
+			// speculatively get the children into the cache
+#ifdef _X360
+			PREFETCH_128(node->children[0], 0);
+			PREFETCH_128(node->children[1], 0);
+#endif
+
+			// constructing these here prevents LHS if we spill.
+			// it's not quite a quick enough operation to do extemporaneously.
+			fltx4 infoBoxCenter = LoadAlignedSIMD(pInfo->m_vecBoxCenter);
+			fltx4 infoBoxHalfDiagonal = LoadAlignedSIMD(pInfo->m_vecBoxHalfDiagonal);
+
+			Assert(IsBoxIntersectingBoxExtents(AlignThatVector(node->m_vecCenter), AlignThatVector(node->m_vecHalfDiagonal),
+				LoadAlignedSIMD(pInfo->m_vecBoxCenter), LoadAlignedSIMD(pInfo->m_vecBoxHalfDiagonal)) ==
+				IsBoxIntersectingBoxExtents((node->m_vecCenter), node->m_vecHalfDiagonal,
+					pInfo->m_vecBoxCenter, pInfo->m_vecBoxHalfDiagonal));
+
+
+			// rough cull...
+			if (IsBoxIntersectingBoxExtents(LoadAlignedSIMD(node->m_vecCenter), LoadAlignedSIMD(node->m_vecHalfDiagonal),
+				infoBoxCenter, infoBoxHalfDiagonal))
+			{
+				// Does the node plane split the box?
+				// find which side of the node we are on
+				cplane_t* RESTRICT plane = node->plane;
+				if (plane->type <= PLANE_Z)
+				{
+					if (pInfo->m_vecBoxMax[plane->type] <= plane->dist)
+					{
+						node = node->children[1];
+					}
+					else if (pInfo->m_vecBoxMin[plane->type] >= plane->dist)
+					{
+						node = node->children[0];
+					}
+					else
+					{
+						// Here the box is split by the node
+						nodeList[nodeWriteIndex] = node->children[0];
+						nodeWriteIndex = (nodeWriteIndex + 1) & (NODELIST_MAX - 1);
+						// check for overflow of the ring buffer
+						Assert(nodeWriteIndex != nodeReadIndex);
+						node = node->children[1];
+					}
+				}
+				else
+				{
+					// take advantage of high throughput/high latency
+					fltx4 planeNormal = LoadUnaligned3SIMD(plane->normal.Base());
+					fltx4 vecBoxMin = LoadAlignedSIMD(pInfo->m_vecBoxMin);
+					fltx4 vecBoxMax = LoadAlignedSIMD(pInfo->m_vecBoxMax);
+					fltx4 cornermin, cornermax;
+					// by now planeNormal is ready...
+					fltx4 control = XMVectorGreaterOrEqual(planeNormal, DirectX::g_XMZero);
+					// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
+					cornermin = DirectX::XMVectorSelect(vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
+					cornermax = DirectX::XMVectorSelect(vecBoxMin, vecBoxMax, control);
+
+					// compute dot products
+					fltx4 dotCornerMax = DirectX::XMVectorAdd(planeNormal, cornermax); // TODO: vsumfp ignores w component
+					fltx4 dotCornerMin = DirectX::XMVectorAdd(planeNormal, cornermin);
+					fltx4 vPlaneDist = ReplicateX4(plane->dist);
+					uint conditionRegister;
+                    DirectX::XMVectorGreaterR(&conditionRegister, vPlaneDist, dotCornerMax);
+					if (DirectX::XMComparisonAllTrue(conditionRegister)) // plane->normal . cornermax <= plane->dist
+					{
+						node = node->children[1];
+					}
+					else
+					{
+                        DirectX::XMVectorGreaterOrEqualR(&conditionRegister, dotCornerMin, vPlaneDist);
+						if (DirectX::XMComparisonAllTrue(conditionRegister))
+						{
+							node = node->children[0];
+						}
+						else
+						{
+							// Here the box is split by the node
+							nodeList[nodeWriteIndex] = node->children[0];
+							nodeWriteIndex = (nodeWriteIndex + 1) & (NODELIST_MAX - 1);
+							// check for overflow of the ring buffer
+							Assert(nodeWriteIndex != nodeReadIndex);
+							node = node->children[1];
+						}
+					}
+				}
+			}
+			else
+			{
+				if (nodeReadIndex == nodeWriteIndex)
+					return leafCount;
+				node = nodeList[nodeReadIndex];
+				nodeReadIndex = (nodeReadIndex + 1) & (NODELIST_MAX - 1);
+			}
 		}
 	}
+}
 
-	// Arbitrary split plane here
-	/*
-	Vector cornermin, cornermax;
-	for (int i = 0; i < 3; ++i)
+static int ListLeafsInBox(mnode_t* RESTRICT node, const Vector& center, const Vector& extents, unsigned short* RESTRICT pList, int listMax)
+{
+	int leafCount = 0;
+	const int NODELIST_MAX = 1024;
+	mnode_t* nodeList[NODELIST_MAX];
+	int nodeReadIndex = 0;
+	int nodeWriteIndex = 0;
+
+	while (1)
 	{
-		if (plane->normal[i] >= 0)
+		if (node->contents >= 0)
 		{
-			cornermin[i] = info.m_vecBoxMin[i];
-			cornermax[i] = info.m_vecBoxMax[i];
+			if (node->contents != CONTENTS_SOLID)
+			{
+				// if a leaf node, report it to the iterator...
+				if (leafCount < listMax)
+				{
+					pList[leafCount++] = LeafToIndex((mleaf_t*)node);
+				}
+			}
+			if (nodeReadIndex == nodeWriteIndex)
+				return leafCount;
+			node = nodeList[nodeReadIndex];
+			nodeReadIndex = (nodeReadIndex + 1) & (NODELIST_MAX - 1);
 		}
 		else
 		{
-			cornermin[i] = info.m_vecBoxMax[i];
-			cornermax[i] = info.m_vecBoxMin[i];
+			const cplane_t* plane = node->plane;
+			//		s = BoxOnPlaneSide (leaf_mins, leaf_maxs, plane);
+			//		s = BOX_ON_PLANE_SIDE(*leaf_mins, *leaf_maxs, plane);
+			float d0 = DotProduct(plane->normal, center) - plane->dist;
+			float d1 = DotProductAbs(plane->normal, extents);
+			if (d0 >= d1)
+				node = node->children[0];
+			else if (d0 < -d1)
+				node = node->children[1];
+			else
+			{	// go down both
+				nodeList[nodeWriteIndex] = node->children[0];
+				nodeWriteIndex = (nodeWriteIndex + 1) & (NODELIST_MAX - 1);
+				// check for overflow of the ring buffer
+				Assert(nodeWriteIndex != nodeReadIndex);
+				node = node->children[1];
+			}
 		}
 	}
-	*/
-	
-	// take advantage of high throughput/high latency
-	fltx4 planeNormal = LoadUnaligned3SIMD( plane->normal.Base() );
-	fltx4 vecBoxMin = LoadAlignedSIMD(pInfo->m_vecBoxMin);
-	fltx4 vecBoxMax = LoadAlignedSIMD(pInfo->m_vecBoxMax);
-	fltx4 cornermin, cornermax;
-	// by now planeNormal is ready...
-	fltx4 control = XMVectorGreaterOrEqual( planeNormal, DirectX::g_XMZero );
-	// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
-	cornermin = DirectX::XMVectorSelect( vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
-	cornermax = DirectX::XMVectorSelect( vecBoxMin, vecBoxMax, control);
-
-	// compute dot products
-	fltx4 dotCornerMax = DirectX::XMVector3Dot(planeNormal, cornermax); // vsumfp ignores w component
-	fltx4 dotCornerMin = DirectX::XMVector3Dot(planeNormal, cornermin);
-	
-	fltx4 vPlaneDist = ReplicateX4(plane->dist);
-	uint conditionRegister;
-    DirectX::XMVectorGreaterR(&conditionRegister,vPlaneDist,dotCornerMax);
-	if (DirectX::XMComparisonAllTrue(conditionRegister)) // plane->normal . cornermax <= plane->dist
-		return EnumerateLeafInBox_R( node->children[1], pInfo );
-
-    DirectX::XMVectorGreaterOrEqualR(&conditionRegister,dotCornerMin,vPlaneDist);
-	if (DirectX::XMComparisonAllTrue(conditionRegister) )
-		return EnumerateLeafInBox_R( node->children[0], pInfo );
-
-	return EnumerateLeafInBox_R( node->children[0], pInfo ) &&
-		   EnumerateLeafInBox_R( node->children[1], pInfo );
-
-	/*
-	if (DotProduct( plane->normal, cornermax ) <= plane->dist)
-	{
-		return EnumerateLeafInBox_R( node->children[1], info, infoBoxCenter, infoBoxHalfDiagonal );
-	}
-	else if (DotProduct( plane->normal, cornermin ) >= plane->dist)
-	{
-		return EnumerateLeafInBox_R( node->children[0], info, infoBoxCenter, infoBoxHalfDiagonal );
-	}
-	else
-	{
-		// Here the box is split by the node
-		bool ret = EnumerateLeafInBox_R( node->children[0], info, infoBoxCenter, infoBoxHalfDiagonal );
-		if (!ret)
-			return false;
-
-		return EnumerateLeafInBox_R( node->children[1], info, infoBoxCenter, infoBoxHalfDiagonal );
-	}
-	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -5281,6 +5258,8 @@ public:
 	bool EnumerateLeavesInBox( const Vector& mins, const Vector& maxs, ISpatialLeafEnumerator* pEnum, int context );
 	bool EnumerateLeavesInSphere( const Vector& center, float radius, ISpatialLeafEnumerator* pEnum, int context );
 	bool EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, int context );
+
+	int ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax);
 };
 
 //-----------------------------------------------------------------------------
@@ -5312,7 +5291,7 @@ bool CEngineBSPTree::EnumerateLeavesAtPoint( const Vector& pt,
 }
 
 
-static ConVar opt_EnumerateLeavesFastAlgorithm( "opt_EnumerateLeavesFastAlgorithm", "1", FCVAR_NONE, "Use the new SIMD version of CEngineBSPTree::EnumerateLeavesInBox." ); 
+static ConVar opt_ListLeavesFastAlgorithm( "opt_ListLeavesFastAlgorithm", "1", FCVAR_NONE, "Use the new SIMD version of CEngineBspTree::ListLeavesInBox." ); 
 
 
 bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& maxs, 
@@ -5321,18 +5300,14 @@ bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& max
 	if ( !host_state.worldmodel )
 		return false;
 
-	EnumLeafBoxInfo_t info;
-	VectorAdd( mins, maxs, info.m_vecBoxCenter );
-	info.m_vecBoxCenter *= 0.5f;
-	VectorSubtract( maxs, info.m_vecBoxCenter, info.m_vecBoxHalfDiagonal );
-	info.m_pIterator = pEnum;
-	info.m_nContext = context;
-	info.m_vecBoxMax = maxs;
-	info.m_vecBoxMin = mins;
-	if (opt_EnumerateLeavesFastAlgorithm.GetBool())
-		return EnumerateLeafInBox_R( host_state.worldbrush->nodes, &info );
-	else
-		return EnumerateLeafInBox_R( host_state.worldbrush->nodes, info );
+	unsigned short list[1024];
+	int count = ListLeavesInBox( mins, maxs, list, ARRAYSIZE(list) );
+	for ( int i = 0; i < count; i++ )
+	{
+		if ( !pEnum->EnumerateLeaf(list[i], context) )
+			break;
+	}
+	return true;
 }
 
 
@@ -5375,3 +5350,21 @@ bool CEngineBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnum
 	}
 }
 
+int CEngineBSPTree::ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax)
+{
+    if (opt_ListLeavesFastAlgorithm.GetBool())
+    {
+		ListLeafBoxInfo_t info;
+		VectorAdd(mins, maxs, info.m_vecBoxCenter);
+		info.m_vecBoxCenter *= 0.5f;
+		VectorSubtract(maxs, info.m_vecBoxCenter, info.m_vecBoxHalfDiagonal);
+		info.m_vecBoxMax = maxs;
+		info.m_vecBoxMin = mins;
+		return ListLeafsInBox(host_state.worldbrush->nodes, &info, pList, listMax);
+    }
+	Vector center, extents;
+	VectorAdd(mins, maxs, center);
+	center *= 0.5f;
+	VectorSubtract(maxs, center, extents);
+	return ListLeafsInBox(host_state.worldbrush->nodes, center, extents, pList, listMax);
+}

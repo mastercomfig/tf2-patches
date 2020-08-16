@@ -72,6 +72,8 @@ public:
 	virtual bool EnumerateLeavesInBox( Vector const& mins, Vector const& maxs, ISpatialLeafEnumerator* pEnum, int context ) = 0;
 	virtual bool EnumerateLeavesInSphere( Vector const& center, float radius, ISpatialLeafEnumerator* pEnum, int context ) = 0;
 	virtual bool EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, int context ) = 0;
+
+	virtual int ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax) = 0;
 };
 
 
