@@ -817,10 +817,4 @@ private:
 #define DEFINE_LOGGING_CHANNEL_NO_TAGS( ... );
 #define Plat_FatalError( ... ) do { Log_Error( LOG_GENERAL, __VA_ARGS__ ); Plat_ExitProcess( EXIT_FAILURE ); } while( 0 )
 
-#ifdef _DEBUG
-#define DEBUG_LINE
-#else
-#define DEBUG_LINE if (0)
-#endif
-
 #endif /* DBG_H */
