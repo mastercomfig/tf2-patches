@@ -24,6 +24,8 @@
 #include "view.h"
 #include "viewrender.h"
 
+#include <atomic>
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -32,7 +34,7 @@ class VMatrix;  // forward decl
 static ConVar cl_drawleaf("cl_drawleaf", "-1", FCVAR_CHEAT );
 static ConVar r_PortalTestEnts( "r_PortalTestEnts", "1", FCVAR_CHEAT, "Clip entities against portal frustums." );
 static ConVar r_portalsopenall( "r_portalsopenall", "0", FCVAR_CHEAT, "Open all portals" );
-static ConVar cl_threaded_client_leaf_system("cl_threaded_client_leaf_system", "0"  );
+static ConVar cl_threaded_client_leaf_system( "cl_threaded_client_leaf_system", "0" );
 
 
 DEFINE_FIXEDSIZE_ALLOCATOR( CClientRenderablesList, 1, CUtlMemoryPool::GROW_SLOW );
@@ -329,7 +331,7 @@ private:
 	bool m_DrawSmallObjects;
 
 	// A little enumerator to help us when adding shadows to renderables
-	int	m_ShadowEnum;
+	std::atomic<int> m_ShadowEnum{ 1 };
 
 	CTSList<EnumResultList_t> m_DeferredInserts;
 
@@ -578,7 +580,6 @@ void CClientLeafSystem::PreRender()
 			EnumResultList_t enumResultList;
 			while ( m_DeferredInserts.PopItem( &enumResultList ) )
 			{
-				m_ShadowEnum++;
 				const bool bReceiveShadows = ShouldRenderableReceiveShadow(enumResultList.handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
 				while ( enumResultList.pHead )
 				{
@@ -1297,13 +1298,9 @@ void CClientLeafSystem::InsertIntoTree( ClientRenderHandle_t &handle, const Vect
 	info.m_vecBloatedAbsMins = absMins;
 	info.m_vecBloatedAbsMaxs = absMaxs;
 
-	bool bInMainThread = ThreadInMainThread();
-	if (bInMainThread)
-	{
-		// When we insert into the tree, increase the shadow enumerator
-		// to make sure each shadow is added exactly once to each renderable
-		m_ShadowEnum++;
-	}
+	// When we insert into the tree, increase the shadow enumerator
+	// to make sure each shadow is added exactly once to each renderable
+	m_ShadowEnum++;
 
 	EnumResultList_t list = { NULL, handle };
 
@@ -1311,7 +1308,7 @@ void CClientLeafSystem::InsertIntoTree( ClientRenderHandle_t &handle, const Vect
 	ISpatialQuery* pQuery = engine->GetBSPTreeQuery();
 	int leafCount = pQuery->ListLeavesInBox(absMins, absMaxs, leafList, ARRAYSIZE(leafList));
 
-	if (bInMainThread)
+	if (ThreadInMainThread())
 	{
 		AddRenderableToLeaves(handle, leafCount, leafList);
 	}

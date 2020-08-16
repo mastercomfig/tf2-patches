@@ -1276,6 +1276,7 @@ void CParticleMgr::AddEffect( CNewParticleEffect *pEffect )
 	if ( pEffect->IsValid() && pEffect->m_pDef->IsViewModelEffect() )
 	{
 		ClientLeafSystem()->SetRenderGroup( pEffect->RenderHandle(), RENDER_GROUP_VIEW_MODEL_TRANSLUCENT );
+		ClientLeafSystem()->EnableBloatedBounds(pEffect->RenderHandle(), true);
 	}
 }
 
@@ -1298,6 +1299,7 @@ bool CParticleMgr::AddEffect( CParticleEffectBinding *pEffect, IParticleEffect *
 	// Add it to the leaf system.
 #if !defined( PARTICLEPROTOTYPE_APP )
 	ClientLeafSystem()->CreateRenderableHandle( pEffect );
+	ClientLeafSystem()->EnableBloatedBounds(pEffect->RenderHandle(), true);
 #endif
 
 	pEffect->m_ListIndex = m_Effects.AddToTail( pEffect );
