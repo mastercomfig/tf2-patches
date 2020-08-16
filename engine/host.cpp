@@ -3176,7 +3176,7 @@ void _Host_RunFrame (float time)
 
 // threaded path only supported in listen server
 #ifndef SWDS
-		if ( !IsEngineThreaded() )
+		if ( !IsEngineThreaded() ) // TODO(maximsmol): we might want this
 #endif
 		{
 #ifndef SWDS
