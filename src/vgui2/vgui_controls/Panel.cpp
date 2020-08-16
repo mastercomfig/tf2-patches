@@ -4241,22 +4241,30 @@ void Panel::ApplyAutoResizeSettings(KeyValues *inResourceData)
 	{
 		if ( inResourceData->FindKey( "PinnedCornerOffsetX" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[0] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[0] = false;
+#endif
 			nPinnedCornerOffsetX = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "PinnedCornerOffsetX" ) );
 		}
 		if ( inResourceData->FindKey( "PinnedCornerOffsetY" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[1] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[1] = false;
+#endif
 			nPinnedCornerOffsetY =	scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "PinnedCornerOffsetY" ) );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetX" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[2] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[2] = false;
+#endif
 			nUnpinnedCornerOffsetX = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "UnpinnedCornerOffsetX" ) );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetY" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[3] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[3] = false;
+#endif
 			nUnpinnedCornerOffsetY = scheme()->GetProportionalScaledValueEx( GetScheme(), inResourceData->GetInt( "UnpinnedCornerOffsetY" ) );
 		}
 	}
@@ -4264,22 +4272,30 @@ void Panel::ApplyAutoResizeSettings(KeyValues *inResourceData)
 	{
 		if ( inResourceData->FindKey( "PinnedCornerOffsetX" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[0] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[0] = false;
+#endif
 			nPinnedCornerOffsetX = inResourceData->GetInt( "PinnedCornerOffsetX" );
 		}
 		if ( inResourceData->FindKey( "PinnedCornerOffsetY" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[1] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[1] = false;
+#endif
 			nPinnedCornerOffsetY = inResourceData->GetInt( "PinnedCornerOffsetY" );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetX" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[2] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[2] = false;
+#endif
 			nUnpinnedCornerOffsetX = inResourceData->GetInt( "UnpinnedCornerOffsetX" );
 		}
 		if ( inResourceData->FindKey( "UnpinnedCornerOffsetY" ) )
 		{
-			DEBUG_LINE paramUsedParentDimension[3] = false;
+#ifdef _DEBUG
+			paramUsedParentDimension[3] = false;
+#endif
 			nUnpinnedCornerOffsetY = inResourceData->GetInt( "UnpinnedCornerOffsetY" );
 		}
 	}
@@ -4287,8 +4303,10 @@ void Panel::ApplyAutoResizeSettings(KeyValues *inResourceData)
 	if ( autoResize == AUTORESIZE_NO )
 	{
 		nUnpinnedCornerOffsetX = nUnpinnedCornerOffsetY = 0;
-		DEBUG_LINE paramUsedParentDimension[2] = false;
-		DEBUG_LINE paramUsedParentDimension[3] = false;
+#ifdef _DEBUG
+		paramUsedParentDimension[2] = false;
+		paramUsedParentDimension[3] = false;
+#endif
 	}
 
 #if defined( _DEBUG )
