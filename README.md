@@ -32,11 +32,40 @@ Required depot (and manifest, optionally):
 DISCLAIMER: This is the big kids zone. If you are not a professional, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. It might be much more complicated (or not)
 
 ### Setup
-1. Get [.Net Core Runtime](https://dotnet.microsoft.com/download) (for Depot Downloader, latest version is fine)
-1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) (for building TF2)
-1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader)
+1. Get [.NET Core Runtime](https://dotnet.microsoft.com/download) for Depot Downloader, latest version is fine.
+1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
+1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader).
 
 ### Depot downloader
+The preferred way for downloading game depots is using `/game_clean/download_depots.bat`, it will guide you through the process.
+
+Alternatively, see manual download instructions below.
+
+### Building
+1. Download this repo
+1. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcproj`
+1. Run both the Debug and the Release builds
+1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
+1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true`
+1. Run `/creategameprojects_dev.bat`
+1. Open `/games.sln`
+1. Build the VS project
+1. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
+
+### Running and Debugging
+1. For the compiled binaries to run, you will need all (some, but we are not sure which exactly) of the `.dll` and `.asi` files under `bin`. Copy them from the corresponding folder of depot `232251` to your game installation i.e. `../game/bin` (yes, this is _outside_ the project directory). Make sure you do not override any of your locally built DLLs
+1. You will also need all the usual game resources (same as when installing a pre-built release). Feel free to skip `.sound.cache` files, but otherwise just merge all the depots into `../game`. Once again, do not override any files that VS put in `../game/bin`
+1. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
+1. For server, follow the same procedures but set the `Command` to `../game/srcds.exe`. Suggest server launch options are `-game tf -console -nomaster -insecure +sv_pure 0 +maxplayers 32 +sv_lan 1 -dev -allowdebug`.
+
+See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
+
+Other launch options to consider:
+- `sw` to force windowed mode
+- `-w WIDTH -h HEIGHT` to set the resolution
+- `+map MAPNAME` to automatically launch a map on startup
+
+### Manual Depot Download
 1. Open `cmd.exe` (Windows-R + type cmd.exe + enter) or any other shell
 1. Type `cd ` and drag the Depot Downloader folder (unzipped) to the window
 1. Hit enter
@@ -45,55 +74,7 @@ DISCLAIMER: This is the big kids zone. If you are not a professional, building t
     - `dotnet DepotDownloader.dll -app 440 -depot 440 -username USERNAME -password PASSWORD`
     - `dotnet DepotDownloader.dll -app 440 -depot 232251 -manifest 2174530283606128348 -username USERNAME -password PASSWORD`
   
-If prompted for Steam Guard code, enter it
-
-### Building
-1. Download this repo
-1. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcproj`
-1. When prompted to "upgrade" project, agree
-1. For the Debug configuration, set `Properties->Configuration Properties->C/C++->Code Generation->Runtime Library` to `Multi-threaded Debug (/MTd)`. For Relase, set it to to `Multi-threaded (/MT)`
-1. For both configurations, add `_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS` under `Properties->Configuration Properties->C/C++->Preprocessor`
-1. Run both the Debug and the Release builds
-1. Change file permissions to allow execution on `/thirdparty/protobuf-2.5.0/protoc.exe`
-1. Run `regedit` and [fix whatever this is](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
-1. You will need to find copies of some libraries that are not included in this repository. They are either in the CS:GO leak or the TF2 leak:
-    - `/lib/public/nvtc.lib`
-    - `/lib/public/ftol.obj`
-    - `/lib/public/open_vr_api.lib`
-    - `/lib/public/steam_api.lib`
-    - `/lib/public/ati_compress_mt_vc10.lib`
-    - `/lib/public/steamnetworkingsockets.lib`
-    - `/lib/public/socketlib.lib`
-    - `/lib/public/SDL2.lib`
-    - `/lib/common/win32/2015/release/libjpeg.lib`
-    - `/lib/common/win32/2015/release/libpng.lib`
-    - `/lib/common/win32/2015/release/d3dx9.lib`
-    - `/lib/common/win32/2015/release/binkw32.lib`
-    - `/lib/common/win32/2015/debug/cryptlib.lib`
-    - `/dx9sdk/lib/d3dx9.lib`
-    - `/dx9sdk/lib/d3d9.lib`
-    - `/dx9sdk/lib/dinput8.lib`
-    - `/dx9sdk/lib/ddraw.lib`
-    - `/dx9sdk/lib/dsound.lib`
-    - `/dx9sdk/lib/dxguid.lib`
-    - `/tier0/DESKey/ALGO32.LIB`
-    - `/tier0/DESKey/DK2WIN.LIB`
-1. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true`
-1. Change file permissions to allow execution on
-    - `/devtools/bin/mc.exe`
-    - `/devtools/bin/vpc.exe`
-    - `/creategameprojects_dev.bat`
-1. Run `/creategameprojects_dev.bat`
-1. Open `/games.sln`
-1. Build the VS project
-1. The executable is under `/launcher_main/Debug/default.exe` for the client and under `/dedicated_main/Debug/srcds.exe` for the server
-
-### Running and Debugging
-1. For the compiled binaries to run, you will need all (some, but we are not sure which exactly) of the `.dll` and `.asi` files under `bin`. Copy them from the corresponding folder of depot `232251` to your game installation i.e. `../game/bin` (yes, this is _outside_ the project directory). Make sure you do not override any of your locally built DLLs
-1. You will also need all the usual game resources (same as when installing a pre-built release). Feel free to skip `.sound.cache` files, but otherwise just merge all the depots into `../game`. Once again, do not override any files that VS put in `../game/bin`
-1. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-allowdebug -dev -condebug -game tf -sw` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
-
-See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last step.
+If prompted for Steam Guard code, enter it.
 
 ## Legal
 
