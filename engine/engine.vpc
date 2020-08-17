@@ -11,6 +11,30 @@ $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 $include "$SRCDIR\vpc_scripts\source_replay.vpc"
 $include "$SRCDIR\vpc_scripts\dxmath_include.vpc"
 
+$Macro ARGLIBNAME "appframework"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "bitmap"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "dmxloader"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "matsys_controls"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$DEDICATED]	
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier3"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"	
+$Macro ARGLIBNAME "vtf"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"	
+$Macro ARGLIBNAME "vgui_controls"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$DEDICATED]
+$Macro ARGLIBNAME "libz"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"		
+
+$Macro ARGLIBNAME "bzip2"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+
 $Macro GPROFILER	"1" [$LINUX && $STAGING_ONLY]
 
 $Configuration
@@ -1096,26 +1120,13 @@ $Project "engine"
 
 	$Folder	"Link libraries"
 	{
-		$Lib	socketlib [$WIN32]
-
-		$Lib	appframework
-		$Lib	bitmap
-		$Lib	"$LIBCOMMON/bzip2"
+		$File	"$SRCDIR\lib\public\socketlib.lib" [$WIN32]
 		$Lib  	"$LIBCOMMON/libjpeg"			[!$DEDICATED]
 
-		$Lib	dmxloader
-		$Lib	mathlib
-		$Lib	matsys_controls						[!$DEDICATED]
-		$Lib	tier2
-		$Lib	tier3
-		$Lib	vtf
-		$Lib	vgui_controls						[!$DEDICATED]
-
-		$ImpLibexternal steam_api
+		$File "$SRCDIR\lib\public\steam_api.lib"
 
 		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
 
-		$Libexternal	"libz"
 		$Libexternal 	"$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL&&!$DEDICATED]
 
 		// Link with the google profiler.
@@ -1124,7 +1135,7 @@ $Project "engine"
 
 		$Lib	"$LIBCOMMON/binkw32"					[$WIN32&&!$QUICKTIME_WIN32]
 		$File   "$LIBCOMMON\quicktime\QTMLClient"       [$WIN32&&$QUICKTIME_WIN32]
-		$ImpLib	"SDL2" [$SDL]
+		$File	"$SRCDIR\lib\public\SDL2.dll" [$SDL]
 		$File	"$SRCDIR\DX9SDK\lib\dsound.lib" [$WIN32]
 		$File	"$SRCDIR\DX9SDK\lib\dxguid.lib" [$WIN32]
 	}	

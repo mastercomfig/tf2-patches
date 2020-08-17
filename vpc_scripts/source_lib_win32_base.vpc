@@ -8,12 +8,17 @@ $Include "$SRCDIR\vpc_scripts\version.vpc"
 
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTLIBNAME"	"$PROJECTNAME"
-$MacroRequired				"OUTLIBDIR"
 
-$Macro LIBPUBLIC	"$SRCDIR\lib\public$PLATSUBDIR"
-$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
-$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
-$Macro LIBCOMMON	"$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WIN32]
+$Macro LIBPUBLICDEBUG	"$SRCDIR\lib_Debug\public$PLATSUBDIR"
+$Macro LIBPUBLICRELEASE	"$SRCDIR\lib_Release\public$PLATSUBDIR"
+
+$Macro LIBCOMMONDEBUG	"$SRCDIR\lib_Debug\common$PLATSUBDIR" [!$VS2015]
+$Macro LIBCOMMONDEBUG	"$SRCDIR\lib_Debug\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
+$Macro LIBCOMMONDEBUG	"$SRCDIR\lib_Debug\common\win32\2015\release" [$VS2015&&$WIN32]
+
+$Macro LIBCOMMONRELEASE	"$SRCDIR\lib_Release\common$PLATSUBDIR" [!$VS2015]
+$Macro LIBCOMMONRELEASE	"$SRCDIR\lib_Release\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
+$Macro LIBCOMMONRELEASE	"$SRCDIR\lib_Release\common\win32\2015\release" [$VS2015&&$WIN32]
 
 $Include "$SRCDIR\vpc_scripts\source_lib_win32_debug.vpc"
 $Include "$SRCDIR\vpc_scripts\source_lib_win32_release.vpc"
@@ -41,24 +46,6 @@ $Configuration
 	$Compiler [$WIN32]
 	{
 		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions 2 (/arch:SSE2)"
-	}
-	
-	$PreBuildEvent
-	{
-		$CommandLine		"if EXIST $OUTLIBDIR\$(TargetName).lib ( for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
-							") else ( if not EXIST $OUTLIBDIR mkdir $OUTLIBDIR )" "\n" \
-							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
-							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE (" "\n" \
-							"    attrib -r $OUTLIBDIR\$(TargetName).lib" "\n" \
-							"    $SRCDIR\devtools\bin\gnu\touch.exe -d $QUOTE1999-01-01$QUOTE $OUTLIBDIR\$(TargetName).lib" "\n" \
-							"    attrib +r $OUTLIBDIR\$(TargetName).lib" "\n" \
-							")" "\n" \
-							"$CRCCHECK" "\n" 			
-	}
-
-	$PreLinkEvent [!$ANALYZE && !$SOURCESDK]
-	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTLIBDIR\$(TargetName).lib $SRCDIR" 
 	}
 
 	$Librarian

@@ -10,6 +10,15 @@ $Macro BINNAME "sourcevr"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier3"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "appframework"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$General
@@ -62,11 +71,7 @@ $Project "SourceVR"
 
 	$Folder	"Link Libraries"
 	{
-		$ImpLibexternal openvr_api
-		$Lib mathlib
-		$Lib tier2
-		$Lib tier3
-		$Lib appframework
-		$ImpLibexternal steam_api
+		$File "$SRCDIR\lib\public\openvr_api.lib"
+		$File "$SRCDIR\lib\public\steam_api.lib"
 	}
 }

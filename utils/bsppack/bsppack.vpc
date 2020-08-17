@@ -9,6 +9,14 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
+$Macro ARGLIBNAME "lzma"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+
 $Configuration
 {
 	$Compiler
@@ -46,12 +54,5 @@ $Project "bsppack"
 	{
 		$File	"$SRCDIR\public\ibsppack.h"
 		$File	"$SRCDIR\public\bspfile.h"
-	}
-
-	$Folder	"Link Libraries"
-	{
-		$Lib	mathlib
-		$Lib	tier2
-		$Lib	"$LIBCOMMON/lzma"
 	}
 }

@@ -1,0 +1,17 @@
+$Include "$SRCDIR\vpc_scripts\lib_common_locations.vpc"
+
+$Project
+{
+	$Folder	"Link Libraries"
+	{
+		$File	"$LIBCOMMONDEBUG\$ARGLIBNAME.lib"
+		{
+			$Configuration "Release" 	{ $ExcludedFromBuild "Yes" }
+		}
+		$File	"$LIBCOMMONRELEASE\$ARGLIBNAME.lib"
+		{
+			$Configuration "Debug" 	{ $ExcludedFromBuild "Yes" }
+		}
+	}
+}
+

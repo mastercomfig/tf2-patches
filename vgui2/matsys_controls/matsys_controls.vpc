@@ -8,6 +8,9 @@ $macro SRCDIR		"..\.."
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 
+$macro ARGLIBNAME "bitmap"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$WIN32]
+
 $Project "matsys_controls"
 {
 	$Folder	"Source Files"
@@ -57,10 +60,5 @@ $Project "matsys_controls"
 		$File	"$SRCDIR\public\matsys_controls\vtfpicker.h"
 		$File	"$SRCDIR\public\matsys_controls\vtfpreviewpanel.h"
 		$File	"$SRCDIR\public\matsys_controls\vmtpanel.h"
-	}
-
-	$Folder	"Link Libraries"
-	{
-		$Lib bitmap [$WIN32]
 	}
 }

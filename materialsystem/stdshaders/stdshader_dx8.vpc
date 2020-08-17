@@ -13,6 +13,11 @@ $Macro DISABLE_FTOL3_OVERRIDE "1"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "shaderlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration	"Debug"
 {
 	$General
@@ -127,8 +132,6 @@ $Project "stdshader_dx8"
 	$Folder	"Link Libraries"
 	{
 		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"
-		$Lib mathlib
-		$Lib shaderlib
 	}
 
 	$File	"$SRCDIR\devtools\bin\fxc_prep.pl"

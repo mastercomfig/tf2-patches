@@ -1,0 +1,2 @@
+$Macro LIBPUBLICDEBUG	"$SRCDIR\lib_Debug\public$PLATSUBDIR"
+$Macro LIBPUBLICRELEASE	"$SRCDIR\lib_Release\public$PLATSUBDIR"

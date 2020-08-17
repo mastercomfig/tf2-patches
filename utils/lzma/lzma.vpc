@@ -5,7 +5,8 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		"..\.."
-$Macro OUTLIBDIR	"$LIBCOMMON"
+$Macro OUTLIBDIRDEBUG	"$LIBCOMMONDEBUG"
+$Macro OUTLIBDIRRELEASE	"$LIBCOMMONRELEASE"
 
 $Include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 

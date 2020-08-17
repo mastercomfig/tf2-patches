@@ -8,13 +8,16 @@ $macro SRCDIR		".."
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 
+$macro ARGLIBNAME "togl"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"  [!$IS_LIB_PROJECT && $GL]
+
 $Configuration
 {
     $General
     {
 		$AdditionalProjectDependencies                  "$BASE;togl"  [!$IS_LIB_PROJECT && $GL]
 	}
-		
+
 	$Linker [$OSXALL]
 	{
 		$SystemFrameworks "Carbon;OpenGL;Quartz;Cocoa;IOKit"
@@ -47,7 +50,6 @@ $Project "appframework"
 
 	$Folder	"Link Libraries"
 	{
-		$ImpLib togl [!$IS_LIB_PROJECT && $GL]
-		$ImpLib SDL2 [!$IS_LIB_PROJECT && $SDL]
+		$File "$SRCDIR\lib\public\SDL2.lib" [!$IS_LIB_PROJECT && $SDL]
 	}
 }
