@@ -18,31 +18,6 @@ $include "$SRCDIR\vpc_scripts\protobuf_builder.vpc"
 $Include "$SRCDIR\vpc_scripts\source_replay.vpc"	[$TF]
 $Include "$SRCDIR\game\protobuf_include.vpc"
 
-$Configuration	"Debug"
-{
-	$General
-	{
-		$OutputDirectory			".\Debug_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory		".\Debug_$GAMENAME" [$WINDOWS]
-
-		$OutputDirectory			".\Debug_$GAMENAME_360"		[$X360]
-		$IntermediateDirectory		".\Debug_$GAMENAME_360"		[$X360]
-	}
-}
-
-$Configuration	"Release"
-{
-	$General
-	{
-		// Windows generator doesn't sandbox these directories per configuration but others do :-/
-		$OutputDirectory			".\Release_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory		".\Release_$GAMENAME" [$WINDOWS]
-
-		$OutputDirectory			".\Release_$GAMENAME_360"	[$X360]
-		$IntermediateDirectory		".\Release_$GAMENAME_360"	[$X360]
-	}
-}
-
 $Configuration
 {
 	$General
@@ -54,7 +29,7 @@ $Configuration
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	".\;$BASE;$SRCDIR\vgui2\include;$SRCDIR\vgui2\controls;$SRCDIR\game\shared;.\game_controls;$SRCDIR\thirdparty\sixensesdk\include"
-		$PreprocessorDefinitions		"$BASE;NO_STRING_T;CLIENT_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES;PROTECTED_THINGS_ENABLE;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead" 
+		$PreprocessorDefinitions		"$BASE;NO_STRING_T;CLIENT_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES;PROTECTED_THINGS_ENABLE;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead"
 		$PreprocessorDefinitions		"$BASE;fopen=dont_use_fopen" [$WIN32]
 		$PreprocessorDefinitions		"$BASE;USE_WEBM_FOR_REPLAY;" [$LINUXALL]
 		$Create/UsePrecompiledHeader	"Use Precompiled Header (/Yu)"
@@ -71,6 +46,47 @@ $Configuration
 		$AdditionalDependencies			"$BASE winmm.lib"	[$WIN32]
 		$AdditionalDependencies			"$BASE wsock32.lib Ws2_32.lib" [$BUILD_REPLAY&&$WIN32]
 	}
+
+	$Debugging
+	{
+		$Command "$OUTBINDIR\hl2.exe" [$WINDOWS]
+		$WorkingDirectory "$OUTBINDIR" [$WINDOWS]
+	}
+}
+
+$Configuration	"Debug"
+{
+	$General
+	{
+		$OutputDirectory			".\Debug_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory		".\Debug_$GAMENAME" [$WINDOWS]
+
+		$OutputDirectory			".\Debug_$GAMENAME_360"		[$X360]
+		$IntermediateDirectory		".\Debug_$GAMENAME_360"		[$X360]
+	}
+
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug -condebug" [$WINDOWS]
+	}
+}
+
+$Configuration	"Release"
+{
+	$General
+	{
+		// Windows generator doesn't sandbox these directories per configuration but others do :-/
+		$OutputDirectory			".\Release_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory		".\Release_$GAMENAME" [$WINDOWS]
+
+		$OutputDirectory			".\Release_$GAMENAME_360"	[$X360]
+		$IntermediateDirectory		".\Release_$GAMENAME_360"	[$X360]
+	}
+
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2" [$WINDOWS]
+	}
 }
 
 $Project
@@ -81,7 +97,7 @@ $Project
 		$File	"replay/replaycamera.h"
 		$File	"replay/cdll_replay.cpp"
 		$File	"replay/cdll_replay.h"
-		
+
 		$File	"replay/gamedefs.h"	[$BUILD_REPLAY]
 		$File	"replay/gamedefs.cpp"	[$BUILD_REPLAY]
 		$File	"replay/replay_ragdoll.cpp"	[$BUILD_REPLAY]
@@ -94,13 +110,13 @@ $Project
 		$File	"replay/replayrenderer.h"	[$BUILD_REPLAY]
 		$File	"replay/replayvideo.cpp"	[$BUILD_REPLAY]
 		$File	"replay/replayvideo.h"	[$BUILD_REPLAY]
-		
+
 		$File	"replay/genericclassbased_replay.cpp"	[$BUILD_REPLAY]
 		$File	"replay/genericclassbased_replay.h"	[$BUILD_REPLAY]
-		
+
 		$File	"$SRCDIR\game\shared\replay_gamestats_shared.cpp"	[$BUILD_REPLAY]
 		$File	"$SRCDIR\game\shared\replay_gamestats_shared.h"	[$BUILD_REPLAY]
-		
+
 		$File	"$SRCDIR\game\client\youtubeapi.h"	[$BUILD_REPLAY]
 		$File	"$SRCDIR\game\client\youtubeapi.cpp"	[$BUILD_REPLAY]
 		{
@@ -112,7 +128,7 @@ $Project
 				}
 			}
 		}
-		
+
 		$Folder "UI"	[$BUILD_REPLAY]
 		{
 			$File	"replay\vgui\replaybrowserbasepage.cpp"
@@ -153,10 +169,10 @@ $Project
 			$File	"replay\replayyoutubeapi.h"
 			$File	"replay\replayyoutubeapi_key.cpp" [!$SOURCESDK]
 			$File	"replay\replayyoutubeapi_key_sdk.cpp" [$SOURCESDK]
-			
+
 			$File	"game_controls\slideshowpanel.cpp"
 			$File	"game_controls\slideshowpanel.h"
-			
+
 			$File	"$SRCDIR\common\movieobjects\timeutils.cpp"
 			{
 				$Configuration
@@ -170,7 +186,7 @@ $Project
 			$File	"$SRCDIR\public\movieobjects\timeutils.h"
 		}
 	}
-		
+
 	$Folder	"Source Files"
 	{
 		$File	"hl2\C_Func_Monitor.cpp"
@@ -515,7 +531,7 @@ $Project
 			$File	"$SRCDIR\game\shared\sixense\sixense_convars.cpp"
 			$File	"$SRCDIR\game\shared\sixense\sixense_convars_extern.h"
 		}
-		
+
 		// Files not using precompiled header cbase.h
 
 		$File	"$SRCDIR\public\bone_setup.cpp"						\
@@ -549,7 +565,7 @@ $Project
 				"in_mouse.cpp"										\
 				"mumble.cpp"						\
 				"$SRCDIR\public\renamed_recvtable_compat.cpp"		\
-				"rendertexture.cpp"									
+				"rendertexture.cpp"
 				{
 					$Configuration
 					{
@@ -666,7 +682,7 @@ $Project
 		$File	"mp3player.cpp"
 		$File	"mp3player.h"
 	}
-	
+
 	$Folder	"Tool Framework"
 	{
 		$File	"$SRCDIR\public\tools\bonelist.cpp"
@@ -1239,7 +1255,7 @@ $Project
 		$File	"game_controls\vguitextwindow.h"
 		$File	"game_controls\IconPanel.h"
 	}
-	
+
 	$Folder	"Link Libraries"
 	{
 		$Lib		bitmap
@@ -1254,7 +1270,7 @@ $Project
 		$Lib		vgui_controls
 		$Lib		vtf
 		$ImpLib		steam_api
-		
+
 		$Libexternal $LIBCOMMON/libcrypto [$OSXALL]
 		$Libexternal "$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL]
 		$Lib   "libz" [$WIN32]

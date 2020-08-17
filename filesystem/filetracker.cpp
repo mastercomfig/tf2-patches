@@ -100,7 +100,9 @@ int CFileTracker2::SubmitThreadedMD5Request( uint8 *pubBuffer, int cubBuffer, in
 		else
 		{
 			// this is an error, we should already know about the file
-			Assert(0);
+			// UNDONE(maximsmol): We actually never even get a file to track unless we are caching all VPK access
+			// so this ALWAYS trips. Commenting it out does not break anything at all
+			//Assert(0);
 			return 0;
 		}
 

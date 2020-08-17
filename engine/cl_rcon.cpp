@@ -139,17 +139,21 @@ void CRConVProfExport::GetBudgetGroupTimes( float times[IVProfExport::MAX_BUDGET
 
 void CRConVProfExport::PauseProfile()
 {
+#ifdef VPROF_ENABLED
 	// NOTE: This only has effect when testing on a listen server
 	// it shouldn't do anything in the wild. When drawing the budget panel
 	// this will cause the time spent doing so to not be counted
 	VProfExport_Pause();
+#endif
 }
 
 void CRConVProfExport::ResumeProfile()
 {
+#ifdef VPROF_ENABLED
 	// NOTE: This only has effect when testing on a listen server
 	// it shouldn't do anything in the wild
 	VProfExport_Resume();
+#endif
 }		
 
 void CRConVProfExport::CleanupGroupData()
@@ -712,6 +716,7 @@ void CRConClient::SendCmd( const char *msg )
 //-----------------------------------------------------------------------------
 void CRConClient::StartVProfData()
 {
+#ifdef VPROF_ENABLED
 	if ( !IsConnected() )
 	{
 		if ( !ConnectSocket() )
@@ -724,6 +729,7 @@ void CRConClient::StartVProfData()
 	CUtlBuffer response;
 	BuildResponse( response, SERVERDATA_VPROF, "", "" );
 	SendResponse( response );
+#endif
 }
 
 
@@ -732,6 +738,7 @@ void CRConClient::StartVProfData()
 //-----------------------------------------------------------------------------
 void CRConClient::StopVProfData()
 {
+#ifdef VPROF_ENABLED
 	// Reset the vprof export to point to the normal profiling data
 	ResetVProfExport( &m_VProfExport );
 
@@ -742,6 +749,7 @@ void CRConClient::StopVProfData()
 	CUtlBuffer response;
 	BuildResponse( response, SERVERDATA_REMOVE_VPROF, "", "" );
 	SendResponse( response );
+#endif
 }
 
 

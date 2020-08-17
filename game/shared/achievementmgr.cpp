@@ -1862,7 +1862,7 @@ void CAchievementMgr::UpdateStateFromSteam_Internal()
 			pAchievement->SetAchieved( bAchieved );
 			pAchievement->SetUnlockTime(unlockTime);
 		}
-		else
+		else if (cc_achievement_debug.GetBool())
 		{
 			DevMsg( "ISteamUserStats::GetAchievement failed for %s\n", pAchievement->GetName() );
 		}
@@ -1878,7 +1878,7 @@ void CAchievementMgr::UpdateStateFromSteam_Internal()
 				pAchievement->SetCount( iValue );
 				pAchievement->EvaluateNewAchievement();
 			}
-			else
+			else if (cc_achievement_debug.GetBool())
 			{
 				DevMsg( "ISteamUserStats::GetStat failed to get progress value from Steam for achievement %s\n", pszProgressName );
 			}
