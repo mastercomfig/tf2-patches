@@ -894,13 +894,13 @@ $Project "Client (TF)"
 		}
 	}
 
-	$Folder "Useful non-source files" [!$ANALYZE && !$BUILDBOT]
-	{
-		$File "$SRCDIR\..\game\tf\scripts\HudAnimations_tf.txt"
-		$File "$SRCDIR\..\game\tf\resource\tf_english.txt"
-		$File "$SRCDIR\..\game\tf\resource\ModEvents.res"
-		$File "$SRCDIR\..\game\tf\resource\ClientScheme.res"
-	}
+//	$Folder "Useful non-source files" [!$ANALYZE && !$BUILDBOT]
+//	{
+//		$File "$SRCDIR\..\game\tf\scripts\HudAnimations_tf.txt"
+//		$File "$SRCDIR\..\game\tf\resource\tf_english.txt"
+//		$File "$SRCDIR\..\game\tf\resource\ModEvents.res"
+//		$File "$SRCDIR\..\game\tf\resource\ClientScheme.res"
+//	}
 
 	$Folder	"Link libraries"
 	{

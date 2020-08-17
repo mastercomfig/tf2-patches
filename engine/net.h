@@ -62,7 +62,7 @@
 #define UDP_HEADER_SIZE				(20+8)	// IP = 20, UDP = 8
 
 
-#define MAX_ROUTABLE_PAYLOAD		1260	// Matches x360 size
+#define MAX_ROUTABLE_PAYLOAD		1200	// x360 requires <= 1260, but now that listen servers can support "steam" mediated sockets, steam enforces 1200 byte limit
 
 #if (MAX_ROUTABLE_PAYLOAD & 3) != 0
 #error Bit buffers must be a multiple of 4 bytes

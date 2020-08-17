@@ -107,16 +107,19 @@ public:
 
 	  virtual float GetFloat() const
 	  {
-		  const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
+		  static const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
 		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
-		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 )
+		  static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
+		  if ( pUpdateRate && pMin && pMax && pMin->GetFloat() != -1 )
 		  {
-			  return MAX( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat() );
+			  return clamp( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat(), pMax->GetFloat() / pUpdateRate->GetFloat());
 		  }
-		  else
+		  if (!HushAsserts())
 		  {
-			  return GetBaseFloatValue();
+			  AssertMsgOnce(false, "GetInterpolationAmount: can't get cl_updaterate cvar.");
 		  }
+
+		  return 0.1f;
 	  }
 
 	virtual void SetValue(const char* value)
@@ -131,20 +134,6 @@ ConVar_ServerBounded *cl_interp = &cl_interp_var;
 
 float GetClientInterpAmount()
 {
-	const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
-	if ( pUpdateRate )
-	{
-		// #define FIXME_INTERP_RATIO
-		return MAX( cl_interp->GetFloat(), cl_interp_ratio->GetFloat() / pUpdateRate->GetFloat() );
-	}
-	else
-	{
-		if ( !HushAsserts() )
-		{
-			AssertMsgOnce( false, "GetInterpolationAmount: can't get cl_updaterate cvar." );
-		}
-	
-		return 0.1;
-	}
+	return cl_interp->GetFloat();
 }
 

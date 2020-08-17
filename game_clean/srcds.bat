@@ -1,2 +1,2 @@
 @echo off
-srcds.exe -nomaster -console -game tf %*
+srcds.exe -game tf -console -nomaster -insecure %*

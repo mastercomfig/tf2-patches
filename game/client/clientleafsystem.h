@@ -199,6 +199,11 @@ public:
 
 	// Use alternate translucent sorting algorithm (draw translucent objects in the furthest leaf they lie in)
 	virtual void EnableAlternateSorting( ClientRenderHandle_t handle, bool bEnable ) = 0;
+
+	// Indicates this renderable should bloat its client leaf bounds over time
+	// used for renderables with oscillating bounds to reduce the cost of
+	// them reinserting themselves into the tree over and over.
+	virtual void EnableBloatedBounds(ClientRenderHandle_t handle, bool bEnable) = 0;
 };
 
 

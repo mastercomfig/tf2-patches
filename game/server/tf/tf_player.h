@@ -166,7 +166,8 @@ public:
 	virtual	bool		ShouldCollide( int collisionGroup, int contentsMask ) const;
 	void				ApplyPushFromDamage( const CTakeDamageInfo &info, Vector vecDir );
 	void				PlayDamageResistSound( float flStartDamage, float flModifiedDamage );
-	bool				CheckBlockBackstab( CTFPlayer *pTFAttacker );
+    void GetAttackVector(const CTakeDamageInfo& info, Vector& vecDir);
+    bool				CheckBlockBackstab( CTFPlayer *pTFAttacker );
 
 	virtual bool		Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon );
 

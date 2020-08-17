@@ -450,7 +450,7 @@ public:
 	virtual void EngineStats_EndFrame( void );
 	virtual void FireEvents();
 	virtual void CheckPoint( const char *pName );
-	virtual int GetLeavesArea( int *pLeaves, int nLeaves );
+	virtual int GetLeavesArea(unsigned short* pLeaves, int nLeaves);
 	virtual bool DoesBoxTouchAreaFrustum( const Vector &mins, const Vector &maxs, int iArea );
 
 	// Sets the hearing origin
@@ -1180,7 +1180,7 @@ void CEngineClient::CheckPoint( const char *pName )
 	GetTestScriptMgr()->CheckPoint( pName );
 }
 
-int CEngineClient::GetLeavesArea( int *pLeaves, int nLeaves )
+int CEngineClient::GetLeavesArea(unsigned short* pLeaves, int nLeaves)
 {
 	if ( nLeaves == 0 )
 		return -1;

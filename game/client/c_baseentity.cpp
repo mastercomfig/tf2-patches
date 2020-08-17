@@ -908,13 +908,13 @@ C_BaseEntity::C_BaseEntity() :
 	// but that re-introduces a third-person hitching bug.  One possible cause is the abrupt change
 	// in player size/position that occurs when ducking, and how prediction tries to work through that.
 	//
-	// AddVar( &m_vecVelocity, &m_iv_vecVelocity, LATCH_SIMULATION_VAR );
+	AddVar( &m_vecVelocity, &m_iv_vecVelocity, LATCH_SIMULATION_VAR );
 
 	m_DataChangeEventRef = -1;
 	m_EntClientFlags = 0;
 
 	m_iParentAttachment = 0;
-	m_nRenderFXBlend = 255;
+	m_nRenderFXBlend = 0;
 
 	SetPredictionEligible( false );
 	m_bPredictable = false;

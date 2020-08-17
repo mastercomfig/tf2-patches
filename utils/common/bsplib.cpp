@@ -3404,6 +3404,8 @@ public:
 	bool EnumerateLeavesInBox( Vector const& mins, Vector const& maxs, ISpatialLeafEnumerator* pEnum, int context );
 	bool EnumerateLeavesInSphere( Vector const& center, float radius, ISpatialLeafEnumerator* pEnum, int context );
 	bool EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, int context );
+
+	int ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax);
 };
 
 
@@ -3500,6 +3502,29 @@ bool CToolBSPTree::EnumerateLeavesInBox( Vector const& mins, Vector const& maxs,
 {
 	return EnumerateLeavesInBox_R( 0, mins, maxs, pEnum, context );
 }
+
+// a little helper class to implement this interface for tools - engine uses this as a more efficient path
+class CLeafMakeList : public ISpatialLeafEnumerator
+{
+public:
+	CLeafMakeList(unsigned short* pListIn, int listMaxIn)
+		: m_pList(pListIn), m_listMax(listMaxIn), m_count(0)
+	{
+	}
+	virtual bool EnumerateLeaf(int leaf, intp context)
+	{
+		if (m_count < m_listMax)
+		{
+			m_pList[m_count] = leaf;
+			m_count++;
+			return true;
+		}
+		return false;
+	}
+	unsigned short* m_pList;
+	int m_listMax;
+	int m_count;
+};
 
 //-----------------------------------------------------------------------------
 // Enumerate leaves within a sphere
@@ -3628,6 +3653,13 @@ bool CToolBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumer
 	Vector end;
 	VectorAdd( ray.m_Start, ray.m_Delta, end );
 	return EnumerateLeavesAlongRay_R( 0, ray, ray.m_Start, end, pEnum, context );
+}
+
+int CToolBSPTree::ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax)
+{
+	CLeafMakeList list(pList, listMax);
+	EnumerateLeavesInBox(mins, maxs, &list, 0);
+	return list.m_count;
 }
 
 

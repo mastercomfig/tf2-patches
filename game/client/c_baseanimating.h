@@ -270,6 +270,7 @@ public:
 	virtual bool					GetAttachment( int number, Vector &origin );
 	virtual bool					GetAttachment( int number, Vector &origin, QAngle &angles );
 	virtual bool					GetAttachment( int number, matrix3x4_t &matrix );
+	virtual bool					GetAttachmentNoRecalc(int number, matrix3x4_t& matrix);
 	virtual bool					GetAttachmentVelocity( int number, Vector &originVel, Quaternion &angleVel );
 	
 	// Returns the attachment in local space
@@ -403,7 +404,7 @@ public:
 	static void						PushAllowBoneAccess( bool bAllowForNormalModels, bool bAllowForViewModels, char const *tagPush );
 	static void						PopBoneAccess( char const *tagPop );
 	static void						ThreadedBoneSetup();
-	static void						InitBoneSetupThreadPool();
+    static void						InitBoneSetupThreadPool();
 	static void						ShutdownBoneSetupThreadPool();
 
 	// Invalidate bone caches so all SetupBones() calls force bone transforms to be regenerated.
