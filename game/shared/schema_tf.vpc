@@ -6,7 +6,8 @@
 //-----------------------------------------------------------------------------
 
 $macro SRCDIR		"..\.."
-$Macro OUTLIBDIR	"$SRCDIR\lib\game\tf"
+$Macro OUTLIBDIRDEBUG	"$SRCDIR\lib_Debug\game\tf"
+$Macro OUTLIBDIRRELEASE	"$SRCDIR\lib_Release\game\tf"
 $macro $_STATICLIB_EXT	".lib"
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
@@ -15,9 +16,9 @@ $Configuration
 {
 	$PreBuildEvent [$WIN32]
 	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\tf\schema_tf.h $SRCDIR" "\n" \ 
+		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\tf\schema_tf.h $SRCDIR" "\n" \
 							"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\tf\schema_tf.cpp $SRCDIR" "\n" \
-							"$BASE" 
+							"$BASE"
 	}
 }
 
@@ -25,16 +26,16 @@ $Project "schema (TF)"
 {
 	$File "gc\base_gcschema.sch"
 	{
-		$Configuration 
-		{ 
-			$ExcludedFromBuild	"Yes" 
+		$Configuration
+		{
+			$ExcludedFromBuild	"Yes"
 		}
 	}
 	$File "econ\econ_gcschema.sch"
 	{
-		$Configuration 
-		{ 
-			$ExcludedFromBuild	"Yes" 
+		$Configuration
+		{
+			$ExcludedFromBuild	"Yes"
 		}
 	}
 	$File "tf\schema_tf.sch"

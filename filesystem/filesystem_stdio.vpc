@@ -10,6 +10,9 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 $include "$SRCDIR\vpc_scripts\source_cryptlib_include.vpc"
 
+$macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration	"Debug"
 {
 	$General
@@ -94,10 +97,5 @@ $Project "FileSystem_Stdio"
 		$File	"$SRCDIR\public\vstdlib\vstdlib.h"
 		$File	"$SRCDIR\public\keyvaluescompiler.h"
 		$File	"$SRCDIR\public\filesystem\IQueuedLoader.h"
-	}
-
-	$Folder "Link Libraries"
-	{
-		$Lib	tier2
 	}
 }

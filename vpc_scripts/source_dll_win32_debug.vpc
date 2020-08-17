@@ -9,8 +9,6 @@ $IgnoreRedundancyWarning	"ON"
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTBINNAME"
 $MacroRequired				"OUTBINDIR"
-$MacroRequired				"LIBPUBLIC"
-$MacroRequired				"LIBCOMMON"
 $MacroRequired				"PLATSUBDIR"
 $MacroRequired				"OUTDLLEXT"
 $MacroRequiredAllowEmpty	"GAMENAME"
@@ -20,7 +18,7 @@ $Macro						"_SUBDIRSUFFIX"		"$INTERMEDIATESUBDIR$GAMENAME$PLATSUBDIR$_UNITYSUBD
 
 $Configuration "Debug"
 {
-	$General	
+	$General
 	{
 		// General
 		$OutputDirectory					".\Debug$_SUBDIRSUFFIX"
@@ -59,7 +57,7 @@ $Configuration "Debug"
 		$Resolve#UsingReferences
 		$DebugInformationFormat				"Program Database for Edit & Continue (/ZI)" [$WIN32]
 		$DebugInformationFormat				"Program Database (/Zi)" [$WIN64]
-		$SuppressStartupBanner		
+		$SuppressStartupBanner
 		$WarningLevel						"Level 4 (/W4)"
 		$TreatWarningsAsErrors
 		$UseUNICODEResponseFiles
@@ -82,7 +80,7 @@ $Configuration "Debug"
 
 		// Code Generation
 		$EnableStringPooling				"Yes (/GF)"
-		$EnableMinimalRebuild				
+		$EnableMinimalRebuild
 		$EnableC++Exceptions				"No"
 		$SmallerTypeCheck
 		$BasicRuntimeChecks					"Default"
@@ -215,7 +213,7 @@ $Configuration "Debug"
 		$DelayLoadedDLL
 		$ImportLibrary
 		$MergeSections
-		$TargetMachine					
+		$TargetMachine
 		$Profile
 		$CLRThreadAttribute
 		$CLRImageType
@@ -228,7 +226,7 @@ $Configuration "Debug"
 		$ImageHasSafeExceptionHandlers		"false"
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$ManifestTool
@@ -260,7 +258,7 @@ $Configuration "Debug"
 		$UpdateFileHashesSearchPath
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$XMLDocumentGenerator
@@ -276,7 +274,7 @@ $Configuration "Debug"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"	
+		$SuppressStartupBanner				"Yes (/nologo)"
 		$OutputFile							"$(OutDir)/$OUTBINNAME.bsc"
 		$AdditionalOptions
 	}
@@ -292,7 +290,7 @@ $Configuration "Debug"
 		$ResourceFileName
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$PreBuildEvent
@@ -303,7 +301,7 @@ $Configuration "Debug"
 	}
 
 	$PreLinkEvent
-	{	
+	{
 		$CommandLine
 		$Description
 		$ExcludedFromBuild					"No"
@@ -316,12 +314,27 @@ $Configuration "Debug"
 		$ExcludedFromBuild					"No"
 	}
 
-	$CustomBuildStep
+	$CustomBuildStep [!$ANALYZE]
 	{
-		// General
-		$CommandLine
-		$Description
-		$Outputs
-		$AdditionalDependencies
+		$CommandLine		"if not exist $QUOTE$OUTBINDIR$QUOTE mkdir $QUOTE$OUTBINDIR$QUOTE" "\n"
+		$CommandLine		"$BASE" "del /q $QUOTE$OUTBINDIR\$(TargetFileName)_Release_sentinel$QUOTE" "\n"
+		$CommandLine		"$BASE" "type NUL > $QUOTE$OUTBINDIR\$(TargetFileName)_Debug_sentinel$QUOTE" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetFileName)$QUOTE $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"if exist $QUOTE$(TargetDir)$(TargetName).map$QUOTE copy $QUOTE$(TargetDir)$(TargetName).map$QUOTE $OUTBINDIR\$(TargetName).map" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetName).pdb$QUOTE $SRCDIR" "\n"  [!$SOURCESDK]
+		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetName).pdb$QUOTE $OUTBINDIR\$(TargetName).pdb" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"goto BuildEventOK" "\n" \
+							":BuildEventFailed" "\n" \
+							"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
+							"del /q $QUOTE$(TargetDir)$(TargetFileName)$QUOTE" "\n" \
+							"exit 1" "\n" \
+							":BuildEventOK" "\n"
+
+		$Outputs "$OUTBINDIR\$(TargetFileName)_Debug_sentinel"
+
+		$Description		"Publishing to $OUTBINDIR"
 	}
 }

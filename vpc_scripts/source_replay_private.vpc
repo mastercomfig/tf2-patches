@@ -5,18 +5,13 @@
 //
 //-----------------------------------------------------------------------------
 
+$Macro ARGLIBNAME "replay_common"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+
 $Configuration
 {
 	$Compiler
 	{
 		$PreprocessorDefinitions		"$BASE;REPLAY_ENABLED"
-	}
-}
-
-$Project
-{
-	$Folder	"Link libraries"
-	{
-		$Lib "$LIBCOMMON/replay_common"
 	}
 }

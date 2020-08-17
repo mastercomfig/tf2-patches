@@ -9,6 +9,16 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$macro ARGLIBNAME "appframework"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "tier3"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "togl"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$IS_LIB_PROJECT && $GL]
+
+
 $Configuration
 {
 	$General
@@ -88,13 +98,8 @@ $Project "launcher"
 
 	$folder	"Link Libraries"
 	{
-		$Lib	appframework
-		$Lib	tier2
-		$Lib	tier3
-		$Implib steam_api
-		$ImpLib togl [!$IS_LIB_PROJECT && $GL]
-		$ImpLib SDL2 [$SDL]
+		$File	"$SRCDIR\lib\public\SDL2.lib" [$SDL]
+		$File	"$SRCDIR\lib\public\steam_api.lib"
 	}
-
 }
 

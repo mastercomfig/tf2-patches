@@ -904,6 +904,6 @@ $Project "Client (TF)"
 
 	$Folder	"Link libraries"
 	{
-		$ImplibExternal	"steamnetworkingsockets"
+		$File	"$SRCDIR\lib\public\steamnetworkingsockets.lib"
 	}
 }

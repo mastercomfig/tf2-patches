@@ -9,12 +9,17 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$macro ARGLIBNAME "tier1"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$Compiler
 	{
 		$AdditionalIncludeDirectories		"$BASE;$SRCDIR\thirdparty\SDL2"	[!$SDL] // If $SDL, then we already have this from source_video_base.vpc.
-		$PreprocessorDefinitions			"$BASE;VERSION_SAFE_STEAM_API_INTERFACES" 
+		$PreprocessorDefinitions			"$BASE;VERSION_SAFE_STEAM_API_INTERFACES"
 	}
 	$Linker
 	{
@@ -47,9 +52,7 @@ $Project "inputsystem"
 
 	$Folder	"Link Libraries"
 	{
-		$Lib	tier1
-		$Lib	tier2
-		$ImpLib SDL2
-		$Implib	"steam_api"						[($WIN32||$WIN64||$POSIX||$PS3)&&!$NO_STEAM]
+		$File	"$SRCDIR\lib\public\SDL2.lib"
+		$File	"$SRCDIR\lib\public\steam_api.lib" [($WIN32||$WIN64||$POSIX||$PS3)&&!$NO_STEAM]
 	}
 }

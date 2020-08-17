@@ -9,6 +9,17 @@ $Macro	OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_exe_con_base.vpc"
 
+
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
+$Macro ARGLIBNAME "tier0"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$POSIX]
+$Macro ARGLIBNAME "tier1"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$POSIX]
+
 $Configuration	"Debug"
 {
 	$Compiler
@@ -51,13 +62,5 @@ $Project "Simdtest"
 	$Folder "Source Files"
 	{
 		$File	"simdtest.cpp"
-	}
-	
-	$Folder	"Link Libraries"
-	{
-		$Lib mathlib
-		$Lib tier2
-		$Implib tier0 [$POSIX]
-		$Lib	tier1 [$POSIX]
 	}
 }

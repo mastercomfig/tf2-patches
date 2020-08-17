@@ -10,6 +10,9 @@ $MacroRequired GENERATED_PROTO_DIR
 $include "$SRCDIR\vpc_scripts\protobuf_builder.vpc"
 $include "$SRCDIR\gcsdk\steammessages_include.vpc"
 
+$Macro ARGLIBNAME "gcsdk"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$General
@@ -28,17 +31,11 @@ $Project
 		{
 			$Configuration
 			{
-				$Compiler 
+				$Compiler
 				{
 					$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
 				}
 			}
 		}
 	}
-
-	$Folder "Link Libraries"
-	{
-		$Lib	gcsdk
-	}
-
 }

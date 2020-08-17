@@ -19,6 +19,7 @@ $Configuration
 		$SystemFrameworks					"Carbon" [$OSXALL]
 		// I'm not sure why this is set in source_dll_win32_debug/release.vpc but not for
 		// the corresponding .exe VPC files. vpk now needs this for cryptlib.
+		// TODO(maximsmol): broken, debug-release separation
 		$AdditionalLibraryDirectories		"$LIBCOMMON;$LIBPUBLIC"
     }
 

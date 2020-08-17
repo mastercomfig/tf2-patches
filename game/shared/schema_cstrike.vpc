@@ -6,7 +6,8 @@
 //-----------------------------------------------------------------------------
 
 $macro SRCDIR		"..\.."
-$Macro OUTLIBDIR	"$SRCDIR\lib\game\cstrike"
+$Macro OUTLIBDIRDEBUG	"$SRCDIR\lib_Debug\game\cstrike"
+$Macro OUTLIBDIRRELEASE	"$SRCDIR\lib_Release\game\cstrike"
 $macro $_STATICLIB_EXT	".lib"
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
@@ -15,9 +16,9 @@ $Configuration
 {
 	$PreBuildEvent [$WIN32]
 	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\cstrike\schema_cstrike.h $SRCDIR" "\n" \ 
+		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\cstrike\schema_cstrike.h $SRCDIR" "\n" \
 							"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $SRCDIR\game\shared\cstrike\schema_cstrike.cpp $SRCDIR" "\n" \
-							"$BASE" 
+							"$BASE"
 	}
 }
 

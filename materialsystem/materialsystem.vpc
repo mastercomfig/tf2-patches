@@ -9,6 +9,17 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$macro ARGLIBNAME "bitmap"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "shaderlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$macro ARGLIBNAME "vtf"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$Compiler
@@ -161,14 +172,5 @@ $Project "MaterialSystem"
 		$File	"shader_dll_verify.h"		[$WIN32]
 		$File	"shadersystem.h"
 		$File	"texturemanager.h"
-	}
-
-	$Folder	"Link Libraries"
-	{
-		$Lib	bitmap
-		$Lib	mathlib
-		$Lib	shaderlib
-		$Lib	tier2
-		$Lib	vtf
 	}
 }

@@ -1,0 +1,17 @@
+$Include "$SRCDIR\vpc_scripts\lib_locations.vpc"
+
+$Project
+{
+	$Folder	"Link Libraries"
+	{
+		$File	"$LIBPUBLICDEBUG\tier1.lib"
+		{
+			$Configuration "Release" 	{ $ExcludedFromBuild "Yes" }
+		}
+		$File	"$LIBPUBLICRELEASE\tier1.lib"
+		{
+			$Configuration "Debug" 	{ $ExcludedFromBuild "Yes" }
+		}
+	}
+}
+

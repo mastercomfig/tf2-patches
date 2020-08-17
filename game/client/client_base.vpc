@@ -18,6 +18,31 @@ $include "$SRCDIR\vpc_scripts\protobuf_builder.vpc"
 $Include "$SRCDIR\vpc_scripts\source_replay.vpc"	[$TF]
 $Include "$SRCDIR\game\protobuf_include.vpc"
 
+$Macro ARGLIBNAME "bitmap"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "choreoobjects"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "dmxloader"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "matsys_controls"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "particles"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier1"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier3"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "vgui_controls"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "vtf"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "libz"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$WIN32]
+
 $Configuration
 {
 	$General
@@ -67,7 +92,7 @@ $Configuration	"Debug"
 
 	$Debugging
 	{
-		$CommandArguments "-allowdebug -dev -condebug -game tf -sw" [$WINDOWS]
+		$CommandArguments "-allowdebug -dev -condebug -game tf -w 800 -h 600 -sw" [$WINDOWS]
 	}
 }
 
@@ -85,7 +110,7 @@ $Configuration	"Release"
 
 	$Debugging
 	{
-		$CommandArguments "-game tf -sw" [$WINDOWS]
+		$CommandArguments "-game tf -w 1920 -h 1080 -fullscreen -novid" [$WINDOWS]
 	}
 }
 
@@ -1258,22 +1283,9 @@ $Project
 
 	$Folder	"Link Libraries"
 	{
-		$Lib		bitmap
-		$Lib		choreoobjects
-		$Lib		dmxloader
-		$Lib		mathlib
-		$Lib		matsys_controls
-		$Lib		particles
-		$Lib		tier1
-		$Lib		tier2
-		$Lib		tier3
-		$Lib		vgui_controls
-		$Lib		vtf
-		$ImpLib		steam_api
-
 		$Libexternal $LIBCOMMON/libcrypto [$OSXALL]
 		$Libexternal "$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL]
-		$Lib   "libz" [$WIN32]
+		$File   "$SRCDIR\lib\public\steam_api.lib"
 
 		$Libexternal	libz [$LINUXALL]
  	}

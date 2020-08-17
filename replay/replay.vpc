@@ -17,6 +17,24 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "mathlib"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "bitmap"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "vtf"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "libz"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$WIN32]
+
+$Macro ARGLIBNAME "replay_common"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+$Macro ARGLIBNAME "lzma"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+$Macro ARGLIBNAME "bzip2"
+$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
+
 $Configuration
 {
 	$Compiler
@@ -190,13 +208,6 @@ $Project "replay"
 
 	$Folder "Link Libraries"
 	{
-		$Lib	tier2
-		$Lib	mathlib
-		$Lib	bitmap
-		$Lib	$LIBCOMMON\replay_common
-		$Lib	$LIBCOMMON\lzma
-		$Lib	vtf
-		$Lib	"$LIBCOMMON/bzip2"
 		$Lib  	"$LIBCOMMON/libjpeg"		[!$DEDICATED]
 
 		$Libexternal	$LIBCOMMON/libcrypto [$OSXALL]
@@ -207,7 +218,6 @@ $Project "replay"
 		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
 
 		$Lib	"$LIBCOMMON\libcurl" [$WIN32&&!$VS2015]
-		$Lib   "libz" [$WIN32]
 
 		$Libexternal	libz [$LINUXALL]
 	}

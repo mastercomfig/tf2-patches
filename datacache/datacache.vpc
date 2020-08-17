@@ -9,6 +9,11 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME "tier2"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME "tier3"
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$Linker
@@ -45,11 +50,5 @@ $Project "datacache"
 	{
 		$File	"$SRCDIR\public\datacache\idatacache.h"
 		$File	"$SRCDIR\public\datacache\imdlcache.h"
-	}
-
-	$folder	"Link Libraries"
-	{
-		$Lib	tier2
-		$Lib	tier3
 	}
 }

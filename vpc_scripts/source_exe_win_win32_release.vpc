@@ -13,8 +13,6 @@ $IgnoreRedundancyWarning	"ON"
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTBINNAME"
 $MacroRequired				"OUTBINDIR"
-$MacroRequired				"LIBPUBLIC"
-$MacroRequired				"LIBCOMMON"
 $MacroRequired				"PLATSUBDIR"
 $MacroRequiredAllowEmpty	"GAMENAME"
 $MacroRequiredAllowEmpty	"INTERMEDIATESUBDIR"
@@ -241,7 +239,7 @@ $Configuration "Release"
 		$DelayLoadedDLL
 		$ImportLibrary
 		$MergeSections
-		$TargetMachine						
+		$TargetMachine
 		$Profile
 		$CLRThreadAttribute
 		$CLRImageType
@@ -254,7 +252,7 @@ $Configuration "Release"
 		$ImageHasSafeExceptionHandlers		"false"
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$ManifestTool
@@ -286,7 +284,7 @@ $Configuration "Release"
 		$UpdateFileHashesSearchPath
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$XMLDocumentGenerator
@@ -302,7 +300,7 @@ $Configuration "Release"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"	
+		$SuppressStartupBanner				"Yes (/nologo)"
 		$OutputFile							"$(OutDir)/$OUTBINNAME.bsc"
 		$AdditionalOptions
 	}
@@ -318,7 +316,7 @@ $Configuration "Release"
 		$ResourceFileName
 
 		// Command Line
-		$AdditionalOptions						
+		$AdditionalOptions
 	}
 
 	$PreBuildEvent
@@ -342,12 +340,26 @@ $Configuration "Release"
 		$ExcludedFromBuild						"No"
 	}
 
-	$CustomBuildStep
+	$CustomBuildStep [!$ANALYZE]
 	{
-		// General
-		$CommandLine
-		$Description
-		$Outputs
-		$AdditionalDependencies
+		$CommandLine		"del /q $QUOTE$OUTBINDIR\$(TargetFileName)_Debug_sentinel$QUOTE" "\n"
+		$CommandLine		"type NUL > $QUOTE$OUTBINDIR\$(TargetFileName)_Release_sentinel$QUOTE" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\$(TargetFileName) $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE"	"copy $QUOTE$(TargetDir)$QUOTE$(TargetFileName) $OUTBINDIR\$(TargetFileName) >nul" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"if exist $QUOTE$(TargetDir)$QUOTE$(TargetName).map copy $QUOTE$(TargetDir)$QUOTE$(TargetName).map $OUTBINDIR\$(TargetName).map >nul" "\n"
+		$CommandLine		"$BASE"	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\$(TargetName).pdb $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE"	"copy $QUOTE$(TargetDir)$QUOTE$(TargetName).pdb $OUTBINDIR\$(TargetName).pdb >nul" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"goto BuildEventOK" "\n" \
+							":BuildEventFailed" "\n" \
+							"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
+							"del /q $QUOTE$(TargetDir)$QUOTE$(TargetFileName)" "\n" \
+							"exit 1" "\n" \
+							":BuildEventOK" "\n"
+
+		$Outputs	"$OUTBINDIR\$(TargetFileName)_Release_sentinel"
+
+		$Description		"Publishing to $OUTBINDIR"
 	}
 }

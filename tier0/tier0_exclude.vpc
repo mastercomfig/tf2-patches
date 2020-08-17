@@ -6,11 +6,12 @@
 
 $Project
 {
-	$Folder	"Link Libraries"
-	{
-		// Should match the sites that include this
-		-$Lib "$LIBPUBLIC\tier0"	[$POSIX && !$IS_LIB_PROJECT]
-	}
+  $Folder "Link Libraries"
+  {
+    // Should match the sites that include this
+    -$Lib "$LIBPUBLICDEBUG\tier0"  [$POSIX && !$IS_LIB_PROJECT]
+    -$Lib "$LIBPUBLICRELEASE\tier0"  [$POSIX && !$IS_LIB_PROJECT]
+  }
 	$Folder	"Source Files"
 	{
 		-$File	"$SRCDIR\public\tier0\memoverride.cpp"
