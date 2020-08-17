@@ -2149,6 +2149,20 @@ bool C_BaseAnimating::GetAttachment( int number, matrix3x4_t& matrix )
 	return true;
 }
 
+bool C_BaseAnimating::GetAttachmentNoRecalc(int number, matrix3x4_t& matrix)
+{
+	if (number < 1 || number > m_Attachments.Count())
+		return false;
+
+	CAttachmentData* pAtt = &m_Attachments[number - 1];
+	const bool bShouldUpdate = pAtt->m_nLastFramecount < gpGlobals->framecount;
+	if (bShouldUpdate && !CalcAttachments())
+		return false;
+
+	matrix = pAtt->m_AttachmentToWorld;
+	return true;
+}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Get attachment point by index (position only)
@@ -2852,9 +2866,23 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 	}
 #endif
 
-	AUTO_LOCK( m_BoneSetupLock );
+	// If we're setting up LOD N, we have set up all lower LODs also
+	// because lower LODs always use subsets of the bones of higher LODs.
+	int nLOD = 0;
+	int nMask = BONE_USED_BY_VERTEX_LOD0;
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		if (boneMask & nMask)
+			break;
+	}
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		boneMask |= nMask;
+	}
 
-	if ( g_bInThreadedBoneSetup )
+	AUTO_LOCK(m_BoneSetupLock);
+
+	if (g_bInThreadedBoneSetup)
 	{
 		m_BoneSetupLock.Unlock();
 	}
@@ -2863,7 +2891,8 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 	{
 		// Clear out which bones we've touched this frame if this is 
 		// the first time we've seen this object this frame.
-		if ( LastBoneChangedTime() >= m_flLastBoneSetupTime )
+		// BUGBUG: Time can go backward due to prediction, catch that here until a better solution is found
+		if ( LastBoneChangedTime() >= m_flLastBoneSetupTime || currentTime < m_flLastBoneSetupTime)
 		{
 			m_BoneAccessor.SetReadableBones( 0 );
 			m_BoneAccessor.SetWritableBones( 0 );
@@ -2889,7 +2918,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		g_PreviousBoneSetups.AddToTail( this );
 	}
 
-	// Keep track of everthing asked for over the entire frame
+	// Keep track of everything asked for over the entire frame
 	m_iAccumulatedBoneMask |= boneMask;
 
 	// Make sure that we know that we've already calculated some bone stuff this time around.
@@ -2905,11 +2934,11 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			return false;
 
 		// Setup our transform based on render angles and origin.
-		matrix3x4_t parentTransform;
+		ALIGN16 matrix3x4_t parentTransform ALIGN16_POST;
 		AngleMatrix( GetRenderAngles(), GetRenderOrigin(), parentTransform );
 
 		// Load the boneMask with the total of what was asked for last frame.
-		boneMask |= m_iPrevBoneMask;
+		//boneMask |= m_iPrevBoneMask;
 
 		// Allow access to the bones we're setting up so we don't get asserts in here.
 		int oldReadableBones = m_BoneAccessor.GetReadableBones();
@@ -2922,7 +2951,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		}
 		else
 		{
-			TrackBoneSetupEnt( this );
+			TrackBoneSetupEnt(this);
 			
 			// This is necessary because it's possible that CalculateIKLocks will trigger our move children
 			// to call GetAbsOrigin(), and they'll use our OLD bone transforms to get their attachments
@@ -2932,23 +2961,13 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			AddFlag( EFL_SETTING_UP_BONES );
 
 			// NOTE: For model scaling, we need to opt out of IK because it will mark the bones as already being calculated
-			if ( !IsModelScaled() )
-			{
-				// only allocate an ik block if the npc can use it
-				if ( !m_pIk && hdr->numikchains() > 0 && !(m_EntClientFlags & ENTCLIENTFLAG_DONTUSEIK) )
-				{
-					m_pIk = new CIKContext;
-				}
-			}
-			else
-			{
-				// Reset the IK
-				if ( m_pIk )
-				{
-					delete m_pIk;
-					m_pIk = NULL;
-				}
-			}
+			// [msmith]: What game is it that want's to do model scaling and needs to opt out of IK?  It seems as if opting out of IK should be the exception and not the rule here.
+			// I suggest we change the #ifdef such that only the games that need to kill IK get used here... rather than ORing in all other games that use this engine in the future.
+#if defined( PORTAL2 ) || defined( INFESTED ) || defined( CSTRIKE15 ) || defined( TF_CLIENT_DLL )
+			// only allocate an ik block if the npc can use it
+			if (!m_pIk && hdr->numikchains() > 0 && !(m_EntClientFlags & ENTCLIENTFLAG_DONTUSEIK))
+				m_pIk = new CIKContext;
+#endif // PORTAL2
 
 			Vector		pos[MAXSTUDIOBONES];
 			Quaternion	q[MAXSTUDIOBONES];
@@ -2959,20 +2978,18 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			memset( q, 0xFF, sizeof(q) );
 #endif
 
-			int bonesMaskNeedRecalc = boneMask | oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
-
 			if ( m_pIk )
 			{
 				if (Teleported() || IsNoInterpolationFrame())
 					m_pIk->ClearTargets();
 
-				m_pIk->Init( hdr, GetRenderAngles(), GetRenderOrigin(), currentTime, gpGlobals->framecount, bonesMaskNeedRecalc );
+				m_pIk->Init( hdr, GetRenderAngles(), GetRenderOrigin(), currentTime, gpGlobals->framecount, boneMask );
 			}
 
 			// Let pose debugger know that we are blending
 			g_pPoseDebugger->StartBlending( this, hdr );
 
-			StandardBlendingRules( hdr, pos, q, currentTime, bonesMaskNeedRecalc );
+			StandardBlendingRules( hdr, pos, q, currentTime, boneMask);
 
 			CBoneBitList boneComputed;
 			// don't calculate IK on ragdolls
@@ -2986,7 +3003,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 				m_pIk->SolveDependencies( pos, q, m_BoneAccessor.GetBoneArrayForWrite(), boneComputed );
 			}
 
-			BuildTransformations( hdr, pos, q, parentTransform, bonesMaskNeedRecalc, boneComputed );
+			BuildTransformations( hdr, pos, q, parentTransform, boneMask, boneComputed );
 			
 			RemoveFlag( EFL_SETTING_UP_BONES );
 			ControlMouth( hdr );
