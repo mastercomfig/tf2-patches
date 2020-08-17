@@ -828,7 +828,7 @@ int CShaderDeviceMgrBase::GetClosestActualDXLevel( int nDxLevel ) const
 	if ( nDxLevel < ABSOLUTE_MINIMUM_DXLEVEL ) 
 		return ABSOLUTE_MINIMUM_DXLEVEL;
 
-	if ( nDxLevel == 80 )
+	if ( nDxLevel <= 80 )
 		return 80;
 	if ( nDxLevel <= 89 )
 		return 81;

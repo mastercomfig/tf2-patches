@@ -152,7 +152,7 @@ bool CShaderDeviceMgrDx8::Connect( CreateInterfaceFn factory )
 
 	// Attempt to create a D3D9Ex device (Windows Vista and later) if possible
 	bool bD3D9ExForceDisable = ( CommandLine()->FindParm( "-nod3d9ex" ) != 0 ) ||
-								( CommandLine()->ParmValue( "-dxlevel", 95 ) < 90 );
+								( CommandLine()->ParmValue( "-dxlevel", 100 ) < 90 );
 
 	bool bD3D9ExAvailable = false;
 	if ( HMODULE hMod = ::LoadLibraryA( "d3d9.dll" ) )

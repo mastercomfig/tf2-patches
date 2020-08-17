@@ -294,9 +294,10 @@ unsigned int CLZSS::Uncompress( unsigned char *pInput, CUtlBuffer &buf )
 }
 */
 
-unsigned int CLZSS::SafeUncompress( const unsigned char *pInput, unsigned char *pOutput, unsigned int unBufSize )
+unsigned int CLZSS::SafeUncompress( const unsigned char *pInput, unsigned int inputSize, unsigned char *pOutput, unsigned int unBufSize )
 {
 	unsigned int totalBytes = 0;
+	const unsigned char* pInputEnd = pInput + inputSize;
 	int cmdByte = 0;
 	int getCmdByte = 0;
 
@@ -314,7 +315,7 @@ unsigned int CLZSS::SafeUncompress( const unsigned char *pInput, unsigned char *
 
 	pInput += sizeof( lzss_header_t );
 
-	for ( ;; )
+	while (pInput < pInputEnd)
 	{
 		if ( !getCmdByte ) 
 		{
@@ -334,6 +335,11 @@ unsigned int CLZSS::SafeUncompress( const unsigned char *pInput, unsigned char *
 			unsigned char *pSource = pOutput - position - 1;
 
 			if ( totalBytes + count > unBufSize )
+			{
+				return 0;
+			}
+
+			if (pSource < pOutput || pSource + count > pOutput + unBufSize)
 			{
 				return 0;
 			}

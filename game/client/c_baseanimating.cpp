@@ -2154,8 +2154,9 @@ bool C_BaseAnimating::GetAttachmentNoRecalc(int number, matrix3x4_t& matrix)
 	if (number < 1 || number > m_Attachments.Count())
 		return false;
 
+	// allow visual effects (eg. particles) to be a frame behind bone setup so that there are not messy dependencies.
 	CAttachmentData* pAtt = &m_Attachments[number - 1];
-	const bool bShouldUpdate = pAtt->m_nLastFramecount < gpGlobals->framecount;
+	const bool bShouldUpdate = pAtt->m_nLastFramecount < gpGlobals->framecount - 1;
 	if (bShouldUpdate && !CalcAttachments())
 		return false;
 

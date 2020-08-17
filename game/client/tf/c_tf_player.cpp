@@ -3637,6 +3637,8 @@ struct TextureVarSetter
 	ITexture* m_pTexture;
 };
 
+ConVar tf_disable_weapon_skins("tf_disable_weapon_skins", "0", FCVAR_ARCHIVE);
+
 //-----------------------------------------------------------------------------
 // Purpose: Used for weapon skins.
 //-----------------------------------------------------------------------------
@@ -3692,7 +3694,7 @@ public:
 	{
 		// We don't support DX8
 		ConVarRef mat_dxlevel( "mat_dxlevel" );
-		if ( mat_dxlevel.GetInt() < 90 )
+		if ( tf_disable_weapon_skins.GetBool() || mat_dxlevel.GetInt() < 90 )
 			return false;
 
 		Assert( pMaterial );

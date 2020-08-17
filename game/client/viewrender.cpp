@@ -1918,8 +1918,8 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	VPROF( "CViewRender::RenderView" );
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
-	// Don't want TF2 running less than DX 8
-	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 80 )
+	// Don't want TF2 running less than DX 9
+	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 	{
 		// We know they were running at least 8.0 when the game started...we check the 
 		// value in ClientDLL_Init()...so they must be messing with their DirectX settings.
@@ -1929,7 +1929,7 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 			if ( bFirstTime )
 			{
 				bFirstTime = false;
-				Msg( "This game has a minimum requirement of DirectX 8.0 to run properly.\n" );
+				Msg( "This game has a minimum requirement of DirectX 9.0 to run properly.\n" );
 			}
 			return;
 		}

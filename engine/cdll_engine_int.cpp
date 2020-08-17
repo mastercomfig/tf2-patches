@@ -1916,10 +1916,18 @@ void ClientDLL_Init( void )
 			toolframework->ClientInit( g_ClientFactory );
 		}
 
-		// Don't want TF2 running less than DX 8
+		// Don't want TF2 running less than DX 9
+		if ( g_pMaterialSystemHardwareConfig && g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
+		{
+			if ( ( Q_stricmp( COM_GetModDirectory(), "tf" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "tf_beta" ) == 0 ) )
+			{
+				Sys_Error( "Your graphics hardware must support at least pixel shader version 2.0 to run this game!" );
+			}
+		}
+		// Other games still use DX 8 as their requirement
 		if ( g_pMaterialSystemHardwareConfig && g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 80 )
 		{
-			if ( ( Q_stricmp( COM_GetModDirectory(), "tf" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "ep2" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "portal" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "tf_beta" ) == 0 ) )
+			if ( ( Q_stricmp( COM_GetModDirectory(), "ep2" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "portal" ) == 0 ) )
 			{
 				Sys_Error( "Your graphics hardware must support at least pixel shader version 1.1 to run this game!" );
 			}
