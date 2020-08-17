@@ -2748,7 +2748,7 @@ void CL_InitLanguageCvar()
 }
 
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue );
-ConVar cl_cloud_settings( "cl_cloud_settings", "1", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
+ConVar cl_cloud_settings( "cl_cloud_settings", "0", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue )
 {
 	// !! bug do i need to do something linux-wise here.
