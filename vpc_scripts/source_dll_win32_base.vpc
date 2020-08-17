@@ -11,18 +11,15 @@ $MacroRequired				"OUTBINNAME"	"$PROJECTNAME"
 $MacroRequired				"OUTBINDIR"
 
 $Macro OUTBINDIR	"$OUTBINDIR$PLATSUBDIR"
-$Macro LIBCOMMON "$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
-$Macro LIBCOMMON "$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
-$Macro LIBCOMMON "$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WIN32]
+$Macro LIBPUBLIC	"$SRCDIR\lib\public$PLATSUBDIR"
+$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
+$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
+$Macro LIBCOMMON	"$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WIN32]
 
 $Include "$SRCDIR\vpc_scripts\loadaddress.vpc"
 $Include "$SRCDIR\vpc_scripts\source_dll_win32_debug.vpc"
 $Include "$SRCDIR\vpc_scripts\source_dll_win32_release.vpc"
 $Include "$SRCDIR\vpc_scripts\source_win32_base.vpc"
-
-$Include "$SRCDIR\vpc_scripts\tier0_include.vpc"
-$Include "$SRCDIR\vpc_scripts\tier1_include.vpc"
-$Include "$SRCDIR\vpc_scripts\vstdlib_include.vpc"
 
 $IgnoreRedundancyWarning	"ON"
 
@@ -65,6 +62,28 @@ $Configuration
 							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE del /q $QUOTE$(TargetDir)$QUOTE$(TargetFileName)" "\n" \
 							"$CRCCHECK" "\n"
 	}
+
+	$CustomBuildStep [!$ANALYZE]
+	{
+		$CommandLine		"if not exist $QUOTE$OUTBINDIR$QUOTE mkdir $QUOTE$OUTBINDIR$QUOTE" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetFileName)$QUOTE $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"if exist $QUOTE$(TargetDir)$(TargetName).map$QUOTE copy $QUOTE$(TargetDir)$(TargetName).map$QUOTE $OUTBINDIR\$(TargetName).map" "\n"
+		$CommandLine		"$BASE" "call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $QUOTE$OUTBINDIR\$(TargetName).pdb$QUOTE $SRCDIR" "\n"  [!$SOURCESDK]
+		$CommandLine		"$BASE" "copy $QUOTE$(TargetDir)$(TargetName).pdb$QUOTE $OUTBINDIR\$(TargetName).pdb" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"goto BuildEventOK" "\n" \
+							":BuildEventFailed" "\n" \
+							"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
+							"del /q $QUOTE$(TargetDir)$(TargetFileName)$QUOTE" "\n" \
+							"exit 1" "\n" \
+							":BuildEventOK" "\n"
+
+		$Outputs "$OUTBINDIR\$(TargetFileName)"
+
+		$Description		"Publishing to $OUTBINDIR"
+	}
 }
 
 // Skeleton Project - All derived projects get this as a starting base
@@ -93,6 +112,13 @@ $Project
 				}
 			}
 		}
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Implib	"$LIBPUBLIC\tier0"
+		$Lib	"$LIBPUBLIC\tier1"
+		$Implib	"$LIBPUBLIC\vstdlib"
 	}
 }
 

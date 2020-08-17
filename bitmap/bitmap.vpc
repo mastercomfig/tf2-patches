@@ -51,7 +51,7 @@ $Project "bitmap"
 
 	$Folder "Link Libraries" [$WIN32]
 	{
-		$File "$SRCDIR\lib\public\ATI_Compress_MT_VC10.lib"
-		$File "$SRCDIR\lib\public\nvtc.lib"
+		$Lib nvtc
+		$Lib ATI_Compress_MT_VC10
 	}
 }

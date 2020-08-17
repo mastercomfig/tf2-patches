@@ -145,7 +145,7 @@ public:
 //-----------------------------------------------------------------------------
 SpewRetval_t LauncherDefaultSpewFunc( SpewType_t spewType, char const *pMsg )
 {
-//#ifndef _CERT
+#ifndef _CERT
 #ifdef WIN32
 	OutputDebugStringA( pMsg );
 #else
@@ -183,11 +183,11 @@ SpewRetval_t LauncherDefaultSpewFunc( SpewType_t spewType, char const *pMsg )
 #endif
 		_exit( 1 );
 	}
-//#else
-//	if ( spewType != SPEW_ERROR)
-//		return SPEW_CONTINUE;
-//	_exit( 1 );
-//#endif
+#else
+	if ( spewType != SPEW_ERROR)
+		return SPEW_CONTINUE;
+	_exit( 1 );
+#endif
 }
 
 

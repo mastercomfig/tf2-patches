@@ -6,9 +6,7 @@
 
 $Macro SRCDIR						"..\.."
 $Macro REPLAY_COMMON_HEADERS_TITLE	"Headers"
-
-$Macro OUTLIBDIRDEBUG	"$LIBCOMMONDEBUG"
-$Macro OUTLIBDIRRELEASE	"$LIBCOMMONRELEASE"
+$Macro OUTLIBDIR	"$LIBCOMMON"
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 

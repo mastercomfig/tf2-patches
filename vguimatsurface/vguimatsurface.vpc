@@ -9,19 +9,6 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Macro ARGLIBNAME "bitmap"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier3"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "vgui_controls"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "vgui_surfacelib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration
 {
 	$Compiler
@@ -39,7 +26,7 @@ $Configuration
 		$GCC_ExtraLinkerFlags                   "-L/usr/lib32 -L/usr/lib -L/usr/lib/i386-linux-gnu" [$LINUXALL]
 		$SystemLibraries                        "fontconfig;freetype" [$LINUXALL]
 		$AdditionalDependencies			"$BASE vgui_surfacelib_360.lib"			[$X360]
-		//$AdditionalDependencies			"$BASE vgui_surfacelib.lib nvtc.lib"	[$WIN32]
+		$AdditionalDependencies			"$BASE vgui_surfacelib.lib nvtc.lib"	[$WIN32]
 	}
 }
 
@@ -106,6 +93,12 @@ $Project "vguimatsurface"
 
 	$Folder	"Link Libraries"
 	{
-		$File		"$SRCDIR\lib\public\SDL2.lib" [$SDL]
+		$Lib		bitmap
+		$Lib		mathlib
+		$Lib		tier2
+		$Lib		tier3
+		$Lib		vgui_controls
+		$Lib		vgui_surfacelib
+		$ImpLib		SDL2 [$SDL]
 	}
 }

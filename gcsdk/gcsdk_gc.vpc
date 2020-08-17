@@ -9,8 +9,7 @@ $MacroRequired "PLATSUBDIR"
 // The OUTLIBDIR for this library has long used $PLATFORM in the path so
 // appending $PLATSUBDIR is redundant.
 $macro SRCDIR		".."
-$Macro OUTLIBDIRDEBUG	"$LIBPUBLICDEBUG"
-$Macro OUTLIBDIRRELEASE	"$LIBPUBLICRELEASE"
+$Macro OUTLIBDIR	"$LIBPUBLIC"
 $Macro GENERATED_PROTO_DIR	"$SRCDIR\gcsdk\generated_proto_gc"
 
 $Linux
@@ -75,7 +74,7 @@ $Project "gcsdk_gc"
 				$Compiler
 				{
 					$Create/UsePrecompiledHeader	"Create Precompiled Header (/Yc)"
-
+					
 					// Generate a bogus symbol to fix the PCH "no debug symbols" warning
 					//$AdditionalOptions					"$BASE /YlBogusGCSDKSymbol"
 				}
@@ -130,7 +129,7 @@ $Project "gcsdk_gc"
 				}
 			}
 		}
-
+		
 		$File "steamextra\misc.cpp"
 		$File "steamextra\rtime.cpp"
 		$File "steamextra\steamid.cpp"
@@ -247,7 +246,7 @@ $Project "gcsdk_gc"
 			{
 				$Configuration
 				{
-					$Compiler
+					$Compiler 
 					{
 						$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
 					}

@@ -1,8 +1,7 @@
 $Include "$SRCDIR\vpc_scripts\platform_dirs.vpc"
 $include "$SRCDIR\vpc_scripts\source_base.vpc"
 
-$MacroRequired OUTLIBDIRDEBUG  "$SRCDIR\lib_Debug\public$PLATSUBDIR"
-$MacroRequired OUTLIBDIRRELEASE  "$SRCDIR\lib_Release\public$PLATSUBDIR"
+$MacroRequired OUTLIBDIR	"$SRCDIR\lib\public$PLATSUBDIR"
 
 $include "$SRCDIR\vpc_scripts\source_lib_posix_base.vpc"	[$POSIX]
 $include "$SRCDIR\vpc_scripts\source_lib_win32_base.vpc"	[$WIN32 || $WIN64]

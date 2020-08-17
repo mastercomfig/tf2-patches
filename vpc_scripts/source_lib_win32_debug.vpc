@@ -8,9 +8,9 @@ $IgnoreRedundancyWarning	"ON"
 
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTLIBNAME"
-$MacroRequired				"OUTLIBDIRDEBUG"
-$MacroRequired				"LIBPUBLICDEBUG"
-$MacroRequired				"LIBCOMMONDEBUG"
+$MacroRequired				"OUTLIBDIR"
+$MacroRequired				"LIBPUBLIC"
+$MacroRequired				"LIBCOMMON"
 $MacroRequired				"PLATSUBDIR"
 $MacroRequiredAllowEmpty	"GAMENAME"
 $MacroRequiredAllowEmpty	"INTERMEDIATESUBDIR"
@@ -20,10 +20,10 @@ $Macro						"_SUBDIRSUFFIX"		"$INTERMEDIATESUBDIR$_STATICSUBDIR$GAMENAME$PLATSUB
 
 $Configuration "Debug"
 {
-	$General
+	$General	
 	{
 		// General
-		$OutputDirectory					"$OUTLIBDIRDEBUG"
+		$OutputDirectory					"$OUTLIBDIR"
 		$IntermediateDirectory				".\Debug$_SUBDIRSUFFIX"
 		$ExtensionsToDeleteOnClean
 		$BuildLogFile
@@ -57,8 +57,8 @@ $Configuration "Debug"
 		$AdditionalIncludeDirectories		"$SRCDIR\common;$SRCDIR\public;$SRCDIR\public\tier0;$SRCDIR\public\tier1"
 		$Resolve#UsingReferences
 		$DebugInformationFormat				"Program Database for Edit & Continue (/ZI)" [$WIN32]
-		$DebugInformationFormat				"Program Database (/Zi)" [$WIN64]
-		$SuppressStartupBanner
+		$DebugInformationFormat				"Program Database (/Zi)" [$WIN64]		
+		$SuppressStartupBanner		
 		$WarningLevel						"Level 4 (/W4)"
 		$Detect64bitPortabilityIssues		"Yes (/Wp64)"
 		$TreatWarningsAsErrors
@@ -141,7 +141,7 @@ $Configuration "Debug"
 	$Librarian
 	{
 		// General
-		$OutputFile							"$OUTLIBDIRDEBUG\$OUTLIBNAME.lib"
+		$OutputFile							"$OUTLIBDIR\$OUTLIBNAME.lib"
 		$AdditionalDependencies
 		$AdditionalLibraryDirectories
 		$SuppressStartupBanner				"Yes (/NOLOGO)"
@@ -170,27 +170,23 @@ $Configuration "Debug"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"
+		$SuppressStartupBanner				"Yes (/nologo)"	
 		$OutputFile							"$(OutDir)/$OUTLIBNAME.bsc"
 		$AdditionalOptions
 	}
 
 	$PreBuildEvent
 	{
-		$CommandLine		"if EXIST $OUTLIBDIRDEBUG\$(TargetName).lib ( for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTLIBDIRDEBUG\$(TargetName).lib$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
-							") else ( if not EXIST $OUTLIBDIRDEBUG mkdir $OUTLIBDIRDEBUG )" "\n" \
-							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
-							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE (" "\n" \
-							"    attrib -r $OUTLIBDIRDEBUG\$(TargetName).lib" "\n" \
-							"    $SRCDIR\devtools\bin\gnu\touch.exe -d $QUOTE1999-01-01$QUOTE $OUTLIBDIRDEBUG\$(TargetName).lib" "\n" \
-							"    attrib +r $OUTLIBDIRDEBUG\$(TargetName).lib" "\n" \
-							")" "\n" \
-							"$CRCCHECK" "\n"
+		$CommandLine
+		$Description
+		$ExcludedFromBuild					"No"
 	}
 
-	$PreLinkEvent [!$ANALYZE && !$SOURCESDK]
+	$PreLinkEvent
 	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTLIBDIRDEBUG\$(TargetName).lib $SRCDIR"
+		$CommandLine
+		$Description
+		$ExcludedFromBuild					"No"
 	}
 
 	$PostBuildEvent

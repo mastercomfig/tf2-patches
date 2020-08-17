@@ -10,13 +10,6 @@ $Macro OUTBINNAME	"vgui2"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Macro ARGLIBNAME "vgui_surfacelib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier3"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration
 {
 	$Compiler
@@ -123,7 +116,10 @@ $Project "vgui2"
 	
 	$Folder "Link Libraries"
 	{
-		$File "$SRCDIR\lib\public\SDL2.lib" [$SDL]
+		$Lib	vgui_surfacelib
+		$Lib	tier2
+		$Lib	tier3
+		$ImpLib SDL2 [$SDL]
 	}
 
 }

@@ -5,11 +5,9 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		"..\.."
-$Macro OUTLIBDIRDEBUG	"$SRCDIR\lib_Debug\public"		[!$WIN64]
-$Macro OUTLIBDIRDEBUG	"$SRCDIR\lib_Debug\public\x64"	[$WIN64]
-$Macro OUTLIBDIRRELEASE	"$SRCDIR\lib_Release\public"		[!$WIN64]
-$Macro OUTLIBDIRRELEASE	"$SRCDIR\lib_Release\public\x64"	[$WIN64]
-$Macro OUTLIBNAME	"libz"
+$Macro OUTLIBDIR	"$SRCDIR\lib\public"		[!$WIN64]
+$Macro OUTLIBDIR	"$SRCDIR\lib\public\x64"	[$WIN64]
+$Macro OUTLIBNAME	"libz"	
 
 $include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 
@@ -22,7 +20,7 @@ $Configuration
 		$CompileAs						"Compile as C Code (/TC)"
 
 		// Silence zlib C library warnings
-		$DisableSpecificWarnings		"$BASE;4131;4244;4127"
+		$DisableSpecificWarnings		"$BASE;4131;4244;4127" 
 	}
 }
 

@@ -4,8 +4,6 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
-// TODO(maximsmol): broken, debug-release separation
-
 $Macro SRCDIR		"..\.."
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 

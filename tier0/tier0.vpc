@@ -11,20 +11,15 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Include "$SRCDIR\vpc_scripts\tier0_uninclude.vpc"
-$Include "$SRCDIR\vpc_scripts\tier1_uninclude.vpc"
-$Include "$SRCDIR\vpc_scripts\vstdlib_uninclude.vpc"
-
 $Configuration
 {
-	// TODO(maximsmol): non-windows build is broken, debug-release seapration
 	$General
 	{
 		// X360 version publishes to some other directory then copies here so we need to tell VPC to track this
 		// or else it won't know what depends on this project.
 		$AdditionalOutputFiles			"$SRCDIR\lib\public\$(TargetName).lib"	[$X360]
 	}
-
+	
 	$Compiler
 	{
 		$PreprocessorDefinitions		"$BASE;TIER0_DLL_EXPORT"
@@ -37,13 +32,16 @@ $Configuration
 	{
 		$AdditionalIncludeDirectories	"$BASE;..\public\WindowsSDK"
 	}
-
+	
 	$Linker
 	{
 		$AdditionalDependencies			"$BASE ws2_32.lib"						[$WINDOWS]
 
+		// pc publishes the import library directly
+		$ImportLibrary					"$LIBPUBLIC\$(TargetName).lib"				[$WINDOWS]
+
 		// 360 publishes the import library via a post build step
-		$ImportLibrary					"$(TargetDir)\$(TargetName).lib"		[$X360]
+		$ImportLibrary					"$(TargetDir)\$(TargetName).lib"		[$X360]	
 
 		$ImportLibrary					"$LIBPUBLIC\$_IMPLIB_PREFIX$OUTBINNAME$_IMPLIB_EXT"	[$POSIX]
 
@@ -55,6 +53,12 @@ $Configuration
 		$SystemLibraries                 "rt" [$LINUXALL]
 	}
 
+	$PreLinkEvent [$WINDOWS]
+	{
+		$CommandLine	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $LIBPUBLIC\$(TargetName).lib $SRCDIR" "\n" \
+						"$BASE"
+	}
+	
 	$PreLinkEvent [$X360]
 	{
 		// Run a pre-link event to clean the .def file from the last link
@@ -81,36 +85,6 @@ $Configuration
 	}
 }
 
-$Configuration "Debug"
-{
-	$Linker
-	{
-		// pc publishes the import library directly
-		$ImportLibrary					"$LIBPUBLICDEBUG\$(TargetName).lib"				[$WINDOWS]
-	}
-
-	$PreLinkEvent [$WINDOWS]
-	{
-		$CommandLine	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $LIBPUBLICDEBUG\$(TargetName).lib $SRCDIR" "\n" \
-						"$BASE"
-	}
-}
-
-$Configuration "Release"
-{
-	$Linker
-	{
-		// pc publishes the import library directly
-		$ImportLibrary					"$LIBPUBLICRELEASE\$(TargetName).lib"				[$WINDOWS]
-	}
-
-	$PreLinkEvent [$WINDOWS]
-	{
-		$CommandLine	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $LIBPUBLICRELEASE\$(TargetName).lib $SRCDIR" "\n" \
-						"$BASE"
-	}
-}
-
 $Project
 {
 	$Folder	"Source Files" [$WINDOWS||$X360]
@@ -120,6 +94,10 @@ $Project
 
 	$Folder	"Link Libraries"
 	{
+		-$ImpLib tier0
+		-$Lib	 tier1
+		-$Implib vstdlib
+		
 		$Lib	 "$SRCDIR\thirdparty\telemetry\lib\telemetry32.link" [$WIN32&&$RAD_TELEMETRY_ENABLED&&!$RAD_TELEMETRY_DISABLED]
 		$Lib	 "$SRCDIR\thirdparty\telemetry\lib\telemetry64.link" [$WIN64&&$RAD_TELEMETRY_ENABLED&&!$RAD_TELEMETRY_DISABLED]
 
@@ -146,7 +124,7 @@ $Project "tier0"
 		$File "InterlockedCompareExchange128.masm" [$WIN64]
 		{
 			$Configuration
-			{
+			{   
 				$CustomBuildStep
 				{
 					// General
@@ -270,7 +248,7 @@ $Project "tier0"
 			$File	"$SRCDIR\common\xbox\xbox_win32stubs.h"
 		}
 	}
-
+	
 	$Folder "Manifest Files" [$WINDOWS]
 	{
 		$File	"ValveETWProvider.man"

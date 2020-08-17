@@ -10,17 +10,6 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 $include "$SRCDIR\vpc_scripts\source_cryptlib_include.vpc"
 
-$macro ARGLIBNAME "appframework"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "tier3"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "vgui_controls"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$WIN32]
-
 $Configuration
 {
 	$Compiler
@@ -148,8 +137,13 @@ $Project "Dedicated"
 
 	$Folder	"Link Libraries"
 	{
+		$Lib	appframework
+		$Lib	mathlib
+		$Lib	tier2
+		$Lib	tier3
+		$Lib	vgui_controls [$WIN32]
 		$LibExternal "$SRCDIR/thirdparty/libedit-3.1/src/.libs/libedit" [$LINUXALL]
-		$File "$SRCDIR\lib\public\steam_api.lib"
-		$File "$SRCDIR\lib\public\SDL2.lib" [$SDL]
+		$ImpLibExternal steam_api
+		$ImpLib SDL2 [$SDL]
 	}
 }

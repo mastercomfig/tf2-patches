@@ -9,15 +9,6 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$macro ARGLIBNAME "bitmap"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$macro ARGLIBNAME "tier3"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration
 {
 	$Linker
@@ -111,4 +102,13 @@ $Project "StudioRender"
 		$File	"$SRCDIR\public\vtf\vtf.h"
 		$File	"$SRCDIR\public\tier1\UtlStringMap.h"
 	}
+
+	$folder "Link Libraries"
+	{
+		$Lib	bitmap
+		$Lib	mathlib
+		$Lib	tier2
+		$Lib	tier3
+	}
+
 }

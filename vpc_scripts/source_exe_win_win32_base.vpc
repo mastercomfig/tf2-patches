@@ -11,15 +11,15 @@ $MacroRequired				"OUTBINNAME"	"$PROJECTNAME"
 $MacroRequired				"OUTBINDIR"
 
 $Macro OUTBINDIR	"$OUTBINDIR$PLATSUBDIR"
+$Macro LIBPUBLIC	"$SRCDIR\lib\public$PLATSUBDIR"
+$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
+$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
+$Macro LIBCOMMON	"$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WIN32]
 
 $Include "$SRCDIR\vpc_scripts\loadaddress.vpc"
 $Include "$SRCDIR\vpc_scripts\source_exe_win_win32_debug.vpc"
 $Include "$SRCDIR\vpc_scripts\source_exe_win_win32_release.vpc"
 $Include "$SRCDIR\vpc_scripts\source_win32_base.vpc"
-
-$Include "$SRCDIR\vpc_scripts\tier0_include.vpc"
-$Include "$SRCDIR\vpc_scripts\tier1_include.vpc"
-$Include "$SRCDIR\vpc_scripts\vstdlib_include.vpc"
 
 $IgnoreRedundancyWarning	"ON"
 
@@ -35,7 +35,7 @@ $Configuration
 	$Compiler
 	{
 		$PreprocessorDefinitions			"$BASE;PLATFORM_64BITS;WIN64;_WIN64;COMPILER_MSVC64" [$WIN64]
-		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC32" [$WIN32]
+		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC32" [$WIN32]		
 		$PreprocessorDefinitions			"$BASE;COMPILER_MSVC;EXENAME=$OUTBINNAME;_DLL_EXT=$_DLL_EXT"
 	}
 
@@ -43,7 +43,7 @@ $Configuration
 	{
 		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions 2 (/arch:SSE2)"
 	}
-
+	
 	$Linker
 	{
 		$AdditionalDependencies				"$BASE shell32.lib user32.lib advapi32.lib gdi32.lib comdlg32.lib ole32.lib" [$WIN32]
@@ -57,13 +57,32 @@ $Configuration
 		$AdditionalOptions					"$BASE /ignore:4221"
 		$AdditionalOptions					"$BASE $SRCDIR\lib\public\ftol3.obj" [$VS2013 && $WIN32 && !$DISABLE_FTOL3_OVERRIDE && !$SOURCESDK] // Work around CRT bug https://connect.microsoft.com/VisualStudio/feedback/details/806362/vc12-pollutes-the-floating-point-stack-when-casting-infinity-nan-to-unsigned-long#
 	}
-
+	
 	$PreBuildEvent
 	{
 		$CommandLine		"if EXIST $OUTBINDIR\$(TargetFileName) for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTBINDIR\$(TargetFileName)$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
 							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
 							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE del /q $QUOTE$(TargetDir)$QUOTE$(TargetFileName)" "\n" \
-							"$CRCCHECK" "\n"
+							"$CRCCHECK" "\n" 			
+	}
+
+	$PostBuildEvent [!$ANALYZE]
+	{
+		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\$(TargetFileName) $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE"	"copy $QUOTE$(TargetDir)$QUOTE$(TargetFileName) $OUTBINDIR\$(TargetFileName) >nul" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"if exist $QUOTE$(TargetDir)$QUOTE$(TargetName).map copy $QUOTE$(TargetDir)$QUOTE$(TargetName).map $OUTBINDIR\$(TargetName).map >nul" "\n"
+		$CommandLine		"$BASE"	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\$(TargetName).pdb $SRCDIR" "\n" [!$SOURCESDK]
+		$CommandLine		"$BASE"	"copy $QUOTE$(TargetDir)$QUOTE$(TargetName).pdb $OUTBINDIR\$(TargetName).pdb >nul" "\n" \
+							"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
+							"goto BuildEventOK" "\n" \
+							":BuildEventFailed" "\n" \
+							"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
+							"del /q $QUOTE$(TargetDir)$QUOTE$(TargetFileName)" "\n" \
+							"exit 1" "\n" \
+							":BuildEventOK" "\n"
+		$Description		"Publishing to $OUTBINDIR"
+		$ExcludedFromBuild	"No"
 	}
 }
 
@@ -82,6 +101,13 @@ $Project
 				}
 			}
 		}
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Implib	"$LIBPUBLIC\tier0"
+		$Lib	"$LIBPUBLIC\tier1"
+		$Implib	"$LIBPUBLIC\vstdlib"
 	}
 }
 

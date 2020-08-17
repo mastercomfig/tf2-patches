@@ -9,9 +9,6 @@ $Include "$SRCDIR\game\shared\base_gcmessages_include.vpc"
 $Include "$SRCDIR\game\shared\econ_gcmessages_include.vpc"
 $include "$SRCDIR\vpc_scripts\source_cryptlib_include.vpc"
 
-$Macro ARGLIBNAME "libz"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration
 {
 	$Compiler
@@ -184,5 +181,6 @@ $Project
 		$Lib "$LIBCOMMON/libjpeg"
 		$Lib libpng [!$VS2015]
 		$Lib $LIBCOMMON/libpng [$VS2015]
+		$Lib libz
 	}
 }

@@ -10,15 +10,6 @@ $Macro OUTBINNAME	"shaderapidx9"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "bitmap"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
-$Macro ARGLIBNAME "bzip2"
-$Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
 
 // Common Configuration
 $Configuration
@@ -146,6 +137,10 @@ $Project "shaderapidx9"
 	
 	$Folder "Link Libraries"
 	{
+        $Lib	bitmap
+        $Lib	mathlib
+        $Lib	tier2
+		$Lib	"$LIBCOMMON/bzip2"
 		$ImpLib togl [!$IS_LIB_PROJECT && $GL]
     }
 }

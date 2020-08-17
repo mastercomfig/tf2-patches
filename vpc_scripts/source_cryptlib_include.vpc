@@ -5,8 +5,6 @@
 //
 //-----------------------------------------------------------------------------
 
-$macro ARGLIBNAME "vpklib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 
 $Project
 {	
@@ -26,6 +24,7 @@ $Project
 
 	$Folder	"Link Libraries" 
 	{
+		$Lib	vpklib
 		// So we can check the signature of the item schema.
 		$Lib	"$SRCDIR\lib\public\$PLATSUBDIR\2013\release\cryptlib" [$WINDOWS&&!$VS2015]
 		$Libexternal $LIBCOMMON/libcrypto [$OSXALL]

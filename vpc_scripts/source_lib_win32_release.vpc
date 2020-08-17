@@ -12,9 +12,9 @@ $IgnoreRedundancyWarning	"ON"
 
 $MacroRequired				"SRCDIR"
 $MacroRequired				"OUTLIBNAME"
-$MacroRequired				"OUTLIBDIRRELEASE"
-$MacroRequired				"LIBPUBLICRELEASE"
-$MacroRequired				"LIBCOMMONRELEASE"
+$MacroRequired				"OUTLIBDIR"
+$MacroRequired				"LIBPUBLIC"
+$MacroRequired				"LIBCOMMON"
 $MacroRequired				"PLATSUBDIR"
 $MacroRequiredAllowEmpty	"GAMENAME"
 $MacroRequiredAllowEmpty	"INTERMEDIATESUBDIR"
@@ -27,7 +27,7 @@ $Configuration "Release"
 	$General
 	{
 		// General
-		$OutputDirectory					"$OUTLIBDIRRELEASE"
+		$OutputDirectory					"$OUTLIBDIR"
 		$IntermediateDirectory				".\Release$_SUBDIRSUFFIX"		[!$RETAIL && !$PROFILE]
 		$IntermediateDirectory				".\Retail$_SUBDIRSUFFIX"		[$RETAIL]
 		$IntermediateDirectory				".\Profile$_SUBDIRSUFFIX"		[!$RETAIL && $PROFILE]
@@ -152,7 +152,7 @@ $Configuration "Release"
 	$Librarian
 	{
 		// General
-		$OutputFile							"$OUTLIBDIRRELEASE\$OUTLIBNAME.lib"
+		$OutputFile							"$OUTLIBDIR\$OUTLIBNAME.lib"
 		$AdditionalDependencies
 		$AdditionalLibraryDirectories
 		$SuppressStartupBanner				"Yes (/NOLOGO)"
@@ -181,27 +181,23 @@ $Configuration "Release"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"
+		$SuppressStartupBanner				"Yes (/nologo)"	
 		$OutputFile							"$(OutDir)/$OUTLIBNAME.bsc"
 		$AdditionalOptions
 	}
 
 	$PreBuildEvent
 	{
-		$CommandLine		"if EXIST $OUTLIBDIRRELEASE\$(TargetName).lib ( for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTLIBDIRRELEASE\$(TargetName).lib$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
-							") else ( if not EXIST $OUTLIBDIRRELEASE mkdir $OUTLIBDIRRELEASE )" "\n" \
-							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
-							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE (" "\n" \
-							"    attrib -r $OUTLIBDIRRELEASE\$(TargetName).lib" "\n" \
-							"    $SRCDIR\devtools\bin\gnu\touch.exe -d $QUOTE1999-01-01$QUOTE $OUTLIBDIRRELEASE\$(TargetName).lib" "\n" \
-							"    attrib +r $OUTLIBDIRRELEASE\$(TargetName).lib" "\n" \
-							")" "\n" \
-							"$CRCCHECK" "\n"
+		$CommandLine
+		$Description
+		$ExcludedFromBuild					"No"
 	}
 
-	$PreLinkEvent [!$ANALYZE && !$SOURCESDK]
+	$PreLinkEvent
 	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTLIBDIRRELEASE\$(TargetName).lib $SRCDIR"
+		$CommandLine						
+		$Description
+		$ExcludedFromBuild					"No"
 	}
 
 	$PostBuildEvent

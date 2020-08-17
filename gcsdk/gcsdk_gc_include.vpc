@@ -12,9 +12,6 @@ $include "$SRCDIR\gcsdk\steammessages_include.vpc"
 $include "$SRCDIR\game\protobuf_include.vpc"
 
 
-$Macro ARGLIBNAME "gcsdk_gc"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration
 {
 	$General
@@ -33,11 +30,17 @@ $Project
 		{
 			$Configuration
 			{
-				$Compiler
+				$Compiler 
 				{
 					$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
 				}
 			}
 		}
 	}
+
+	$Folder "Link Libraries"
+	{
+		$Lib gcsdk_gc
+	}
+
 }

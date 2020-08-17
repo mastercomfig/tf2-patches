@@ -11,23 +11,6 @@ $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 $Include "$SRCDIR\vpc_scripts\source_saxxyawards.vpc"
 $include "$SRCDIR\vpc_scripts\source_cryptlib_include.vpc"
 
-$Macro ARGLIBNAME "bitmap"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "matsys_controls"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier2"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "tier3"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "vgui_controls"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "vtf"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "libz"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$DEDICATED]
-
 $Configuration
 {
 	$Compiler
@@ -258,10 +241,18 @@ $Project "GameUI"
 	
 	$Folder	"Link Libraries"
 	{
+		$Lib	bitmap
+		$Lib	mathlib
+		$Lib	matsys_controls
+		$Lib	tier2
+		$Lib	tier3
+		$Lib	vgui_controls
+		$Lib	vtf
 		$Lib  	"$LIBCOMMON/libjpeg"		[!$DEDICATED]
-		$File "$SRCDIR\lib\public\steam_api.lib"
-		$File "$SRCDIR\lib\public\libpng.lib" [!$VS2015&&!$DEDICATED]
+		$ImpLib	steam_api
+		$Lib libpng [!$VS2015&&!$DEDICATED]
 		$Lib $LIBCOMMON/libpng [$VS2015&&!$DEDICATED]
-		$File "$SRCDIR\lib\public\SDL2.lib" [$SDL]
+		$Lib libz [!$DEDICATED]
+		$ImpLib SDL2 [$SDL]
 	}
 }

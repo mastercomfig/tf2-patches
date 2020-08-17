@@ -13,11 +13,6 @@ $Macro DISABLE_FTOL3_OVERRIDE "1"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "shaderlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration	"Debug"
 {
 	$General
@@ -69,5 +64,11 @@ $Project "Stdshader_dx7"
 			$File	"..\shader_dll_verify.cpp"
 			$File	"..\shader_dll_verify.h"
 		}
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Lib mathlib
+		$Lib shaderlib
 	}
 }

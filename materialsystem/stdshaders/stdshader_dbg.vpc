@@ -13,11 +13,6 @@ $Macro DISABLE_FTOL3_OVERRIDE "1"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
-$Macro ARGLIBNAME "shaderlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME "mathlib"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-
 $Configuration	"Debug"
 {
 	$General
@@ -92,6 +87,8 @@ $Project "stdshader_dbg"
 	$Folder	"Link Libraries"
 	{
 		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"			[$WIN32]
+		$Lib mathlib
+		$Lib shaderlib
 	}
 
 	$File	"$SRCDIR\devtools\bin\vsh_prep.pl"

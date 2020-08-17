@@ -17,10 +17,6 @@ $Macro OUTBINNAME       "hl2_linux" [$LINUXALL]
 
 $Include "$SRCDIR\vpc_scripts\source_exe_base.vpc"
 
-$Include "$SRCDIR\vpc_scripts\tier0_uninclude.vpc" [$WINDOWS]
-$Include "$SRCDIR\vpc_scripts\tier1_uninclude.vpc" [$WINDOWS]
-$Include "$SRCDIR\vpc_scripts\vstdlib_uninclude.vpc" [$WINDOWS]
-
 $Configuration
 {
     $General
@@ -89,6 +85,13 @@ $Project
 	$Folder	"Source Files"
 	{
 		-$File	"$SRCDIR\public\tier0\memoverride.cpp"
+	}
+
+	$Folder	"Link Libraries" 
+	{
+		-$Lib tier0 [$WINDOWS]
+		-$Lib tier1 [$WINDOWS]
+		-$ImpLib vstdlib [$WINDOWS]
 	}
 }
 

@@ -1,4 +1,4 @@
-# Visual Studio
+# Visual Studio 
 *.suo
 *.user
 *.sln.docstates
@@ -16,7 +16,6 @@ ipch
 *.opensdf
 *.idb
 *.sln
-*.dll.recipe
 
 # OSX/Linux build products
 *.mak
