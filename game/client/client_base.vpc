@@ -67,7 +67,7 @@ $Configuration	"Debug"
 
 	$Debugging
 	{
-		$CommandArguments "-allowdebug -dev -condebug -game tf -sw" [$WINDOWS]
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug -condebug -sw -w 800 -h 600" [$WINDOWS]
 	}
 }
 
@@ -85,7 +85,7 @@ $Configuration	"Release"
 
 	$Debugging
 	{
-		$CommandArguments "-game tf -sw" [$WINDOWS]
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -fullscreen -w 1920 -h 1080" [$WINDOWS]
 	}
 }
 
