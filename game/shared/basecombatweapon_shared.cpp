@@ -2303,15 +2303,14 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 	// especially if the weapon we're firing has a really fast rate of fire.
 	info.m_iShots = 0;
 	float fireRate = GetFireRate();
+	int32 fireTimes = fireRate > 0.0f ? truncf((gpGlobals->curtime - m_flNextPrimaryAttack) / fireRate) + 1 : 1;
 
-	while ( m_flNextPrimaryAttack <= gpGlobals->curtime )
+	for (int32 times = 0; times < fireTimes; ++times)
 	{
 		// MUST call sound before removing a round from the clip of a CMachineGun
 		WeaponSound(SINGLE, m_flNextPrimaryAttack);
 		m_flNextPrimaryAttack = m_flNextPrimaryAttack + fireRate;
 		info.m_iShots++;
-		if ( !fireRate )
-			break;
 	}
 
 	// Make sure we don't fire more than the amount in the clip
