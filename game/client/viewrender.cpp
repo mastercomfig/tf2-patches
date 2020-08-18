@@ -1921,7 +1921,7 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	// Don't want TF2 running less than DX 9
 	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 	{
-		// We know they were running at least 8.0 when the game started...we check the 
+		// We know they were running at least 9.0 when the game started...we check the 
 		// value in ClientDLL_Init()...so they must be messing with their DirectX settings.
 		if ( ( Q_stricmp( COM_GetModDirectory(), "tf" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "tf_beta" ) == 0 ) )
 		{
