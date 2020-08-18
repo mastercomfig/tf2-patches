@@ -357,8 +357,8 @@ $Configuration "Release"
 							"del /q $QUOTE$(TargetDir)$QUOTE$(TargetFileName)" "\n" \
 							"exit 1" "\n" \
 							":BuildEventOK" "\n"
-
-		$AdditionalDependencies "$(TargetDir)$(TargetName)"
+							
+		$AdditionalDependencies "$(TargetDir)$(TargetFileName)"
 		$Outputs	"$OUTBINDIR\$(TargetFileName)_Release_sentinel"
 
 		$Description		"Publishing to $OUTBINDIR"
