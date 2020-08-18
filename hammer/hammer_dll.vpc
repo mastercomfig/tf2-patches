@@ -29,8 +29,9 @@ $Macro ARGLIBNAME tier3
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 $Macro ARGLIBNAME vgui_controls
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
-$Macro ARGLIBNAME datacache
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
+$Macro ARGPROJNAME datacache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
 
 $Configuration
 {
@@ -729,7 +730,8 @@ $Project "hammer_dll"
 
 	$Folder	"Link Libraries"
 	{
-		$Lib $LIBCOMMON\jpeglib
+		// UNDONE(maximsmol): we can't build everything anyway and it seems fine without it
+		//$Lib $LIBCOMMON\jpeglib
 		$File "$SRCDIR\lib\public\steam_api.lib"
 	}
 
