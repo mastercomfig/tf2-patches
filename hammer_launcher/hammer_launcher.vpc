@@ -13,6 +13,27 @@ $Include "$SRCDIR\vpc_scripts\source_exe_base.vpc"
 $Macro ARGLIBNAME appframework
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 
+$Macro ARGPROJNAME inputsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME materialsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME vgui2
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME vguimatsurface
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME filesystem_stdio
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME datacache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME hammer_dll
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME studiorender
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME studiorender
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME shaderapidx9
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 $Configuration
 {
 	$Compiler
