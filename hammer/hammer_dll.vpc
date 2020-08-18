@@ -9,6 +9,29 @@ $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
+$Macro ARGLIBNAME bitmap
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME choreoobjects
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME dmxloader
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME fgdlib
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME mathlib
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME matsys_controls
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME raytrace
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME tier2
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME tier3
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME vgui_controls
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+$Macro ARGLIBNAME datacache
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
 $Configuration
 {
 	$Compiler
@@ -69,7 +92,7 @@ $Project "hammer_dll"
 				}
 			}
 		}
-		
+
 		$File	"$SRCDIR\public\bone_setup.cpp"						\
 				"$SRCDIR\public\builddisp.cpp"						\
 				"BuildNum.cpp"										\
@@ -99,7 +122,7 @@ $Project "hammer_dll"
 						}
 					}
 				}
-	
+
 		$File	"ActiveItemList.h"
 		$File	"$SRCDIR\public\tier0\afxmem_override.cpp"
 		$File	"AnchorMgr.cpp"
@@ -338,7 +361,8 @@ $Project "hammer_dll"
 		$File	"TitleWnd.cpp"
 		$File	"TitleWnd.h"
 		$File	"Tooldefs.h"
-		$File	"$SRCDIR\public\maya\valveMaya\Undo.h"
+		//UNDONE(maximsmol)
+		//$File	"$SRCDIR\public\maya\valveMaya\Undo.h"
 		$File	"VGuiWnd.cpp"
 		$File	"VGuiWnd.h"
 		$File	"ViewerSettings.h"
@@ -688,19 +712,9 @@ $Project "hammer_dll"
 	}
 
 	$Folder	"Link Libraries"
-	{		
-		$Lib bitmap
-		$Lib choreoobjects
-		$Lib dmxloader
-		$Lib fgdlib
+	{
 		$Lib $LIBCOMMON\jpeglib
-		$Lib mathlib
-		$Lib matsys_controls
-		$Lib raytrace
-		$ImpLib steam_api
-		$Lib tier2
-		$Lib tier3
-		$Lib vgui_controls
+		$File "$SRCDIR\lib\public\steam_api.lib"
 	}
 
 	$File	"whatsnew.txt"
