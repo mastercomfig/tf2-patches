@@ -358,6 +358,7 @@ $Configuration "Release"
 							"exit 1" "\n" \
 							":BuildEventOK" "\n"
 
+		$AdditionalDependencies "$(TargetDir)$(TargetName)"
 		$Outputs	"$OUTBINDIR\$(TargetFileName)_Release_sentinel"
 
 		$Description		"Publishing to $OUTBINDIR"

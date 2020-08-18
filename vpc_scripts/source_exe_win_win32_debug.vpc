@@ -338,6 +338,7 @@ $Configuration "Debug"
 							"exit 1" "\n" \
 							":BuildEventOK" "\n"
 
+		$AdditionalDependencies "$(TargetDir)$(TargetName)"
 		$Outputs	"$OUTBINDIR\$(TargetFileName)_Debug_sentinel"
 
 		$Description		"Publishing to $OUTBINDIR"

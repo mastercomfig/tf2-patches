@@ -1,4 +1,4 @@
-// 
+//
 // Win32 2010 Project Generator Definition
 //
 
@@ -16,12 +16,12 @@
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$AdditionalOutputFiles"
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$GameOutputFile"
 		{
 			"type"	"ignore"
@@ -41,22 +41,22 @@
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$InheritedProjectPropertySheets"
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$MinimizeCRTUseInATL"
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$ExcludedFromBuild"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$OutputDirectory"
 		{
 			"type"				"string"
@@ -64,7 +64,7 @@
 			"globalproperty"	"1"
 			"AppendSlash"		"1"
 		}
-		
+
 		"$IntermediateDirectory"
 		{
 			"type"				"string"
@@ -72,7 +72,7 @@
 			"globalproperty"	"1"
 			"AppendSlash"		"1"
 		}
-		
+
 		"$TargetName"
 		{
 			"type" "string"
@@ -84,12 +84,12 @@
 			"output"			"TargetExt"
 			"globalproperty"	"1"
 		}
-		
+
 		"$ExtensionsToDeleteOnClean"
 		{
 			"type"	"string"
 		}
-		
+
 		"$BuildLogFile"
 		{
 			"type"	"string"
@@ -119,7 +119,7 @@
 				"Static Library (.lib)"		"StaticLibrary"
 			}
 		}
-		
+
 		"$UseOfMFC"
 		{
 			"ordinals"
@@ -129,7 +129,7 @@
 				"Use MFC in a Shared DLL"			"Dynamic"
 			}
 		}
-		
+
 		"$UseOfATL"
 		{
 			"ordinals"
@@ -139,7 +139,7 @@
 				"Dynamic Link to ATL"		"Dynamic"
 			}
 		}
-				
+
 		"$CharacterSet"
 		{
 			"ordinals"
@@ -147,14 +147,14 @@
 				"Not Set"						"NotSet"
 				"Use Unicode Character Set"		"Unicode"
 				"Use Multi-Byte Character Set"	"MultiByte"
-			}	
+			}
 		}
-		
+
 		"$CommonLanguageRuntimeSupport"
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$WholeProgramOptimization"
 		{
 			"ordinals"
@@ -167,14 +167,14 @@
 			}
 		}
 	}
-	
+
 	"$Debugging"
 	{
 		"$Command"
 		{
 			"type"	"string"
 		}
-		
+
 		"$CommandArguments"
 		{
 			"type"	"string"
@@ -194,7 +194,7 @@
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$Environment"
 		{
 			"type"	"string"
@@ -215,14 +215,14 @@
 			"type"	"ignore"
 		}
 	}
-	
+
 	"$Compiler"
 	{
 		"$SymbolVisibility"
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$GCC_ExtraCompilerFlags"
 		{
 			"type"	"ignore"
@@ -237,35 +237,35 @@
 		{
 			"type"	"ignore"
 		}
-			
+
 		"$IgnoreStandardIncludePath"
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$GeneratePreprocessedFile"
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$AdditionalLibraryDirectories"
 		{
 			"type"	"ignore"
 		}
-		
+
 		// General
 		"$AdditionalIncludeDirectories"
 		{
 			"type"						"string"
 			"PreferSemicolonNoComma"	"1"
 		}
-		
+
 		"$Resolve#UsingReferences"
 		{
 			"type"	"string"
 			"alias"	"ResolveUsingReferences"
 		}
-		
+
 		"$DebugInformationFormat"
 		{
 			"ordinals"
@@ -275,7 +275,7 @@
 				"Program Database for Edit & Continue (/ZI)"	"EditAndContinue"
 			}
 		}
-	
+
 		"$CommonLanguageRunTimeSupport"
 		{
 			"output"	"CompileAsManaged"
@@ -288,12 +288,12 @@
 				"Common Language RunTime Support, Old Syntax (/clr:oldSyntax)"	"OldSyntax"
 			}
 		}
-	
+
 		"$SuppressStartupBanner"
 		{
 			"type"	"bool"
 		}
-				
+
 		"$WarningLevel"
 		{
 			"ordinals"
@@ -306,7 +306,7 @@
 				"EnableAllWarnings (/Wall)"			"EnableAllWarnings"
 			}
 		}
-		
+
 		"$TreatWarningsAsErrors"
 		{
 			"type"		"bool"
@@ -318,7 +318,7 @@
 			"type"		"bool"
 		}
 
-		"$UseUnicodeForAssemblerListing"	
+		"$UseUnicodeForAssemblerListing"
 		{
 			"type"	"bool"
 		}
@@ -339,19 +339,19 @@
 		{
 			"ordinals"
 			{
-				"Default"					"Default"		
-				"Disabled (/Ob0)"			"Disabled"		
+				"Default"					"Default"
+				"Disabled (/Ob0)"			"Disabled"
 				"Only __inline (/Ob1)"		"OnlyExplicitInline"
 				"Any Suitable (/Ob2)"		"AnySuitable"
 			}
 		}
-		
+
 		"$EnableIntrinsicFunctions"
 		{
 			"type"		"bool"
 			"output"	"IntrinsicFunctions"
 		}
-		
+
 		"$FavorSizeOrSpeed"
 		{
 			"ordinals"
@@ -361,17 +361,17 @@
 				"Favor Small Code (/Os)"	"Size"
 			}
 		}
-		
+
 		"$OmitFramePointers"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$EnableFiberSafeOptimizations"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$WholeProgramOptimization"
 		{
 			"type"	"bool"
@@ -382,7 +382,7 @@
 		{
 			"type"	"string"
 		}
-		
+
 		"$UndefinePreprocessorDefinitions"
 		{
 			"type"	"string"
@@ -407,7 +407,7 @@
 		{
 			"type"	"bool"
 		}
-		
+
 		"$KeepComments"
 		{
 			"type"	"bool"
@@ -438,7 +438,7 @@
 				"No"									"false"
 			}
 		}
-		
+
 		"$SmallerTypeCheck"
 		{
 			"type"	"bool"
@@ -455,7 +455,7 @@
 				"Default"									"Default"
 			}
 		}
-		
+
 		"$RuntimeLibrary"
 		{
 			"ordinals"
@@ -466,7 +466,7 @@
 				"Multi-threaded Debug DLL (/MDd)"	"MultiThreadedDebugDLL"
 			}
 		}
-		
+
 		"$StructMemberAlignment"
 		{
 			"ordinals"
@@ -479,7 +479,7 @@
 				"Default"			"Default"
 			}
 		}
-		
+
 		"$BufferSecurityCheck"
 		{
 			"type"	"bool"
@@ -512,7 +512,7 @@
 				"Fast (/fp:fast)"		"Fast"
 			}
 		}
-		
+
 		"$EnableFloatingPointExceptions"
 		{
 			"type"		"bool"
@@ -570,8 +570,8 @@
 				"Use (/Yu)"							"Use"
 			}
 		}
-		
-		"$Create/UsePCHThroughFile"		
+
+		"$Create/UsePCHThroughFile"
 		{
 			"alias"			"PrecompiledHeaderFile"
 			"output"		"PrecompiledHeaderFile"
@@ -602,7 +602,7 @@
 				"Assembly, Machine Code and Source (/FAcs)"	"All"
 			}
 		}
-		
+
 		"$ASMListLocation"
 		{
 			"type"		"string"
@@ -624,7 +624,7 @@
 		{
 			"type"	"bool"
 		}
-	
+
 		"$XMLDocumentationFileName"
 		{
 			"type"	"string"
@@ -636,7 +636,7 @@
 			"output"	"BrowseInformation"
 			"type"		"bool"
 		}
-		
+
 		"$BrowseInformationFile"
 		{
 			"legacy"	"$BrowseFile"
@@ -663,26 +663,26 @@
 				"Compile as C++ Code (/TP)"	"CompileAsCpp"
 			}
 		}
-		
+
 		"$DisableSpecificWarnings"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ForcedIncludeFile"
 		{
 			"type"		"string"
 			"legacy"	"$ForceIncludes"
 			"output"	"ForcedIncludeFiles"
 		}
-		
+
 		"$Forced#UsingFile"
 		{
 			"type"		"string"
 			"legacy"	"$Force#Using"
 			"alias"		"ForcedUsingFile"
 		}
-		
+
 		"$ShowIncludes"
 		{
 			"type"	"bool"
@@ -692,13 +692,13 @@
 		{
 			"type"	"bool"
 		}
-						
+
 		"$OmitDefaultLibName"
 		{
 			"type"		"bool"
 			"legacy"	"$OmitDefaultLibraryNames"
 		}
-		
+
 		"$InternalCompilerErrorReporting"
 		{
 			"legacy"	"$ErrorReporting"
@@ -711,12 +711,12 @@
 				"Send Automatically (/errorReport:send)"		"Send"
 			}
 		}
-		
+
 		"$TreatSpecificWarningsAsErrors"
 		{
 			"type"	"string"
 		}
-						
+
 		// Command Line
 		"$AdditionalOptions"
 		{
@@ -730,19 +730,19 @@
 		{
 			"type"	"string"
 		}
-		
+
 		"$AdditionalDependencies"
 		{
 			"type"						"string"
 			"PreferSemicolonNoComma"	"1"
 			"PreferSemicolonNoSpace"	"1"
 		}
-		
+
 		"$AdditionalLibraryDirectories"
 		{
 			"type"	"string"
 		}
-		
+
 		"$TargetMachine"
 		{
 			"ordinals"
@@ -766,17 +766,17 @@
 		{
 			"type"	"bool"
 		}
-		
+
 		"$ModuleDefinitionFileName"
 		{
 			"type"	"string"
 		}
-		
+
 		"$IgnoreAllDefaultLibraries"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$IgnoreSpecificLibrary"
 		{
 			"type"		"string"
@@ -784,45 +784,45 @@
 			"PreferSemicolonNoComma"	"1"
 			"PreferSemicolonNoSpace"	"1"
 		}
-		
+
 		"$ExportNamedFunctions"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ForceSymbolReferences"
 		{
 			"type"	"string"
 		}
-		
+
 		"$UseUnicodeResponseFiles"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$LinkLibraryDependencies"
 		{
 			"type"				"bool"
 		}
-		
-		"$AdditionalOptions"					
+
+		"$AdditionalOptions"
 		{
 			"type"	"string"
 		}
 	}
-	
+
 	"$Linker"
 	{
 		"$SystemLibraries"
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$SystemFrameworks"
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$LocalFrameworks"
 		{
 			"type"	"ignore"
@@ -832,7 +832,7 @@
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$GCC_CustomVersionScript"
 		{
 			"type"	"ignore"
@@ -859,7 +859,7 @@
 			"type"			"string"
 			"fixslashes"	"1"
 		}
-		
+
 		"$ShowProgress"
 		{
 			"ordinals"
@@ -873,60 +873,60 @@
 				"About linker activity related to managed code (/VERBOSE:CLR)"	"LinkVerboseCLR"
 			}
 		}
-		
+
 		"$Version"
 		{
 			"type"	"string"
 		}
-				
+
 		"$EnableIncrementalLinking"
 		{
 			"output"			"LinkIncremental"
 			"type"				"bool"
 			"globalproperty"	"1"
 		}
-		
+
 		"$SuppressStartupBanner"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$IgnoreImportLibrary"
 		{
 			"type"				"bool"
 			"globalproperty"	"1"
 		}
-		
+
 		"$RegisterOutput"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$PerUserRedirection"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$AdditionalLibraryDirectories"
 		{
 			"type"	"string"
 		}
-		
+
 		"$LinkLibraryDependencies"
 		{
 			"type"				"bool"
 		}
-		
+
 		"$UseLibraryDependencyInputs"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$LinkStatus"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$PreventDllBinding"
 		{
 			"type"	"bool"
@@ -969,12 +969,12 @@
 			"PreferSemicolonNoComma"	"1"
 			"PreferSemicolonNoSpace"	"1"
 		}
-		
+
 		"$IgnoreAllDefaultLibraries"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$IgnoreSpecificDefaultLibraries"
 		{
 			"type"		"string"
@@ -982,66 +982,66 @@
 			"PreferSemicolonNoComma"	"1"
 			"PreferSemicolonNoSpace"	"1"
 		}
-		
+
 		"$ModuleDefinitionFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$AddModuleToAssembly"
 		{
 			"type"	"string"
 		}
-		
+
 		"$EmbedManagedResourceFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ForceSymbolReferences"
 		{
 			"type"	"string"
 		}
-		
+
 		"$DelayLoadedDlls"
 		{
 			"type"		"string"
 			"legacy"	"$DelayLoadedDLL"
 			"output"	"DelayLoadDLLs"
 		}
-		
+
 		"$AssemblyLinkResource"
 		{
 			"type"	"string"
 		}
-		
+
 		"$GenerateManifest"
 		{
 			"type"				"bool"
 			"globalproperty"	"1"
 		}
-		
+
 		"$ManifestFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$AdditionalManifestDependencies"
 		{
 			"type"	"string"
-		}		
-		
+		}
+
 		"$AllowIsolation"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$EnableUserAccountControl(UAC)"
 		{
 			"type"	"bool"
 			"alias"	"EnableUserAccountControl"
 		}
-		
+
 		"$UACExecutionLevel"
 		{
 			"ordinals"
@@ -1051,7 +1051,7 @@
 				"requireAdministrator (/level='requireAdministrator')"	"RequireAdministrator"
 			}
 		}
-		
+
 		"$UACBypassUIProtection"
 		{
 			"type"	"bool"
@@ -1063,33 +1063,33 @@
 			"type"		"bool"
 			"output"	"GenerateDebugInformation"
 		}
-		
+
 		"$GenerateProgramDatabaseFile"
 		{
 			"type"		"string"
 			"output"	"ProgramDatabaseFile"
 		}
-		
+
 		"$StripPrivateSymbols"
 		{
 			"type"	"string"
 		}
-		
+
 		"$GenerateMapFile"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$MapFileName"
 		{
 			"type"	"string"
 		}
-		
+
 		"$MapExports"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$DebuggableAssembly"
 		{
 			"output"	"AssemblyDebug"
@@ -1099,9 +1099,9 @@
 				"No (/ASSEMBLYDEBUG:DISABLE)"											"false"
 				"Runtime tracking and disable optimizations (/ASSEMBLYDEBUG)"			"true"
 				"Yes (/ASSEMBLYDEBUG)"													"true"
-			}	
+			}
 		}
-		
+
 		"$SubSystem"
 		{
 			"ordinals"
@@ -1114,64 +1114,64 @@
 				"EFI Boot Service Driver (/SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER)"	"EFI Boot Service Driver"
 				"EFI ROM (/SUBSYSTEM:EFI_ROM)"									"EFI ROM"
 				"EFI Runtime (/SUBSYSTEM:EFI_RUNTIME_DRIVER)"					"EFI Runtime"
-				"WindowsCE (/SUBSYSTEM:WINDOWSCE)"								"WindowsCE"		
-				"POSIX (/SUBSYSTEM:POSIX)"										"POSIX"		
+				"WindowsCE (/SUBSYSTEM:WINDOWSCE)"								"WindowsCE"
+				"POSIX (/SUBSYSTEM:POSIX)"										"POSIX"
 			}
 		}
-		
+
 		"$MinimumRequiredVersion"
 		{
 			"type"	"string"
 		}
-		
+
 		"$HeapReserveSize"
 		{
 			"type"	"integer"
 		}
-		
+
 		"$HeapCommitSize"
 		{
 			"type"	"integer"
 		}
-		
+
 		// System
 		"$StackReserveSize"
 		{
 			"type"	"integer"
 		}
-		
+
 		"$StackCommitSize"
 		{
 			"type"	"integer"
 		}
-		
+
 		"$EnableLargeAddresses"
 		{
 			"output"	"LargeAddressAware"
 			"ordinals"
-			{	
+			{
 				"Do Not Support Addresses Larger Than 2 Gigabytes (/LARGEADDRESSAWARE:NO)"	"false"
 				"No (/LARGEADDRESSAWARE:NO)"												"false"
 				"Support Addresses Larger Than 2 Gigabytes (/LARGEADDRESSAWARE)"			"true"
 				"Yes (/LARGEADDRESSAWARE)"													"true"
 			}
 		}
-		
+
 		"$TerminalServer"
 		{
 			"type"		"bool"
 		}
-		
+
 		"$SwapRunFromCD"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$SwapRunFromNetwork"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$Driver"
 		{
 			"ordinals"
@@ -1182,20 +1182,20 @@
 				"WDM (/DRIVER:WDM)"			"WDM"
 			}
 		}
-		
+
 		// Optimization
 		"$References"
 		{
 			"output"	"OptimizeReferences"
 			"ordinals"
-			{			
+			{
 				"No (/OPT:NOREF)"							"false"
 				"Keep Unreferenced Data (/OPT:NOREF)"		"false"
 				"Yes (/OPT:REF)"							"true"
 				"Eliminate Unreferenced Data (/OPT:REF)"	"true"
-			}			
+			}
 		}
-		
+
 		"$EnableCOMDATFolding"
 		{
 			"ordinals"
@@ -1206,17 +1206,17 @@
 				"Yes (/OPT:ICF)"								"true"
 			}
 		}
-		
+
 		"$FunctionOrder"
 		{
 			"type"	"string"
 		}
-						
+
 		"$ProfileGuidedDatabase"
 		{
 			"type"	"string"
 		}
-		
+
 		"$LinkTimeCodeGeneration"
 		{
 			"ordinals"
@@ -1228,54 +1228,54 @@
 				"Profile Guided Optimization - Update (/ltcg:pgupdate)"			"PGUpdate"
 			}
 		}
-		
+
 		"$MIDLCommands"
 		{
 			"type"	"string"
 		}
-		
+
 		"$IgnoreEmbeddedIDL"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$MergeIDLBaseFileName"
 		{
 			"type"	"string"
 		}
-		
+
 		"$TypeLibrary"
 		{
 			"type"	"string"
 		}
-		
+
 		"$TypeLibResourceID"
 		{
 			"type"	"integer"
 		}
-		
+
 		// Advanced
 		"$EntryPoint"
 		{
 			"type"		"string"
 			"output"	"EntryPointSymbol"
 		}
-		
+
 		"$NoEntryPoint"
 		{
 			"type"		"bool"
 		}
-		
+
 		"$SetChecksum"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$BaseAddress"
 		{
 			"type"	"string"
 		}
-		
+
 		"$RandomizedBaseAddress"
 		{
 			"type"	"bool"
@@ -1291,37 +1291,37 @@
 				"Yes (/FIXED)"										"true"
 			}
 		}
-		
+
 		"$DataExecutionPrevention"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$TurnOffAssemblyGeneration"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$UnloaddelayloadedDLL"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$NobinddelayloadedDLL"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$ImportLibrary"
 		{
 			"type"	"string"
 		}
-		
+
 		"$MergeSections"
 		{
 			"type"	"string"
 		}
-		
+
 		"$TargetMachine"
 		{
 			"ordinals"
@@ -1340,12 +1340,12 @@
 				"MachineX86 (/MACHINE:X86)"				"MachineX86"
 			}
 		}
-		
+
 		"$Profile"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$CLRThreadAttribute"
 		{
 			"ordinals"
@@ -1355,7 +1355,7 @@
 				"STA threading attribute (/CLRTHREADATTRIBUTE:STA)"			"STAThreadingAttribute"
 			}
 		}
-		
+
 		"$CLRImageType"
 		{
 			"ordinals"
@@ -1366,17 +1366,17 @@
 				"Force safe IL image (/CLRIMAGETYPE:SAFE)"		"ForceSafeILImage"
 			}
 		}
-		
+
 		"$KeyFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$KeyContainer"
 		{
 			"type"	"string"
 		}
-		
+
 		"$DelaySign"
 		{
 			"type"	"bool"
@@ -1386,7 +1386,7 @@
 		{
 			"type"	"bool"
 		}
-		
+
 		"$ErrorReporting"
 		{
 			"output"	"LinkErrorReporting"
@@ -1396,15 +1396,15 @@
 				"Queue For Next Login (/ERRORREPORT:QUEUE)"	"QueueForNextLogin"
 				"Send Error Report (/ERRORREPORT:SEND)"		"SendErrorReport"
 				"No Error Report (/ERRORREPORT:NONE)"		"NoErrorReport"
-				
+
 			}
 		}
-			
-		"$SectionAlignment"	
+
+		"$SectionAlignment"
 		{
 			"type"		"string"
 		}
-		
+
 		"$PreserveLastErrorCodeforPInvokeCalls"
 		{
 			"output"	"CLRSupportLastError"
@@ -1415,19 +1415,19 @@
 				"System Dlls Only (/CLRSupportLastError:SYSTEMDLL)"		"SystemDlls"
 			}
 		}
-		
+
 		"$ImageHasSafeExceptionHandlers"
 		{
 			"type"	"bool"
 		}
-				
+
 		// Command Line
-		"$AdditionalOptions"					
+		"$AdditionalOptions"
 		{
 			"type"	"string"
-		}	
+		}
 	}
-	
+
 	"$ManifestTool"
 	{
 		"$UseUNICODEResponseFiles"
@@ -1439,52 +1439,52 @@
 		{
 			"type"	"ignore"
 		}
-		
+
 		"$DependencyInformationFile"
 		{
 			"type"	"ignore"
-		}	
-		
+		}
+
 		"$SuppressStartupBanner"
 		{
 			"type"	"bool"
 		}
-			
+
 		"$VerboseOutput"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$AssemblyIdentity"
 		{
 			"type"	"string"
 		}
-		
+
 		"$AdditionalManifestFiles"
 		{
 			"type"	"string"
 		}
-		
+
 		"$InputResourceManifests"
 		{
 			"type"	"string"
 		}
-		
+
 		"$EmbedManifest"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$OutputManifestFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ManifestResourceFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$GenerateCatalogFiles"
 		{
 			"type"	"bool"
@@ -1509,22 +1509,22 @@
 		{
 			"type"	"bool"
 		}
-		
+
 		"$TypeLibraryFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$RegistrarScriptFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ComponentFileName"
 		{
 			"type"	"string"
 		}
-		
+
 		"$ReplacementsFile"
 		{
 			"type"	"string"
@@ -1534,7 +1534,7 @@
 		{
 			"type"	"bool"
 		}
-		
+
 		"$UpdateFileHashesSearchPath"
 		{
 			"type"	"string"
@@ -1542,10 +1542,10 @@
 
 		"$AdditionalOptions"
 		{
-			"type"	"string"	
+			"type"	"string"
 		}
 	}
-	
+
 	"$XMLDocumentGenerator"
 	{
 		"$ValidateIntellisense"
@@ -1557,63 +1557,63 @@
 		{
 			"type"	"ignore"
 		}
-	
+
 		"$SuppressStartupBanner"
 		{
 			"type"	"bool"
 		}
-				
+
 		"$AdditionalDocumentFiles"
 		{
 			"type"	"string"
 		}
-		
+
 		"$OutputDocumentFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$DocumentLibraryDependencies"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$AdditionalOptions"
 		{
 			"type"	"string"
-		}	
+		}
 	}
-	
+
 	"$BrowseInformation"
 	{
 		"$SuppressStartupBanner"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$OutputFile"
 		{
 			"type"	"string"
 		}
-		
+
 		"$PreserveSBRFiles"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$AdditionalOptions"
 		{
 			"type"	"string"
 		}
 	}
-	
+
 	"$Resources"
 	{
 		"$PreprocessorDefinitions"
 		{
 			"type"	"string"
 		}
-		
+
 		"$Culture"
 		{
 			"ordinals"
@@ -1622,7 +1622,7 @@
 				"Afrikaans (0x436)"						"1078"
 				"Albanian (0x41c)"						"1052"
 				"Arabic (Saudi Arabia) (0x401)"			"1025"
-				"Arabic (Iraq) (0x801)"					"2049"			
+				"Arabic (Iraq) (0x801)"					"2049"
 				"Arabic (Egypt) (0xc01)"				"3073"
 				"Arabic (Libya) (0x1001)"				"4097"
 				"Arabic (Algeria) (0x1401)"				"5121"
@@ -1716,23 +1716,23 @@
 				"Urdu (0x420)"							"1056"
 			}
 		}
-		
+
 		"$AdditionalIncludeDirectories"
 		{
 			"type"						"string"
 			"PreferSemicolonNoComma"	"1"
 		}
-		
+
 		"$IgnoreStandardIncludePath"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$ShowProgress"
 		{
 			"type"	"bool"
 		}
-		
+
 		"$ResourceFileName"
 		{
 			"type"	"string"
@@ -1743,7 +1743,7 @@
 			"type"	"string"
 		}
 	}
-	
+
 	$PreBuildEvent
 	{
 		"$CommandLine"
@@ -1762,18 +1762,18 @@
 		{
 			"type"				"bool"
 			"output"			"PreBuildEventUseInBuild"
-			"globalproperty"	"1"		
+			"globalproperty"	"1"
 			"invertoutput"		"1"
 		}
 
-		"$UseInBuild"	
+		"$UseInBuild"
 		{
 			"type"				"bool"
 			"output"			"PreBuildEventUseInBuild"
-			"globalproperty"	"1"		
+			"globalproperty"	"1"
 		}
 	}
-	
+
 	$PreLinkEvent
 	{
 		"$CommandLine"
@@ -1792,11 +1792,11 @@
 		{
 			"type"				"bool"
 			"output"			"PreLinkEventUseInBuild"
-			"globalproperty"	"1"		
+			"globalproperty"	"1"
 			"invertoutput"		"1"
 		}
 
-		"$UseInBuild"	
+		"$UseInBuild"
 		{
 			"type"				"bool"
 			"output"			"PreLinkEventUseInBuild"
@@ -1822,11 +1822,11 @@
 		{
 			"type"				"bool"
 			"output"			"PostBuildEventUseInBuild"
-			"globalproperty"	"1"		
+			"globalproperty"	"1"
 			"invertoutput"		"1"
 		}
 
-		"$UseInBuild"	
+		"$UseInBuild"
 		{
 			"type"				"bool"
 			"output"			"PostBuildEventUseInBuild"
@@ -1841,7 +1841,7 @@
 			"type"		"string"
 			"output"	"Command"
 		}
-		
+
 		"$Description"
 		{
 			"type"		"string"
@@ -1856,9 +1856,9 @@
 		"$AdditionalDependencies"
 		{
 			"type"		"string"
-			"output"	"AdditionalInputs"
+			"output"	"Inputs"
 		}
-		
+
 		"$ExecuteAfter"
 		{
 			"ordinals"
@@ -1866,7 +1866,7 @@
 				"AddIntermediateAssemblyToReferenceList"	"0"
 			}
 		}
-		
+
 		"$ExecuteBefore"
 		{
 			"ordinals"
