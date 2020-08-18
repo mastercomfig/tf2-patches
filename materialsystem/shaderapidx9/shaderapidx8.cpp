@@ -10011,8 +10011,7 @@ bool CShaderAPIDx8::MatrixIsChanging( TransformType_t type )
 	int textureMatrix = m_CurrStack - MATERIAL_TEXTURE0;
 	if (( textureMatrix < 0 ) || (textureMatrix >= NUM_TEXTURE_TRANSFORMS))
 	{
-		// FIXME(mastercoms): This is such a terrible hack to get our viewmodels to appear each frame
-		FlushBufferedPrimitivesInternal();
+		FlushBufferedPrimitives();
 	}
 
 	return true;

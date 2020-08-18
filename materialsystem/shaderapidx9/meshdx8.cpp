@@ -3759,7 +3759,9 @@ void CDynamicMeshDX8::Draw( int nFirstIndex, int nIndexCount )
 	{
 		Assert( !m_IsDrawing );
 
+#ifdef DX_TO_GL_ABSTRACTION
 		HandleLateCreation();
+#endif
 
 		// only have a non-zero first vertex when we are using static indices
 		int nFirstVertex = m_VertexOverride ? 0 : m_nFirstVertex;
