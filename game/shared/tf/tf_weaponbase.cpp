@@ -2157,10 +2157,19 @@ void CTFWeaponBase::SendReloadEvents()
 //-----------------------------------------------------------------------------
 void CTFWeaponBase::ItemBusyFrame( void )
 {
+	CTFPlayer* pOwner = ToTFPlayer(GetOwner());
+#ifdef GAME_DLL
+	if (pOwner && pOwner->m_nButtons & IN_ATTACK2)
+	{
+		// We need to do this to catch the case of player trying to detonate
+		// pipebombs while in the middle of reloading.
+		SecondaryAttack();
+	}
+#endif
+
 	// Call into the base ItemBusyFrame.
 	BaseClass::ItemBusyFrame();
 
-	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 	if ( !pOwner )
 	{
 		return;
