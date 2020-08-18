@@ -2408,7 +2408,11 @@ int CL_GetBackgroundLevelIndex( int nNumChapters )
 
 	if ( sv_unlockedchapters.GetInt() >= ( nNumChapters-1 ) )
 	{
-		RandomSeed( Plat_MSTime() );
+		// TODO: safe random seed?
+		if (!V_stricmp(COM_GetModDirectory(), "tf") && !V_stricmp(COM_GetModDirectory(), "tfbeta"))
+		{
+			RandomSeed(Plat_MSTime());
+		}
 		g_iRandomChapterIndex = iChapterIndex = RandomInt( 1, nNumChapters );
 	}
 

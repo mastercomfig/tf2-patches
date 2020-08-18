@@ -279,11 +279,6 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, nBulletsPerShot, mult_bullets_per_shot );
 	}
 
-	int iSpreadSeed = iSeed;
-	if (bFixedRecoilSpread)
-	{
-		iSeed = pWeapon->m_iBulletsFiredContinuously;
-	}
 	for ( int iBullet = 0; iBullet < nBulletsPerShot; ++iBullet )
 	{
 		// Get circular gaussian spread. Under some cases we fire a bullet right down the crosshair:
@@ -296,22 +291,30 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 			if (nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25)
 			{
 				bFirePerfect = true;
+				pWpn->m_iBulletsFiredContinuously = 0;
 			}
 			else if (nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25)
 			{
 				bFirePerfect = true;
+				pWpn->m_iBulletsFiredContinuously = 0;
 			}
 		}
 
-		if (bFixedRecoilSpread && bFirePerfect)
+		if (!bSpreadShotPattern && pWpn)
 		{
-			iSeed = pWeapon->m_iBulletsFiredContinuously = 0;
+			if (!bFirePerfect)
+			{
+				pWpn->m_iBulletsFiredContinuously++;
+			}
+
+			if (bFixedSpreadEnabled)
+			{
+				iSeed = pWpn->m_iBulletsFiredContinuously;
+			}
 		}
 
-		// Initialize random system with this seed.
-		RandomSeed(iSeed);
-
-		float x,y;
+		float x = 0.0f;
+	    float y = 0.0f;
 		if ( bFixedSpread )
 		{
 			int iSpread = iBullet;
@@ -319,22 +322,26 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 			{
 				iSpread -= ARRAYSIZE(g_vecFixedWpnSpreadPellets);
 			}
-			float flScalar = 0.5;
+			float flScalar = 0.5f;
 			x = g_vecFixedWpnSpreadPellets[iSpread].x * flScalar;
 			y = g_vecFixedWpnSpreadPellets[iSpread].y * flScalar;
 		}
 		else if ( bFirePerfect )
 		{
-			x = y = 0;
+			x = y = 0.0f;
 		}
 		else
 		{
-			x = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
-			y = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
+			// Initialize random system with this seed.
+			RandomStartScope();
+			RandomSeedScoped(iSeed);
+			x = RandomFloatScoped(-0.5f, 0.5f) + RandomFloatScoped(-0.5f, 0.5f);
+			y = RandomFloatScoped(-0.5f, 0.5f) + RandomFloatScoped(-0.5f, 0.5f);
+			RandomEndScope();
 		}
 
 		// Initialize the variable firing information.
-		fireInfo.m_vecDirShooting = vecShootForward + ( x *  flSpread * vecShootRight ) + ( y * flSpread * vecShootUp );
+		fireInfo.m_vecDirShooting = vecShootForward + ( x * flSpread * vecShootRight ) + ( y * flSpread * vecShootUp );
 		fireInfo.m_vecDirShooting.NormalizeInPlace();
 		fireInfo.m_bUseServerRandomSeed = pWpn && pWpn->UseServerRandomSeed();
 
@@ -342,11 +349,11 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		pPlayer->FireBullet( pWpn, fireInfo, bDoEffects, nDamageType, nCustomDamageType );
 
 		// Use new seed for next bullet.
-		++iSeed;
-		++iSpreadSeed;
+		if (!bFixedRecoilSpread)
+		{
+			++iSeed;
+		}
 	}
-
-	RandomSeed(iSpreadSeed);
 
 #if !defined (CLIENT_DLL)
 	if ( pDmgAccumulator )

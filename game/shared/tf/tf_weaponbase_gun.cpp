@@ -162,11 +162,6 @@ void CTFWeaponBaseGun::PrimaryAttack( void )
 	CBaseEntity* pProj = FireProjectile( pPlayer );
 	ModifyProjectile( pProj );
 
-	if (GetWeaponProjectileType() == TF_PROJECTILE_BULLET)
-	{
-		m_iBulletsFiredContinuously++;
-	}
-
 	if ( !UsesClipsForAmmo1() )
 	{
 		// Sniper rifles and such don't actually reload, so we hook reduced reload here

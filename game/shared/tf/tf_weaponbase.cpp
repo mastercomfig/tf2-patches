@@ -1500,11 +1500,17 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped( m_iCurrentSeed );
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
+		}
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
 		}
 
 		// see if we should start firing crit shots
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE-1 );
 		if ( iRandom < flStartCritChance * WEAPON_RANDOM_RANGE )
 		{
 			bCrit = true;
@@ -1523,10 +1529,15 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped(m_iCurrentSeed);
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
 		}
-
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE - 1 );
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
+		}
 		bCrit = ( iRandom < flCritChance * WEAPON_RANDOM_RANGE );
 	}
 
