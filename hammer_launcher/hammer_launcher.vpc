@@ -33,8 +33,6 @@ $Macro ARGPROJNAME studiorender
 $Include "$SRCDIR\vpc_scripts\proj_include.vpc"
 $Macro ARGPROJNAME shaderapidx9
 $Include "$SRCDIR\vpc_scripts\proj_include.vpc"
-$Macro ARGPROJNAME stdshader_dx9
-$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
 
 $Configuration
 {

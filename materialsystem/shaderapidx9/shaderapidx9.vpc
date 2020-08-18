@@ -20,6 +20,9 @@ $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 $Macro ARGLIBNAME "bzip2"
 $Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
 
+$Macro ARGPROJNAME stdshader_dx9
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 // Common Configuration
 $Configuration
 {
