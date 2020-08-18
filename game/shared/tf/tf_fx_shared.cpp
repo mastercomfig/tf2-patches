@@ -19,7 +19,7 @@
 #include "tf_passtime_logic.h"
 #endif
 
-ConVar tf_use_fixed_weaponspreads( "tf_use_fixed_weaponspreads", "0", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a non-random pellet distribution." );
+ConVar tf_use_fixed_weaponspreads( "tf_use_fixed_weaponspreads", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a non-random pellet distribution." );
 
 // Client specific.
 #ifdef CLIENT_DLL
@@ -270,10 +270,18 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 #endif // !CLIENT
 
 	int nBulletsPerShot = pWeaponInfo->GetWeaponData( iMode ).m_nBulletsPerShot;
-	bool bFixedSpread = ( nDamageType & DMG_BUCKSHOT ) && ( nBulletsPerShot > 1 ) && IsFixedWeaponSpreadEnabled();
+	bool bFixedSpreadEnabled = IsFixedWeaponSpreadEnabled();
+	bool bSpreadShotPattern = (nDamageType & DMG_BUCKSHOT) && (nBulletsPerShot > 1);
+	bool bFixedRecoilSpread = !bSpreadShotPattern && bFixedSpreadEnabled;
+	bool bFixedSpread = bSpreadShotPattern && bFixedSpreadEnabled;
 	if ( pWeapon )
 	{
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, nBulletsPerShot, mult_bullets_per_shot );
+	}
+
+	if (bFixedRecoilSpread)
+	{
+		iSeed = 0;
 	}
 	for ( int iBullet = 0; iBullet < nBulletsPerShot; ++iBullet )
 	{
@@ -328,7 +336,7 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		pPlayer->FireBullet( pWpn, fireInfo, bDoEffects, nDamageType, nCustomDamageType );
 
 		// Use new seed for next bullet.
-		++iSeed; 
+		++iSeed;
 	}
 
 #if !defined (CLIENT_DLL)
