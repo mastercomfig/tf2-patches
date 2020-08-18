@@ -333,7 +333,8 @@ ConVar sb_close_browser_on_connect( "sb_close_browser_on_connect", "1", FCVAR_AR
 ConVar tf_spectate_pyrovision( "tf_spectate_pyrovision", "0", FCVAR_ARCHIVE, "When on, spectator will see the world with Pyrovision active", VisionMode_ChangeCallback );
 ConVar tf_replay_pyrovision( "tf_replay_pyrovision", "0", FCVAR_ARCHIVE, "When on, replays will be seen with Pyrovision active", VisionMode_ChangeCallback );
 
-ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_NONE, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_REPLICATED, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person_enable("tf_taunt_first_person_enable", "0", FCVAR_ARCHIVE, "1 = taunts remain first-person even if the server has it off");
 
 ConVar tf_romevision_opt_in( "tf_romevision_opt_in", "0", FCVAR_ARCHIVE, "Enable Romevision in Mann vs. Machine mode when available." );
 ConVar tf_romevision_skip_prompt( "tf_romevision_skip_prompt", "0", FCVAR_ARCHIVE, "If nonzero, skip the prompt about sharing Romevision." );
@@ -459,7 +460,7 @@ static const killstreak_params_t g_KillStreakEffectsBlue[] =
 };
 
 // thirdperson medieval
-static ConVar tf_medieval_thirdperson( "tf_medieval_thirdperson", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE , "Turns on third-person camera in medieval mode." );
+static ConVar tf_medieval_thirdperson( "tf_medieval_thirdperson", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_CHEAT , "Turns on third-person camera in medieval mode." );
 static ConVar tf_medieval_cam_idealdist( "tf_medieval_cam_idealdist", "125", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
 static ConVar tf_medieval_cam_idealdistright( "tf_medieval_cam_idealdistright", "25", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
 static ConVar tf_medieval_cam_idealdistup( "tf_medieval_cam_idealdistup", "-10", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
@@ -5936,7 +5937,7 @@ void C_TFPlayer::TurnOnTauntCam( void )
 	m_TauntCameraData.m_vecHullMin.Init( -9.0f, -9.0f, -9.0f );
 	m_TauntCameraData.m_vecHullMax.Init( 9.0f, 9.0f, 9.0f );
 
-	if ( tf_taunt_first_person.GetBool() )
+	if ( tf_taunt_first_person.GetBool() || tf_taunt_first_person_enable.GetBool() )
 	{
 		// Remain in first-person.
 	}

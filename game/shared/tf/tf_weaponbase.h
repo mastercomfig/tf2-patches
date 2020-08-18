@@ -679,6 +679,8 @@ public:
 
 	CNetworkVar( float, m_flObservedCritChance );
 
+	int m_iBulletsFiredContinuously; // How many bullets have we fired (excluding the perfect shot)
+
 	virtual bool CanInspect() const;
 	void HandleInspect();
 
