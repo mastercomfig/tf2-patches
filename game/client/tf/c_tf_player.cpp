@@ -4553,7 +4553,7 @@ void C_TFPlayer::UpdateClientSideAnimation()
 	// StatTrak Module Test
 	// Update ViewModels
 	// We only update the view model for the local player.
-	//if ( IsLocalPlayer() )
+	if ( IsLocalPlayer() )
 	{
 		CTFWeaponBase *pWeapon = GetActiveTFWeapon();
 		if ( pWeapon )
@@ -6665,7 +6665,7 @@ void C_TFPlayer::UpdateLookAt( void )
 
 			Vector vDir = pEnt->GetAbsOrigin() - vMyOrigin;
 
-			if ( vDir.Length() > 300 ) 
+			if ( vDir.LengthSqr() > 300 * 300 ) 
 				continue;
 
 			VectorNormalize( vDir );
@@ -7466,6 +7466,8 @@ void C_TFPlayer::SetForcedIDTarget( int iTarget )
 	m_iForcedIDTarget = iTarget;
 }
 
+ConVar tf_hud_target_id_disable("tf_hud_target_id_disable", "0", FCVAR_ARCHIVE, "Disables in-game target ID.");
+
 //-----------------------------------------------------------------------------
 // Purpose: Update this client's targetid entity
 //-----------------------------------------------------------------------------
@@ -7498,6 +7500,11 @@ void C_TFPlayer::UpdateIDTarget()
 	// Clear old target and find a new one
 	m_iIDEntIndex = 0;
 
+	if (tf_hud_target_id_disable.GetBool())
+	{
+		return;
+	}
+
 	trace_t tr;
 	Vector vecStart, vecEnd;
 	VectorMA( MainViewOrigin(), MAX_TRACE_LENGTH, MainViewForward(), vecEnd );
@@ -7518,7 +7525,11 @@ void C_TFPlayer::UpdateIDTarget()
 			iReviveMedic = 1;
 		}
 
-		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
+		int nMask = MASK_SOLID;
+		if (iReviveMedic == 1)
+		{
+			nMask |= CONTENTS_DEBRIS;
+		}
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
 

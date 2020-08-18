@@ -400,12 +400,12 @@ void CTFDroppedWeapon::SetupParticleEffect()
 //-----------------------------------------------------------------------------
 void CTFDroppedWeapon::ClientThink()
 {
-	C_TFPlayer *pTFPlayer = C_TFPlayer::GetLocalTFPlayer();
+	C_TFPlayer* pTFPlayer = C_TFPlayer::GetLocalTFPlayer();
 	bool bShouldGlowForLocalPlayer = pTFPlayer && pTFPlayer->IsAlive() && pTFPlayer->CanPickupDroppedWeapon( this ) && pTFPlayer->IsLineOfSightClear( this );
 	if ( bShouldGlowForLocalPlayer )
 	{
 		// ignore the item that the player's equipped
-		int iLoadoutSlot = 0;
+		int iLoadoutSlot;
 		CTFItemDefinition *pItemDef = m_Item.GetStaticData();
 		if ( pItemDef )
 		{

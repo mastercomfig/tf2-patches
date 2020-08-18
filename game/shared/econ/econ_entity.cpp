@@ -1947,6 +1947,14 @@ bool CEconEntity::GetAttachment( int number, matrix3x4_t &matrix )
 	return BaseClass::GetAttachment( number, matrix );
 }
 
+bool C_EconEntity::GetAttachmentNoRecalc(int number, matrix3x4_t& matrix)
+{
+	if (m_hViewmodelAttachment)
+		return m_hViewmodelAttachment->GetAttachmentNoRecalc(number, matrix);
+
+	return BaseClass::GetAttachmentNoRecalc(number, matrix);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

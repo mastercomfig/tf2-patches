@@ -43,12 +43,7 @@ ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
 ConVar mat_forcemanagedtextureintohardware( "mat_forcemanagedtextureintohardware", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 
 ConVar mat_supportflashlight( "mat_supportflashlight", "-1", FCVAR_HIDDEN, "0 - do not support flashlight (don't load flashlight shader combos), 1 - flashlight is supported" );
-#ifdef OSX
-#define CV_FRAME_SWAP_WORKAROUND_DEFAULT "1"
-#else
-#define CV_FRAME_SWAP_WORKAROUND_DEFAULT "0"
-#endif
-ConVar mat_texture_reload_frame_swap_workaround( "mat_texture_reload_frame_swap_workaround", CV_FRAME_SWAP_WORKAROUND_DEFAULT, FCVAR_INTERNAL_USE,
+ConVar mat_texture_reload_frame_swap_workaround( "mat_texture_reload_frame_swap_workaround", "0", FCVAR_INTERNAL_USE,
                                                  "Workaround certain GL drivers holding unnecessary amounts of data when loading many materials by forcing synthetic frame swaps" );
 
 // Make sure this convar gets created before videocfg.lib is initialized, so it can be driven by dxsupport.cfg
@@ -3092,27 +3087,32 @@ void CMaterialSystem::ResetTempHWMemory( bool bExitingLevel )
 void CMaterialSystem::CacheUsedMaterials( )
 {
 	g_pShaderAPI->EvictManagedResources();
+#ifdef OSX
 	size_t count = 0;
-	for (MaterialHandle_t i = FirstMaterial(); i != InvalidMaterial(); i = NextMaterial(i) )
+#endif
+	for (MaterialHandle_t i = FirstMaterial(); i != InvalidMaterial(); i = NextMaterial(i))
 	{
+#ifdef OSX
 		// Some (mac) drivers (amd) seem to keep extra resources around on uploads until the next frame swap.  This
-		// injects pointless synthetic swaps (between already-static load frames)
-		if ( mat_texture_reload_frame_swap_workaround.GetBool() )
+		// injects pointless synthetic swaps (between already-static load frames
+		if (mat_texture_reload_frame_swap_workaround.GetBool())
 		{
-			if ( count++ % 20 == 0 )
+			if (count++ % 20 == 0)
 			{
 				Flush(true);
 				SwapBuffers(); // Not the right thing to call
 			}
 		}
+#endif
 		IMaterialInternal* pMat = GetMaterialInternal(i);
-		Assert( pMat->GetReferenceCount() >= 0 );
-		if( pMat->GetReferenceCount() > 0 )
+		Assert(pMat->GetReferenceCount() >= 0);
+		if (pMat->GetReferenceCount() > 0)
 		{
 			pMat->Precache();
 		}
 	}
-	if ( mat_forcemanagedtextureintohardware.GetBool() )
+
+	if (mat_forcemanagedtextureintohardware.GetBool())
 	{
 		TextureManager()->ForceAllTexturesIntoHardware();
 	}

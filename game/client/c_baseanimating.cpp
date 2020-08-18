@@ -2033,18 +2033,21 @@ bool C_BaseAnimating::PutAttachment( int number, const matrix3x4_t &attachmentTo
 		return false;
 
 	CAttachmentData *pAtt = &m_Attachments[number-1];
-	if ( gpGlobals->frametime > 0 && pAtt->m_nLastFramecount > 0 && pAtt->m_nLastFramecount == gpGlobals->framecount - 1 )
+	if ( gpGlobals->frametime > 0 && pAtt->m_nLastFramecount > 0 && pAtt->m_nLastFramecount < gpGlobals->framecount )
 	{
 		Vector vecPreviousOrigin, vecOrigin;
 		MatrixPosition( pAtt->m_AttachmentToWorld, vecPreviousOrigin );
 		MatrixPosition( attachmentToWorld, vecOrigin );
-		pAtt->m_vOriginVelocity = (vecOrigin - vecPreviousOrigin) / gpGlobals->frametime;
+		pAtt->m_vOriginVelocity = (vecOrigin - vecPreviousOrigin) / (gpGlobals->frametime * (gpGlobals->framecount - pAtt->m_nLastFramecount));
+		if (!pAtt->m_vOriginVelocity.IsZero(0.00001f))
+		{
+			pAtt->m_nLastFramecount = gpGlobals->framecount;
+		}
 	}
 	else
 	{
 		pAtt->m_vOriginVelocity.Init();
 	}
-	pAtt->m_nLastFramecount = gpGlobals->framecount;
 	pAtt->m_bAnglesComputed = false;
 	pAtt->m_AttachmentToWorld = attachmentToWorld;
 
@@ -2939,7 +2942,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		AngleMatrix( GetRenderAngles(), GetRenderOrigin(), parentTransform );
 
 		// Load the boneMask with the total of what was asked for last frame.
-		//boneMask |= m_iPrevBoneMask;
+		boneMask |= m_iPrevBoneMask;
 
 		// Allow access to the bones we're setting up so we don't get asserts in here.
 		int oldReadableBones = m_BoneAccessor.GetReadableBones();
