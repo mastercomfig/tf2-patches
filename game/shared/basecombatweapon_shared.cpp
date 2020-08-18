@@ -2326,7 +2326,6 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 		pPlayer->RemoveAmmo( info.m_iShots, m_iPrimaryAmmoType );
 	}
 
-	info.m_flDistance = MAX_TRACE_LENGTH;
 	info.m_iAmmoType = m_iPrimaryAmmoType;
 	info.m_iTracerFreq = 2;
 

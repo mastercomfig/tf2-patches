@@ -2220,20 +2220,6 @@ void CMatRenderContext::Bind( IMaterial *iMaterial, void *proxyData )
 
 	IMaterialInternal *material = static_cast<IMaterialInternal *>( iMaterial );
 	material = material->GetRealTimeVersion(); //always work with the real time versions of materials internally
-	if ( material->GetReferenceCount() <= 0 )
-	{
-		static ConVarRef matTextureListConVar( "mat_texture_list" );
-		static ConVarRef matShowWaterTextureConVar( "mat_showwatertextures" );
-
-		if ( ( !matTextureListConVar.IsValid() || !matTextureListConVar.GetBool() ) &&
-		     ( !matShowWaterTextureConVar.IsValid() || !matShowWaterTextureConVar.GetBool() ))
-		{
-			Warning( "Material %s has bad reference count %d when being bound\n", material->GetName(), material->GetReferenceCount() );
-			// The usual solution for this for global materials that really don't need refcounting is to do material->AddRef();
-			Assert( 0 );
-			iMaterial = g_pErrorMaterial;
-		}
-	}
 
 	if (g_config.bDrawFlat && !material->NoDebugOverride())
 	{

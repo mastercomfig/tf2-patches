@@ -1,5 +1,4 @@
 @echo off
-pushd %~dp0
 setlocal EnableDelayedExpansion
 
 set df=DepotDownloader\DepotDownloader.dll
@@ -40,5 +39,4 @@ if %passes% equ true (
 	robocopy "%dp%\441\5249752" . /E /XC /XN /XO /XD .DepotDownloader /MOV
 )
 
-popd
 PAUSE

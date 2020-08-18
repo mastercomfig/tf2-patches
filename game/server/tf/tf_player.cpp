@@ -18531,7 +18531,7 @@ void CTFPlayer::ModifyOrAppendCriteria( AI_CriteriaSet& criteriaSet )
 	trace_t tr;
 	Vector forward;
 	EyeVectors( &forward );
-	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * MAX_TRACE_LENGTH), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
+	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * 8192.0f), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
 	if ( !tr.startsolid && tr.DidHitNonWorldEntity() )
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;

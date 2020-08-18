@@ -121,7 +121,7 @@ static ConVar r_flashlightrenderworld(  "r_flashlightrenderworld", "1" );
 static ConVar r_flashlightrendermodels(  "r_flashlightrendermodels", "1" );
 static ConVar r_flashlightrender( "r_flashlightrender", "1" );
 static ConVar r_flashlightculldepth( "r_flashlightculldepth", "1" );
-ConVar r_flashlight_version2( "r_flashlight_version2", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+ConVar r_flashlight_version2("r_flashlight_version2", "1", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 
 //-----------------------------------------------------------------------------

@@ -424,7 +424,13 @@ static void DrawVertexLitGeneric_DX9_Internal( CBaseVSShader *pShader, IMaterial
 	{
 		nBlendType = pShader->EvaluateBlendRequirements( info.m_nEnvmapMask, false );
 	}
-	bool bFullyOpaque = (nBlendType != BT_BLENDADD) && (nBlendType != BT_BLEND) && !bIsAlphaTested && (!bHasFlashlight || IsX360() ); //dest alpha is free for special use
+
+	//dest alpha is free for special use
+#ifdef _X360
+	bool bFullyOpaque = ~(nBlendType == BT_BLENDADD || nBlendType == BT_BLEND || bIsAlphaTested);
+#else
+	bool bFullyOpaque = !(nBlendType == BT_BLENDADD || nBlendType == BT_BLEND || bIsAlphaTested || bHasFlashlight);
+#endif
 
 	bool bHasEnvmap = (!bHasFlashlight || IsX360() ) && info.m_nEnvmap != -1 && params[info.m_nEnvmap]->IsTexture();
 

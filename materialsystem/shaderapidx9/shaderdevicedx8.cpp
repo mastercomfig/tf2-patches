@@ -2677,7 +2677,7 @@ void CShaderDeviceDx8::ReleaseResources()
 
 	LOCK_SHADERAPI();
 
-#ifndef _RETAIL
+#ifdef PIX_INSTRUMENTATION
 	CPixEvent( PIX_VALVE_ORANGE, "ReleaseResources" );
 #endif
 
@@ -2754,7 +2754,9 @@ void CShaderDeviceDx8::ReacquireResourcesInternal( bool bResetState, bool bForce
 	}
 
 	LOCK_SHADERAPI();
+#ifdef PIX_INSTRUMENTATION
 	CPixEvent event( PIX_VALVE_ORANGE, "ReacquireResources" );
+#endif
 
 	g_pShaderAPI->RestoreShaderObjects();
 	AllocFrameSyncObjects();

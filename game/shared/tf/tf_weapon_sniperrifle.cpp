@@ -1482,7 +1482,7 @@ bool CSniperDot::GetRenderingPositions( C_TFPlayer *pPlayer, Vector &vecAttachme
 		Vector vecDir;
 		QAngle angles;
 
-		float flDist = MAX_TRACE_LENGTH;
+		float flDist = 8192.0f;
 
 		// Always draw the dot in front of our faces when in first-person.
 		if ( pPlayer->IsLocalPlayer() )

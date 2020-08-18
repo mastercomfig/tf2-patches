@@ -7507,8 +7507,8 @@ void C_TFPlayer::UpdateIDTarget()
 
 	trace_t tr;
 	Vector vecStart, vecEnd;
-	VectorMA( MainViewOrigin(), MAX_TRACE_LENGTH, MainViewForward(), vecEnd );
-	VectorMA( MainViewOrigin(), 10,   MainViewForward(), vecStart );
+	VectorMA( MainViewOrigin(), 8192.0f, MainViewForward(), vecEnd );
+	VectorMA( MainViewOrigin(), 10.0f,   MainViewForward(), vecStart );
 
 	// If we're in observer mode, ignore our observer target. Otherwise, ignore ourselves.
 	if ( IsObserver() )
