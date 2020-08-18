@@ -47,10 +47,21 @@ $Configuration
 		// Deprecated MBCS MFC libraries for VS 2013 (nafxcw.lib and nafxcwd.lib) can be downloaded from http://go.microsoft.com/?linkid=9832071
 		$AdditionalDependencies				"$BASE winmm.lib rpcrt4.lib"
 	}
+
+	$Debugging
+	{
+		$Command "$OUTBINDIR\hammer.exe"
+		$WorkingDirectory "$OUTBINDIR\.."
+	}
 }
 
 $Configuration	"Debug"
 {
+	$Debugging
+	{
+		$CommandArguments "-nop4"
+	}
+
 	$Compiler
 	{
 		$PrecompiledHeaderFile				"Hammer___Win32_Debug/hammer.pch"
@@ -59,6 +70,11 @@ $Configuration	"Debug"
 
 $Configuration	"Release"
 {
+	$Debugging
+	{
+		$CommandArguments "-nop4"
+	}
+
 	$Compiler
 	{
 		$PrecompiledHeaderFile				"Hammer___Win32_Release/hammer.pch"
