@@ -21,6 +21,9 @@ $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 $macro ARGLIBNAME "vgui_controls"
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc" [$WIN32]
 
+$Macro ARGPROJNAME "server (tf)"
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 $Configuration
 {
 	$Compiler

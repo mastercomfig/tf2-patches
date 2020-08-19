@@ -30,7 +30,24 @@ $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 $Macro ARGLIBNAME "vgui_controls"
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$DEDICATED]
 $Macro ARGLIBNAME "libz"
-$Include "$SRCDIR\vpc_scripts\lib_include.vpc"		
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+
+$Macro ARGPROJNAME inputsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME materialsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME studiorender
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME datacache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME vgui2
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME soundemittersystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME scenefilecache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME replay
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"		
 
 $Macro ARGLIBNAME "bzip2"
 $Include "$SRCDIR\vpc_scripts\lib_common_include.vpc"
