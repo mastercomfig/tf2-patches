@@ -400,7 +400,8 @@ void CTFGrenadeLauncher::LaunchGrenade( void )
 		QAngle punchAngle = pPlayer->GetPunchAngle();
 		for ( int i=0; i<nCurrentClipSize; ++i, ++iSeed )
 		{
-			RandomSeed( iSeed );
+			// TODO: what's this for?
+			//RandomSeed( iSeed );
 			FireProjectileInternal( pPlayer );
 			if ( i == 0 )
 			{
