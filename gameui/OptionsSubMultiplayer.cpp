@@ -860,24 +860,24 @@ void CrosshairImagePanelAdvanced::Paint()
 
 	// 		int frame = m_pFrameVar->GetIntValue();
 
-	// 		// if ( m_bAscending )
-	// 		// {
-	// 		// 	frame++;
-	// 		// 	if ( frame >= m_nNumFrames )
-	// 		// 	{
-	// 		// 		m_bAscending = !m_bAscending;
-	// 		// 		frame--;
-	// 		// 	}
-	// 		// }
-	// 		// else
-	// 		// {
-	// 		// 	frame--;
-	// 		// 	if ( frame < 0 )
-	// 		// 	{
-	// 		// 		m_bAscending = !m_bAscending;
-	// 		// 		frame++;
-	// 		// 	}
-	// 		// }
+	// 		 if ( m_bAscending )
+	// 		 {
+	// 		 	frame++;
+	// 		 	if ( frame >= m_nNumFrames )
+	// 		 	{
+	// 		 		m_bAscending = !m_bAscending;
+	// 		 		frame--;
+	// 		 	}
+	// 		 }
+	// 		 else
+	// 		 {
+	// 		 	frame--;
+	// 		 	if ( frame < 0 )
+	// 		 	{
+	// 		 		m_bAscending = !m_bAscending;
+	// 		 		frame++;
+	// 		 	}
+	// 		 }
 
 	// 		m_pFrameVar->SetIntValue(frame);
 	// 	}
