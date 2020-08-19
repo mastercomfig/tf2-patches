@@ -45,6 +45,13 @@ $Configuration
 	{
 		$EnableLargeAddresses				"Support Addresses Larger Than 2 Gigabytes (/LARGEADDRESSAWARE)"
 	}
+
+	$Debugging
+	{
+		$Command "$OUTBINDIR\$(TargetFileName)"
+		$CommandArguments "-nop4"
+		$WorkingDirectory "$OUTBINDIR\.."
+	}
 }
 
 $Project "Hammer_launcher"
