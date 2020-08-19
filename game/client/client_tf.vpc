@@ -16,6 +16,35 @@ $Include "$SRCDIR\game\client\client_econ_base.vpc"
 $Include "$SRCDIR\vpc_scripts\source_saxxyawards.vpc"
 $Include "$SRCDIR\utils\itemtest_lib\itemtest_lib_support.vpc" [$WORKSHOP_IMPORT_ENABLE]
 
+$Macro ARGPROJNAME engine
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME inputsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME materialsystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME filesystem_io
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME datacache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME studiorender
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME vguimatsurface
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME vgui2
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME shaderapidx9
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME "server (tf)"
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME soundemittersystem
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME scenefilecache
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME replay
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME gameui
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 $Configuration
 {
 	$Compiler

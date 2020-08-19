@@ -18,6 +18,10 @@ $Include "$SRCDIR\vpc_scripts\lib_include.vpc"
 $macro ARGLIBNAME "togl"
 $Include "$SRCDIR\vpc_scripts\lib_include.vpc" [!$IS_LIB_PROJECT && $GL]
 
+$Macro ARGPROJNAME "filesystem_stdio"
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+$Macro ARGPROJNAME "client (tf)"
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
 
 $Configuration
 {

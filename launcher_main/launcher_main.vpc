@@ -21,6 +21,9 @@ $Include "$SRCDIR\vpc_scripts\tier0_uninclude.vpc" [$WINDOWS]
 $Include "$SRCDIR\vpc_scripts\tier1_uninclude.vpc" [$WINDOWS]
 $Include "$SRCDIR\vpc_scripts\vstdlib_uninclude.vpc" [$WINDOWS]
 
+$Macro ARGPROJNAME launcher
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 $Configuration
 {
     $General
@@ -32,6 +35,12 @@ $Configuration
 	{
 		$PreprocessorDefinitions	"$BASE;fopen=dont_use_fopen"
 		$ForceIncludes				" "
+	}
+
+	$Debugging
+	{
+		$Command "$OUTBINDIR\hl2.exe"
+		$WorkingDirectory "$OUTBINDIR"
 	}
 
 	$Linker [$WIN32]
@@ -81,6 +90,22 @@ $Configuration
 									"del /q $(TargetPath)" "\n" \
 									"exit 1" "\n" \
 									":BuildEventOK" "\n"
+	}
+}
+
+$Configuration	"Debug"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug -condebug" [$WINDOWS]
+	}
+}
+
+$Configuration	"Release"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2" [$WINDOWS]
 	}
 }
 
