@@ -15,6 +15,9 @@ $Include "$SRCDIR\tier0\tier0_exclude.vpc"
 $Include "$SRCDIR\tier1\tier1_exclude.vpc" [$WINDOWS]
 $Include "$SRCDIR\vstdlib\vstdlib_exclude.vpc" [$WINDOWS]
 
+$Macro ARGPROJNAME dedicated
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+
 $Configuration
 {
 	$Linker [$WINDOWS]
