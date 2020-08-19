@@ -847,39 +847,41 @@ void CrosshairImagePanelAdvanced::Paint()
 	int iClipX0, iClipY0, iClipX1, iClipY1;
 	ipanel()->GetClipRect(GetVPanel(), iClipX0, iClipY0, iClipX1, iClipY1 );
 
+	// All this does is makes the crosshair gap increase and decrease in the options menu. This wouldn't be an issue except the gap reflects in game if the crosshair is applied and will be set to that gap until the game is restarted.
+	
 	// scroll through all frames
-	if ( m_pFrameVar )
-	{	
-		float curtime = system()->GetFrameTime();
+	// if ( m_pFrameVar )
+	// {	
+	// 	float curtime = system()->GetFrameTime();
 
-		if ( curtime >= m_flNextFrameChange )
-		{
-			m_flNextFrameChange = curtime + 0.2;
+	// 	if ( curtime >= m_flNextFrameChange )
+	// 	{
+	// 		m_flNextFrameChange = curtime + 0.2;
 
-			int frame = m_pFrameVar->GetIntValue();
+	// 		int frame = m_pFrameVar->GetIntValue();
 
-			if ( m_bAscending )
-			{
-				frame++;
-				if ( frame >= m_nNumFrames )
-				{
-					m_bAscending = !m_bAscending;
-					frame--;
-				}
-			}
-			else
-			{
-				frame--;
-				if ( frame < 0 )
-				{
-					m_bAscending = !m_bAscending;
-					frame++;
-				}
-			}
+	// 		// if ( m_bAscending )
+	// 		// {
+	// 		// 	frame++;
+	// 		// 	if ( frame >= m_nNumFrames )
+	// 		// 	{
+	// 		// 		m_bAscending = !m_bAscending;
+	// 		// 		frame--;
+	// 		// 	}
+	// 		// }
+	// 		// else
+	// 		// {
+	// 		// 	frame--;
+	// 		// 	if ( frame < 0 )
+	// 		// 	{
+	// 		// 		m_bAscending = !m_bAscending;
+	// 		// 		frame++;
+	// 		// 	}
+	// 		// }
 
-			m_pFrameVar->SetIntValue(frame);
-		}
-	}
+	// 		m_pFrameVar->SetIntValue(frame);
+	// 	}
+	// }
 
 	float x, y;
 
