@@ -3139,13 +3139,15 @@ void CBaseObject::AttachObjectToObject( CBaseEntity *pEntity, int iPoint, Vector
 			Assert( pBPInterface );
 			if ( pBPInterface )
 			{
-				iAttachment = pBPInterface->GetBuildPointAttachmentIndex( iPoint );
-
-				// re-link to the build points if the sapper is already built
-				if ( !( IsPlacing() || IsBuilding() ) )
-				{
-					pBPInterface->SetObjectOnBuildPoint( m_iBuiltOnPoint, this );
+				if (IsPlacing()) {
+					return;
 				}
+				if (GetType() != OBJ_ATTACHMENT_SAPPER && IsBuilding()) {
+					return;
+				}
+
+				iAttachment = pBPInterface->GetBuildPointAttachmentIndex( iPoint );
+				pBPInterface->SetObjectOnBuildPoint( m_iBuiltOnPoint, this );
 			}
 		}
 
@@ -3734,3 +3736,41 @@ int CBaseObject::GetMaxHealthForCurrentLevel( void )
 
 	return iMaxHealth;
 }
+
+extern CBaseEntity *FindPickerEntity( CBasePlayer *pPlayer );
+void CC_EntUpgrade( const CCommand& args )
+{
+	CBasePlayer* pPlayer = UTIL_GetCommandClient();
+	CBaseEntity* pEntity = FindPickerEntity( pPlayer );
+	if (pEntity == nullptr) {
+		ClientPrint(pPlayer, HUD_PRINTCONSOLE, "upgradetarget: no entity found");
+		return;
+	}
+
+	CBaseObject* pBuildable = dynamic_cast<CBaseObject*>(pEntity);
+	if (pBuildable == nullptr) {
+		ClientPrint(pPlayer, HUD_PRINTCONSOLE, "upgradetarget: cannot upgrade this entity");
+		return;
+	}
+
+	if (pBuildable->IsBuilding()) {
+		ClientPrint(pPlayer, HUD_PRINTCONSOLE, "Skipping building animation...");
+		pBuildable->FinishedBuilding();
+	}
+
+	if (pBuildable->IsUpgrading()) {
+		ClientPrint(pPlayer, HUD_PRINTCONSOLE, "Skipping upgrade animation...");
+		pBuildable->FinishUpgrading();
+		return;
+	}
+
+	int l = pBuildable->GetUpgradeLevel();
+	if (l == pBuildable->GetMaxUpgradeLevel()) {
+		ClientPrint(pPlayer, HUD_PRINTCONSOLE, "upgradetarget: entity already max level");
+		return;
+	}
+
+	ClientPrint(pPlayer, HUD_PRINTCONSOLE, "Upgrading...");
+	pBuildable->StartUpgrading();
+} 
+static ConCommand firetarget("upgradetarget", CC_EntUpgrade, 0, FCVAR_CHEAT);

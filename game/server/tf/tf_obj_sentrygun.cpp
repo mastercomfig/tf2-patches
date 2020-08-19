@@ -2382,7 +2382,6 @@ void CTFProjectile_SentryRocket::Spawn()
 	ResetSequence( LookupSequence("idle") );
 }
 
-#ifdef STAGING_ONLY
 //-----------------------------------------------------------------------------
 // Purpose: Directly create a sentry gun at the precise position and orientation desired
 //-----------------------------------------------------------------------------
@@ -2437,5 +2436,3 @@ void CC_SentrygunSpawn( const CCommand& args )
 	}
 }
 static ConCommand sentrygun_spawn( "sentrygun_spawn", CC_SentrygunSpawn, "Spawns a Sentrygun where the player is looking. Takes a parameter for level of sentry [1-3: default 3]. If the passed sentry level < 0, an enemy sentry is spawned.", FCVAR_GAMEDLL | FCVAR_CHEAT );
-
-#endif // STAGING_ONLY
