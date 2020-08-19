@@ -62,8 +62,42 @@ Other launch options to consider:
     - `dotnet DepotDownloader.dll -app 440 -depot 441 -manifest 7707612755534478338 -username USERNAME -password PASSWORD`
     - `dotnet DepotDownloader.dll -app 440 -depot 440 -username USERNAME -password PASSWORD`
     - `dotnet DepotDownloader.dll -app 440 -depot 232251 -manifest 2174530283606128348 -username USERNAME -password PASSWORD`
-  
+
 If prompted for Steam Guard code, enter it.
+
+## Build System Info
+
+### Configuration Separation
+To ensure that Release and Debug builds do not conflict, we replaced the default `$LIBPUBLIC` macro with two: `$LIBPUBLICDEBUG` and `$LIBPUBLICRELEASE`. Same for libraries that get generated into `$LIBCOMMON`. This means that most builds will not work by default since they need `$LIBPUBLIC` to be defined. This includes the `$Lib` and `$ImpLib` VPC commands. Fixing this involves going through all the occurances of `$LIBPUBLIC` and `$LIBCOMMON` (if it is a generated library and not imported one) and replacing them with two `$File` commands (one for debug and one for release) with `$ExcludedFromBuild "Yes"` in the configuration for the opposite configuration (i.e. for `$LIBPUBLICDEBUG` set `$ExcludedFromBuild` in the `"Release"` configuration).
+
+Since this is extremely non-trivial,
+```
+$Macro ARGLIBNAME library_name
+$Include "$SRCDIR\vpc_scripts\lib_include.vpc"
+```
+will do it for you for the `library_name` library.
+
+A similar script for `$LIBCOMMON` libraries is `$SRCDIR\vpc_scripts\lib_common_include.vpc`
+
+### Published DLL Tracking
+In Valve's build scripts, the runtime DLL dependencies are implicit, so if a required DLL is missing or needs a rebuild, it will not be picked up by the build system. Fixing this invovles adding project dependencies with
+```
+$Macro ARGPROJNAME proj_name
+$Include "$SRCDIR\vpc_scripts\proj_include.vpc"
+```
+
+To find which projects you need, run the `/clean_bins.sh` script (MinGW or Cygwin required) to clean out the published binaries and cause the game to print errors whenever a dependency is missing. Add each of these dependencies and the builds should work.
+
+To avoid going through a VPC re-run and a VS rebuild that follows for the core project, build the dependencies manually first and check if any others are needed before adding them to the VPC. This saves a lot of time.
+
+### PyVPC
+A WIP Python port of the Valve VPC tool is included under `/pyvpc/`. I have only tested it from under Cygwin, under which Python gets very confused regarding which platform it is running on, so some hacks were necessary. It should probably still work under native Windows. It currently has a hard dependcy on the [`colorful`](https://github.com/timofurrer/colorful) module.
+
+The plan for this tool is to have a way of parsing the original Valve VPC files, then applying patches to the generated configurations from a Python script, then using that representation to generate `.vcproj` files. Or we might juse use the Valve configurations as a base to manually write Python build definitions.
+
+In any case, the processing of the VPC files is there for greater compatibility with potential future leaks/working with other code based on VPC.
+
+We do not want to use VPC ultimately, since it depends on a large amount of Valve code (its own version of tier0, vstdlib, and more) and because patching C tools is a pain. And we do want to patch it because of the various bugs and inflexibilities in VPC which make some things outright impossible/not work, and others extremely complicated (see the two sections above). The patch for clean build configuration separation alone touched 71 files and required more than 1000 changes.
 
 ## Legal
 
