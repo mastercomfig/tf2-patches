@@ -11,7 +11,7 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 ## Install
 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
-2. Extract to a folder of your choosing.
+2. Extract to a folder of your choosing (other than `Program Files` and `Program Files (x86)` since Windows places restrictions on these).
 3. Run `download_depots.bat`.
 5. Double click `start_tf2.bat`. Note that you must have Steam running.
 6. Enjoy!
