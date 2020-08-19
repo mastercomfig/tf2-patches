@@ -396,11 +396,11 @@ void CTFGrenadeLauncher::LaunchGrenade( void )
 	{
 		int nCurrentClipSize = m_iClip1;
 		m_nLauncherSlot = 0;
-		int iSeed = CBaseEntity::GetPredictionRandomSeed() & 255;
+		//int iSeed = CBaseEntity::GetPredictionRandomSeed() & 255;
 		QAngle punchAngle = pPlayer->GetPunchAngle();
-		for ( int i=0; i<nCurrentClipSize; ++i, ++iSeed )
+		for ( int i=0; i<nCurrentClipSize; ++i/*, ++iSeed */ )
 		{
-			// TODO: what's this for?
+			// TODO(mastercoms): fix random
 			//RandomSeed( iSeed );
 			FireProjectileInternal( pPlayer );
 			if ( i == 0 )
