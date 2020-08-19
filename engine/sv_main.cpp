@@ -214,12 +214,11 @@ static ConVar sv_voicecodec( "sv_voicecodec", "vaudio_celt", 0,
                              "vaudio_celt - Newer CELT codec\n"
                              "steam - Use Steam voice API" );
 
-
-ConVar  sv_mincmdrate( "sv_mincmdrate", "66", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdrate. 0 == unlimited." );
-ConVar  sv_maxcmdrate( "sv_maxcmdrate", "66", FCVAR_REPLICATED, "(If sv_mincmdrate is > 0), this sets the maximum value for cl_cmdrate." );
-ConVar  sv_client_cmdrate_difference( "sv_client_cmdrate_difference", "0", FCVAR_REPLICATED, 
-	"cl_cmdrate is moved to within sv_client_cmdrate_difference units of cl_updaterate before it "
-	"is clamped between sv_mincmdrate and sv_maxcmdrate." );
+ConVar  sv_mincmdinterval("sv_mincmdinterval", "0.015", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdinterval. 0 == unlimited.");
+ConVar  sv_maxcmdinterval("sv_maxcmdinterval", "0.015", FCVAR_REPLICATED, "(If sv_mincmdinterval is > 0), this sets the maximum value for cl_cmdinterval.");
+ConVar  sv_client_cmdinterval_difference("sv_client_cmdinterval_difference", "0", FCVAR_REPLICATED,
+	"cl_cmdinterval is moved to within sv_client_cmdinterval_difference units of cl_updateinterval before it "
+	"is clamped between sv_mincmdinterval and sv_maxcmdinterval.");
 
 ConVar  sv_client_min_interp_ratio( "sv_client_min_interp_ratio", "1", FCVAR_REPLICATED, 
 								   "This can be used to limit the value of cl_interp_ratio for connected clients "

@@ -693,16 +693,12 @@ void UTIL_GetPlayerConnectionInfo( int playerIndex, int& ping, int &packetloss )
 	{
 		float latency = nci->GetAvgLatency( FLOW_OUTGOING ); // in seconds
 		
-		// that should be the correct latency, we assume that cmdrate is higher 
-		// then updaterate, what is the case for default settings
-		const char * szCmdRate = engine->GetClientConVarValue( playerIndex, "cl_cmdrate" );
+		// that should be the correct latency, we assume that cmdinterval is higher 
+		// then updateinterval, what is the case for default settings
+		const char * szCmdInterval = engine->GetClientConVarValue( playerIndex, "cl_cmdinterval" );
 		
-		int nCmdRate = MAX( 1, Q_atoi( szCmdRate ) );
-		latency -= (0.5f/nCmdRate) + TICKS_TO_TIME( 1.0f ); // correct latency
-
-		// in GoldSrc we had a different, not fixed tickrate. so we have to adjust
-		// Source pings by half a tick to match the old GoldSrc pings.
-		latency -= TICKS_TO_TIME( 0.5f );
+		float fCmdInterval = MAX( 1, Q_atof( szCmdInterval ) );
+		latency -= fCmdInterval + TICKS_TO_TIME(1); // correct latency
 
 		ping = latency * 1000.0f; // as msecs
 		ping = clamp( ping, 5, 1000 ); // set bounds, dont show pings under 5 msecs

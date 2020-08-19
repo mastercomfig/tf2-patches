@@ -122,7 +122,7 @@ ConVar voice_threshold( "voice_threshold", "2000", FCVAR_ARCHIVE );
 // CD rippers change your waveIn to come from the CD drive
 ConVar voice_forcemicrecord( "voice_forcemicrecord", "1", FCVAR_ARCHIVE );
 
-// This should not be lower than the maximum difference between clients' frame durations (due to cmdrate/updaterate),
+// This should not be lower than the maximum difference between clients' frame durations (due to cmdinterval/updateinterval),
 // plus some jitter allowance.
 ConVar voice_buffer_ms( "voice_buffer_ms", "100", FCVAR_INTERNAL_USE,
                         "How many milliseconds of voice to buffer to avoid dropouts due to jitter and frame time differences." );

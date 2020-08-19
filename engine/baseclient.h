@@ -95,7 +95,9 @@ public:
 
 	virtual	void	SetRate( int nRate, bool bForce );
 	virtual	int		GetRate( void ) const;
-	
+
+	virtual void	SetUpdateInterval(float fUpdateInterval, bool bForce);
+	virtual float	GetUpdateInterval(void) const;
 	virtual void	SetUpdateRate( int nUpdateRate, bool bForce );
 	virtual int		GetUpdateRate( void ) const;
 

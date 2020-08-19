@@ -554,8 +554,8 @@ IClient *CBaseServer::ConnectClient ( netadr_t &adr, int protocol, int challenge
 	m_nUserid = nNextUserID;
 	m_nNumConnections++;
 
-	// Will get reset from userinfo, but this value comes from sv_updaterate ( the default )
-	client->m_fSnapshotInterval = 1.0f/20.0f;
+	// Will get reset from userinfo, but this value comes from cl_updateinterval ( the default )
+	client->m_fSnapshotInterval = 0.015f;
 	client->m_fNextMessageTime = net_time + client->m_fSnapshotInterval;
 	// Force a full delta update on first packet.
 	client->m_nDeltaTick = -1;
@@ -2078,7 +2078,7 @@ CBaseClient *CBaseServer::CreateFakeClient( const char *name )
 	// fake some cvar settings
 	//fakeclient->SetUserCVar( "name", name ); // set already by Connect()
 	fakeclient->SetUserCVar( "rate", "30000" );
-	fakeclient->SetUserCVar( "cl_updaterate", "20" );
+	fakeclient->SetUserCVar( "cl_updateinterval", "0.015" );
 	fakeclient->SetUserCVar( "cl_interp_ratio", "1.0" );
 	fakeclient->SetUserCVar( "cl_interp", "0.1" );
 	fakeclient->SetUserCVar( "cl_interpolate", "0" );

@@ -40,9 +40,9 @@ extern CNetworkStringTableContainer *networkStringTableContainerServer;
 static ConVar	sv_timeout( "sv_timeout", "65", 0, "After this many seconds without a message from a client, the client is dropped" );
 static ConVar	sv_maxrate( "sv_maxrate", "0", FCVAR_REPLICATED, "Max bandwidth rate allowed on server, 0 == unlimited" );
 static ConVar	sv_minrate( "sv_minrate", V_STRINGIFY(MIN_RATE), FCVAR_REPLICATED, "Min bandwidth rate allowed on server, 0 == unlimited" );
-       
-       ConVar	sv_maxupdaterate( "sv_maxupdaterate", "66", FCVAR_REPLICATED, "Maximum updates per second that the server will allow" );
-	   ConVar	sv_minupdaterate( "sv_minupdaterate", "66", FCVAR_REPLICATED, "Minimum updates per second that the server will allow" );
+
+       ConVar	sv_maxupdateinterval( "sv_maxupdateinterval", "0.015", FCVAR_REPLICATED, "Maximum time between updates that the server will allow" );
+	   ConVar	sv_minupdateinterval( "sv_minupdateinterval", "0.015", FCVAR_REPLICATED, "Minimum time between updates that the server will allow" );
 
 	   ConVar	sv_stressbots("sv_stressbots", "0", FCVAR_DEVELOPMENTONLY, "If set to 1, the server calculates data and fills packets to bots. Used for perf testing.");
 static ConVar	sv_allowdownload ("sv_allowdownload", "1", 0, "Allow clients to download files");
@@ -490,22 +490,42 @@ void CGameClient::SetRate(int nRate, bool bForce )
 
 	CBaseClient::SetRate( nRate, bForce );
 }
-void CGameClient::SetUpdateRate(int udpaterate, bool bForce)
+
+void CGameClient::SetUpdateInterval(float fUpdateInterval, bool bForce)
 {
-	if ( !bForce )
+	if (!bForce)
 	{
-		if ( sv_maxupdaterate.GetInt() > 0 )
+		if (1.0f / sv_maxupdateinterval.GetFloat() > 0)
 		{
-			udpaterate = clamp( udpaterate, 1, sv_maxupdaterate.GetInt() );
+			fUpdateInterval = clamp(fUpdateInterval, 0.015f, sv_maxupdateinterval.GetFloat());
 		}
 
-		if ( sv_minupdaterate.GetInt() > 0 )
+		if (1.0f / sv_minupdateinterval.GetFloat() > 0)
 		{
-			udpaterate = clamp( udpaterate, sv_minupdaterate.GetInt(), 100 );
+			fUpdateInterval = max(fUpdateInterval, sv_minupdateinterval.GetFloat());
 		}
 	}
 
-	CBaseClient::SetUpdateRate( udpaterate, bForce );
+	CBaseClient::SetUpdateInterval(fUpdateInterval, bForce);
+}
+
+
+void CGameClient::SetUpdateRate(int updaterate, bool bForce)
+{
+	if ( !bForce )
+	{
+		if (1.0f / sv_maxupdateinterval.GetFloat() > 0)
+		{
+			updaterate = clamp((float) updaterate, 1.0f, 1.0f / sv_maxupdateinterval.GetFloat() );
+		}
+
+		if (1.0f / sv_minupdateinterval.GetFloat() > 0)
+		{
+			updaterate = max((float) updaterate, 1.0f / sv_minupdateinterval.GetFloat());
+		}
+	}
+
+	CBaseClient::SetUpdateRate(updaterate, bForce );
 }
 
 

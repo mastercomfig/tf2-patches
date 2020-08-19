@@ -282,7 +282,7 @@ BEGIN_DATADESC( CBasePlayer )
 	DEFINE_AUTO_ARRAY( m_szAnimExtension, FIELD_CHARACTER ),
 //	DEFINE_CUSTOM_FIELD( m_Activity, ActivityDataOps() ),
 
-	DEFINE_FIELD( m_nUpdateRate, FIELD_INTEGER ),
+	DEFINE_FIELD( m_fUpdateInterval, FIELD_FLOAT ),
 	DEFINE_FIELD( m_fLerpTime, FIELD_FLOAT ),
 	DEFINE_FIELD( m_bLagCompensation, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bPredictWeapons, FIELD_BOOLEAN ),
@@ -593,7 +593,7 @@ CBasePlayer::CBasePlayer( )
 
 	m_hZoomOwner = NULL;
 
-	m_nUpdateRate = 20;  // cl_updaterate defualt
+	m_fUpdateInterval = 0.015f;  // cl_updateinterval defualt
 	m_fLerpTime = 0.1f; // cl_interp default
 	m_bPredictWeapons = true;
 	m_bLagCompensation = false;

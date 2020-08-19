@@ -2233,7 +2233,7 @@ void CL_Move(float accumulated_extra_samples, bool bFinalTick )
 	if ( cl.IsActive() )
 	{
 		// use full update rate when active
-		float commandInterval = 1.0f / cl_cmdrate->GetFloat();
+		float commandInterval = cl_cmdinterval->GetFloat();
 		float maxDelta = min ( host_state.interval_per_tick, commandInterval );
 		float delta = clamp( (float)(net_time - cl.m_flNextCmdTime), 0.0f, maxDelta );
 		cl.m_flNextCmdTime = net_time + commandInterval - delta;
@@ -2699,8 +2699,8 @@ void CL_SetSteamCrashComment()
 	Q_snprintf( misc, sizeof( misc ), "skill:%i rate %i update %i cmd %i latency %i msec", 
 		skill.GetInt(),
 		cl_rate->GetInt(),
-		(int)cl_updaterate->GetFloat(),
-		(int)cl_cmdrate->GetFloat(),
+		(int) (1.0f / cl_updateinterval->GetFloat()),
+		(int) (1.0f / cl_cmdinterval->GetFloat()),
 		latency
 	);
 
