@@ -141,6 +141,7 @@ const char *GetRandomBotName( void )
 {
 	static const char *nameList[] =
 	{
+#ifndef NO_DEFAULT_BOT_NAMES
 		"Chucklenuts",
 		"CryBaby",
 		"WITCH",
@@ -231,7 +232,32 @@ const char *GetRandomBotName( void )
 		"Mega Baboon",
 		"Kill Me",
 		"Glorified Toaster with Legs",
+#endif
+		"mastercoms",
+		"maximsmol",
 
+		"Look, Gordon, ropes!",
+		"HeavyIsDead",
+		"Soup Rice Big Not",
+		"Daedsillib",
+		"Demonstration Man",
+		"Try Overwatch Too!",
+		"SPECULASHION",
+		"jump_botname_a3",
+		"poopstupid",
+		"ILoveMyBall",
+		"Box Of Rocks",
+		"Blohkhed",
+		"FOYERTech",
+		"// too bad!",
+		"Accelerated Backward BHOP",
+		"> quit smoking",
+		"cl_interp 0",
+		"bind e kill",
+		"bind s explode // vroom",
+		"Yo, Merry Christmas",
+		"The Shpee",
+		"Gorgeous Freeman",
 #ifdef STAGING_ONLY
 		"John Spartan",
 		"Leeloo Dallas Multipass",
