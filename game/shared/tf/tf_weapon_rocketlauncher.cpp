@@ -74,6 +74,28 @@ BEGIN_DATADESC( CTFRocketLauncher_DirectHit )
 END_DATADESC()
 #endif
 
+
+//=============================================================================
+//
+//  tables.
+//
+IMPLEMENT_NETWORKCLASS_ALIASED(TFRocketLauncher_FireBall, DT_WeaponRocketLauncher_FireBall)
+
+BEGIN_NETWORK_TABLE(CTFRocketLauncher_FireBall, DT_WeaponRocketLauncher_FireBall)
+END_NETWORK_TABLE()
+
+BEGIN_PREDICTION_DATA(CTFRocketLauncher_FireBall)
+END_PREDICTION_DATA()
+
+LINK_ENTITY_TO_CLASS(tf_weapon_rocketlauncher_fireball, CTFRocketLauncher_FireBall);
+PRECACHE_WEAPON_REGISTER(tf_weapon_rocketlauncher_fireball);
+
+// Server specific.
+#ifndef CLIENT_DLL
+BEGIN_DATADESC(CTFRocketLauncher_FireBall)
+END_DATADESC()
+#endif
+
 //=============================================================================
 //
 // AIRSTRIKE BEGIN

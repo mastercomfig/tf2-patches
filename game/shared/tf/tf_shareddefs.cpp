@@ -949,12 +949,14 @@ const char *g_szProjectileNames[] =
 	"projectile_spellfireball",
 	"projectile_festive_urine",
 	"projectile_festive_healing_bolt",
-	"projectfile_breadmonster_jarate",
-	"projectfile_breadmonster_madmilk",
+	"projectile_breadmonster_jarate",
+	"projectile_breadmonster_madmilk",
 
 	"projectile_grapplinghook",
 	"projectile_sentry_rocket",
 	"projectile_bread_monster",
+
+	"tf_projectile_balloffire"
 
 #ifdef STAGING_ONLY	
 	// Staging
@@ -1001,6 +1003,8 @@ int g_iProjectileWeapons[] =
 	TF_PROJECTILE_GRAPPLINGHOOK,
 	TF_WEAPON_SENTRY_ROCKET,
 	TF_WEAPON_THROWABLE,
+
+	TF_WEAPON_FLAMETHROWER_ROCKET,
 
 #ifdef STAGING_ONLY
 	// Staging
