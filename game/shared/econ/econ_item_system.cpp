@@ -492,10 +492,10 @@ public:
 #if ( defined( GAME_DLL ) || defined( CLIENT_DLL ) ) && ( defined( _DEBUG ) || defined( STAGING_ONLY ) )
 		const bool bUseGCCopy = items_game_use_gc_copy.GetBool();
 #else
-	    const bool bUseGCCopy = false;
+	    const bool bUseGCCopy = true;
 #endif
 
-		if ( bUseGCCopy == false )
+		if ( bUseGCCopy == false && k_EUniversePublic != GetUniverse() )
 		{
 			Msg( "Loading item schema from local file.\n" );
 			KeyValuesAD pItemsGameKV( "ItemsGameFile" );
