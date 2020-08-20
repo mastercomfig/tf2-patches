@@ -18,8 +18,9 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
 * Team Comtress version (don't say latest, say the actual version):
-* .NET Core version:
-* DepotDownloader version:
+* Custom content (if any):
+* DX level:
+* Launch options:
 * Operating system (OS):
 * Graphics card (GPU):
 * Graphics driver version:
