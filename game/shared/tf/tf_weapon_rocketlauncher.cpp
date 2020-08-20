@@ -79,20 +79,20 @@ END_DATADESC()
 //
 //  tables.
 //
-IMPLEMENT_NETWORKCLASS_ALIASED(TFRocketLauncher_FireBall, DT_WeaponRocketLauncher_FireBall)
+IMPLEMENT_NETWORKCLASS_ALIASED(TFWeaponFlameBall, DT_WeaponWeaponFlameBall)
 
-BEGIN_NETWORK_TABLE(CTFRocketLauncher_FireBall, DT_WeaponRocketLauncher_FireBall)
+BEGIN_NETWORK_TABLE(CTFWeaponFlameBall, DT_WeaponWeaponFlameBall)
 END_NETWORK_TABLE()
 
-BEGIN_PREDICTION_DATA(CTFRocketLauncher_FireBall)
+BEGIN_PREDICTION_DATA(CTFWeaponFlameBall)
 END_PREDICTION_DATA()
 
-LINK_ENTITY_TO_CLASS(tf_weapon_rocketlauncher_fireball, CTFRocketLauncher_FireBall);
+LINK_ENTITY_TO_CLASS(tf_weapon_rocketlauncher_fireball, CTFWeaponFlameBall);
 PRECACHE_WEAPON_REGISTER(tf_weapon_rocketlauncher_fireball);
 
 // Server specific.
 #ifndef CLIENT_DLL
-BEGIN_DATADESC(CTFRocketLauncher_FireBall)
+BEGIN_DATADESC(CTFWeaponFlameBall)
 END_DATADESC()
 #endif
 

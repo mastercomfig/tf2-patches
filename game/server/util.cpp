@@ -696,8 +696,8 @@ void UTIL_GetPlayerConnectionInfo( int playerIndex, int& ping, int &packetloss )
 		// get outgoing latency
 		const char * szUpdateInterval = engine->GetClientConVarValue( playerIndex, "cl_updateinterval" );
 		
-		float fUpdateInterval = MAX( 1.0f, Q_atof( szUpdateInterval ) );
-		latency += fUpdateInterval + TICKS_TO_TIME(1); // correct latency
+		float fUpdateInterval = MAX( 0.1f, Q_atof( szUpdateInterval ) );
+		latency -= fUpdateInterval; // correct latency
 
 		ping = latency * 1000.0f; // as msecs
 		ping = clamp( ping, 5, 1000 ); // set bounds, don't show pings under 5 msecs

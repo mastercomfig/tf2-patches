@@ -603,9 +603,9 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 
 	if ( cl_updateinterval->GetFloat() > 0.001f )
 	{
-		flAdjust = -0.5f / cl_updateinterval->GetFloat();
+		flAdjust = cl_updateinterval->GetFloat();
 
-		m_AvgLatency += flAdjust;
+		m_AvgLatency -= flAdjust;
 	}
 
 	// Can't be below zero

@@ -30,6 +30,7 @@
 
 #else	// Client specific.
 
+    #include "prediction.h"
 	#include "c_tf_player.h"
 	#include "c_te_effect_dispatch.h"
 	#include "c_tf_gamestats.h"
@@ -367,6 +368,12 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 	RemoveProjectileAmmo( pPlayer );
 
 	m_flLastFireTime = gpGlobals->curtime;
+#ifdef CLIENT_DLL
+	if (prediction->IsFirstTimePredicted())
+#endif
+	{
+		m_iConsecutiveShots++;
+	}
 
 	DoFireEffects();
 
