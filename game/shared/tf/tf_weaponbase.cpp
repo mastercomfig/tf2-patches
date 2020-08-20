@@ -2135,6 +2135,7 @@ void CTFWeaponBase::SetReloadTimer( float flReloadTime )
 
 	// Don't push out secondary attack, because our secondary fire
 	// systems are all separate from primary fire (sniper zooming, demoman pipebomb detonating, etc)
+	// TODO(maximsmol): this is probably a bug
 	//m_flNextSecondaryAttack = flTime;
 
 	// Set next idle time (based on reloading).
@@ -4171,14 +4172,16 @@ ShadowType_t CTFWeaponBase::ShadowCastType( void )
 // -----------------------------------------------------------------------------
 // Purpose:
 // -----------------------------------------------------------------------------
-bool CTFWeaponBase::CanAttack()
+bool CTFWeaponBase::CanAttack() const
 {
 	CTFPlayer *pPlayer = GetTFPlayerOwner();
+	if (pPlayer == nullptr)
+		return false;
 
-	if ( pPlayer )
-		return pPlayer->CanAttack( GetCanAttackFlags() );
+	if (!pPlayer->CanAttack(GetCanAttackFlags()))
+		return false;
 
-	return false;
+	return true;
 }
 
 
@@ -5413,11 +5416,22 @@ QAngle CTFWeaponBase::GetSpreadAngles( void )
 	return angEyes;
 }
 
+bool CTFWeaponBase::CanPerformPrimaryAttack() const
+{
+	if (!CanAttack())
+		return false;
+
+	return BaseClass::CanPerformPrimaryAttack();
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 bool CTFWeaponBase::CanPerformSecondaryAttack() const
 {
+	if (!CanAttack())
+		return false;
+
 	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 
     // fix stickies not being detonated while attacking

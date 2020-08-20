@@ -11577,6 +11577,9 @@ void CTFPlayer::ModifyEmitSoundParams( EmitSound_t &params )
 //-----------------------------------------------------------------------------
 bool CTFPlayer::CanAttack( int iCanAttackFlags )
 {
+	if (!IsAlive())
+		return false;
+
 	CTFGameRules *pRules = TFGameRules();
 
 	Assert( pRules );
