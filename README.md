@@ -11,7 +11,7 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 ## Install
 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
-2. [Download](https://github.com/n0kk/tf2basehud/archive/815f54194be26ead01f78ad2c0b40e7e10cd0d95.zip) the compatible TF2 default HUD (or any other HUD from before Jungle Inferno).
+2. [Download](https://github.com/n0kk/tf2basehud/archive/815f54194be26ead01f78ad2c0b40e7e10cd0d95.zip) the compatible TF2 default HUD (or any other HUD from before Jungle Inferno). Make sure you make an `info.vdf` file to load the HUD (`hud{ui_version 3}`)
 2. Copy your current `Team Fortress 2` installation to a new folder.
 3. Extract the ZIP download to this new folder.
 4. Extract your HUD to `tf/custom`.
