@@ -366,6 +366,9 @@ bool CTFKnife::CanPerformBackstabAgainstTarget( CTFPlayer *pTarget )
 	if ( !pTarget )
 		return false;
 
+	if (pTarget->m_Shared.GetCarryingRuneType() == RUNE_RESIST)
+		return false;
+
 	// Immune?
 	int iNoBackstab = 0;
 	CALL_ATTRIB_HOOK_INT_ON_OTHER( pTarget, iNoBackstab, cannot_be_backstabbed );

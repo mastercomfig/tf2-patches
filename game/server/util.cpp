@@ -693,15 +693,14 @@ void UTIL_GetPlayerConnectionInfo( int playerIndex, int& ping, int &packetloss )
 	{
 		float latency = nci->GetAvgLatency( FLOW_OUTGOING ); // in seconds
 		
-		// that should be the correct latency, we assume that cmdinterval is higher 
-		// then updateinterval, what is the case for default settings
-		const char * szCmdInterval = engine->GetClientConVarValue( playerIndex, "cl_cmdinterval" );
+		// get outgoing latency
+		const char * szUpdateInterval = engine->GetClientConVarValue( playerIndex, "cl_updateinterval" );
 		
-		float fCmdInterval = MAX( 1, Q_atof( szCmdInterval ) );
-		latency -= fCmdInterval + TICKS_TO_TIME(1); // correct latency
+		float fUpdateInterval = MAX( 1.0f, Q_atof( szUpdateInterval ) );
+		latency += fUpdateInterval + TICKS_TO_TIME(1); // correct latency
 
 		ping = latency * 1000.0f; // as msecs
-		ping = clamp( ping, 5, 1000 ); // set bounds, dont show pings under 5 msecs
+		ping = clamp( ping, 5, 1000 ); // set bounds, don't show pings under 5 msecs
 		
 		packetloss = 100.0f * nci->GetAvgLoss( FLOW_INCOMING ); // loss in percentage
 		packetloss = clamp( packetloss, 0, 100 );

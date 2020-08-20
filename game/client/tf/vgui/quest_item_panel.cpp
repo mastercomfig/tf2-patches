@@ -1273,6 +1273,8 @@ void CQuestItemPanel::OnThink()
 //-----------------------------------------------------------------------------
 void CQuestItemPanel::FireGameEvent( IGameEvent *event )
 {
+	// FIXME(mastercoms): disable quests
+	return;
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 	if( FStrEq( event->GetName(), "quest_objective_completed" ) )
 	{

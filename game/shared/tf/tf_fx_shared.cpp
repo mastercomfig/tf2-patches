@@ -108,18 +108,37 @@ void EndGroupingSounds() {}
 
 #endif
 
-Vector g_vecFixedWpnSpreadPellets[] = 
+Vector2D g_vecFixedWpnSpreadPellets[] = 
 {
-	Vector( 0,0,0 ),	// First pellet goes down the middle
-	Vector( 1,0,0 ),	
-	Vector( -1,0,0 ),	
-	Vector( 0,-1,0 ),	
-	Vector( 0,1,0 ),	
-	Vector( 0.85,-0.85,0 ),	
-	Vector( 0.85,0.85,0 ),	
-	Vector( -0.85,-0.85,0 ),	
-	Vector( -0.85,0.85,0 ),	
-	Vector( 0,0,0 ),	// last pellet goes down the middle as well to reward fine aim
+	Vector2D( 0,0 ), 	// First pellet goes down the middle
+	Vector2D( 1,0 ),
+	Vector2D( -1,0 ),
+	Vector2D( 0,-1 ),
+	Vector2D( 0,1 ),
+	Vector2D( 0.85,-0.85),
+	Vector2D( 0.85,0.85 ),
+	Vector2D( -0.85,-0.85 ),	
+	Vector2D( -0.85,0.85 ),	
+	Vector2D( 0,0),	// last pellet goes down the middle as well to reward fine aim
+};
+
+Vector2D g_vecFixedWpnSpreadPellets15[] =
+{
+	Vector2D(-2,-1),
+	Vector2D(-2,0),
+	Vector2D(-2,1),
+	Vector2D(-1,-1),
+	Vector2D(-1,0),
+	Vector2D(-1,1),
+	Vector2D(0,-1),
+	Vector2D(0,0),
+	Vector2D(0,1),
+	Vector2D(1,-1),
+	Vector2D(1,0),
+	Vector2D(1,1),
+	Vector2D(2,-1),
+	Vector2D(2,0),
+	Vector2D(2,1),
 };
 
 //-----------------------------------------------------------------------------
@@ -270,14 +289,28 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 #endif // !CLIENT
 
 	int nBulletsPerShot = pWeaponInfo->GetWeaponData( iMode ).m_nBulletsPerShot;
+	float fBulletsPerShotMult = 1.0f;
+	if (pWeapon)
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(pWeapon, fBulletsPerShotMult, mult_bullets_per_shot);
+	}
+	nBulletsPerShot = (int)(nBulletsPerShot * fBulletsPerShotMult);
+	
 	bool bFixedSpreadEnabled = IsFixedWeaponSpreadEnabled();
+	if (!bFixedSpreadEnabled)
+	{
+		int iFixedSpread = 0;
+		CALL_ATTRIB_HOOK_INT_ON_OTHER(pWeapon, iFixedSpread, fixed_shot_pattern)
+		if (iFixedSpread == 1)
+		{
+			bFixedSpreadEnabled = true;
+		}
+	}
 	bool bSpreadShotPattern = (nDamageType & DMG_BUCKSHOT) && (nBulletsPerShot > 1);
 	bool bFixedRecoilSpread = !bSpreadShotPattern && bFixedSpreadEnabled;
 	bool bFixedSpread = bSpreadShotPattern && bFixedSpreadEnabled;
-	if ( pWeapon )
-	{
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, nBulletsPerShot, mult_bullets_per_shot );
-	}
+	int iSpreadScalesConsecutive = 0;
+	CALL_ATTRIB_HOOK_INT_ON_OTHER(pWeapon, iSpreadScalesConsecutive, mult_spread_scales_consecutive)
 
 	for ( int iBullet = 0; iBullet < nBulletsPerShot; ++iBullet )
 	{
@@ -288,26 +321,26 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		if (iBullet == 0 && pWpn)
 		{
 			float flTimeSinceLastShot = (gpGlobals->curtime - pWpn->m_flLastFireTime);
-			if (nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25)
+			if (nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25f)
 			{
 				bFirePerfect = true;
 				pWpn->m_iBulletsFiredContinuously = 0;
 			}
-			else if (nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25)
+			else if (nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25f)
 			{
 				bFirePerfect = true;
 				pWpn->m_iBulletsFiredContinuously = 0;
 			}
 		}
 
-		if (!bSpreadShotPattern && pWpn)
+		if (pWpn)
 		{
-			if (!bFirePerfect)
+			if (!bFirePerfect && (!bSpreadShotPattern || iBullet == 0))
 			{
 				pWpn->m_iBulletsFiredContinuously++;
 			}
 
-			if (bFixedSpreadEnabled)
+			if (bFixedRecoilSpread)
 			{
 				iSeed = pWpn->m_iBulletsFiredContinuously;
 			}
@@ -318,13 +351,18 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		if ( bFixedSpread )
 		{
 			int iSpread = iBullet;
-			while ( iSpread >= ARRAYSIZE(g_vecFixedWpnSpreadPellets) )
+			auto vecFixedWpnSpreadPellets = [&iSpreadScalesConsecutive]()
 			{
-				iSpread -= ARRAYSIZE(g_vecFixedWpnSpreadPellets);
-			}
+				return iSpreadScalesConsecutive == 1 ? g_vecFixedWpnSpreadPellets15 : g_vecFixedWpnSpreadPellets;
+			};
 			float flScalar = 0.5f;
-			x = g_vecFixedWpnSpreadPellets[iSpread].x * flScalar;
-			y = g_vecFixedWpnSpreadPellets[iSpread].y * flScalar;
+			float flHorizontalScalar = flScalar;
+			if (iSpreadScalesConsecutive == 1)
+			{
+				flHorizontalScalar += pWpn->m_iBulletsFiredContinuously * 0.5f;
+			}
+			x = vecFixedWpnSpreadPellets()[iSpread].x * flHorizontalScalar;
+			y = vecFixedWpnSpreadPellets()[iSpread].y * flScalar;
 		}
 		else if ( bFirePerfect )
 		{

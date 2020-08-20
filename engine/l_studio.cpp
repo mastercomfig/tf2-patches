@@ -335,8 +335,8 @@ static void R_SetNonAmbientLightingState( int numLights, dworldlight_t *locallig
 //-----------------------------------------------------------------------------
 void R_ComputeLightingOrigin( IClientRenderable *pRenderable, studiohdr_t* pStudioHdr, const matrix3x4_t &matrix, Vector& center )
 {
-	int nAttachmentIndex = pStudioHdr->IllumPositionAttachmentIndex();
 #ifdef VALVE_PURE
+	int nAttachmentIndex = pStudioHdr->IllumPositionAttachmentIndex();
 	if ( nAttachmentIndex <= 0 )
 #endif
 	{

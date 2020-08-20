@@ -74,7 +74,7 @@ public:
 		  "cl_cmdinterval", 
 		  "0.015", 
 		  FCVAR_ARCHIVE | FCVAR_USERINFO, 
-		  "Max number of command packets sent to server per second", true, MIN_CMD_RATE, true, MAX_CMD_RATE )
+		  "Time between command packets sent to server", true, MIN_CMD_INTERVAL, true, MAX_CMD_INTERVAL )
 	{
 	}
 

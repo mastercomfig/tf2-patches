@@ -2356,6 +2356,8 @@ public:
 
 	virtual void FireGameEvent( IGameEvent *pEvent ) OVERRIDE
 	{
+		// FIXME(mastercoms): disable quest restrictions
+		return;
 		// This can happen when the player's SteamID isn't setup yet after a 
 		// disconnect -> reconnect
 		if ( GetQuestOwner() == NULL )

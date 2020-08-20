@@ -29,9 +29,9 @@
 // Max time.  The cvar cl_resend is bounded by these.
 #define CL_MAX_RESEND_TIME			20.0f   
 
-// In release, send commands at least this many times per second
-#define MIN_CMD_RATE				10.0f
-#define MAX_CMD_RATE				100.0f
+// In release, send commands at this interval, at least
+#define MIN_CMD_INTERVAL				0.015f
+#define MAX_CMD_INTERVAL				1.0f
 
 extern ConVar cl_name;
 

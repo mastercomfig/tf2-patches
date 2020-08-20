@@ -201,7 +201,7 @@ void CBaseClient::SetUserCVar( const char *pchCvar, const char *value)
 
 void CBaseClient::SetUpdateInterval(float fUpdateInterval, bool bForce)
 {
-	m_fSnapshotInterval = min(fUpdateInterval, 1.0f);
+	m_fSnapshotInterval = min(fUpdateInterval, 0.1f);
 }
 
 float CBaseClient::GetUpdateInterval() const
@@ -211,7 +211,7 @@ float CBaseClient::GetUpdateInterval() const
 
 void CBaseClient::SetUpdateRate(int updaterate, bool bForce)
 {
-	updaterate = max(updaterate, 1);
+	updaterate = max(updaterate, 10);
 
 	m_fSnapshotInterval = 1.0f / (float) updaterate;
 }
