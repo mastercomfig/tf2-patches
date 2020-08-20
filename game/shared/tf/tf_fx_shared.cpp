@@ -116,29 +116,29 @@ Vector2D g_vecFixedWpnSpreadPellets[] =
 	Vector2D( 0,-1 ),
 	Vector2D( 0,1 ),
 	Vector2D( 0.85,-0.85),
+	Vector2D(-0.85,-0.85),
 	Vector2D( 0.85,0.85 ),
-	Vector2D( -0.85,-0.85 ),	
 	Vector2D( -0.85,0.85 ),	
 	Vector2D( 0,0),	// last pellet goes down the middle as well to reward fine aim
 };
 
 Vector2D g_vecFixedWpnSpreadPellets15[] =
 {
-	Vector2D(-2,-1),
-	Vector2D(-2,0),
-	Vector2D(-2,1),
-	Vector2D(-1,-1),
-	Vector2D(-1,0),
-	Vector2D(-1,1),
-	Vector2D(0,-1),
 	Vector2D(0,0),
+	Vector2D(1,0),
+	Vector2D(-1,0),
+	Vector2D(0,-1),
 	Vector2D(0,1),
 	Vector2D(1,-1),
-	Vector2D(1,0),
+	Vector2D(-1,-1),
 	Vector2D(1,1),
-	Vector2D(2,-1),
+	Vector2D(-1,1),
 	Vector2D(2,0),
+	Vector2D(-2,0),
+	Vector2D(2,-1),
+	Vector2D(-2,-1),
 	Vector2D(2,1),
+	Vector2D(-2,1),
 };
 
 //-----------------------------------------------------------------------------
@@ -311,7 +311,6 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 	bool bFixedSpread = bSpreadShotPattern && bFixedSpreadEnabled;
 	int iSpreadScalesConsecutive = 0;
 	CALL_ATTRIB_HOOK_INT_ON_OTHER(pWeapon, iSpreadScalesConsecutive, mult_spread_scales_consecutive)
-
 	for ( int iBullet = 0; iBullet < nBulletsPerShot; ++iBullet )
 	{
 		// Get circular gaussian spread. Under some cases we fire a bullet right down the crosshair:
@@ -324,12 +323,14 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 			if (nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25f)
 			{
 				bFirePerfect = true;
-				pWpn->m_iBulletsFiredContinuously = 0;
+				Warning("Consecutive shots reset!\n");
+				pWpn->m_iConsecutiveShots = 0;
 			}
 			else if (nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25f)
 			{
 				bFirePerfect = true;
-				pWpn->m_iBulletsFiredContinuously = 0;
+				Warning("Consecutive shots reset!\n");
+				pWpn->m_iConsecutiveShots = 0;
 			}
 		}
 
@@ -337,12 +338,13 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		{
 			if (!bFirePerfect && (!bSpreadShotPattern || iBullet == 0))
 			{
-				pWpn->m_iBulletsFiredContinuously++;
+				Warning("Consecutive shot!\n");
+				pWpn->m_iConsecutiveShots++;
 			}
 
 			if (bFixedRecoilSpread)
 			{
-				iSeed = pWpn->m_iBulletsFiredContinuously;
+				iSeed = pWpn->m_iConsecutiveShots;
 			}
 		}
 
@@ -351,18 +353,30 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		if ( bFixedSpread )
 		{
 			int iSpread = iBullet;
-			auto vecFixedWpnSpreadPellets = [&iSpreadScalesConsecutive]()
+			bool bSpreadNormal = iSpreadScalesConsecutive == 0;
+			int iArraySize;
+			if (bSpreadNormal)
 			{
-				return iSpreadScalesConsecutive == 1 ? g_vecFixedWpnSpreadPellets15 : g_vecFixedWpnSpreadPellets;
-			};
+				iArraySize = ARRAYSIZE(g_vecFixedWpnSpreadPellets);
+			}
+			else
+			{
+				iArraySize = ARRAYSIZE(g_vecFixedWpnSpreadPellets15);
+			}
+			while (iSpread >= iArraySize)
+			{
+				iSpread -= iArraySize;
+			}
+			Vector2D* vecFixedWpnSpreadPellets = bSpreadNormal ? g_vecFixedWpnSpreadPellets : g_vecFixedWpnSpreadPellets15;
 			float flScalar = 0.5f;
 			float flHorizontalScalar = flScalar;
-			if (iSpreadScalesConsecutive == 1)
+			if (bSpreadNormal && pWpn)
 			{
-				flHorizontalScalar += pWpn->m_iBulletsFiredContinuously * 0.5f;
+				Warning("Using consecutive spread!\n");
+				flHorizontalScalar += pWpn->m_iConsecutiveShots * 0.5f;
 			}
-			x = vecFixedWpnSpreadPellets()[iSpread].x * flHorizontalScalar;
-			y = vecFixedWpnSpreadPellets()[iSpread].y * flScalar;
+			x = vecFixedWpnSpreadPellets[iSpread].x * flHorizontalScalar;
+			y = vecFixedWpnSpreadPellets[iSpread].y * flScalar;
 		}
 		else if ( bFirePerfect )
 		{

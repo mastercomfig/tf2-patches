@@ -679,8 +679,6 @@ public:
 
 	CNetworkVar( float, m_flObservedCritChance );
 
-	int m_iBulletsFiredContinuously; // How many bullets have we fired (excluding the perfect shot)
-
 	virtual bool CanInspect() const;
 	void HandleInspect();
 
@@ -708,6 +706,9 @@ private:
 	bool IsInspectActivity( int iActivity );
 	CNetworkVar( float, m_flInspectAnimTime );
 	CNetworkVar( int, m_nInspectStage );
+public:
+	CNetworkVar(int, m_iConsecutiveShots);
+private:
 	bool m_bInspecting;
 
 	friend class CTFDroppedWeapon;
