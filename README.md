@@ -11,24 +11,14 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 ## Install
 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
-2. Extract to a folder of your choosing (other than `Program Files` and `Program Files (x86)` since Windows places restrictions on these).
-3. Run `download_depots.bat`.
-5. Double click `start_tf2.bat`. Note that you must have Steam running.
-6. Enjoy!
+2. Copy your current `Team Fortress 2` installation to a new folder.
+3. Extract the ZIP download to this new folder.
+4. Double click `start_tf2.bat`. Note that you must have Steam running.
+5. Enjoy!
 
 ## Build
 
 DISCLAIMER: This is the big kids zone. If you are not a professional, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. It might be much more complicated (or not)
-
-### Setup
-1. Get [.NET Core Runtime](https://dotnet.microsoft.com/download) for Depot Downloader, latest version is fine.
-1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
-1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader).
-
-### Depot downloader
-The preferred way for downloading game depots is using `/game_clean/download_depots.bat`, it will guide you through the process.
-
-Alternatively, see manual download instructions below.
 
 ### Building
 1. Download this repo
@@ -53,15 +43,6 @@ Other launch options to consider:
 - `sw` to force windowed mode
 - `-w WIDTH -h HEIGHT` to set the resolution
 - `+map MAPNAME` to automatically launch a map on startup
-
-### Manual Depot Download
-1. Open `cmd.exe` (Windows-R + type cmd.exe + enter) or any other shell
-1. Type `cd ` and drag the Depot Downloader folder (unzipped) to the window
-1. Hit enter
-1. Run the following, where `USERNAME` is your Steam username and `PASSWORD` is your Steam password:
-    - `dotnet DepotDownloader.dll -app 440 -depot 441 -manifest 7707612755534478338 -username USERNAME -password PASSWORD`
-    - `dotnet DepotDownloader.dll -app 440 -depot 440 -username USERNAME -password PASSWORD`
-    - `dotnet DepotDownloader.dll -app 440 -depot 232251 -manifest 2174530283606128348 -username USERNAME -password PASSWORD`
   
 If prompted for Steam Guard code, enter it.
 
