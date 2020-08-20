@@ -695,43 +695,6 @@ void CHudMainMenuOverride::OnTick()
 		}
 	}
 
-	// See if its time to nag about joining the war
-	float flTimeSinceWarNag = Plat_FloatTime() - m_flLastWarNagTime;
-	if ( !m_bPlayListExpanded && m_pHighlightAnims[ MMHA_WAR ] && ( flTimeSinceWarNag > 300.f || m_flLastWarNagTime == 0.f ) )
-	{
-		// Make sure our SOCache is ready
-		GCSDK::CGCClientSharedObjectCache *pSOCache = NULL;
-		if ( steamapicontext && steamapicontext->SteamUser() )
-		{
-			CSteamID steamID = steamapicontext->SteamUser()->GetSteamID();
-			pSOCache = GCClientSystem()->GetSOCache( steamID );
-		}
-
-		// Need to be initialized.  If we're not, we'll get false positives
-		// when we actually go to look for our war data
-		if ( pSOCache && pSOCache->BIsInitialized() )
-		{
-			m_flLastWarNagTime = Plat_FloatTime();
-
-			// Get war data
-			const CWarDefinition* pWarDef = GetItemSchema()->GetWarDefinitionByIndex( PYRO_VS_HEAVY_WAR_DEF_INDEX );
-			CWarData *pWarData = GetLocalPlayerWarData( pWarDef->GetDefIndex() );
-			war_side_t nAffiliation = INVALID_WAR_SIDE;
-			if ( pWarData )
-			{
-				// Get affiliation if they have one.
-				nAffiliation = pWarData->Obj().affiliation();
-			}
-
-			// They haven't joined the war!  Nag 'em
-			if ( nAffiliation == INVALID_WAR_SIDE && pWarDef->IsActive() )
-			{
-				StartHighlightAnimation( MMHA_WAR );
-			}
-		}
-	}
-
-
 #ifdef STAGING_ONLY
 	if ( m_bGeneratingIcons )
 	{
