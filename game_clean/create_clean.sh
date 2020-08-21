@@ -22,5 +22,6 @@ done
 
 declare -a files=("../LICENSE" "../README.md")
 for F in "${files[@]}"; do
-  cp -f $F $clean_folder/$F
+  orig=$(basename $F)
+  cp -f $F $clean_folder/$orig
 done
