@@ -18,3 +18,8 @@ declare -a files=("steam_appid.txt" "hl2.exe" "srcds.exe" "bin/engine.dll" "bin/
 for F in "${files[@]}"; do
   cp -f $dev_folder/$F $clean_folder/$F
 done
+
+declare -a files=("../LICENSE" "../README.md")
+for F in "${files[@]}"; do
+  cp -f $F $clean_folder/$F
+done
