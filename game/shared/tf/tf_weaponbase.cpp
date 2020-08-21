@@ -5420,6 +5420,10 @@ bool CTFWeaponBase::CanPerformSecondaryAttack() const
 {
 	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 
+    // fix stickies not being detonated while attacking
+    if ( pOwner->IsPlayerClass( TF_CLASS_DEMOMAN ) )
+        return true;
+
 	// Demo shields are allowed to charge whenever
 	if ( pOwner->m_Shared.HasDemoShieldEquipped() )
 		return true;

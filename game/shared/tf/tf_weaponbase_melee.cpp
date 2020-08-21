@@ -236,6 +236,17 @@ void CTFWeaponBaseMelee::PrimaryAttack()
 // -----------------------------------------------------------------------------
 void CTFWeaponBaseMelee::SecondaryAttack()
 {
+#ifdef GAME_DLL
+	// fix stickies not being detonated while switching to melee
+	if ( CanAttack() )
+	{
+		CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
+		
+		if ( pOwner->IsPlayerClass( TF_CLASS_DEMOMAN ) )
+			pOwner->DoClassSpecialSkill();
+	}
+#endif
+	
 	// semi-auto behaviour
 	if ( m_bInAttack2 )
 		return;
