@@ -19406,6 +19406,17 @@ void IgnitePlayer()
 static ConCommand cc_IgnitePlayer( "tf_ignite_player", IgnitePlayer, "Sets you on fire", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
 
 //-----------------------------------------------------------------------------
+// Purpose: Debug concommand to stun the player
+//-----------------------------------------------------------------------------
+void StunPlayer()
+{
+	CTFPlayer* pPlayer = ToTFPlayer(ToTFPlayer(UTIL_PlayerByIndex(1)));
+	float flStunAmount = 0.60f;
+	pPlayer->m_Shared.StunPlayer(10.0f, flStunAmount, TF_STUN_MOVEMENT, pPlayer);
+}
+static ConCommand cc_StunPlayer("tf_stun_player", StunPlayer, "Stuns you.", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
+
+//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void TestVCD( const CCommand &args )

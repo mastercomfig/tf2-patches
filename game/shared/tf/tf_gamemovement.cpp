@@ -39,7 +39,7 @@
 
 
 ConVar	tf_duck_debug_spew( "tf_duck_debug_spew", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
-ConVar	tf_showspeed( "tf_showspeed", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
+ConVar	tf_showspeed( "tf_showspeed", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY | FCVAR_CHEAT );
 ConVar	tf_avoidteammates( "tf_avoidteammates", "1", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "Controls how teammates interact when colliding.\n  0: Teammates block each other\n  1: Teammates pass through each other, but push each other away (default)" );
 ConVar	tf_avoidteammates_pushaway( "tf_avoidteammates_pushaway", "1", FCVAR_REPLICATED, "Whether or not teammates push each other away when occupying the same space" );
 ConVar  tf_solidobjects( "tf_solidobjects", "1", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
@@ -317,6 +317,11 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 	// Handle charging demomens
 	ChargeMove();
 
+	// Handle scouts that can move really fast with buffs
+	HighMaxSpeedMove();
+
+	CheckParameters();
+
 	// Handle player stun.
 	StunMove();
 
@@ -325,9 +330,6 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 
 	// Handle grappling hook move
 	GrapplingHookMove();
-
-	// Handle scouts that can move really fast with buffs
-	HighMaxSpeedMove();
 
 	// Run the command.
 	PlayerMove();
@@ -580,7 +582,7 @@ bool CTFGameMovement::StunMove()
 		if ( m_pTFPlayer->m_Shared.GetStunFlags() & TF_STUN_MOVEMENT_FORWARD_ONLY )
 		{
 			mv->m_flForwardMove = 0.f;
-		}
+		}		
 
 		return true;
 	}
@@ -1757,7 +1759,7 @@ void CTFGameMovement::WalkMove( void )
 	// Copy movement amounts
 	float flForwardMove = mv->m_flForwardMove;
 	float flSideMove = mv->m_flSideMove;
-	
+
 	// Find the direction,velocity in the x,y plane.
 	Vector vecWishDirection( ( ( vecForward.x * flForwardMove ) + ( vecRight.x * flSideMove ) ),
 		                     ( ( vecForward.y * flForwardMove ) + ( vecRight.y * flSideMove ) ), 
@@ -1881,7 +1883,8 @@ void CTFGameMovement::WalkMove( void )
 	{
 		// Made it to the destination (remove the base velocity).
 		mv->SetAbsOrigin( trace.endpos );
-		VectorSubtract( mv->m_vecVelocity, player->GetBaseVelocity(), mv->m_vecVelocity );
+		Vector baseVelocity = player->GetBaseVelocity();
+		VectorSubtract( mv->m_vecVelocity, baseVelocity, mv->m_vecVelocity );
 
 		// Save the wish velocity.
 		mv->m_outWishVel += ( vecWishDirection * flWishSpeed );
@@ -1889,6 +1892,23 @@ void CTFGameMovement::WalkMove( void )
 		// Try and keep the player on the ground.
 		// NOTE YWB 7/5/07: Don't do this here, our version of CategorizePosition encompasses this test
 		// StayOnGround();
+
+#if 1
+        // Debugging!!!
+		Vector vecTestVelocity = mv->m_vecVelocity;
+		vecTestVelocity.z = 0.0f;
+		float flTestSpeed = VectorLength(vecTestVelocity);
+		if (tf_showspeed.GetInt() == 2 && baseVelocity.IsZero() && (flTestSpeed > ( mv->m_flMaxSpeed + 1.0f )))
+		{
+			Msg("Step Max Speed < %f\n", flTestSpeed);
+		}
+
+		if (tf_showspeed.GetInt() == 2)
+		{
+			Msg("Speed=%f\n", flTestSpeed);
+		}
+
+#endif
 
 #ifdef CLIENT_DLL
 		// Track how far we moved (if we're a Scout or an Engineer carrying a building).
@@ -1928,21 +1948,20 @@ void CTFGameMovement::WalkMove( void )
 	// NOTE YWB 7/5/07: Don't do this here, our version of CategorizePosition encompasses this test
 	// StayOnGround();
 
-#if 0
+#if 1
 	// Debugging!!!
 	Vector vecTestVelocity = mv->m_vecVelocity;
 	vecTestVelocity.z = 0.0f;
 	float flTestSpeed = VectorLength( vecTestVelocity );
-	if ( baseVelocity.IsZero() && ( flTestSpeed > ( mv->m_flMaxSpeed + 1.0f ) ) )
+	if ( tf_showspeed.GetInt() == 1 && baseVelocity.IsZero() && ( flTestSpeed > ( mv->m_flMaxSpeed + 1.0f ) ) )
 	{
 		Msg( "Step Max Speed < %f\n", flTestSpeed );
 	}
 
-	if ( tf_showspeed.GetBool() )
+	if ( tf_showspeed.GetInt() == 1 )
 	{
 		Msg( "Speed=%f\n", flTestSpeed );
 	}
-
 #endif
 }
 
