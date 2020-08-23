@@ -106,6 +106,7 @@ PRECACHE_WEAPON_REGISTER( tf_projectile_stun_ball );
 #if defined( GAME_DLL )
 ConVar tf_scout_stunball_base_duration( "tf_scout_stunball_base_duration", "6.0", FCVAR_DEVELOPMENTONLY );
 ConVar tf_scout_stunball_base_speed( "tf_scout_stunball_base_speed", "3000", FCVAR_DEVELOPMENTONLY );
+ConVar tf_scout_stunball_old_stun( "tf_scout_stunball_old_stun", "0", FCVAR_DEVELOPMENTONLY );
 ConVar sv_proj_stunball_damage( "sv_proj_stunball_damage", "15", FCVAR_DEVELOPMENTONLY );
 #endif
 // -- TFStunBall
@@ -725,32 +726,44 @@ void CTFStunBall::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 	// We have a more intense stun based on our travel time.
 	float flLifeTime = MIN( gpGlobals->curtime - m_flCreationTime, FLIGHT_TIME_TO_MAX_STUN );
 	float flLifeTimeRatio = flLifeTime / FLIGHT_TIME_TO_MAX_STUN;
+	float flDamage = GetDamage();
 	if ( flLifeTimeRatio > 0.1f )
 	{
-
 		float flStun = 0.5f;
 		float flStunDuration = tf_scout_stunball_base_duration.GetFloat() * flLifeTimeRatio;
 		if ( IsCritical() )
 			flStunDuration += 2.0; // Extra two seconds of effect time if we're a critical hit.
-		int iStunFlags = TF_STUN_LOSER_STATE | TF_STUN_MOVEMENT;
-		if ( flLifeTimeRatio >= 1.f )
+		int iStunFlags = TF_STUN_MOVEMENT;
+		
+		if ( tf_scout_stunball_old_stun.GetBool() )
 		{
-			flStunDuration += 1.0;
-			iStunFlags = TF_STUN_CONTROLS;
-			iStunFlags |= TF_STUN_SPECIAL_SOUND;
-			CTF_GameStats.Event_PlayerStunBall( pOwner, true );
-		}
-		else
-		{
-			CTF_GameStats.Event_PlayerStunBall( pOwner, false );
-		}
+			if ( flLifeTimeRatio >= 1.f )
+			{
+				flStunDuration += 1.0;
+				iStunFlags = TF_STUN_CONTROLS;
+				iStunFlags |= TF_STUN_SPECIAL_SOUND;
+				CTF_GameStats.Event_PlayerStunBall( pOwner, true );
+			}
+			else
+			{
+				iStunFlags |= TF_STUN_LOSER_STATE;
+				CTF_GameStats.Event_PlayerStunBall( pOwner, false );
+			}
 
-		// Adjust stun amount and flags if we're hitting a boss or scaled enemy
-		if ( TFGameRules() && TFGameRules()->GameModeUsesMiniBosses() && ( pPlayer->IsMiniBoss() || pPlayer->GetModelScale() > 1.0f ) )
+			// Adjust stun amount and flags if we're hitting a boss or scaled enemy
+			if ( TFGameRules() && TFGameRules()->GameModeUsesMiniBosses() && ( pPlayer->IsMiniBoss() || pPlayer->GetModelScale() > 1.0f ) )
+			{
+				// If max range, freeze them in place - otherwise adjust it based on distance
+				flStun = flLifeTimeRatio >= 1.f ? 1.f : RemapValClamped( flLifeTimeRatio, 0.1f, 0.99f, 0.5f, 0.75 );
+				iStunFlags = flLifeTimeRatio >= 1.f ? ( TF_STUN_SPECIAL_SOUND | TF_STUN_MOVEMENT ) : TF_STUN_MOVEMENT; 
+			}
+		}
+		else if ( flLifeTimeRatio >= 0.8f )
 		{
-			// If max range, freeze them in place - otherwise adjust it based on distance
-			flStun = flLifeTimeRatio >= 1.f ? 1.f : RemapValClamped( flLifeTimeRatio, 0.1f, 0.99f, 0.5f, 0.75 );
-			iStunFlags = flLifeTimeRatio >= 1.f ? ( TF_STUN_SPECIAL_SOUND | TF_STUN_MOVEMENT ) : TF_STUN_MOVEMENT; 
+			flDamage *= 1.5;
+			flStunDuration += 1.0;
+			iStunFlags |= TF_STUN_SPECIAL_SOUND;
+			CTF_GameStats.Event_PlayerStunBall( pOwner, false );
 		}
 
 		if ( pPlayer->GetWaterLevel() != WL_Eyes )
@@ -777,7 +790,7 @@ void CTFStunBall::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 	info.SetAttacker( GetOwnerEntity() );
 	info.SetInflictor( pInflictor ); 
 	info.SetWeapon( pInflictor );
-	info.SetDamage( GetDamage() );
+	info.SetDamage( flDamage );
 	info.SetDamageCustom( TF_DMG_CUSTOM_BASEBALL );
 	info.SetDamageForce( GetDamageForce() );
 	info.SetDamagePosition( GetAbsOrigin() );
