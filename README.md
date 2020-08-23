@@ -1,6 +1,6 @@
 # Team Comtress 2
 
-Team Fortress 2, but with a lot of fixes, QoL improvements and performance optimizations!
+Team Fortress 2, but with a lot of fixes, quality of life improvements and performance optimizations!
 
 ## About
 
