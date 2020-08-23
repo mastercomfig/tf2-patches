@@ -735,8 +735,7 @@ void CTFStunBall::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 			flStunDuration += 2.0; // Extra two seconds of effect time if we're a critical hit.
 		int iStunFlags = TF_STUN_MOVEMENT;
 		
-		bool bOldStun = tf_scout_stunball_old_stun.GetBool();
-		if ( bOldStun )
+		if ( tf_scout_stunball_old_stun.GetBool() )
 		{
 			if ( flLifeTimeRatio >= 1.f )
 			{
@@ -761,7 +760,7 @@ void CTFStunBall::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 		}
 		else if ( flLifeTimeRatio >= 0.8f )
 		{
-			flDamage *= 2;
+			flDamage *= 1.5;
 			flStunDuration += 1.0;
 			iStunFlags |= TF_STUN_SPECIAL_SOUND;
 			CTF_GameStats.Event_PlayerStunBall( pOwner, false );
