@@ -152,7 +152,7 @@ bool CShaderDeviceMgrDx8::Connect( CreateInterfaceFn factory )
 
 	// Attempt to create a D3D9Ex device (Windows Vista and later) if possible
 	bool bD3D9ExForceDisable = ( CommandLine()->FindParm( "-nod3d9ex" ) != 0 ) ||
-								( CommandLine()->ParmValue( "-dxlevel", 95 ) < 90 );
+								( CommandLine()->ParmValue( "-dxlevel", 100 ) < 90 );
 
 	bool bD3D9ExAvailable = false;
 	if ( HMODULE hMod = ::LoadLibraryA( "d3d9.dll" ) )
@@ -2677,7 +2677,7 @@ void CShaderDeviceDx8::ReleaseResources()
 
 	LOCK_SHADERAPI();
 
-#ifndef _RETAIL
+#ifdef PIX_INSTRUMENTATION
 	CPixEvent( PIX_VALVE_ORANGE, "ReleaseResources" );
 #endif
 
@@ -2754,7 +2754,9 @@ void CShaderDeviceDx8::ReacquireResourcesInternal( bool bResetState, bool bForce
 	}
 
 	LOCK_SHADERAPI();
+#ifdef PIX_INSTRUMENTATION
 	CPixEvent event( PIX_VALVE_ORANGE, "ReacquireResources" );
+#endif
 
 	g_pShaderAPI->RestoreShaderObjects();
 	AllocFrameSyncObjects();

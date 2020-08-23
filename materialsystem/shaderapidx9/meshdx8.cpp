@@ -1425,6 +1425,14 @@ bool CIndexBufferDx8::Lock( int nMaxIndexCount, bool bAppend, IndexDesc_t &desc 
 			goto indexBufferLockFailed;
 	}
 
+	// Unbind this bad boy if we've currently got it bound
+	if (g_pLastIndexBuffer == m_pIndexBuffer)
+	{
+		Dx9Device()->SetIndices(NULL);
+		g_pLastIndex = NULL;
+		g_pLastIndexBuffer = NULL;
+	}
+
 	// Check to see if we have enough memory 
 	nMemoryRequired = nMaxIndexCount * IndexSize();
 	bHasEnoughMemory = ( m_nFirstUnwrittenOffset + nMemoryRequired <= m_nBufferSize );
@@ -3750,8 +3758,10 @@ void CDynamicMeshDX8::Draw( int nFirstIndex, int nIndexCount )
 		( ( m_TotalVertices > 0 ) && ( m_TotalIndices > 0 || m_Type == MATERIAL_POINTS || m_Type == MATERIAL_INSTANCED_QUADS ) ) )
 	{
 		Assert( !m_IsDrawing );
-		
-		HandleLateCreation( );
+
+#ifdef DX_TO_GL_ABSTRACTION
+		HandleLateCreation();
+#endif
 
 		// only have a non-zero first vertex when we are using static indices
 		int nFirstVertex = m_VertexOverride ? 0 : m_nFirstVertex;
@@ -5241,17 +5251,17 @@ IMesh *CMeshMgr::GetFlexMesh()
 IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexFormat, int nHWSkinBoneCount,
 	bool buffered, IMesh* pVertexOverride, IMesh* pIndexOverride )
 {
-	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
+	tmZoneFiltered(TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__);
 
-	Assert( (pMaterial == NULL) || ((IMaterialInternal *)pMaterial)->IsRealTimeVersion() );
+	Assert((pMaterial == NULL) || ((IMaterialInternal*)pMaterial)->IsRealTimeVersion());
 
-	if ( IsX360() )
+	if (IsX360())
 	{
 		buffered = false;
 	}
 
 	// Can't be buffered if we're overriding the buffers
-	if ( pVertexOverride || pIndexOverride )
+	if (pVertexOverride || pIndexOverride)
 	{
 		buffered = false;
 	}
@@ -5268,7 +5278,7 @@ IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexForm
 	bool needTempMesh = ShaderAPI()->IsInSelectionMode();
 
 #ifdef DRAW_SELECTION
-	if( g_bDrawSelection )
+	if (g_bDrawSelection)
 	{
 		needTempMesh = true;
 	}
@@ -5276,18 +5286,18 @@ IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexForm
 
 	CBaseMeshDX8* pMesh;
 
-	if ( needTempMesh )
+	if (needTempMesh)
 	{
 		// These haven't been implemented yet for temp meshes!
 		// I'm not a hundred percent sure how to implement them; it would
 		// involve a lock and a copy at least, which would stall the entire
 		// rendering pipeline.
-		Assert( !pVertexOverride );
-		
-		if( pIndexOverride )
+		Assert(!pVertexOverride);
+
+		if (pIndexOverride)
 		{
-			CopyStaticMeshIndexBufferToTempMeshIndexBuffer( &m_DynamicTempMesh,
-				( CMeshDX8 * )pIndexOverride );
+			CopyStaticMeshIndexBufferToTempMeshIndexBuffer(&m_DynamicTempMesh,
+				(CMeshDX8*)pIndexOverride);
 		}
 		pMesh = &m_DynamicTempMesh;
 	}
@@ -5296,23 +5306,32 @@ IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexForm
 		pMesh = &m_DynamicMesh;
 	}
 
-	if ( m_BufferedMode )
+	if (m_BufferedMode)
 	{
-		Assert( !m_BufferedMesh.WasNotRendered() );
-		m_BufferedMesh.SetMesh( pMesh );
+		Assert(!m_BufferedMesh.WasNotRendered());
+		m_BufferedMesh.SetMesh(pMesh);
 		pMesh = &m_BufferedMesh;
 	}
 
-	if( !pVertexOverride )
+	// HACK: SetVertexFormat here will slam both the vertex + index buffer
+	// to use the default. Some patterns actually do the insane thing of
+	// passing the dynamic mesh as its own override (BindBatch, for example).
+	// Cache off the override buffers before this happens (in SetVertexFormat of all things)
+	CBaseMeshDX8* pBaseVertexOverride = static_cast<CBaseMeshDX8*>(pVertexOverride);
+	CBaseMeshDX8* pBaseIndexOverride = static_cast<CBaseMeshDX8*>(pIndexOverride);
+	CVertexBuffer* pVertexOverrideBuffer = (pBaseVertexOverride) ? pBaseVertexOverride->GetVertexBuffer() : NULL;
+	CIndexBuffer* pIndexOverrideBuffer = (pBaseIndexOverride) ? pBaseIndexOverride->GetIndexBuffer() : NULL;
+
+	if (!pBaseVertexOverride)
 	{
 		// Remove VERTEX_FORMAT_COMPRESSED from the material's format (dynamic meshes don't
 		// support compression, and all materials should support uncompressed verts too)
 		VertexFormat_t materialFormat = pMatInternal->GetVertexFormat() & ~VERTEX_FORMAT_COMPRESSED;
-		VertexFormat_t fmt = ( vertexFormat != 0 ) ? vertexFormat : materialFormat;
-		if ( vertexFormat != 0 )
+		VertexFormat_t fmt = (vertexFormat != 0) ? vertexFormat : materialFormat;
+		if (vertexFormat != 0)
 		{
-			int nVertexFormatBoneWeights = NumBoneWeights( vertexFormat );
-			if ( nHWSkinBoneCount < nVertexFormatBoneWeights )
+			int nVertexFormatBoneWeights = NumBoneWeights(vertexFormat);
+			if (nHWSkinBoneCount < nVertexFormatBoneWeights)
 			{
 				nHWSkinBoneCount = nVertexFormatBoneWeights;
 			}
@@ -5320,37 +5339,34 @@ IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexForm
 
 		// Force the requested number of bone weights
 		fmt &= ~VERTEX_BONE_WEIGHT_MASK;
-		if ( nHWSkinBoneCount > 0 )
+		if (nHWSkinBoneCount > 0)
 		{
-			fmt |= VERTEX_BONEWEIGHT( 2 );
+			fmt |= VERTEX_BONEWEIGHT(2);
 			fmt |= VERTEX_BONE_INDEX;
 		}
 
-		pMesh->SetVertexFormat( fmt );
+		pMesh->SetVertexFormat(fmt);
 	}
 	else
 	{
-		CBaseMeshDX8 *pDX8Mesh = static_cast<CBaseMeshDX8*>(pVertexOverride);
-		pMesh->SetVertexFormat( pDX8Mesh->GetVertexFormat() );
+		pMesh->SetVertexFormat(pBaseVertexOverride->GetVertexFormat());
 	}
-	pMesh->SetMorphFormat( pMatInternal->GetMorphFormat() );
-	pMesh->SetMaterial( pMatInternal );
+
+	pMesh->SetMorphFormat(pMatInternal->GetMorphFormat());
+	pMesh->SetMaterial(pMatInternal);
 
 	// Note this works because we're guaranteed to not be using a buffered mesh
 	// when we have overrides on
 	// FIXME: Make work for temp meshes
-	if ( pMesh == &m_DynamicMesh )
+	if (pMesh == &m_DynamicMesh)
 	{
-		CBaseMeshDX8* pBaseVertex = static_cast<CBaseMeshDX8*>( pVertexOverride );
-		if ( pBaseVertex )
+		if (pVertexOverrideBuffer)
 		{
-			m_DynamicMesh.OverrideVertexBuffer( pBaseVertex->GetVertexBuffer() );
+			m_DynamicMesh.OverrideVertexBuffer(pVertexOverrideBuffer);
 		}
-
-		CBaseMeshDX8* pBaseIndex = static_cast<CBaseMeshDX8*>( pIndexOverride );
-		if ( pBaseIndex )
+		if (pIndexOverrideBuffer)
 		{
-			m_DynamicMesh.OverrideIndexBuffer( pBaseIndex->GetIndexBuffer() );
+			m_DynamicMesh.OverrideIndexBuffer(pIndexOverrideBuffer);
 		}
 	}
 

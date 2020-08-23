@@ -1,6 +1,6 @@
 # Team Comtress 2
 
-Team Fortress 2, but with a lot of fixes, QoL improvements and performance optimizations!
+Team Fortress 2, but with a lot of fixes, quality of life improvements and performance optimizations!
 
 ## About
 
@@ -11,24 +11,14 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 ## Install
 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
-2. Extract to a folder of your choosing.
-3. Run `download_depots.bat`.
-5. Double click `start_tf2.bat`. Note that you must have Steam running.
-6. Enjoy!
+2. Copy your current `Team Fortress 2` installation to a new folder.
+3. Extract the ZIP download to this new folder.
+4. Double click `start_tf2.bat`. Note that you must have Steam running.
+5. Enjoy!
 
 ## Build
 
-DISCLAIMER: This is the big kids zone. If you are not a professional, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. It might be much more complicated (or not)
-
-### Setup
-1. Get [.NET Core Runtime](https://dotnet.microsoft.com/download) for Depot Downloader, latest version is fine.
-1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
-1. Get [Depot Downloader](https://github.com/SteamRE/DepotDownloader).
-
-### Depot downloader
-The preferred way for downloading game depots is using `/game_clean/download_depots.bat`, it will guide you through the process.
-
-Alternatively, see manual download instructions below.
+**DISCLAIMER:** If you are not a developer, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. Please let us know if you get it to work!
 
 ### Building
 1. Download this repo
@@ -46,6 +36,8 @@ Alternatively, see manual download instructions below.
 1. You will also need all the usual game resources (same as when installing a pre-built release). Feel free to skip `.sound.cache` files, but otherwise just merge all the depots into `../game`. Once again, do not override any files that VS put in `../game/bin`
 1. To setup debugging, in Visual Studio, select `launcher_main` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
 1. For the server, follow the same procedures but choose the `Dedicated_main` project and set the `Command` to `../game/srcds.exe`. The suggested server launch options are `-game tf -console -nomaster -insecure +sv_pure 0 +maxplayers 32 +sv_lan 1 -dev -allowdebug`.
+
+NOTE: Team Comtress 2 is no longer compatible with mastercomfig. Please do not use mastercomfig or any other TF2 config.
 
 See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
 
@@ -89,15 +81,6 @@ $Include "$SRCDIR\vpc_scripts\proj_include.vpc"
 To find which projects you need, run the `/clean_bins.sh` script (MinGW or Cygwin required) to clean out the published binaries and cause the game to print errors whenever a dependency is missing. Add each of these dependencies and the builds should work.
 
 To avoid going through a VPC re-run and a VS rebuild that follows for the core project, build the dependencies manually first and check if any others are needed before adding them to the VPC. This saves a lot of time.
-
-### PyVPC
-A WIP Python port of the Valve VPC tool is included under `/pyvpc/`. I have only tested it from under Cygwin, under which Python gets very confused regarding which platform it is running on, so some hacks were necessary. It should probably still work under native Windows. It currently has a hard dependcy on the [`colorful`](https://github.com/timofurrer/colorful) module.
-
-The plan for this tool is to have a way of parsing the original Valve VPC files, then applying patches to the generated configurations from a Python script, then using that representation to generate `.vcproj` files. Or we might juse use the Valve configurations as a base to manually write Python build definitions.
-
-In any case, the processing of the VPC files is there for greater compatibility with potential future leaks/working with other code based on VPC.
-
-We do not want to use VPC ultimately, since it depends on a large amount of Valve code (its own version of tier0, vstdlib, and more) and because patching C tools is a pain. And we do want to patch it because of the various bugs and inflexibilities in VPC which make some things outright impossible/not work, and others extremely complicated (see the two sections above). The patch for clean build configuration separation alone touched 71 files and required more than 1000 changes.
 
 ## Legal
 

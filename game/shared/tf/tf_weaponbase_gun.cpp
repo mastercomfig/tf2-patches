@@ -30,6 +30,7 @@
 
 #else	// Client specific.
 
+    #include "prediction.h"
 	#include "c_tf_player.h"
 	#include "c_te_effect_dispatch.h"
 	#include "c_tf_gamestats.h"
@@ -337,6 +338,11 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 		pPlayer->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_SECONDARY );
 		break;
 
+	case TF_PROJECTILE_BALLOFFIRE:
+		pProjectile = FireBallOfFire(pPlayer);
+		pPlayer->DoAnimationEvent(PLAYERANIMEVENT_ATTACK_PRIMARY);
+		break;
+
 	case TF_PROJECTILE_ENERGY_BALL:
 		pProjectile = FireEnergyBall( pPlayer );
 		if ( ShouldPlayFireAnim() )
@@ -352,7 +358,6 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 			pPlayer->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_PRIMARY );
 		}
 		break;
-
 	case TF_PROJECTILE_NONE:
 	default:
 		// do nothing!
@@ -363,6 +368,12 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 	RemoveProjectileAmmo( pPlayer );
 
 	m_flLastFireTime = gpGlobals->curtime;
+#ifdef CLIENT_DLL
+	if (prediction->IsFirstTimePredicted())
+#endif
+	{
+		m_iConsecutiveShots++;
+	}
 
 	DoFireEffects();
 
@@ -548,6 +559,47 @@ CBaseEntity *CTFWeaponBaseGun::FireRocket( CTFPlayer *pPlayer, int iRocketType )
 
 	return pProjectile;
 
+#endif
+
+	return NULL;
+}
+
+#ifdef GAME_DLL
+ConVar tf_fireball_damage("tf_fireball_damage", "25", FCVAR_CHEAT, "Dragon's Fury fireball damage.");
+ConVar tf_fireball_speed("tf_fireball_speed", "3000", FCVAR_CHEAT, "Dragon's Fury fireball damage.");
+#endif
+
+//-----------------------------------------------------------------------------
+// Purpose: Fire a fire ball
+//-----------------------------------------------------------------------------
+CBaseEntity* CTFWeaponBaseGun::FireBallOfFire(CTFPlayer* pPlayer)
+{
+	PlayWeaponShootSound();
+
+	// Server only - create the fireball.
+#ifdef GAME_DLL
+	Vector vecSrc;
+	QAngle angForward;
+	Vector vecOffset(23.5f, -8.0f, -3.0f);
+	if (pPlayer->GetFlags() & FL_DUCKING)
+	{
+		vecOffset.z = 8.0f;
+	}
+	GetProjectileFireSetup(pPlayer, vecOffset, &vecSrc, &angForward, false);
+
+	trace_t trace;
+	Vector vecEye = pPlayer->EyePosition();
+	CTraceFilterSimple traceFilter(this, COLLISION_GROUP_NONE);
+	UTIL_TraceLine(vecEye, vecSrc, MASK_SOLID_BRUSHONLY, &traceFilter, &trace);
+
+	CTFProjectile_EnergyBall* pProjectile = CTFProjectile_EnergyBall::Create(trace.endpos, angForward, tf_fireball_speed.GetFloat(), 0.0f, pPlayer, pPlayer);
+	if (pProjectile)
+	{
+		pProjectile->SetLauncher(this);
+		pProjectile->SetCritical(IsCurrentAttackACrit());
+		pProjectile->SetDamage(tf_fireball_damage.GetFloat());
+	}
+	return pProjectile;
 #endif
 
 	return NULL;

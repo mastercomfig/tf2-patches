@@ -19,7 +19,7 @@
 #include "tf_passtime_logic.h"
 #endif
 
-ConVar tf_use_fixed_weaponspreads( "tf_use_fixed_weaponspreads", "0", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a non-random pellet distribution." );
+ConVar tf_use_fixed_weaponspreads( "tf_use_fixed_weaponspreads", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a non-random pellet distribution." );
 
 // Client specific.
 #ifdef CLIENT_DLL
@@ -108,18 +108,37 @@ void EndGroupingSounds() {}
 
 #endif
 
-Vector g_vecFixedWpnSpreadPellets[] = 
+Vector2D g_vecFixedWpnSpreadPellets[] = 
 {
-	Vector( 0,0,0 ),	// First pellet goes down the middle
-	Vector( 1,0,0 ),	
-	Vector( -1,0,0 ),	
-	Vector( 0,-1,0 ),	
-	Vector( 0,1,0 ),	
-	Vector( 0.85,-0.85,0 ),	
-	Vector( 0.85,0.85,0 ),	
-	Vector( -0.85,-0.85,0 ),	
-	Vector( -0.85,0.85,0 ),	
-	Vector( 0,0,0 ),	// last pellet goes down the middle as well to reward fine aim
+	Vector2D( 0,0 ), 	// First pellet goes down the middle
+	Vector2D( 1,0 ),
+	Vector2D( -1,0 ),
+	Vector2D( 0,-1 ),
+	Vector2D( 0,1 ),
+	Vector2D( 0.85,-0.85),
+	Vector2D(-0.85,-0.85),
+	Vector2D( 0.85,0.85 ),
+	Vector2D( -0.85,0.85 ),	
+	Vector2D( 0,0),	// last pellet goes down the middle as well to reward fine aim
+};
+
+Vector2D g_vecFixedWpnSpreadPellets15[] =
+{
+	Vector2D(0,0),
+	Vector2D(1,0),
+	Vector2D(-1,0),
+	Vector2D(0,-1),
+	Vector2D(0,1),
+	Vector2D(1,-1),
+	Vector2D(-1,-1),
+	Vector2D(1,1),
+	Vector2D(-1,1),
+	Vector2D(2,0),
+	Vector2D(-2,0),
+	Vector2D(2,-1),
+	Vector2D(-2,-1),
+	Vector2D(2,1),
+	Vector2D(-2,1),
 };
 
 //-----------------------------------------------------------------------------
@@ -157,6 +176,12 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 #endif
 	if ( !pPlayer )
 		return;
+
+	CTFWeaponBase* pWeapon = pPlayer->GetActiveTFWeapon();
+
+#ifdef CLIENT_DLL
+	pWpn = pWeapon;
+#endif
 
 // Client specific.
 #ifdef CLIENT_DLL
@@ -239,7 +264,6 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 	// Setup the bullet damage type & roll for crit.
 	int	nDamageType	= DMG_GENERIC;
 	int nCustomDamageType = TF_DMG_CUSTOM_NONE;
-	CTFWeaponBase *pWeapon = pPlayer->GetActiveTFWeapon(); // FIXME: Should this be pWpn?
 	if ( pWeapon )
 	{
 		nDamageType	= pWeapon->GetDamageType();
@@ -270,57 +294,112 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 #endif // !CLIENT
 
 	int nBulletsPerShot = pWeaponInfo->GetWeaponData( iMode ).m_nBulletsPerShot;
-	bool bFixedSpread = ( nDamageType & DMG_BUCKSHOT ) && ( nBulletsPerShot > 1 ) && IsFixedWeaponSpreadEnabled();
-	if ( pWeapon )
+	float fBulletsPerShotMult = 1.0f;
+	if (pWeapon)
 	{
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, nBulletsPerShot, mult_bullets_per_shot );
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(pWeapon, fBulletsPerShotMult, mult_bullets_per_shot);
 	}
+	nBulletsPerShot = (int)((float)nBulletsPerShot * fBulletsPerShotMult);
+	
+	bool bFixedSpreadEnabled = IsFixedWeaponSpreadEnabled();
+	if (!bFixedSpreadEnabled)
+	{
+		int iFixedSpread = 0;
+		CALL_ATTRIB_HOOK_INT_ON_OTHER(pWeapon, iFixedSpread, fixed_shot_pattern)
+		if (iFixedSpread == 1)
+		{
+			bFixedSpreadEnabled = true;
+		}
+	}
+	bool bSpreadShotPattern = (nDamageType & DMG_BUCKSHOT) && (nBulletsPerShot > 1);
+	bool bFixedRecoilSpread = !bSpreadShotPattern && bFixedSpreadEnabled;
+	bool bFixedSpread = bSpreadShotPattern && bFixedSpreadEnabled;
+
+	int iSpreadScalesConsecutive = 0;
+	CALL_ATTRIB_HOOK_INT_ON_OTHER(pWeapon, iSpreadScalesConsecutive, mult_spread_scales_consecutive)
+	bool bSpreadNormal = iSpreadScalesConsecutive == 0;
+
 	for ( int iBullet = 0; iBullet < nBulletsPerShot; ++iBullet )
 	{
-		// Initialize random system with this seed.
-		RandomSeed( iSeed );	
-
 		// Get circular gaussian spread. Under some cases we fire a bullet right down the crosshair:
 		//	- The first bullet of a spread weapon (except for rapid fire spread weapons like the minigun)
 		//	- The first bullet of a non-spread weapon if it's been >1.25 second since firing
 		bool bFirePerfect = false;
-		if ( iBullet == 0 && pWpn )
+		if (iBullet == 0 && pWpn)
 		{
-			float flTimeSinceLastShot = (gpGlobals->curtime - pWpn->m_flLastFireTime );
-			if ( nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25 )
+			float flTimeSinceLastShot = (gpGlobals->curtime - pWpn->m_flLastFireTime);
+			if (!bSpreadNormal && flTimeSinceLastShot > 0.67f)
 			{
 				bFirePerfect = true;
+				pWpn->m_iConsecutiveShots = 0;
 			}
-			else if ( nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25 )
+			else if (bSpreadNormal && nBulletsPerShot > 1 && flTimeSinceLastShot > 0.25f)
 			{
 				bFirePerfect = true;
+				pWpn->m_iConsecutiveShots = 0;
+			}
+			else if (bSpreadNormal && nBulletsPerShot == 1 && flTimeSinceLastShot > 1.25f)
+			{
+				bFirePerfect = true;
+				pWpn->m_iConsecutiveShots = 0;
 			}
 		}
 
-		float x,y;
+		if (pWpn)
+		{
+			if (bFixedRecoilSpread)
+			{
+				iSeed = pWpn->m_iConsecutiveShots;
+			}
+		}
+
+		float x = 0.0f;
+	    float y = 0.0f;
 		if ( bFixedSpread )
 		{
 			int iSpread = iBullet;
-			while ( iSpread >= ARRAYSIZE(g_vecFixedWpnSpreadPellets) )
+			int iArraySize;
+			if (bSpreadNormal)
 			{
-				iSpread -= ARRAYSIZE(g_vecFixedWpnSpreadPellets);
+				iArraySize = ARRAYSIZE(g_vecFixedWpnSpreadPellets);
 			}
-			float flScalar = 0.5;
-			x = g_vecFixedWpnSpreadPellets[iSpread].x * flScalar;
-			y = g_vecFixedWpnSpreadPellets[iSpread].y * flScalar;
+			else
+			{
+				iArraySize = ARRAYSIZE(g_vecFixedWpnSpreadPellets15);
+			}
+			while (iSpread >= iArraySize)
+			{
+				iSpread -= iArraySize;
+			}
+			Vector2D* vecFixedWpnSpreadPellets = bSpreadNormal ? g_vecFixedWpnSpreadPellets : g_vecFixedWpnSpreadPellets15;
+			float flScalar;
+			if (!bSpreadNormal && pWpn)
+			{
+				flScalar = clamp(pWpn->m_iConsecutiveShots + 1, 1, 6) * 0.5f;
+			}
+			else
+			{
+				flScalar = 0.5f;
+			}
+			x = vecFixedWpnSpreadPellets[iSpread].x * flScalar;
+			y = vecFixedWpnSpreadPellets[iSpread].y * flScalar;
 		}
 		else if ( bFirePerfect )
 		{
-			x = y = 0;
+			x = y = 0.0f;
 		}
 		else
 		{
-			x = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
-			y = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
+			// Initialize random system with this seed.
+			RandomStartScope();
+			RandomSeedScoped(iSeed);
+			x = RandomFloatScoped(-0.5f, 0.5f) + RandomFloatScoped(-0.5f, 0.5f);
+			y = RandomFloatScoped(-0.5f, 0.5f) + RandomFloatScoped(-0.5f, 0.5f);
+			RandomEndScope();
 		}
 
-		// Initialize the varialbe firing information.
-		fireInfo.m_vecDirShooting = vecShootForward + ( x *  flSpread * vecShootRight ) + ( y * flSpread * vecShootUp );
+		// Initialize the variable firing information.
+		fireInfo.m_vecDirShooting = vecShootForward + ( x * flSpread * vecShootRight ) + ( y * flSpread * vecShootUp );
 		fireInfo.m_vecDirShooting.NormalizeInPlace();
 		fireInfo.m_bUseServerRandomSeed = pWpn && pWpn->UseServerRandomSeed();
 
@@ -328,7 +407,10 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		pPlayer->FireBullet( pWpn, fireInfo, bDoEffects, nDamageType, nCustomDamageType );
 
 		// Use new seed for next bullet.
-		++iSeed; 
+		if (!bFixedRecoilSpread)
+		{
+			++iSeed;
+		}
 	}
 
 #if !defined (CLIENT_DLL)

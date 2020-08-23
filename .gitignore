@@ -83,7 +83,7 @@ generated_proto*/
 *.xz
 
 !lib/public/nvtc.lib
-!lib/public/ftol.obj
+!lib/public/ftol3.obj
 !lib/public/open_vr_api.lib
 !lib/public/steam_api.lib
 !lib/public/ati_compress_mt_vc10.lib

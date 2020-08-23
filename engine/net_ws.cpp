@@ -46,6 +46,10 @@ static ConVar fakejitter	( "net_fakejitter", "0", FCVAR_CHEAT, "Jitter fakelag p
 static ConVar net_compressvoice( "net_compressvoice", "0", 0, "Attempt to compress out of band voice payloads (360 only)." );
 ConVar net_usesocketsforloopback( "net_usesocketsforloopback", "0", 0, "Use network sockets layer even for listen server local player's packets (multiplayer only)." );
 
+// TODO(mastercoms): rate limit NET_Long
+// TODO(mastercoms): Disconnect for TooManyCommands
+static ConVar net_warningthrottle("net_warningthrottle", "5", 0, "Network warning throttling to specified Hz rate");
+
 #ifdef _DEBUG
 static ConVar fakenoise		( "net_fakenoise", "0", FCVAR_CHEAT, "Simulate corrupt network packets (changes n bits per packet randomly)" ); 
 static ConVar fakeshuffle	( "net_fakeshuffle", "0", FCVAR_CHEAT, "Shuffles order of every nth packet (needs net_fakelag)" ); 
@@ -155,7 +159,7 @@ typedef struct
 static ConVar sv_maxroutable
 	( 
 	"sv_maxroutable", 
-	"1260", 
+	"1200", 
 	0, 
 	"Server upper bound on net_maxroutable that a client can use.", 
 	true, MIN_USER_MAXROUTABLE_SIZE, 
@@ -165,7 +169,7 @@ static ConVar sv_maxroutable
 ConVar net_maxroutable
 	( 
 	"net_maxroutable", 
-	"1260", 
+	"1200", 
 	FCVAR_ARCHIVE | FCVAR_USERINFO, 
 	"Requested max packet size before packets are 'split'.", 
 	true, MIN_USER_MAXROUTABLE_SIZE, 

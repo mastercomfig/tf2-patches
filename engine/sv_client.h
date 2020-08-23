@@ -71,6 +71,7 @@ public:
 	void	Disconnect( PRINTF_FORMAT_STRING const char *reason, ... );
 	
 	void	SetRate( int nRate, bool bForce );
+	void	SetUpdateInterval(float fUpdateInterval, bool bForce);
 	void	SetUpdateRate( int nUpdateRate, bool bForce );
 	
 	virtual	bool	IsHearingClient( int index ) const;

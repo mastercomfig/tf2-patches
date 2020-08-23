@@ -3064,7 +3064,6 @@ void CMaterial::DrawMesh( VertexCompressionType_t vertexCompression )
 #endif
 		if ((GetMaterialVarFlags() & MATERIAL_VAR_NO_DRAW) == 0)
 		{
-			const char *pName = m_pShader->GetName();
 			ShaderSystem()->DrawElements( m_pShader, m_pShaderParams, &m_ShaderRenderState, vertexCompression, m_ChangeID ^ g_nDebugVarsSignature );
 		}
 	}

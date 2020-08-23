@@ -49,7 +49,10 @@ void C_TEFireBullets::PostDataUpdate( DataUpdateType_t updateType )
 {
 	VPROF( "C_TEFireBullets::PostDataUpdate" );
 
-	// Create the effect.
-	m_vecAngles.z = 0;
-	FX_FireBullets( NULL, m_iPlayer+1, m_vecOrigin, m_vecAngles, m_iWeaponID, m_iMode, m_iSeed, m_flSpread, -1, m_bCritical );
+	if (updateType == DATA_UPDATE_CREATED)
+	{
+		// Create the effect.
+		m_vecAngles.z = 0;
+		FX_FireBullets(NULL, m_iPlayer + 1, m_vecOrigin, m_vecAngles, m_iWeaponID, m_iMode, m_iSeed, m_flSpread, -1, m_bCritical);
+	}
 }

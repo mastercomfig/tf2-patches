@@ -131,8 +131,8 @@ private:
 	HFont			m_hFont;
 
 	HFont			m_hFontSmall;
-	const ConVar		*cl_updaterate;
-	const ConVar		*cl_cmdrate;
+	const ConVar		*cl_updateinterval;
+	const ConVar		*cl_cmdinterval;
 
 public:
 						CNetGraphPanel( VPANEL parent );
@@ -229,9 +229,9 @@ CNetGraphPanel::CNetGraphPanel( VPANEL parent )
 
 	InitColors();
 
-	cl_updaterate = cvar->FindVar( "cl_updaterate" );
-	cl_cmdrate = cvar->FindVar( "cl_cmdrate" );
-	assert( cl_updaterate && cl_cmdrate );
+	cl_updateinterval = cvar->FindVar( "cl_updateinterval" );
+	cl_cmdinterval = cvar->FindVar( "cl_cmdinterval" );
+	assert( cl_updateinterval && cl_cmdinterval );
 
 	memset( sendcolor, 0, 3 );
 	memset( holdcolor, 0, 3 );
@@ -601,11 +601,11 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 
 	float flAdjust = 0.0f;
 
-	if ( cl_updaterate->GetFloat() > 0.001f )
+	if ( cl_updateinterval->GetFloat() > 0.001f )
 	{
-		flAdjust = -0.5f / cl_updaterate->GetFloat();
+		flAdjust = cl_updateinterval->GetFloat();
 
-		m_AvgLatency += flAdjust;
+		m_AvgLatency -= flAdjust;
 	}
 
 	// Can't be below zero
@@ -782,7 +782,7 @@ void CNetGraphPanel::DrawTextFields( int graphvalue, int x, int y, int w, netban
 			interpcolor[ 2 ] = 31;
 		}
 		// flInterp is below recommended setting!!!
-		else if ( flInterp < ( 2.0f / cl_updaterate->GetFloat() ) )
+		else if ( flInterp < ( 2.0f * cl_updateinterval->GetFloat() ) )
 		{
 			interpcolor[ 0 ] = 255;
 			interpcolor[ 1 ] = 125;
@@ -1051,7 +1051,7 @@ void CNetGraphPanel::DrawHatches( int x, int y, int maxmsgbytes )
 void CNetGraphPanel::DrawUpdateRate( int xright, int y )
 {
 	char sz[ 32 ];
-	Q_snprintf( sz, sizeof( sz ), "%i/s", cl_updaterate->GetInt() );
+	Q_snprintf( sz, sizeof( sz ), "%3.1f/s", 1.0f / cl_updateinterval->GetFloat() );
 	wchar_t unicode[ 32 ];
 	g_pVGuiLocalize->ConvertANSIToUnicode( sz, unicode, sizeof( unicode  ) );
 
@@ -1071,7 +1071,7 @@ void CNetGraphPanel::DrawUpdateRate( int xright, int y )
 void CNetGraphPanel::DrawCmdRate( int xright, int y )
 {
 	char sz[ 32 ];
-	Q_snprintf( sz, sizeof( sz ), "%i/s", cl_cmdrate->GetInt() );
+	Q_snprintf(sz, sizeof(sz), "%3.1f/s", 1.0f / cl_cmdinterval->GetFloat());
 	wchar_t unicode[ 32 ];
 	g_pVGuiLocalize->ConvertANSIToUnicode( sz, unicode, sizeof( unicode  ) );
 

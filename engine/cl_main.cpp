@@ -1687,7 +1687,7 @@ CON_COMMAND_F( startmovie, "Start recording movie frames.", FCVAR_DONTRECORD )
 		ConMsg( " jpeg_quality nnn = set jpeq quality to nnn (range 1 to 100), default %d\n", DEFAULT_JPEG_QUALITY );
 		ConMsg( " ]\n" );
 		ConMsg( "examples:\n" );
-		ConMsg( "   startmovie testmovie jpg wav jpeg_qality 75\n" );
+		ConMsg( "   startmovie testmovie jpg wav jpeg_quality 75\n" );
 #ifdef USE_WEBM_FOR_REPLAY
 		ConMsg( "   startmovie testmovie webm\n" );
 #else
@@ -2233,7 +2233,7 @@ void CL_Move(float accumulated_extra_samples, bool bFinalTick )
 	if ( cl.IsActive() )
 	{
 		// use full update rate when active
-		float commandInterval = 1.0f / cl_cmdrate->GetFloat();
+		float commandInterval = cl_cmdinterval->GetFloat();
 		float maxDelta = min ( host_state.interval_per_tick, commandInterval );
 		float delta = clamp( (float)(net_time - cl.m_flNextCmdTime), 0.0f, maxDelta );
 		cl.m_flNextCmdTime = net_time + commandInterval - delta;
@@ -2408,7 +2408,11 @@ int CL_GetBackgroundLevelIndex( int nNumChapters )
 
 	if ( sv_unlockedchapters.GetInt() >= ( nNumChapters-1 ) )
 	{
-		RandomSeed( Plat_MSTime() );
+		// TODO: safe random seed?
+		if (!V_stricmp(COM_GetModDirectory(), "tf") && !V_stricmp(COM_GetModDirectory(), "tfbeta"))
+		{
+			RandomSeed(Plat_MSTime());
+		}
 		g_iRandomChapterIndex = iChapterIndex = RandomInt( 1, nNumChapters );
 	}
 
@@ -2695,8 +2699,8 @@ void CL_SetSteamCrashComment()
 	Q_snprintf( misc, sizeof( misc ), "skill:%i rate %i update %i cmd %i latency %i msec", 
 		skill.GetInt(),
 		cl_rate->GetInt(),
-		(int)cl_updaterate->GetFloat(),
-		(int)cl_cmdrate->GetFloat(),
+		(int) (1.0f / cl_updateinterval->GetFloat()),
+		(int) (1.0f / cl_cmdinterval->GetFloat()),
 		latency
 	);
 
@@ -2748,7 +2752,7 @@ void CL_InitLanguageCvar()
 }
 
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue );
-ConVar cl_cloud_settings( "cl_cloud_settings", "1", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
+ConVar cl_cloud_settings( "cl_cloud_settings", "0", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue )
 {
 	// !! bug do i need to do something linux-wise here.

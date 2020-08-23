@@ -735,8 +735,10 @@ void CQuestItemPanel::PerformLayout( void )
 		// Randomize our folder images based on original ID
 		if ( m_vecFoldersImages.Count() )
 		{
-			RandomSeed( m_hQuestItem->GetSOCData() ? m_hQuestItem->GetSOCData()->GetOriginalID() : m_hQuestItem->GetItemDefIndex() );
-			int idx = RandomInt( 0, m_vecFoldersImages.Count() - 1 );
+			RandomStartScope();
+			RandomSeedScoped( m_hQuestItem->GetSOCData() ? m_hQuestItem->GetSOCData()->GetOriginalID() : m_hQuestItem->GetItemDefIndex() );
+			int idx = RandomIntScoped( 0, m_vecFoldersImages.Count() - 1 );
+			RandomEndScope();
 
 			m_pFrontFolderImage->SetImage( m_vecFoldersImages[ idx ].m_strFront );
 			m_pBackFolderImage->SetImage( m_vecFoldersImages[ idx ].m_strBack );
@@ -926,7 +928,8 @@ void CQuestItemPanel::CaptureAndEncodeStrings()
 	
 	m_pKVCipherStrings->AddSubKey( pKVEncoded );
 
-	RandomSeed( m_hQuestItem->GetSOCData() ? m_hQuestItem->GetSOCData()->GetOriginalID() : m_hQuestItem->GetItemDefIndex() );
+	// TODO: safe random seed
+	//RandomSeed( m_hQuestItem->GetSOCData() ? m_hQuestItem->GetSOCData()->GetOriginalID() : m_hQuestItem->GetItemDefIndex() );
 
 	// "encode" each string by scrambling
 	FOR_EACH_VALUE( pKVEncoded, pKVString )
@@ -1270,6 +1273,8 @@ void CQuestItemPanel::OnThink()
 //-----------------------------------------------------------------------------
 void CQuestItemPanel::FireGameEvent( IGameEvent *event )
 {
+	// FIXME(mastercoms): disable quests
+	return;
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 	if( FStrEq( event->GetName(), "quest_objective_completed" ) )
 	{

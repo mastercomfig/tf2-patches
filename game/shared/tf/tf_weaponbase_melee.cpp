@@ -236,6 +236,17 @@ void CTFWeaponBaseMelee::PrimaryAttack()
 // -----------------------------------------------------------------------------
 void CTFWeaponBaseMelee::SecondaryAttack()
 {
+#ifdef GAME_DLL
+	// fix stickies not being detonated while switching to melee
+	if ( CanAttack() )
+	{
+		CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
+		
+		if ( pOwner->IsPlayerClass( TF_CLASS_DEMOMAN ) )
+			pOwner->DoClassSpecialSkill();
+	}
+#endif
+	
 	// semi-auto behaviour
 	if ( m_bInAttack2 )
 		return;
@@ -1078,16 +1089,27 @@ bool CTFWeaponBaseMelee::CalcIsAttackCriticalHelper( void )
 	// mess with the crit chance seed so it's not based solely on the prediction seed
 	int iMask = ( entindex() << 16 ) | ( pPlayer->entindex() << 8 );
 	int iSeed = CBaseEntity::GetPredictionRandomSeed() ^ iMask;
+	bool bScoped;
 	if ( iSeed != m_iCurrentSeed )
 	{
 		m_iCurrentSeed = iSeed;
-		RandomSeed( m_iCurrentSeed );
+		RandomStartScope();
+		RandomSeedScoped( m_iCurrentSeed );
+		bScoped = true;
+	}
+	else
+	{
+		bScoped = false;
 	}
 
 	m_bCurrentAttackIsDuringDemoCharge = pPlayer->m_Shared.GetNextMeleeCrit() != MELEE_NOCRIT;
 
 	if ( pPlayer->m_Shared.GetNextMeleeCrit() == MELEE_CRIT )
 	{
+		if (bScoped)
+		{
+			RandomEndScope();
+		}
 		return true;
 	}
 
@@ -1099,7 +1121,12 @@ bool CTFWeaponBaseMelee::CalcIsAttackCriticalHelper( void )
 	// Track each request
 	m_nCritChecks++;
 
-	bool bCrit = ( RandomInt( 0, WEAPON_RANDOM_RANGE-1 ) < ( flCritChance ) * WEAPON_RANDOM_RANGE );
+	int iRandom = bScoped ? RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1) : RandomInt(0, WEAPON_RANDOM_RANGE - 1);
+	if (bScoped)
+	{
+		RandomEndScope();
+	}
+	bool bCrit = ( iRandom < ( flCritChance ) * WEAPON_RANDOM_RANGE );
 
 #ifdef _DEBUG
 	// Force seed to always say yes

@@ -333,7 +333,8 @@ ConVar sb_close_browser_on_connect( "sb_close_browser_on_connect", "1", FCVAR_AR
 ConVar tf_spectate_pyrovision( "tf_spectate_pyrovision", "0", FCVAR_ARCHIVE, "When on, spectator will see the world with Pyrovision active", VisionMode_ChangeCallback );
 ConVar tf_replay_pyrovision( "tf_replay_pyrovision", "0", FCVAR_ARCHIVE, "When on, replays will be seen with Pyrovision active", VisionMode_ChangeCallback );
 
-ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_NONE, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_REPLICATED, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person_enable("tf_taunt_first_person_enable", "0", FCVAR_ARCHIVE, "1 = taunts remain first-person even if the server has it off");
 
 ConVar tf_romevision_opt_in( "tf_romevision_opt_in", "0", FCVAR_ARCHIVE, "Enable Romevision in Mann vs. Machine mode when available." );
 ConVar tf_romevision_skip_prompt( "tf_romevision_skip_prompt", "0", FCVAR_ARCHIVE, "If nonzero, skip the prompt about sharing Romevision." );
@@ -459,7 +460,7 @@ static const killstreak_params_t g_KillStreakEffectsBlue[] =
 };
 
 // thirdperson medieval
-static ConVar tf_medieval_thirdperson( "tf_medieval_thirdperson", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE , "Turns on third-person camera in medieval mode." );
+static ConVar tf_medieval_thirdperson( "tf_medieval_thirdperson", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_CHEAT , "Turns on third-person camera in medieval mode." );
 static ConVar tf_medieval_cam_idealdist( "tf_medieval_cam_idealdist", "125", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
 static ConVar tf_medieval_cam_idealdistright( "tf_medieval_cam_idealdistright", "25", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
 static ConVar tf_medieval_cam_idealdistup( "tf_medieval_cam_idealdistup", "-10", FCVAR_CLIENTDLL | FCVAR_CHEAT );	 // thirdperson distance
@@ -3637,6 +3638,8 @@ struct TextureVarSetter
 	ITexture* m_pTexture;
 };
 
+ConVar tf_disable_weapon_skins("tf_disable_weapon_skins", "0", FCVAR_ARCHIVE);
+
 //-----------------------------------------------------------------------------
 // Purpose: Used for weapon skins.
 //-----------------------------------------------------------------------------
@@ -3692,7 +3695,7 @@ public:
 	{
 		// We don't support DX8
 		ConVarRef mat_dxlevel( "mat_dxlevel" );
-		if ( mat_dxlevel.GetInt() < 90 )
+		if ( tf_disable_weapon_skins.GetBool() || mat_dxlevel.GetInt() < 90 )
 			return false;
 
 		Assert( pMaterial );
@@ -4551,7 +4554,7 @@ void C_TFPlayer::UpdateClientSideAnimation()
 	// StatTrak Module Test
 	// Update ViewModels
 	// We only update the view model for the local player.
-	//if ( IsLocalPlayer() )
+	if ( IsLocalPlayer() )
 	{
 		CTFWeaponBase *pWeapon = GetActiveTFWeapon();
 		if ( pWeapon )
@@ -5934,7 +5937,7 @@ void C_TFPlayer::TurnOnTauntCam( void )
 	m_TauntCameraData.m_vecHullMin.Init( -9.0f, -9.0f, -9.0f );
 	m_TauntCameraData.m_vecHullMax.Init( 9.0f, 9.0f, 9.0f );
 
-	if ( tf_taunt_first_person.GetBool() )
+	if ( tf_taunt_first_person.GetBool() || tf_taunt_first_person_enable.GetBool() )
 	{
 		// Remain in first-person.
 	}
@@ -6663,7 +6666,7 @@ void C_TFPlayer::UpdateLookAt( void )
 
 			Vector vDir = pEnt->GetAbsOrigin() - vMyOrigin;
 
-			if ( vDir.Length() > 300 ) 
+			if ( vDir.LengthSqr() > 300 * 300 ) 
 				continue;
 
 			VectorNormalize( vDir );
@@ -7464,6 +7467,8 @@ void C_TFPlayer::SetForcedIDTarget( int iTarget )
 	m_iForcedIDTarget = iTarget;
 }
 
+ConVar tf_hud_target_id_disable("tf_hud_target_id_disable", "0", FCVAR_ARCHIVE, "Disables in-game target ID.");
+
 //-----------------------------------------------------------------------------
 // Purpose: Update this client's targetid entity
 //-----------------------------------------------------------------------------
@@ -7496,10 +7501,15 @@ void C_TFPlayer::UpdateIDTarget()
 	// Clear old target and find a new one
 	m_iIDEntIndex = 0;
 
+	if (tf_hud_target_id_disable.GetBool())
+	{
+		return;
+	}
+
 	trace_t tr;
 	Vector vecStart, vecEnd;
-	VectorMA( MainViewOrigin(), MAX_TRACE_LENGTH, MainViewForward(), vecEnd );
-	VectorMA( MainViewOrigin(), 10,   MainViewForward(), vecStart );
+	VectorMA( MainViewOrigin(), 8192.0f, MainViewForward(), vecEnd );
+	VectorMA( MainViewOrigin(), 10.0f,   MainViewForward(), vecStart );
 
 	// If we're in observer mode, ignore our observer target. Otherwise, ignore ourselves.
 	if ( IsObserver() )
@@ -7516,7 +7526,11 @@ void C_TFPlayer::UpdateIDTarget()
 			iReviveMedic = 1;
 		}
 
-		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
+		int nMask = MASK_SOLID;
+		if (iReviveMedic == 1)
+		{
+			nMask |= CONTENTS_DEBRIS;
+		}
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
 

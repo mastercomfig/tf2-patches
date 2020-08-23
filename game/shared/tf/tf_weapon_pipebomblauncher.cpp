@@ -115,6 +115,14 @@ void CTFPipebombLauncher::Spawn( void )
 //-----------------------------------------------------------------------------
 bool CTFPipebombLauncher::Holster( CBaseCombatWeapon *pSwitchingTo )
 {
+#ifdef CLIENT_DLL
+	// fix charge sound not stopping on weapon switch
+	if ( m_flChargeBeginTime > 0 )
+	{
+		StopSound( TF_WEAPON_PIPEBOMB_LAUNCHER_CHARGE_SOUND );
+	}
+#endif
+
 	m_flChargeBeginTime = 0;
 
 	return BaseClass::Holster( pSwitchingTo );
@@ -396,24 +404,6 @@ CBaseEntity *CTFPipebombLauncher::FireProjectile( CTFPlayer *pPlayer )
 	}
 
 	return pProjectile;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Detonate this demoman's pipebombs if secondary fire is down.
-//-----------------------------------------------------------------------------
-void CTFPipebombLauncher::ItemBusyFrame( void )
-{
-#ifdef GAME_DLL
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-	if ( pOwner && pOwner->m_nButtons & IN_ATTACK2 )
-	{
-		// We need to do this to catch the case of player trying to detonate
-		// pipebombs while in the middle of reloading.
-		SecondaryAttack();
-	}
-#endif
-
-	BaseClass::ItemBusyFrame();
 }
 
 //-----------------------------------------------------------------------------

@@ -1002,13 +1002,21 @@ inline void CIndexBuffer::HandleLateCreation( )
 	}
 	
 	void* pWritePtr = NULL;
-	const int dataToWriteBytes = ( m_Position * IndexSize() ) - m_nSysmemBufferStartBytes;
+	int dataToWriteBytes = ( m_Position * IndexSize() ) - m_nSysmemBufferStartBytes;
 	DWORD dwFlags = D3DLOCK_NOSYSLOCK;
 	if ( m_bDynamic )
 		dwFlags |= ( m_bLateCreateShouldDiscard ? D3DLOCK_DISCARD : D3DLOCK_NOOVERWRITE );
 	
 	// Always clear this.
 	m_bLateCreateShouldDiscard = false;
+
+	// If we've wrapped might as well transfer the whole IB
+
+	if (dataToWriteBytes < 1)
+	{
+		dataToWriteBytes = m_IndexCount * IndexSize();
+		m_nSysmemBufferStartBytes = 0;
+	}
 	
 	// Don't use the Lock function, it does a bunch of stuff we don't want.
 	HRESULT hr = m_pIB->Lock( m_nSysmemBufferStartBytes, 

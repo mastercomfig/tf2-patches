@@ -12929,7 +12929,10 @@ float CTFGameRules::FlPlayerFallDamage( CBasePlayer *pPlayer )
 		float flRatio = (float)pPlayer->GetMaxHealth() / 100.0;
 		flFallDamage *= flRatio;
 
-		flFallDamage *= random->RandomFloat( 0.8, 1.2 );
+		if (!tf_damage_disablespread.GetBool())
+		{
+			flFallDamage *= random->RandomFloat(0.8, 1.2);
+		}
 
 		int iCancelFallingDamage = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( pPlayer, iCancelFallingDamage, cancel_falling_damage );

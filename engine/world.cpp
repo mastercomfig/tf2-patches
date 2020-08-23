@@ -232,29 +232,54 @@ public:
 		if ( !serverEntity )
 			return ITERATION_CONTINUE;
 
-		// FIXME: Should we be using the surrounding bounds here?
-		Vector vecMins, vecMaxs;
-		CM_GetCollideableTriggerTestBox( pTouchCollide, &vecMins, &vecMaxs, m_bAccurateBBoxCheck );
-
-		const Vector &vecStart = pTouchCollide->GetCollisionOrigin();
-		Ray_t ray;
-		ray.Init( vecStart, vecStart, vecMins, vecMaxs ); 
-
-		if ( m_pTrigger->GetSolidFlags() & FSOLID_USE_TRIGGER_BOUNDS )
+		if (m_pTrigger->GetSolid() == SOLID_BBOX)
 		{
-			Vector vecTriggerMins, vecTriggerMaxs;
-			m_pTrigger->WorldSpaceTriggerBounds( &vecTriggerMins, &vecTriggerMaxs ); 
-			if ( !IsBoxIntersectingRay( vecTriggerMins, vecTriggerMaxs, ray ) )
+			Vector vecMins, vecMaxs;
+			if (m_pTrigger->GetSolidFlags() & FSOLID_USE_TRIGGER_BOUNDS)
 			{
-				return ITERATION_CONTINUE;
+				m_pTrigger->WorldSpaceTriggerBounds(&vecMins, &vecMaxs);
 			}
+			else
+			{
+				vecMins = m_pTrigger->OBBMins();
+				vecMaxs = m_pTrigger->OBBMaxs();
+			}
+
+			const Vector& vecStart = m_pTrigger->GetCollisionOrigin();
+			Ray_t ray;
+			ray.Init(vecStart, vecStart, vecMins, vecMaxs);
+
+			trace_t tr;
+			g_pEngineTraceServer->ClipRayToCollideable(ray, MASK_SOLID, pTouchCollide, &tr);
+			if (!(tr.contents & MASK_SOLID))
+				return ITERATION_CONTINUE;
 		}
 		else
 		{
-			trace_t tr;
-			g_pEngineTraceServer->ClipRayToCollideable( ray, MASK_SOLID, m_pTrigger, &tr );
-			if ( !(tr.contents & MASK_SOLID) )
-				return ITERATION_CONTINUE;
+			// FIXME: Should we be using the surrounding bounds here?
+			Vector vecMins, vecMaxs;
+			CM_GetCollideableTriggerTestBox(pTouchCollide, &vecMins, &vecMaxs, m_bAccurateBBoxCheck);
+
+			const Vector& vecStart = pTouchCollide->GetCollisionOrigin();
+			Ray_t ray;
+			ray.Init(vecStart, vecStart, vecMins, vecMaxs);
+
+			if (m_pTrigger->GetSolidFlags() & FSOLID_USE_TRIGGER_BOUNDS)
+			{
+				Vector vecTriggerMins, vecTriggerMaxs;
+				m_pTrigger->WorldSpaceTriggerBounds(&vecTriggerMins, &vecTriggerMaxs);
+				if (!IsBoxIntersectingRay(vecTriggerMins, vecTriggerMaxs, ray))
+				{
+					return ITERATION_CONTINUE;
+				}
+			}
+			else
+			{
+				trace_t tr;
+				g_pEngineTraceServer->ClipRayToCollideable(ray, MASK_SOLID, m_pTrigger, &tr);
+				if (!(tr.contents & MASK_SOLID))
+					return ITERATION_CONTINUE;
+			}
 		}
 
 		m_TouchedEntities.AddToTail( pTouch );

@@ -31,7 +31,7 @@
 
 #endif
 
-ConVar r_flashlight_version2( "r_flashlight_version2", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+ConVar r_flashlight_version2("r_flashlight_version2", "1", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 void InitParamsEyes_DX8_DX9( CBaseVSShader *pShader, IMaterialVar** params, const char *pMaterialName, 
 							Eyes_DX8_DX9_Vars_t &info )

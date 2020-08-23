@@ -1050,32 +1050,37 @@ bool CTFWeaponBase::Deploy( void )
 			return false;
 
 		float flWeaponSwitchTime = 0.5f;
+		float flBaseWeaponSwitchTime = flWeaponSwitchTime;
 
 		// Overrides the anim length for calculating ready time.
 		float flDeployTimeMultiplier = 1.0f;
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flDeployTimeMultiplier, mult_deploy_time );
 		CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_single_wep_deploy_time );
 
-		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed for more than 0.67 second to match to weapon script switch time
-		// unless the player latched to a hook target, then allow switching right away
-		CTFWeaponBase *pLastWeapon = dynamic_cast< CTFWeaponBase* >( pPlayer->GetLastWeapon() );
-		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime - pLastWeapon->m_flLastDeployTime > flWeaponSwitchTime ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
-		}
-		
-		if ( pPlayer->m_Shared.InCond( TF_COND_BLASTJUMPING ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_rocketjump_deploy_time );
-		}
+		CTFWeaponBase* pLastWeapon = dynamic_cast<CTFWeaponBase*>(pPlayer->GetLastWeapon());
 
 		int iIsSword = 0;
-		CALL_ATTRIB_HOOK_INT_ON_OTHER( pLastWeapon, iIsSword, is_a_sword );
-		CALL_ATTRIB_HOOK_INT( iIsSword, is_a_sword );
-		if ( iIsSword )
+		CALL_ATTRIB_HOOK_INT_ON_OTHER(pLastWeapon, iIsSword, is_a_sword);
+		CALL_ATTRIB_HOOK_INT(iIsSword, is_a_sword);
+		if (iIsSword)
 		{
 			// swords deploy and holster 75% slower
 			flDeployTimeMultiplier *= 1.75f;
+		}
+
+		flBaseWeaponSwitchTime *= MAX(flDeployTimeMultiplier, 0.00001f);
+
+		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed for more than 0.5 second to match to weapon script switch time
+		// unless the player latched to a hook target, then allow switching right away
+		
+		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime >= pLastWeapon->m_flLastDeployTime ) )
+		{
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
+		}
+
+		if (pPlayer->m_Shared.InCond(TF_COND_BLASTJUMPING))
+		{
+			CALL_ATTRIB_HOOK_FLOAT(flDeployTimeMultiplier, mult_rocketjump_deploy_time);
 		}
 
 #ifdef STAGING_ONLY
@@ -1116,7 +1121,7 @@ bool CTFWeaponBase::Deploy( void )
 
 		pPlayer->SetNextAttack( m_flNextPrimaryAttack );
 
-		m_flLastDeployTime = gpGlobals->curtime;
+		m_flLastDeployTime = gpGlobals->curtime + flBaseWeaponSwitchTime;
 
 #ifdef GAME_DLL
 		// Reset our deploy-lifetime kill counter.
@@ -1500,11 +1505,17 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped( m_iCurrentSeed );
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
+		}
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
 		}
 
 		// see if we should start firing crit shots
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE-1 );
 		if ( iRandom < flStartCritChance * WEAPON_RANDOM_RANGE )
 		{
 			bCrit = true;
@@ -1523,10 +1534,15 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped(m_iCurrentSeed);
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
 		}
-
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE - 1 );
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
+		}
 		bCrit = ( iRandom < flCritChance * WEAPON_RANDOM_RANGE );
 	}
 
@@ -2157,10 +2173,19 @@ void CTFWeaponBase::SendReloadEvents()
 //-----------------------------------------------------------------------------
 void CTFWeaponBase::ItemBusyFrame( void )
 {
+	CTFPlayer* pOwner = ToTFPlayer(GetOwner());
+#ifdef GAME_DLL
+	if (pOwner && pOwner->m_nButtons & IN_ATTACK2)
+	{
+		// We need to do this to catch the case of player trying to detonate
+		// pipebombs while in the middle of reloading.
+		SecondaryAttack();
+	}
+#endif
+
 	// Call into the base ItemBusyFrame.
 	BaseClass::ItemBusyFrame();
 
-	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 	if ( !pOwner )
 	{
 		return;
@@ -5394,6 +5419,10 @@ QAngle CTFWeaponBase::GetSpreadAngles( void )
 bool CTFWeaponBase::CanPerformSecondaryAttack() const
 {
 	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
+
+    // fix stickies not being detonated while attacking
+    if ( pOwner->IsPlayerClass( TF_CLASS_DEMOMAN ) )
+        return true;
 
 	// Demo shields are allowed to charge whenever
 	if ( pOwner->m_Shared.HasDemoShieldEquipped() )

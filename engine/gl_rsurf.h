@@ -143,12 +143,12 @@ inline void BuildIndicesForSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t s
 
 inline void BuildIndicesForWorldSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t surfID, worldbrushdata_t *pData )
 {
-	if ( SurfaceHasPrims(surfID) )
+	if (SurfaceHasPrims(surfID))
 	{
-		mprimitive_t *pPrim = &pData->primitives[MSurf_FirstPrimID( surfID, pData )];
-		Assert(pPrim->vertCount==0);
-		unsigned short startVert = MSurf_VertBufferIndex( surfID );
-		Assert( pPrim->indexCount == ((MSurf_VertCount( surfID ) - 2)*3));
+		mprimitive_t* pPrim = &pData->primitives[MSurf_FirstPrimID(surfID, pData)];
+		Assert(pPrim->vertCount == 0);
+		unsigned short startVert = MSurf_VertBufferIndex(surfID);
+		Assert(pPrim->indexCount == ((MSurf_VertCount(surfID) - 2) * 3));
 
 		for ( int primIndex = 0; primIndex < pPrim->indexCount; primIndex++ )
 		{
@@ -157,7 +157,8 @@ inline void BuildIndicesForWorldSurface( CMeshBuilder &meshBuilder, SurfaceHandl
 	}
 	else
 	{
-		BuildIndicesForSurface( meshBuilder, surfID );
+		BuildIndicesForSurface(meshBuilder, surfID);
+
 	}
 }
 

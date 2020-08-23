@@ -280,7 +280,6 @@ void CBasePlayer::ItemPostFrame()
 			// Not predicting this weapon
 			if ( GetActiveWeapon()->IsPredicted() )
 #endif
-
 			{
 				GetActiveWeapon()->ItemPostFrame( );
 			}

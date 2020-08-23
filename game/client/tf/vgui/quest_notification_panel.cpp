@@ -256,6 +256,8 @@ void CQuestNotificationPanel::PerformLayout()
 //-----------------------------------------------------------------------------
 void CQuestNotificationPanel::FireGameEvent( IGameEvent * event )
 {
+	// FIXME(mastercoms): disable quests
+	return;
 	const char *pszName = event->GetName();
 
 	if ( FStrEq( pszName, "inventory_updated" ) || FStrEq( pszName, "player_death" ) )

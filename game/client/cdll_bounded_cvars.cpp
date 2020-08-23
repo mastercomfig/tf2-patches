@@ -67,7 +67,7 @@ public:
 	  ConVar_ServerBounded( "cl_interp_ratio", 
 		  "2.0", 
 		  FCVAR_USERINFO | FCVAR_NOT_CONNECTED | FCVAR_ARCHIVE, 
-		  "Sets the interpolation amount (final amount is cl_interp_ratio / cl_updaterate)." )
+		  "Sets the interpolation amount (final amount is cl_interp_ratio * cl_updateinterval)." )
 	  {
 	  }
 
@@ -89,51 +89,13 @@ public:
 static CBoundedCvar_InterpRatio cl_interp_ratio_var;
 ConVar_ServerBounded *cl_interp_ratio = &cl_interp_ratio_var;
 
-
-// ------------------------------------------------------------------------------------------ //
-// cl_interp
-// ------------------------------------------------------------------------------------------ //
-
-class CBoundedCvar_Interp : public ConVar_ServerBounded
-{
-public:
-	CBoundedCvar_Interp() :
-	  ConVar_ServerBounded( "cl_interp", 
-		  "0.030303", 
-		  FCVAR_USERINFO | FCVAR_NOT_CONNECTED | FCVAR_ARCHIVE, 
-		  "Sets the interpolation amount (bounded on low side by server interp ratio settings).", true, 0.0f, true, 0.5f )
-	  {
-	  }
-
-	  virtual float GetFloat() const
-	  {
-		  static const ConVar_ServerBounded* pUpdateRate = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updaterate"));
-		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
-		  static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
-		  if ( pUpdateRate && pMin && pMax && pMin->GetFloat() != -1 )
-		  {
-			  return clamp( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat(), pMax->GetFloat() / pUpdateRate->GetFloat());
-		  }
-		  if (!HushAsserts())
-		  {
-			  AssertMsgOnce(false, "GetInterpolationAmount: can't get cl_updaterate cvar.");
-		  }
-
-		  return 0.1f;
-	  }
-
-	virtual void SetValue(const char* value)
-	{
-		ConVar_ServerBounded::SetValue(value);
-		C_BaseEntity::CheckCLInterpChanged();
-	}
-};
-
-static CBoundedCvar_Interp cl_interp_var;
-ConVar_ServerBounded *cl_interp = &cl_interp_var;
-
 float GetClientInterpAmount()
 {
-	return cl_interp->GetFloat();
+	static const ConVar_ServerBounded* pUpdateInterval = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_updateinterval"));
+	if (!pUpdateInterval)
+	{
+		return 0.03f;
+	}
+	return cl_interp_ratio->GetFloat() * pUpdateInterval->GetFloat();;
 }
 

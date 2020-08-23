@@ -72,11 +72,7 @@ typedef uint64 VertexFormat_t;
 //                     very judiciously since we need to audit them when merging to SDK branch either way.
 #define MATERIAL_SYSTEM_INTERFACE_VERSION "VMaterialSystem081"
 
-#ifdef POSIX
 #define ABSOLUTE_MINIMUM_DXLEVEL 90
-#else
-#define ABSOLUTE_MINIMUM_DXLEVEL 80
-#endif
 
 enum ShaderParamType_t 
 { 

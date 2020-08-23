@@ -7034,6 +7034,7 @@ void CTFPlayerShared::OnRemoveDisguised( void )
 		TFPlayerClassData_t *pData = GetPlayerClassData( TF_CLASS_SPY );
 		int iIndex = modelinfo->GetModelIndex( pData->GetModelName() );
 
+		// TODO: investigate
 		m_pOuter->SetModelIndex( iIndex );
 	}
 

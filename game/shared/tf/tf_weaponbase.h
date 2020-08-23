@@ -706,6 +706,9 @@ private:
 	bool IsInspectActivity( int iActivity );
 	CNetworkVar( float, m_flInspectAnimTime );
 	CNetworkVar( int, m_nInspectStage );
+public:
+	CNetworkVar(int, m_iConsecutiveShots);
+private:
 	bool m_bInspecting;
 
 	friend class CTFDroppedWeapon;

@@ -986,6 +986,10 @@ const char *COM_DXLevelToString( int dxlevel )
 			{
 				return "9.0 (full-precision)";
 			}
+		case 95:
+			return "9.0+";
+		case 100:
+			return "9.0++";
 		default:
 			return "UNKNOWN";
 		}
@@ -1020,6 +1024,10 @@ const char *COM_DXLevelToString( int dxlevel )
 			{
 				return "gamemode - 9.0 (full-precision)";
 			}
+		case 95:
+			return "gamemode - 9.0+";
+		case 100:
+			return "gamemode - 9.0++";
 		default:
 			return "gamemode";
 		}
@@ -1372,7 +1380,7 @@ bool COM_BufferToBufferDecompress( void *dest, unsigned int *destLen, const void
 		if ( pHeader->id == LZSS_ID )
 		{
 			CLZSS s;
-			int nActualDecompressedSize = s.SafeUncompress( (byte *)source, (byte *)dest, *destLen );
+			int nActualDecompressedSize = s.SafeUncompress( (byte *)source, sourceLen, (byte *)dest, *destLen );
 			if ( nActualDecompressedSize != nDecompressedSize )
 			{
 				Warning( "NET_BufferToBufferDecompress: header said %d bytes would be decompressed, but we LZSS decompressed %d\n", nDecompressedSize, nActualDecompressedSize );

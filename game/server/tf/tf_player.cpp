@@ -249,6 +249,8 @@ ConVar tf_highfive_max_range( "tf_highfive_max_range", "150", FCVAR_CHEAT | FCVA
 ConVar tf_highfive_height_tolerance( "tf_highfive_height_tolerance", "12", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "The maximum height difference allowed for two high-fivers." );
 ConVar tf_highfive_debug( "tf_highfive_debug", "0", FCVAR_NONE, "Turns on some console spew for debugging high five issues." );
 
+ConVar tf_taunt_first_person("tf_taunt_first_person", "0", FCVAR_REPLICATED, "1 = taunts remain first-person");
+
 ConVar tf_test_teleport_home_fx( "tf_test_teleport_home_fx", "0", FCVAR_CHEAT );
 
 ConVar tf_halloween_giant_health_scale( "tf_halloween_giant_health_scale", "10", FCVAR_CHEAT );
@@ -13907,6 +13909,13 @@ void CTFPlayer::ForceRespawn( void )
 		DropFlag();
 	}
 
+	// Prevent bypassing class limits
+	// TODO(mastercoms): inform users that their reservation was cancelled?
+	if (!TFGameRules()->CanPlayerChooseClass(this, iDesiredClass))
+	{
+		iDesiredClass = GetPlayerClass()->GetClassIndex();
+	}
+
 	if ( GetPlayerClass()->GetClassIndex() != iDesiredClass )
 	{
 		// clean up any pipebombs/buildings in the world (no explosions)
@@ -18531,7 +18540,7 @@ void CTFPlayer::ModifyOrAppendCriteria( AI_CriteriaSet& criteriaSet )
 	trace_t tr;
 	Vector forward;
 	EyeVectors( &forward );
-	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * MAX_TRACE_LENGTH), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
+	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * 8192.0f), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
 	if ( !tr.startsolid && tr.DidHitNonWorldEntity() )
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;
@@ -19395,6 +19404,17 @@ void IgnitePlayer()
 	pPlayer->m_Shared.Burn( pPlayer, pPlayer->GetActiveTFWeapon() );
 }
 static ConCommand cc_IgnitePlayer( "tf_ignite_player", IgnitePlayer, "Sets you on fire", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+
+//-----------------------------------------------------------------------------
+// Purpose: Debug concommand to stun the player
+//-----------------------------------------------------------------------------
+void StunPlayer()
+{
+	CTFPlayer* pPlayer = ToTFPlayer(ToTFPlayer(UTIL_PlayerByIndex(1)));
+	float flStunAmount = 0.60f;
+	pPlayer->m_Shared.StunPlayer(10.0f, flStunAmount, TF_STUN_MOVEMENT, pPlayer);
+}
+static ConCommand cc_StunPlayer("tf_stun_player", StunPlayer, "Stuns you.", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 //-----------------------------------------------------------------------------
 // Purpose: 

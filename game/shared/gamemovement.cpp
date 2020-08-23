@@ -1020,7 +1020,7 @@ void CGameMovement::CheckParameters( void )
 			// Same thing but only do the sqrt if we have to.
 			if ( ( spd != 0.0 ) && ( spd > mv->m_flMaxSpeed*mv->m_flMaxSpeed ) )
 			{
-				float fRatio = mv->m_flMaxSpeed / sqrt( spd );
+				float fRatio = mv->m_flMaxSpeed / sqrtf( spd );
 				mv->m_flForwardMove *= fRatio;
 				mv->m_flSideMove    *= fRatio;
 				mv->m_flUpMove      *= fRatio;
@@ -4550,7 +4550,9 @@ void CGameMovement::PlayerMove( void )
 {
 	VPROF( "CGameMovement::PlayerMove" );
 
+#if !defined(TF_DLL) && !defined(TF_CLIENT_DLL)
 	CheckParameters();
+#endif
 	
 	// clear output applied velocity
 	mv->m_outWishVel.Init();

@@ -14,6 +14,7 @@
 
 #ifdef CLIENT_DLL
 #define CTFFireAxe C_TFFireAxe
+#define CTFBreakableSign C_TFBreakableSign
 #endif
 
 //=============================================================================
@@ -34,6 +35,29 @@ public:
 private:
 
 	CTFFireAxe( const CTFFireAxe & ) {}
+};
+
+class CTFBreakableSign : public CTFFireAxe
+{
+public:
+
+	DECLARE_CLASS(CTFBreakableSign, CTFFireAxe);
+	DECLARE_NETWORKCLASS();
+	DECLARE_PREDICTABLE();
+
+	CTFBreakableSign();
+	virtual int			GetWeaponID(void) const { return TF_WEAPON_FIREAXE; }
+	virtual void		WeaponReset(void);
+	virtual void		Smack(void);
+	virtual void		SwitchBodyGroups(void);
+
+private:
+
+	CTFBreakableSign(const CTFBreakableSign&) {}
+
+protected:
+
+	CNetworkVar( bool, m_bBroken );
 };
 
 #endif // TF_WEAPON_FIREAXE_H

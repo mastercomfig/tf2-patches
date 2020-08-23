@@ -40,7 +40,6 @@ void StudioChangeCallback( IConVar *var, const char *pOldValue, float flOldValue
 
 static ConVar studio_queue_mode( "studio_queue_mode", "1", 0, "", StudioChangeCallback );
 
-
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
