@@ -88,7 +88,7 @@ public:
 	virtual void		LaunchBall( void );
 	void				LaunchBallThink( void );
 
-	virtual float		InternalGetEffectBarRechargeTime( void ) { return 15.0; }
+	virtual float		InternalGetEffectBarRechargeTime( void ) { return 10.0; }
 	virtual int			GetEffectBarAmmo( void ) { return TF_AMMO_GRENADES1; }
 
 #ifdef GAME_DLL
