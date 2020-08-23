@@ -1687,7 +1687,7 @@ CON_COMMAND_F( startmovie, "Start recording movie frames.", FCVAR_DONTRECORD )
 		ConMsg( " jpeg_quality nnn = set jpeq quality to nnn (range 1 to 100), default %d\n", DEFAULT_JPEG_QUALITY );
 		ConMsg( " ]\n" );
 		ConMsg( "examples:\n" );
-		ConMsg( "   startmovie testmovie jpg wav jpeg_qality 75\n" );
+		ConMsg( "   startmovie testmovie jpg wav jpeg_quality 75\n" );
 #ifdef USE_WEBM_FOR_REPLAY
 		ConMsg( "   startmovie testmovie webm\n" );
 #else
