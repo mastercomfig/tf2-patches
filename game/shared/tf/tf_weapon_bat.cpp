@@ -785,19 +785,11 @@ void CTFStunBall::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 	const trace_t *pTrace = &CBaseEntity::GetTouchTrace();
 	trace_t *pNewTrace = const_cast<trace_t*>( pTrace );
 
-	CBaseEntity *pInflictor = GetLauncher();
-	CTakeDamageInfo info;
-	info.SetAttacker( GetOwnerEntity() );
-	info.SetInflictor( pInflictor ); 
-	info.SetWeapon( pInflictor );
-	info.SetDamage( flDamage );
-	info.SetDamageCustom( TF_DMG_CUSTOM_BASEBALL );
-	info.SetDamageForce( GetDamageForce() );
-	info.SetDamagePosition( GetAbsOrigin() );
 	int iDamageType = GetDamageType();
 	if ( IsCritical() )
 		iDamageType |= DMG_CRITICAL;
-	info.SetDamageType( iDamageType );
+	
+	CTakeDamageInfo info( this, GetThrower(), GetOriginalLauncher(), GetDamageForce(), GetAbsOrigin(), flDamage, iDamageType, TF_DMG_CUSTOM_BASEBALL );
 
 	// Hurt 'em.
 	Vector dir;
@@ -1161,7 +1153,9 @@ void CTFBall_Ornament::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 
 	// just do the bleed effect directly since the bleed
 	// attribute comes from the inflictor, which is the bat.
-	pPlayer->m_Shared.MakeBleed( pOwner, (CTFBat_Giftwrap *)GetLauncher(), flBleedTime );
+	CBaseEntity *pThrower = GetThrower();
+	CBaseEntity *pLauncher = GetOriginalLauncher();
+	pPlayer->m_Shared.MakeBleed( ToTFPlayer( pThrower ), (CTFBat_Giftwrap *)pLauncher, flBleedTime );
 
 	// Apply particle effect to victim (the remaining effects happen inside Explode)
 	DispatchParticleEffect( "xms_ornament_glitter", PATTACH_POINT_FOLLOW, pPlayer, "head" );
@@ -1170,19 +1164,11 @@ void CTFBall_Ornament::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 	const trace_t *pTrace = &CBaseEntity::GetTouchTrace();
 	trace_t *pNewTrace = const_cast<trace_t*>( pTrace );
 
-	CBaseEntity *pInflictor = GetLauncher();
-	CTakeDamageInfo info;
-	info.SetAttacker( GetOwnerEntity() );
-	info.SetInflictor( pInflictor ); 
-	info.SetWeapon( pInflictor );
-	info.SetDamage( GetDamage() );
-	info.SetDamageCustom( TF_DMG_CUSTOM_BASEBALL );
-	info.SetDamageForce( GetDamageForce() );
-	info.SetDamagePosition( GetAbsOrigin() );
 	int iDamageType = GetDamageType();
 	if ( bIsCriticalHit )
 		iDamageType |= DMG_CRITICAL;
-	info.SetDamageType( iDamageType );
+	
+	CTakeDamageInfo info( this, pThrower, pLauncher, GetDamageForce(), GetAbsOrigin(), GetDamage(), iDamageType, TF_DMG_CUSTOM_BASEBALL );
 
 	// Hurt 'em.
 	Vector dir;
@@ -1294,7 +1280,7 @@ void CTFBall_Ornament::Explode( trace_t *pTrace, int bitsDamageType )
 
 	// Do radius damage
 	Vector vecBlastForce(0.0f, 0.0f, 0.0f);
-	CTakeDamageInfo info( this, GetThrower(), m_hLauncher, vecBlastForce, GetAbsOrigin(), flExplodeDamage, bitsDamageType, TF_DMG_CUSTOM_BASEBALL, &vecOrigin );
+	CTakeDamageInfo info( this, GetThrower(), GetOriginalLauncher(), vecBlastForce, GetAbsOrigin(), flExplodeDamage, bitsDamageType, TF_DMG_CUSTOM_BASEBALL, &vecOrigin );
 	CTFRadiusDamageInfo radiusinfo( &info, vecOrigin, DEFAULT_ORNAMENT_EXPLODE_RADIUS, nullptr, 0.0f, 0.0f );
 	TFGameRules()->RadiusDamage( radiusinfo );
 
