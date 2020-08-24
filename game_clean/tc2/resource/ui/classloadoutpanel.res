@@ -213,58 +213,6 @@
 			"spotlight" "1"
 		
 			"modelname"		""
-			
-			"animation"
-			{
-				"name"		"PRIMARY"
-				"activity"	"ACT_MP_STAND_PRIMARY"
-				"default"	"1"
-			}
-			"animation"
-			{
-				"name"		"SECONDARY"
-				"activity"	"ACT_MP_STAND_SECONDARY"
-			}
-			"animation"
-			{
-				"name"		"MELEE"
-				"activity"	"ACT_MP_STAND_MELEE"
-			}
-			"animation"
-			{
-				"name"		"BUILDING"
-				"activity"	"ACT_MP_STAND_BUILDING"
-			}
-			"animation"
-			{
-				"name"		"PDA"
-				"activity"	"ACT_MP_STAND_PDA"
-			}
-			"animation"
-			{
-				"name"		"ITEM1"
-				"activity"	"ACT_MP_STAND_ITEM1"
-			}						
-			"animation"
-			{
-				"name"		"ITEM2"
-				"activity"	"ACT_MP_STAND_ITEM2"
-			}									
-			"animation"
-			{
-				"name"		"MELEE_ALLCLASS"
-				"activity"	"ACT_MP_STAND_MELEE_ALLCLASS"
-			}
-			"animation"
-			{
-				"name"		"PRIMARY2"
-				"activity"	"ACT_MP_STAND_PRIMARY"
-			}
-			"animation"
-			{
-				"name"		"SECONDARY2"
-				"activity"	"ACT_MP_STAND_SECONDARY2"
-			}
 		}
 	}
 	
@@ -314,13 +262,13 @@
 		"fieldName"		"PassiveAttribsLabel"
 		"font"			"ItemFontAttribLarge"
 		"xpos"			"c-135"
-		"ypos"			"120"
+		"ypos"			"c-115"
 		"zpos"			"0"	
 		"wide"			"270"
 		"tall"			"240"
 		"autoResize"	"0"
 		"pinCorner"		"0"
-		"visible"		"0"
+		"visible"		"1"
 		"enabled"		"1"
 		"labelText"		""
 		"textAlignment"	"south"
@@ -492,13 +440,13 @@
 		"ControlName"	"CExImageButton"
 		"fieldName"		"CharacterLoadoutButton"
 		"labelText"		""
-		"xpos"			"c-25"
-		"ypos"			"c90"
+		"xpos"			"c-166"
+		"ypos"			"c-180"
 		"zpos"			"2"
 		"wide"			"25"
 		"tall"			"25"
 		"autoResize"	"0"
-		"pinCorner"		"3"
+		"pinCorner"		"0"
 		"visible"		"1"
 		"enabled"		"1"
 		"tabPosition"	"0"
@@ -530,13 +478,13 @@
 		"ControlName"	"CExImageButton"
 		"fieldName"		"TauntLoadoutButton"
 		"labelText"		""
-		"xpos"			"c2"
-		"ypos"			"c90"
+		"xpos"			"c-166"
+		"ypos"			"c-153"
 		"zpos"			"2"
 		"wide"			"25"
 		"tall"			"25"
 		"autoResize"	"0"
-		"pinCorner"		"3"
+		"pinCorner"		"0"
 		"visible"		"1"
 		"enabled"		"1"
 		"tabPosition"	"0"

@@ -152,7 +152,6 @@
 		"defaultFgColor_override" "TanDark"
 		"armedFgColor_override" "TanDark"
 		"depressedFgColor_override" "TanDark"
-		"selectedFgColor_override" "TanDark"
 			
 		"sound_depressed"	"UI/buttonclick.wav"
 		"sound_released"	"UI/buttonclickrelease.wav"
@@ -216,7 +215,6 @@
 		"defaultFgColor_override" "TanDark"
 		"armedFgColor_override" "TanDark"
 		"depressedFgColor_override" "TanDark"
-		"selectedFgColor_override" "TanDark"
 		
 		"sound_depressed"	"UI/buttonclick.wav"
 		"sound_released"	"UI/buttonclickrelease.wav"
@@ -1639,49 +1637,7 @@
 			"spotlight" "1"
 		
 			"modelname"		""
-			"vcd"		"class_select.vcd"		
-			
-			"animation"
-			{
-				"name"		"PRIMARY"
-				"activity"	"ACT_MP_STAND_PRIMARY"
-				"default"	"1"
-			}
-			"animation"
-			{
-				"name"		"SECONDARY"
-				"activity"	"ACT_MP_STAND_SECONDARY"
-			}
-			"animation"
-			{
-				"name"		"MELEE"
-				"activity"	"ACT_MP_STAND_MELEE"
-			}
-			"animation"
-			{
-				"name"		"BUILDING"
-				"activity"	"ACT_MP_STAND_BUILDING"
-			}
-			"animation"
-			{
-				"name"		"PDA"
-				"activity"	"ACT_MP_STAND_PDA"
-			}
-			"animation"
-			{
-				"name"		"ITEM1"
-				"activity"	"ACT_MP_STAND_ITEM1"
-			}						
-			"animation"
-			{
-				"name"		"ITEM2"
-				"activity"	"ACT_MP_STAND_ITEM2"
-			}	
-			"animation"
-			{
-				"name"		"MELEE_ALLCLASS"
-				"activity"	"ACT_MP_STAND_MELEE_ALLCLASS"
-			}								
+			"vcd"		"class_select.vcd"
 		}
 	}
 	
