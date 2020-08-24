@@ -1252,8 +1252,7 @@ void CTFBall_Ornament::VPhysicsCollisionThink( void )
 void CTFBall_Ornament::Explode( trace_t *pTrace, int bitsDamageType )
 {
 	// Create smashed glass particles when we explode
-	CTFPlayer* pOwner = ToTFPlayer( GetOwnerEntity() );
-	if ( pOwner && pOwner->GetTeamNumber() == TF_TEAM_RED )
+	if ( GetTeamNumber() == TF_TEAM_RED )
 	{
 		DispatchParticleEffect( "xms_ornament_smash_red", GetAbsOrigin(), GetAbsAngles() );
 	}
@@ -1262,6 +1261,7 @@ void CTFBall_Ornament::Explode( trace_t *pTrace, int bitsDamageType )
 		DispatchParticleEffect( "xms_ornament_smash_blue", GetAbsOrigin(), GetAbsAngles() );
 	}
 
+	CTFPlayer* pOwner = ToTFPlayer( GetOwnerEntity() );
 	Vector vecOrigin = GetAbsOrigin();
 
 	// sound effects
