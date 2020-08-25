@@ -708,7 +708,7 @@ int NET_OpenSocket ( const char *net_interface, int& port, int protocol )
 
 		if ( port == PORT_ANY || net_error != WSAEADDRINUSE )
 		{
-			Msg ("WARNING: NNET_OpenSocket: bind: %s\n", NET_ErrorString(net_error));
+			Msg ("WARNING: NET_OpenSocket: bind: %s\n", NET_ErrorString(net_error));
 			NET_CloseSocket(newsocket,-1);
 			return 0;
 		}
@@ -728,7 +728,7 @@ int NET_OpenSocket ( const char *net_interface, int& port, int protocol )
 	{
 		if ( bStrictBind )
 		{
-			// The server op wants to exit if the desired port was not avialable.
+			// The server op wants to exit if the desired port was not available.
 			Sys_Exit( "ERROR: Port %i was unavailable - quitting due to \"-strictportbind\" command-line flag!\n", port - port_offset );
 		}
 		else
@@ -888,6 +888,10 @@ LOOPBACK BUFFERS FOR LOCAL PLAYER
 
 void NET_SendLoopPacket (int sock, int length, const unsigned char *data, const netadr_t &to)
 {
+	// Never loop on anything other than client/server
+	if (sock != NS_CLIENT && sock != NS_SERVER)
+		return;
+
 	loopback_t	*loop;
 
 	if ( length > NET_MAX_PAYLOAD )
@@ -1003,6 +1007,10 @@ NET_AdjustLag
 */
 void NET_AdjustLag( void )
 {
+	// Already converged?
+	if (fakelag.GetFloat() == s_FakeLag)
+		return;
+
 	static double s_LastTime = 0;
 	
 	// Bound time step
@@ -1070,7 +1078,7 @@ bool NET_LagPacket (bool newdata, netpacket_t * packet)
 			int ninterval;
 
 			ninterval = (int)(fabs( fakeloss.GetFloat() ) );
-			ninterval = max( 2, ninterval );
+			ninterval = MAX( 2, ninterval );
 
 			if ( !( losscount[packet->source] % ninterval ) )
 			{
@@ -1102,8 +1110,11 @@ bool NET_LagPacket (bool newdata, netpacket_t * packet)
 		return false;	// no packet in lag list
 
 	float target = s_FakeLag;
-	float maxjitter = min( fakejitter.GetFloat(), target * 0.5f );
-	target += RandomFloat( -maxjitter, maxjitter );
+	if (fakejitter.GetFloat() > 0.0f)
+	{
+		float maxjitter = MIN(fakejitter.GetFloat(), target * 0.5f);
+		target += RandomFloat(-maxjitter, maxjitter);
+	}
 
 	if ( (p->received + (target/1000.0f)) > net_time )
 		return false;	// not time yet for this packet
@@ -1154,7 +1165,7 @@ class CSplitPacketEntry
 public:
 	CSplitPacketEntry()
 	{
-		memset( &from, 0, sizeof( from ) );
+		memset(&from, 0, sizeof(from));
 
 		int i;
 		for ( i = 0; i < MAX_SPLITPACKET_SPLITS; i++ )
@@ -1182,6 +1193,9 @@ static CUtlVector<vecSplitPacketEntries_t> net_splitpackets;
 //-----------------------------------------------------------------------------
 void NET_DiscardStaleSplitpackets( const int sock )
 {
+	if (!net_splitpackets.IsValidIndex(sock))
+		return;
+
 	vecSplitPacketEntries_t &splitPacketEntries = net_splitpackets[sock];
 	int i;
 	for ( i = splitPacketEntries.Count() - 1; i >= 0; i-- )
@@ -1406,7 +1420,7 @@ bool NET_GetLoopPacket ( netpacket_t * packet )
 {
 	Assert ( packet );
 
-	loopback_t	*loop;
+	loopback_t	*loop = NULL;
 
 	if ( packet->source > NS_SERVER )
 		return false;
@@ -1423,7 +1437,7 @@ bool NET_GetLoopPacket ( netpacket_t * packet )
 		return ( NET_LagPacket( false, packet ) );
 	}
 
-	// copy data from loopback buffer to packet 
+	// copy data from loopback buffer to packet
 	packet->from.SetType( NA_LOOPBACK );
 	packet->size = loop->datalen;
 	packet->wiresize = loop->datalen;
@@ -1443,12 +1457,29 @@ bool NET_GetLoopPacket ( netpacket_t * packet )
 	return ( NET_LagPacket( true, packet ) );	
 }
 
-bool NET_ReceiveDatagram ( const int sock, netpacket_t * packet )
+bool NET_ReceiveDatagram_Helper( const int sock, netpacket_t * packet, bool& bNoMorePacketsInSocketPipe)
 {
 	VPROF_BUDGET( "NET_ReceiveDatagram", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 
 	Assert ( packet );
 	Assert ( net_multiplayer );
+
+#ifdef _DEBUG
+	if (recvpackets.GetInt() >= 0)
+	{
+		unsigned long bytes = 0;
+
+		ioctlsocket(net_sockets[sock].hUDP, FIONREAD, &bytes);
+
+		if (bytes <= 0)
+			return false;
+
+		if (recvpackets.GetInt() == 0)
+			return false;
+
+		recvpackets.SetValue(recvpackets.GetInt() - 1);
+	}
+#endif
 
 	struct sockaddr	from;
 	int				fromlen = sizeof(from);
@@ -1459,6 +1490,7 @@ bool NET_ReceiveDatagram ( const int sock, netpacket_t * packet )
 		VPROF_BUDGET( "recvfrom", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 		ret = VCRHook_recvfrom(net_socket, (char *)packet->data, NET_MAX_MESSAGE, 0, (struct sockaddr *)&from, (int *)&fromlen );
 	}
+	bNoMorePacketsInSocketPipe = (ret <= 0);
 	if ( ret >= NET_MIN_MESSAGE )
 	{
 		packet->wiresize = ret;
@@ -1619,53 +1651,52 @@ bool NET_ReceiveDatagram ( const int sock, netpacket_t * packet )
 	return false;
 }
 
-bool NET_ReceiveValidDatagram ( const int sock, netpacket_t * packet )
+#define NET_WS_PACKET_PROFILE 0
+#if NET_WS_PACKET_PROFILE
+static uint64 g_nSockUDPTotalGood = 0;
+static uint64 g_nSockUDPTotalBad = 0;
+static uint64 g_nSockUDPTotalProcess = 0;
+#define NET_WS_PACKET_STAT( sock, var ) if ( sv.IsActive() ) { if ( sock == NS_SERVER ) ++ var; } else { if ( sock == NS_CLIENT ) ++ var; }
+CON_COMMAND(net_show_packet_stats, "Displays UDP packet statistics and resets the counters\n")
 {
-#ifdef _DEBUG
-	if ( recvpackets.GetInt() >= 0 )
-	{
-		unsigned long bytes = 0;
-
-		ioctlsocket( net_sockets[ sock ].hUDP , FIONREAD, &bytes );
-
-		if ( bytes <= 0 )
-			return false;
-
-		if ( recvpackets.GetInt() == 0 )
-			return false;
-
-		recvpackets.SetValue( recvpackets.GetInt() - 1 );
-	}
+	Msg("UDP processed: %llu pumps, %llu good pkts, %llu bad pkts.\n", g_nSockUDPTotalProcess, g_nSockUDPTotalGood, g_nSockUDPTotalBad);
+	Msg("UDP rate: %.6f good pkt/pmp, %.6f bad pkt/pmp.\n", double(g_nSockUDPTotalGood) / double(MAX(g_nSockUDPTotalProcess, 1)), double(g_nSockUDPTotalBad) / double(MAX(g_nSockUDPTotalProcess, 1)));
+	g_nSockUDPTotalGood = 0;
+	g_nSockUDPTotalBad = 0;
+	g_nSockUDPTotalProcess = 0;
+}
+#else
+#define NET_WS_PACKET_STAT( sock, var )
 #endif
-
-	// Failsafe: never call recvfrom more than a fixed number of times per frame.
-	// We don't like the potential for infinite loops. Yes this means that 66000
-	// invalid packets per frame will effectively DOS the server, but at that point
-	// you're basically flooding the network and you need to solve this at a higher
-	// firewall or router level instead which is beyond the scope of our netcode.
-	// --henryg 10/12/2011
-	for ( int i = 1000; i > 0; --i )
+bool NET_ReceiveDatagram(const int sock, netpacket_t* packet)
+{
+	for (;; )
 	{
-		// Attempt to receive a valid packet.
-		NET_ClearLastError();
-		if ( NET_ReceiveDatagram ( sock, packet ) )
+		bool bNoMorePacketsInSocketPipe = true;
+		bool bFoundGoodPacket = NET_ReceiveDatagram_Helper(sock, packet, bNoMorePacketsInSocketPipe);
+		if (bFoundGoodPacket)
 		{
-			// Received a valid packet.
+			NET_WS_PACKET_STAT(sock, g_nSockUDPTotalGood);
 			return true;
 		}
-		// NET_ReceiveDatagram calls Net_GetLastError() in case of socket errors
-		// or a would-have-blocked-because-there-is-no-data-to-read condition.
-		if ( net_error )
+		if (bNoMorePacketsInSocketPipe)
 		{
-			break;
+			return false;
+		}
+		else
+		{
+			NET_WS_PACKET_STAT(sock, g_nSockUDPTotalBad);
+			// continue, this was a bad code that in old networking code would cause a packet processing hitch
 		}
 	}
-	return false;
 }
 
 
 netpacket_t *NET_GetPacket (int sock, byte *scratch )
 {
+	if (!net_packets.IsValidIndex(sock))
+		return NULL;
+
 	VPROF_BUDGET( "NET_GetPacket", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 
 	// Each socket has its own netpacket to allow multithreading
@@ -1694,7 +1725,7 @@ netpacket_t *NET_GetPacket (int sock, byte *scratch )
 		}
 
 		// then check UDP data 
-		if ( !NET_ReceiveValidDatagram( sock, &inpacket ) )
+		if ( !NET_ReceiveDatagram( sock, &inpacket ) )
 		{
 			// at last check if the lag system has a packet for us
 			if ( !NET_LagPacket (false, &inpacket) )
@@ -1851,12 +1882,6 @@ void NET_ProcessListen(int sock)
 	}
 }
 
-struct NetScratchBuffer_t : TSLNodeBase_t
-{
-	byte data[NET_MAX_MESSAGE];
-};
-CTSSimpleList<NetScratchBuffer_t> g_NetScratchBuffers;
-
 void NET_ProcessSocket( int sock, IConnectionlessPacketHandler *handler )
 {
 	VPROF_BUDGET( "NET_ProcessSocket", VPROF_BUDGETGROUP_OTHER_NETWORKING );
@@ -1888,12 +1913,8 @@ void NET_ProcessSocket( int sock, IConnectionlessPacketHandler *handler )
 	}
 
 	// now get datagrams from sockets
-	NetScratchBuffer_t *scratch = g_NetScratchBuffers.Pop();
-	if ( !scratch )
-	{
-		scratch = new NetScratchBuffer_t;
-	}
-	while ( ( packet = NET_GetPacket ( sock, scratch->data ) ) != NULL )
+	net_scratchbuffer_t scratch;
+	while ( ( packet = NET_GetPacket ( sock, scratch.GetBuffer() ) ) != NULL )
 	{
 		if ( Filter_ShouldDiscard ( packet->from ) )	// filtering is done by network layer
 		{
@@ -1928,7 +1949,6 @@ void NET_ProcessSocket( int sock, IConnectionlessPacketHandler *handler )
 			Msg ("Sequenced packet without connection from %s\n" , packet->from.ToString() );
 		}*/
 	}
-	g_NetScratchBuffers.Push( scratch );
 }
 
 void NET_LogBadPacket(netpacket_t * packet)
@@ -2013,7 +2033,7 @@ int NET_SendToImpl( SOCKET s, const char FAR * buf, int len, const struct sockad
 //-----------------------------------------------------------------------------
 bool CL_IsHL2Demo();
 bool CL_IsPortalDemo();
-int NET_SendTo( bool verbose, SOCKET s, const char FAR * buf, int len, const struct sockaddr FAR * to, int tolen, int iGameDataLength )
+static int NET_SendTo( bool verbose, SOCKET s, const char FAR * buf, int len, const struct sockaddr FAR * to, int tolen, int iGameDataLength )
 {	
 	int nSend = 0;
 
@@ -2148,7 +2168,7 @@ struct SendQueue_t
 
 static SendQueue_t g_SendQueue;
 
-int NET_QueuePacketForSend( CNetChan *chan, bool verbose, SOCKET s, const char FAR *buf, int len, const struct sockaddr FAR * to, int tolen, uint32 msecDelay )
+static int NET_QueuePacketForSend( CNetChan *chan, bool verbose, SOCKET s, const char FAR *buf, int len, const struct sockaddr FAR * to, int tolen, uint32 msecDelay )
 {
 	// If net_queued_packet_thread was -1 at startup, then we don't even have a thread.
 	if ( net_queued_packet_thread.GetInt() && g_pQueuedPackedSender->IsRunning() )
@@ -2242,7 +2262,7 @@ void NET_SendQueuedPackets()
 static volatile int32 s_SplitPacketSequenceNumber[ MAX_SOCKETS ] = {1};
 static ConVar net_splitpacket_maxrate( "net_splitpacket_maxrate", SPLITPACKET_MAX_DATA_BYTES_PER_SECOND, 0, "Max bytes per second when queueing splitpacket chunks", true, MIN_RATE, true, MAX_RATE );
 
-int NET_SendLong( INetChannel *chan, int sock, SOCKET s, const char FAR * buf, int len, const struct sockaddr FAR * to, int tolen, int nMaxRoutableSize )
+static int NET_SendLong( INetChannel *chan, int sock, SOCKET s, const char FAR * buf, int len, const struct sockaddr FAR * to, int tolen, int nMaxRoutableSize )
 {
 	VPROF_BUDGET( "NET_SendLong", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 
@@ -2298,7 +2318,7 @@ int NET_SendLong( INetChannel *chan, int sock, SOCKET s, const char FAR * buf, i
 
 	while ( nBytesLeft > 0 )
 	{
-		int size = min( (int)nSplitSizeMinusHeader, nBytesLeft );
+		int size = MIN( (int)nSplitSizeMinusHeader, nBytesLeft );
 
 		pPacket->packetID = LittleShort( (short)(( nPacketNumber << 8 ) + nPacketCount) );
 		
@@ -2318,7 +2338,7 @@ int NET_SendLong( INetChannel *chan, int sock, SOCKET s, const char FAR * buf, i
 			// or user's won't be able to receive all of the parts since they'll be too close together.
 			/// XXX(JohnS): (float)cv.GetInt() is just preserving what this was doing before to avoid changing the
 			///             semantics of this convar
-			float flMaxSplitpacketDataRateBytesPerSecond = min( (float)netchan->GetDataRate(), (float)net_splitpacket_maxrate.GetInt() );
+			float flMaxSplitpacketDataRateBytesPerSecond = MIN( (float)netchan->GetDataRate(), (float)net_splitpacket_maxrate.GetInt() );
 
 			// Calculate the delay (measured from now) for when this packet should be sent.
 			uint32 delay = (int)( 1000.0f * ( (float)( nPacketNumber * ( nMaxRoutableSize + UDP_HEADER_SIZE ) ) / flMaxSplitpacketDataRateBytesPerSecond ) + 0.5f );
@@ -2522,6 +2542,8 @@ int NET_SendPacket ( INetChannel *chan, int sock,  const netadr_t &to, const uns
 	{
 		nMaxRoutable = clamp( chan->GetMaxRoutablePayloadSize(), MIN_USER_MAXROUTABLE_SIZE, min( sv_maxroutable.GetInt(), MAX_USER_MAXROUTABLE_SIZE ) );
 	}
+
+
 
 	if ( length <= nMaxRoutable && 
 		!(net_queued_packet_thread.GetInt() == NET_QUEUED_PACKET_THREAD_DEBUG_VALUE && chan ) )	
@@ -2794,10 +2816,8 @@ void NET_RemoveAllExtraSockets()
 
 unsigned short NET_GetUDPPort(int socket)
 {
-	if ( socket < 0 || socket >= net_sockets.Count() )
-		return 0;
-
-	return net_sockets[socket].nPort;
+	return net_sockets.IsValidIndex(socket) ?
+		net_sockets[socket].nPort : 0;
 }
 
 
