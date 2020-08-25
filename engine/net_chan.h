@@ -253,9 +253,9 @@ public:
 
 public:
 
+	bool		m_bClearedDuringProcessing;
 	bool		m_bProcessingMessages;
 	bool		m_bShouldDelete;
-	bool		m_bStopProcessing;
 
 	// last send outgoing sequence number
 	int			m_nOutSequenceNr;

@@ -122,7 +122,11 @@ void CNetChan::Clear()
 		}
 	}
 
-	m_bStopProcessing = true;
+	if (m_bProcessingMessages)
+	{
+		// ProcessMessages() needs to know we just nuked the receive list from under it or bad things ensue.
+		m_bClearedDuringProcessing = true;
+	}
 
 	Reset();
 }
@@ -420,7 +424,7 @@ CNetChan::CNetChan()
 	m_nMaxRoutablePayloadSize = MAX_ROUTABLE_PAYLOAD;
 	m_bProcessingMessages = false;
 	m_bShouldDelete = false;
-	m_bStopProcessing = false;
+	m_bClearedDuringProcessing = false;
 	m_bStreamContainsChallenge = false;
 	m_Socket = -1; // invalid
 	remote_address.Clear();
@@ -1894,8 +1898,6 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 {
 	VPROF( "CNetChan::ProcessMessages" );
 
-	m_bStopProcessing = false;
-
 	const char * showmsgname = net_showmsg.GetString();
 	const char * blockmsgname = net_blockmsg.GetString();
 
@@ -1985,15 +1987,15 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 			// This means we were deleted during the processing of that message.
 			if ( m_bShouldDelete )
 			{
-				delete netmsg;
 				delete this;
 				return false;
 			}
 
 			// This means our message buffer was freed or invalidated during the processing of that message.
-			if (m_bStopProcessing)
+			if (m_bClearedDuringProcessing)
 			{
-				delete netmsg;
+				// Clear() was called during processing, our buffer is no longer valid
+				m_bClearedDuringProcessing = false;
 				return false;
 			}
 
@@ -2001,18 +2003,14 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 			{
 				ConDMsg( "Netchannel: failed processing message %s.\n", netmsg->GetName() );
 				Assert ( 0 );
-				delete netmsg;
 				return false;
 			}
 
 
 			if ( IsOverflowed() )
 			{
-				delete netmsg;
 				return false;
 			}
-
-			delete netmsg;
 		}
 		else
 		{
@@ -2621,7 +2619,8 @@ bool CNetChan::RegisterMessage(INetMessage *msg)
 	}
 
 	m_NetMessages.EnsureCount(Type + 1);
-	m_NetMessages[Type] = msg;
+	//m_NetMessages[Type] = msg;
+	m_NetMessages.Element(Type) = msg;
 	msg->SetNetChannel( this );
 	return true;
 }
