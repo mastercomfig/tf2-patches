@@ -2617,7 +2617,7 @@ bool CNetChan::RegisterMessage(INetMessage *msg)
 		return false;
 	}
 
-	m_NetMessages.EnsureCount(Type + 1);
+	m_NetMessages.EnsureCapacity(Type + 1);
 	//m_NetMessages[Type] = msg;
 	m_NetMessages.Element(Type) = msg;
 	msg->SetNetChannel( this );
