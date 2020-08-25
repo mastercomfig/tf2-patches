@@ -1027,26 +1027,19 @@ void CTFProjectile_Cleaver::OnHit( CBaseEntity *pOther )
 
 	// just do the bleed effect directly since the bleed
 	// attribute comes from the inflictor, which is the cleaver.
-	pPlayer->m_Shared.MakeBleed( pOwner, (CTFCleaver *)GetLauncher(), flBleedTime );
+	CBaseEntity *pLauncher = GetOriginalLauncher();
+	pPlayer->m_Shared.MakeBleed( pOwner, (CTFCleaver *)pLauncher, flBleedTime );
 
 	// Give 'em a love tap.
 	const trace_t *pTrace = &CBaseEntity::GetTouchTrace();
 	trace_t *pNewTrace = const_cast<trace_t*>( pTrace );
 
-	CBaseEntity *pInflictor = GetLauncher();
-	CTakeDamageInfo info;
-	info.SetAttacker( pOwner );
-	info.SetInflictor( pInflictor ); 
-	info.SetWeapon( pInflictor );
-	info.SetDamage( GetDamage() );
-	info.SetDamageCustom( bIsMiniCrit ? TF_DMG_CUSTOM_CLEAVER_CRIT : TF_DMG_CUSTOM_CLEAVER );
-	info.SetDamagePosition( GetAbsOrigin() );
 	int iDamageType = GetDamageType();
 	if ( bIsCriticalHit )
-	{
 		iDamageType |= DMG_CRITICAL;
-	}
-	info.SetDamageType( iDamageType );
+	
+	CTakeDamageInfo info( this, pOwner, pLauncher, GetDamage(), iDamageType, bIsMiniCrit ? TF_DMG_CUSTOM_CLEAVER_CRIT : TF_DMG_CUSTOM_CLEAVER );
+	info.SetDamagePosition( GetAbsOrigin() );
 
 	// Hurt 'em.
 	Vector dir;
