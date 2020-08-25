@@ -669,23 +669,7 @@ void CTFStunBall::Spawn( void )
 	SetContextThink( &CBaseEntity::SUB_Remove, gpGlobals->curtime + 15, "DieContext" );
 
 	// Draw the trail for the Baseball on spawn
-	if ( !m_pBallTrail )
-	{
-		const char *pTrailTeamName = ( GetTeamNumber() == TF_TEAM_RED ) ? "effects/baseballtrail_red.vmt" : "effects/baseballtrail_blu.vmt";
-		CSpriteTrail *pTempTrail = NULL;
-
-		pTempTrail = CSpriteTrail::SpriteTrailCreate( pTrailTeamName, GetAbsOrigin(), true );
-		pTempTrail->FollowEntity( this );
-		pTempTrail->SetTransparency( kRenderTransAlpha, 255, 255, 255, STUNBALL_TRAIL_ALPHA, kRenderFxNone );
-		pTempTrail->SetStartWidth( 9 );
-		pTempTrail->SetTextureResolution( 1.0f / ( 96.0f * 1.0f ) );
-		pTempTrail->SetLifeTime( 0.4 );
-		pTempTrail->TurnOn();
-		pTempTrail->SetAttachment( this, 0 );
-		m_pBallTrail = pTempTrail;
-		SetContextThink( &CTFStunBall::RemoveBallTrail, gpGlobals->curtime + 3, "FadeBallTrail");
-	}
-
+	CreateBallTrail();
 }
 
 //-----------------------------------------------------------------------------
@@ -916,6 +900,29 @@ void CTFStunBall::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CTFStunBall::CreateBallTrail( void )
+{
+	if ( m_pBallTrail )
+		return;
+	
+	const char *pTrailTeamName = ( GetTeamNumber() == TF_TEAM_RED ) ? "effects/baseballtrail_red.vmt" : "effects/baseballtrail_blu.vmt";
+	CSpriteTrail *pTempTrail = NULL;
+
+	pTempTrail = CSpriteTrail::SpriteTrailCreate( pTrailTeamName, GetAbsOrigin(), true );
+	pTempTrail->FollowEntity( this );
+	pTempTrail->SetTransparency( kRenderTransAlpha, 255, 255, 255, STUNBALL_TRAIL_ALPHA, kRenderFxNone );
+	pTempTrail->SetStartWidth( 9 );
+	pTempTrail->SetTextureResolution( 1.0f / ( 96.0f * 1.0f ) );
+	pTempTrail->SetLifeTime( 0.4 );
+	pTempTrail->TurnOn();
+	pTempTrail->SetAttachment( this, 0 );
+	m_pBallTrail = pTempTrail;
+	SetContextThink( &CTFStunBall::RemoveBallTrail, gpGlobals->curtime + 3, "FadeBallTrail");
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: Fade and kill the trail
 //-----------------------------------------------------------------------------
 void CTFStunBall::RemoveBallTrail( void )
@@ -945,6 +952,23 @@ void CTFStunBall::RemoveBallTrail( void )
 			SetContextThink( &CTFStunBall::RemoveBallTrail, gpGlobals->curtime + 0.05, "FadeBallTrail");
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Ball was deflected.
+//-----------------------------------------------------------------------------
+void CTFStunBall::IncrementDeflected( void )
+{
+	BaseClass::IncrementDeflected();
+
+	// Change trail color.
+	if ( m_pBallTrail )
+	{
+		UTIL_Remove( m_pBallTrail );
+		m_pBallTrail = NULL;
+		m_flBallTrailLife = 1.0f;
+	}
+	CreateBallTrail();
 }
 
 // -- SERVER ONLY
