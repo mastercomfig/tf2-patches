@@ -229,8 +229,8 @@ CNetGraphPanel::CNetGraphPanel( VPANEL parent )
 
 	InitColors();
 
-	cl_updateinterval = cvar->FindVar( "cl_updateinterval" );
-	cl_cmdinterval = cvar->FindVar( "cl_cmdinterval" );
+	cl_updateinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_updateinterval" ));
+	cl_cmdinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_cmdinterval" ));
 	assert( cl_updateinterval && cl_cmdinterval );
 
 	memset( sendcolor, 0, 3 );
