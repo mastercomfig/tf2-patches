@@ -363,7 +363,7 @@ bool CNetChan::SendFile(const char *filename, unsigned int transferID)
 
 void CNetChan::Shutdown(const char *pReason)
 {
-	// send discconect
+	// send disconnect
 
 	if ( m_Socket < 0 )
 		return;
@@ -399,6 +399,10 @@ void CNetChan::Shutdown(const char *pReason)
 	int numtypes = m_NetMessages.Count();
 	for( int i = 0; i < numtypes; i++ )
 	{
+		if (m_NetMessages[i])
+		{
+			m_NetMessages[i]->SetNetChannel(NULL);
+		}
 		m_NetMessages.Remove( i );
 	}
 
@@ -467,6 +471,8 @@ CNetChan::CNetChan()
 
 	m_flRemoteFrameTime = 0;
 	m_flRemoteFrameTimeStdDeviation = 0;
+
+	m_NetMessages.SetGrowSize(1);
 
 	FlowReset();
 }
@@ -2598,12 +2604,17 @@ bool CNetChan::SendNetMsg( INetMessage &msg, bool bForceReliable, bool bVoice )
 
 INetMessage *CNetChan::FindMessage(int type)
 {
-	if (!m_NetMessages.IsValidIndex(type))
+	int numtypes = m_NetMessages.Count();
+
+	for (int i = 0; i < numtypes; i++)
 	{
-		return NULL;
+	    if (m_NetMessages[i]->GetType() == type)
+	    {
+			return m_NetMessages[i];
+	    }
 	}
 
-	return m_NetMessages[type];
+	return NULL;
 }
 
 bool CNetChan::RegisterMessage(INetMessage *msg)
@@ -2617,10 +2628,8 @@ bool CNetChan::RegisterMessage(INetMessage *msg)
 		return false;
 	}
 
-	m_NetMessages.EnsureCapacity(Type + 1);
-	//m_NetMessages[Type] = msg;
-	m_NetMessages.Element(Type) = msg;
-	msg->SetNetChannel( this );
+	m_NetMessages.AddToTail(msg);
+	msg->SetNetChannel(this);
 	return true;
 }
 
