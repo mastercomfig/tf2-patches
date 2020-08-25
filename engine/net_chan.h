@@ -27,7 +27,7 @@
 #define FLOW_INTERVAL 0.25
 
 
-#define NET_FRAMES_BACKUP	64		// must be power of 2
+#define NET_FRAMES_BACKUP	128		// must be power of 2
 #define NET_FRAMES_MASK		(NET_FRAMES_BACKUP-1)
 #define MAX_SUBCHANNELS		8		// we have 8 alternative send&wait bits
 
@@ -254,8 +254,8 @@ public:
 public:
 
 	bool		m_bProcessingMessages;
-	bool		m_bClearedDuringProcessing;
 	bool		m_bShouldDelete;
+	bool		m_bStopProcessing;
 
 	// last send outgoing sequence number
 	int			m_nOutSequenceNr;

@@ -131,8 +131,8 @@ private:
 	HFont			m_hFont;
 
 	HFont			m_hFontSmall;
-	const ConVar		*cl_updateinterval;
-	const ConVar		*cl_cmdinterval;
+	const ConVar_ServerBounded		*cl_updateinterval;
+	const ConVar_ServerBounded      *cl_cmdinterval;
 
 public:
 						CNetGraphPanel( VPANEL parent );
