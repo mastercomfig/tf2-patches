@@ -397,10 +397,10 @@ void CNetChan::Shutdown(const char *pReason)
 
 	// free new messages
 
-	for (int i=0; i<m_NetMessages.Count(); i++ )
+	int numtypes = m_NetMessages.Count();
+	for( int i = 0; i < numtypes; i++ )
 	{
-		Assert( m_NetMessages[i] );
-		delete m_NetMessages[i];
+		m_NetMessages.Remove( i );
 	}
 
 	m_NetMessages.Purge();
