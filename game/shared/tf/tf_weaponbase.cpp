@@ -269,7 +269,7 @@ int g_iScopeDustTextureID = 0;
 
 #endif
 
-ConVar tf_weapon_criticals( "tf_weapon_criticals", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "Whether or not random crits are enabled" );
+ConVar tf_weapon_criticals( "tf_weapon_criticals", "0", FCVAR_REPLICATED | FCVAR_NOTIFY, "Whether or not random crits are enabled" );
 
 //=============================================================================
 //
