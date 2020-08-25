@@ -396,7 +396,6 @@ void CNetChan::Shutdown(const char *pReason)
 	}
 
 	// free new messages
-
 	int numtypes = m_NetMessages.Count();
 	for( int i = 0; i < numtypes; i++ )
 	{

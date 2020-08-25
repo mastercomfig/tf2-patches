@@ -69,7 +69,7 @@ static ConVar net_loginterval( "net_loginterval", "1", 0, "Time in seconds betwe
 #if !defined( _X360 )
 #define X360SecureNetwork() false
 #define IPPROTO_VDP	IPPROTO_UDP
-#elif defined( _RETAIL )
+#elif defined( _CERT )
 #define X360SecureNetwork() true
 #else
 bool X360SecureNetwork( void )
@@ -468,6 +468,80 @@ void NET_CloseSocket( int hSocket, int sock = -1)
 	}
 }
 
+bool NET_SetBufferSize(unsigned int nBufferSize, int newsocket, bool bReceive, bool bUDP)
+{
+	int optval = bReceive ? SO_RCVBUF : SO_SNDBUF;
+	int opt = 0;
+	int ret;
+	socklen_t len = sizeof(opt);
+	VCR_NONPLAYBACKFN(getsockopt(newsocket, SOL_SOCKET, optval, (char*)&opt, &len), ret, "getsockopt");
+	if (ret == -1)
+	{
+		NET_GetLastError();
+		if (bReceive)
+		{
+			Msg("WARNING: NET_OpenSocket: getsockopt SO_RCVBUF: %s\n", NET_ErrorString(net_error));
+		}
+		else
+		{
+			Msg("WARNING: NET_OpenSocket: getsockopt SO_SNDBUF: %s\n", NET_ErrorString(net_error));
+		}
+		return false;
+	}
+
+	if (opt >= nBufferSize)
+	{
+		return true;
+	}
+
+	if (bUDP && net_showudp.GetBool() || !bUDP && net_showtcp.GetBool())
+	{
+		static bool bFirstTCP = true;
+		static bool bFirstUDP = true;
+		if (bUDP && bFirstUDP)
+		{
+			if (bReceive)
+			{
+				Msg("UDP socket SO_RCVBUF size %d bytes, changing to %d\n", opt, nBufferSize);
+			}
+			else
+			{
+				Msg("UDP socket SO_SNDBUF size %d bytes, changing to %d\n", opt, nBufferSize);
+			}
+			bFirstUDP = false;
+		}
+		else if (!bUDP && bFirstTCP)
+		{
+			if (bReceive)
+			{
+				Msg("TCP socket SO_RCVBUF size %d bytes, changing to %d\n", opt, nBufferSize);
+			}
+			else
+			{
+				Msg("TCP socket SO_SNDBUF size %d bytes, changing to %d\n", opt, nBufferSize);
+			}
+			bFirstTCP = false;
+		}
+	}
+
+	VCR_NONPLAYBACKFN(setsockopt(newsocket, SOL_SOCKET, optval, (char*)&opt, sizeof(opt)), ret, "setsockopt");
+	if (ret == -1)
+	{
+		NET_GetLastError();
+		if (bReceive)
+		{
+			Msg("WARNING: NET_OpenSocket: setsockopt SO_RCVBUF: %s\n", NET_ErrorString(net_error));
+		}
+		else
+		{
+			Msg("WARNING: NET_OpenSocket: setsockopt SO_SNDBUF: %s\n", NET_ErrorString(net_error));
+		}
+		return false;
+	}
+
+	return ret != -1;
+}
+
 /*
 ====================
 NET_IPSocket
@@ -541,68 +615,34 @@ int NET_OpenSocket ( const char *net_interface, int& port, int protocol )
 			return 0;
 		}
 
-		opt = NET_MAX_MESSAGE; // set TCP options: set send buffer size
-		VCR_NONPLAYBACKFN( setsockopt(newsocket, SOL_SOCKET, SO_SNDBUF, (char *)&opt, sizeof(opt)), ret, "setsockopt" );
-		if (ret == -1)
+		// set TCP options: set send buffer size
+		if (!NET_SetBufferSize(NET_MAX_MESSAGE, newsocket, false, false))
 		{
-			NET_GetLastError();		
-			Msg ("WARNING: NET_OpenSocket: setsockopt SO_SNDBUF: %s\n", NET_ErrorString(net_error));
 			return 0;
 		}
 
-		opt = NET_MAX_MESSAGE; // set TCP options: set receive buffer size
-		VCR_NONPLAYBACKFN( setsockopt(newsocket, SOL_SOCKET, SO_RCVBUF, (char *)&opt, sizeof(opt)), ret, "setsockopt" );
-		if (ret == -1)
+		// set TCP options: set receive buffer size
+		if (!NET_SetBufferSize(NET_MAX_MESSAGE, newsocket, false, false))
 		{
-			NET_GetLastError();		
-			Msg ("WARNING: NET_OpenSocket: setsockopt SO_RCVBUF: %s\n", NET_ErrorString(net_error));
 			return 0;
 		}
-		
 
 		return newsocket;	// don't bind TCP sockets by default
 	}
 
 	// rest is UDP only
 
-	opt = 0;
-	socklen_t len = sizeof( opt );
-	VCR_NONPLAYBACKFN( getsockopt( newsocket, SOL_SOCKET, SO_RCVBUF, (char *)&opt, &len ), ret, "getsockopt" );
-	if ( ret == -1 )
+	// set UDP options: set send buffer size
+	if (!NET_SetBufferSize(net_udp_rcvbuf.GetInt(), newsocket, false, true))
 	{
-		NET_GetLastError();		
-		Msg ("WARNING: NET_OpenSocket: getsockopt SO_RCVBUF: %s\n", NET_ErrorString(net_error));
 		return 0;
 	}
 
-	if ( net_showudp.GetBool() )
+	// set udP options: set receive buffer size
+	if (!NET_SetBufferSize(net_udp_rcvbuf.GetInt(), newsocket, false, true))
 	{
-		static bool bFirst = true;
-		if ( bFirst )
-		{
-			Msg( "UDP socket SO_RCVBUF size %d bytes, changing to %d\n", opt, net_udp_rcvbuf.GetInt() );
-		}
-		bFirst = false;
-	}
-
-	opt = net_udp_rcvbuf.GetInt(); // set UDP receive buffer size
-	VCR_NONPLAYBACKFN( setsockopt(newsocket, SOL_SOCKET, SO_RCVBUF, (char *)&opt, sizeof(opt)), ret, "setsockopt" );
-	if (ret == -1)
-	{
-		NET_GetLastError();		
-		Msg ("WARNING: NET_OpenSocket: setsockopt SO_RCVBUF: %s\n", NET_ErrorString(net_error));
 		return 0;
 	}
-
-	opt = net_udp_rcvbuf.GetInt(); // set UDP send buffer size
-	VCR_NONPLAYBACKFN( setsockopt(newsocket, SOL_SOCKET, SO_SNDBUF, (char *)&opt, sizeof(opt)), ret, "setsockopt" );
-	if (ret == -1)
-	{
-		NET_GetLastError();		
-		Msg ("WARNING: NET_OpenSocket: setsockopt SO_SNDBUF: %s\n", NET_ErrorString(net_error));
-		return 0;
-	}
-
 
 	// VDP protocol (Xbox 360 secure network) doesn't support SO_BROADCAST
  	if ( !X360SecureNetwork() || protocol != IPPROTO_VDP )
