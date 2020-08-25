@@ -1140,7 +1140,7 @@ void CTFBall_Ornament::ApplyBallImpactEffectOnVictim( CBaseEntity *pOther )
 
 	// long distance hit is always a crit
 	float flLifeTime = gpGlobals->curtime - m_flCreationTime;
-	if ( flLifeTime >= FLIGHT_TIME_TO_MAX_STUN )
+	if ( flLifeTime >= FLIGHT_TIME_TO_MAX_STUN * 0.8f )
 	{
 		bIsCriticalHit = true;
 		bIsLongRangeHit = true;
