@@ -1018,7 +1018,7 @@ void CTFProjectile_Cleaver::OnHit( CBaseEntity *pOther )
 	CBaseEntity *pLauncher = GetOriginalLauncher();
 	bool bIsCriticalHit = IsCritical();
 	float flBleedTime = 5.0f;
-	
+
 	float flLifeTime = gpGlobals->curtime - m_flCreationTime;
 	if ( flLifeTime >= FLIGHT_TIME_TO_MAX_DMG * 0.5f )
 	{

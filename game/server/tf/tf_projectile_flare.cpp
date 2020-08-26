@@ -606,6 +606,8 @@ void CTFProjectile_Flare::Deflected( CBaseEntity *pDeflectedBy, Vector &vecDir )
 
 	IncrementDeflected();
 	SetScorer( pTFDeflector );
+	
+	m_nSkin = ( GetTeamNumber() == TF_TEAM_BLUE ) ? 1 : 0;
 }
 
 float CTFProjectile_Flare::GetProjectileSpeed( void ) const
