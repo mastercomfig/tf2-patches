@@ -301,7 +301,6 @@ class CTFWeaponBase : public CBaseCombatWeapon, public IHasOwner
 	virtual void GetProjectileFireSetup( CTFPlayer *pPlayer, Vector vecOffset, Vector *vecSrc, QAngle *angForward, bool bHitTeammates = true, float flEndDist = 2000.f );
 	virtual QAngle GetSpreadAngles( void );
 	float GetLastPrimaryAttackTime( void ) const { return m_flLastPrimaryAttackTime; }
-	virtual bool CanPerformPrimaryAttack() const OVERRIDE;
 	virtual bool CanPerformSecondaryAttack() const OVERRIDE;
 	virtual bool IsFiring( void ) const { return false; }
 	virtual bool AreRandomCritsEnabled( void );
@@ -381,7 +380,7 @@ class CTFWeaponBase : public CBaseCombatWeapon, public IHasOwner
 	virtual ShadowType_t ShadowCastType( void ) OVERRIDE;
 #endif
 
-	virtual bool	CanAttack() const;
+	virtual bool	CanAttack();
 	virtual int		GetCanAttackFlags() const { return TF_CAN_ATTACK_FLAG_NONE; }
 
 	// Raising & Lowering for grenade throws

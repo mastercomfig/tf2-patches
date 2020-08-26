@@ -177,6 +177,8 @@ private:
 	int			m_iParticleWaterLevel;
 	float		m_flAmmoUseRemainder;
 	float		m_flResetBurstEffect;
+	bool		m_bFiredSecondary;
+	bool		m_bFiredBothAttacks;
 
 #if defined( CLIENT_DLL )
 	CSoundPatch	*m_pFiringStartSound;

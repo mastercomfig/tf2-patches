@@ -35,7 +35,7 @@ public:
 	virtual void	Precache() OVERRIDE;
 	virtual CBaseEntity *FireProjectile( CTFPlayer *pPlayer ) OVERRIDE;
 	virtual void	ItemPostFrame( void ) OVERRIDE;
-	virtual bool	CanAttack( void ) const OVERRIDE;
+	virtual bool	CanAttack( void ) OVERRIDE;
 	virtual void	PrimaryAttack( void ) OVERRIDE;
 	virtual bool	Deploy( void ) OVERRIDE;
 	virtual bool	Holster( CBaseCombatWeapon *pSwitchingTo ) OVERRIDE;

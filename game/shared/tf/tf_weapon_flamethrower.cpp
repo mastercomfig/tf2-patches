@@ -336,69 +336,110 @@ bool CTFFlameThrower::Holster( CBaseCombatWeapon *pSwitchingTo )
 //-----------------------------------------------------------------------------
 void CTFFlameThrower::ItemPostFrame()
 {
-	if (m_bLowered)
+	if ( m_bLowered )
 		return;
 
 	// Get the player owning the weapon.
 	CTFPlayer *pOwner = GetTFPlayerOwner();
-	if (pOwner == nullptr)
+	if ( !pOwner )
 		return;
 
 #ifdef CLIENT_DLL
-	if (!m_bEffectsThinking) {
+	if ( !m_bEffectsThinking )
+	{
 		m_bEffectsThinking = true;
-		SetContextThink(&CTFFlameThrower::ClientEffectsThink, gpGlobals->curtime, "EFFECTS_THINK");
+		SetContextThink( &CTFFlameThrower::ClientEffectsThink, gpGlobals->curtime, "EFFECTS_THINK" );
 	}
 #endif
 
-	if (m_iWeaponState == FT_STATE_SECONDARY)
-		SetWeaponState(FT_STATE_IDLE);
+	int iAmmo = pOwner->GetAmmoCount( m_iPrimaryAmmoType );
 
-	// secondary attack has precedence
-	// TODO(maximsmol): update weapons state first, run attacks after?
-	if (pOwner->m_nButtons & IN_ATTACK2)
+	m_bFiredSecondary = false;
+	if ( pOwner->IsAlive() && ( pOwner->m_nButtons & IN_ATTACK2 ) )
+	{
 		SecondaryAttack();
-	if (pOwner->m_nButtons & IN_ATTACK)
-		PrimaryAttack();
+	}
 
-	// not attacking or out of ammo
-	bool canSpinDown = !(pOwner->m_nButtons & IN_ATTACK) || pOwner->GetAmmoCount(m_iPrimaryAmmoType) == 0;
-	if (canSpinDown) {
-		// m_flSpinupBeginTime > .0f is basically FT_STATE_SPINNINGUP
-		// secondary will reset next tick on its own
-		// TODO(maximsmol): the crit and hit states do not get reset actually
-		if (m_flSpinupBeginTime > .0f || m_iWeaponState == FT_STATE_STARTFIRING || m_iWeaponState == FT_STATE_FIRING) {
-			SetWeaponState(FT_STATE_IDLE);
+	// Fixes an exploit where the airblast effect repeats while +attack is active
+	if ( m_bFiredBothAttacks )
+	{
+		if ( pOwner->m_nButtons & IN_ATTACK && !( pOwner->m_nButtons & IN_ATTACK2 ) )
+		{
+			pOwner->m_nButtons &= ~IN_ATTACK;
+		}
+		m_bFiredBothAttacks = false;
+	}
 
-			// if we got to spin up even a bit, do the post-fire animation
-			SendWeaponAnim(ACT_MP_ATTACK_STAND_POSTFIRE);
-			pOwner->DoAnimationEvent(PLAYERANIMEVENT_ATTACK_POST);
+	if ( pOwner->m_nButtons & IN_ATTACK && pOwner->m_nButtons & IN_ATTACK2 )
+	{
+		m_bFiredBothAttacks = true;
+	}
+
+	if ( !m_bFiredSecondary )
+	{
+		bool bSpinDown = m_flSpinupBeginTime > 0.0f;
+
+		if ( pOwner->IsAlive() && ( pOwner->m_nButtons & IN_ATTACK ) && iAmmo > 0 )
+		{
+			PrimaryAttack();
+			bSpinDown = false;
+		}
+		else if ( m_iWeaponState > FT_STATE_IDLE )
+		{
+			SendWeaponAnim( ACT_MP_ATTACK_STAND_POSTFIRE );
+			pOwner->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_POST );
+			SetWeaponState( FT_STATE_IDLE );
 			m_bCritFire = false;
 			m_bHitTarget = false;
 		}
 
-		if (m_flSpinupBeginTime > .0f) {
+		if ( bSpinDown )
+		{
 			m_flSpinupBeginTime = 0.0f;
-#ifdef CLIENT_DLL
-			if (m_pSpinUpSound) {
-				float t = GetSpinUpTime();
 
-				CSoundEnvelopeController& controller = CSoundEnvelopeController::GetController();
-				controller.SoundChangePitch(m_pSpinUpSound, 40, t * 0.5f);
-				controller.SoundChangeVolume(m_pSpinUpSound, 0.0f, t * 2.0f);
+#if defined( CLIENT_DLL )
+			if ( m_pSpinUpSound )
+			{
+				float flSpinUpTime = GetSpinUpTime();
+
+				CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
+				controller.SoundChangePitch( m_pSpinUpSound, 40, flSpinUpTime * 0.5f );
+				controller.SoundChangeVolume( m_pSpinUpSound, 0.0f, flSpinUpTime * 2.0f );
 			}
 #endif
 		}
 	}
 
-	if (m_iWeaponState == FT_STATE_IDLE) {
-		// TODO(maximsmol): move client functions to shared + #ifdef-out inside?
-#ifdef CLIENT_DLL
-		StopFlame();
-#endif
+	if (!((pOwner->m_nButtons & IN_ATTACK) || (pOwner->m_nButtons & IN_RELOAD)) || (!(pOwner->m_nButtons & IN_ATTACK2) || !m_bFiredSecondary))
+	{
 		// no fire buttons down or reloading
-		if (!ReloadOrSwitchWeapons() && (m_bInReload == false))
+		if ( !ReloadOrSwitchWeapons() && ( m_bInReload == false ) )
+		{
 			WeaponIdle();
+		}
+	}
+
+	// charged airblast
+	int iChargedAirblast = 0;
+	CALL_ATTRIB_HOOK_INT( iChargedAirblast, set_charged_airblast );
+	if ( iChargedAirblast != 0 )
+	{
+		if ( m_flChargeBeginTime > 0 )
+		{
+			CTFPlayer *pPlayer = GetTFPlayerOwner();
+			if ( !pPlayer )
+				return;
+
+			// If we're not holding down the attack button, launch the flame rocket
+			if ( !(pPlayer->m_nButtons & IN_ATTACK2) )
+			{
+				//FireProjectile( pOwner );
+				float flMultAmmoPerShot = 1.0f;
+				CALL_ATTRIB_HOOK_FLOAT( flMultAmmoPerShot, mult_airblast_cost );
+				int iAmmoPerShot = tf_flamethrower_burstammo.GetInt() * flMultAmmoPerShot;
+				FireAirBlast( iAmmoPerShot );
+			}
+		}
 	}
 }
 
@@ -429,12 +470,6 @@ public:
 //-----------------------------------------------------------------------------
 void CTFFlameThrower::PrimaryAttack()
 {
-	if (!CanPerformPrimaryAttack())
-		return;
-
-	if (m_iWeaponState == FT_STATE_SECONDARY)
-		return;
-
 	float flSpinUpTime = GetSpinUpTime();
 
 	if ( flSpinUpTime > 0.0f )
@@ -472,10 +507,23 @@ void CTFFlameThrower::PrimaryAttack()
 		}
 	}
 
+	// Are we capable of firing again?
+	if ( m_flNextPrimaryAttack > gpGlobals->curtime )
+		return;
+
 	// Get the player owning the weapon.
 	CTFPlayer *pOwner = GetTFPlayerOwner();
 	if ( !pOwner )
 		return;
+
+	if ( !CanAttack() )
+	{
+#if defined ( CLIENT_DLL )
+		StopFlame();
+#endif
+		SetWeaponState( FT_STATE_IDLE );
+		return;
+	}
 
 	m_iWeaponMode = TF_WEAPON_PRIMARY_MODE;
 
@@ -715,55 +763,27 @@ bool CTFFlameThrower::SupportsAirBlastFunction( EFlameThrowerAirblastFunction eF
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CTFFlameThrower::FireAirBlast(int iAmmoPerShot)
+void CTFFlameThrower::FireAirBlast( int iAmmoPerShot )
 {
 	CTFPlayer *pOwner = GetTFPlayerOwner();
-	// TODO(maximsmol): all of these checks are weird, can we really have a nullptr
-	//                  player and be fine?
-	if (pOwner == nullptr)
+	if ( !pOwner )
 		return;
+
+	m_bFiredSecondary = true;
 
 #ifdef CLIENT_DLL
 	// Stop the flame if we're currently firing
-	StopFlame(false);
+	StopFlame( false );
 #endif
 
-	SetWeaponState(FT_STATE_SECONDARY);
-
-	float fAirblastRefireTimeScale = 1.0f;
-	CALL_ATTRIB_HOOK_FLOAT( fAirblastRefireTimeScale, mult_airblast_refire_time );
-	if (fAirblastRefireTimeScale <= 0.0f) {
-		fAirblastRefireTimeScale = 1.0f;
-	}
-
-	float fAirblastPrimaryRefireTimeScale = 1.0f;
-	CALL_ATTRIB_HOOK_FLOAT( fAirblastPrimaryRefireTimeScale, mult_airblast_primary_refire_time );
-	if (fAirblastPrimaryRefireTimeScale <= 0.0f) {
-		fAirblastPrimaryRefireTimeScale = 1.0f;
-	}
-
-	// Haste Powerup Rune adds multiplier to fire delay time
-	if (pOwner->m_Shared.GetCarryingRuneType() == RUNE_HASTE) {
-		fAirblastRefireTimeScale *= 0.5f;
-	}
-
-	m_flNextSecondaryAttack = gpGlobals->curtime + (0.75f * fAirblastRefireTimeScale);	
-	m_flNextPrimaryAttack = gpGlobals->curtime + (1.0f * fAirblastRefireTimeScale * fAirblastPrimaryRefireTimeScale);
+	SetWeaponState( FT_STATE_SECONDARY );
 
 #ifdef GAME_DLL
-	SendWeaponAnim(GetSecondaryAttackActivity());
-	// TODO(maximsmol): the first animation after spawning does not play
-	// TODO(maximsmol): this animation does not blend
-	pOwner->DoAnimationEvent(PLAYERANIMEVENT_ATTACK_SECONDARY);
-	// TODO(maximsmol): the Accursed Unutterable Source Engine can't just reset an activity
-	//                  without spending a frame on going Idle first, so we schedule an Idle activity
-	//                  somewhere around when we expect to fire again, hoping we can get a frame in
-	//                  in-between it goes off and we fire again so it gets networked,
-	//                  AND that it is close enough and blends smoothly with the secondary fire activity
-	SetWeaponIdleTime(m_flNextSecondaryAttack - .2f);
+	SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+	pOwner->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_SECONDARY );
 
 	int nDash = 0;
-	CALL_ATTRIB_HOOK_INT(nDash, airblast_dashes);
+	CALL_ATTRIB_HOOK_INT( nDash, airblast_dashes );
 
 	if ( !nDash )
 	{
@@ -792,7 +812,7 @@ void CTFFlameThrower::FireAirBlast(int iAmmoPerShot)
 	// for charged airblast
 	int iChargedAirblast = 0;
 	CALL_ATTRIB_HOOK_INT( iChargedAirblast, set_charged_airblast );
-	if (iChargedAirblast != 0)
+	if ( iChargedAirblast != 0 )
 	{
 		m_flChargeBeginTime = 0;
 	}
@@ -802,12 +822,37 @@ void CTFFlameThrower::FireAirBlast(int iAmmoPerShot)
 #endif
 
 #ifdef CLIENT_DLL
-	if (prediction->IsFirstTimePredicted()) {
+	if ( prediction->IsFirstTimePredicted() == true )
+	{
 		StartFlame();
 	}
 #endif
 
-	pOwner->RemoveAmmo(iAmmoPerShot, m_iPrimaryAmmoType);
+	float fAirblastRefireTimeScale = 1.0f;
+	CALL_ATTRIB_HOOK_FLOAT( fAirblastRefireTimeScale, mult_airblast_refire_time );
+	if ( fAirblastRefireTimeScale <= 0.0f  )
+	{
+		fAirblastRefireTimeScale = 1.0f;
+	}
+
+	float fAirblastPrimaryRefireTimeScale = 1.0f;
+	CALL_ATTRIB_HOOK_FLOAT( fAirblastPrimaryRefireTimeScale, mult_airblast_primary_refire_time );
+	if ( fAirblastPrimaryRefireTimeScale <= 0.0f )
+	{
+		fAirblastPrimaryRefireTimeScale = 1.0f;
+	}
+
+	// Haste Powerup Rune adds multiplier to fire delay time
+	if ( pOwner->m_Shared.GetCarryingRuneType() == RUNE_HASTE )
+	{
+		fAirblastRefireTimeScale *= 0.5f;
+	}
+
+	m_flNextSecondaryAttack = gpGlobals->curtime + (0.75f * fAirblastRefireTimeScale);	
+	m_flNextPrimaryAttack = gpGlobals->curtime + (1.0f * fAirblastRefireTimeScale * fAirblastPrimaryRefireTimeScale);
+	m_flResetBurstEffect = gpGlobals->curtime + 0.05f;
+
+	pOwner->RemoveAmmo( iAmmoPerShot, m_iPrimaryAmmoType );
 }
 
 float CTFFlameThrower::GetSpinUpTime( void ) const
@@ -892,59 +937,74 @@ void CTFFlameThrower::UseRage( void )
 //-----------------------------------------------------------------------------
 void CTFFlameThrower::SecondaryAttack()
 {
-	// unimplemented
-	//if (m_flChargeBeginTime > 0)
-	//	return;
-
-	// secondary attack can override the primary attack
-	// so we do not check weaponstate
-
-	if (!CanPerformSecondaryAttack())
+	if ( m_flChargeBeginTime > 0 )
+	{
+		m_bFiredSecondary = true;
 		return;
+	}
+
+	if ( m_flNextSecondaryAttack > gpGlobals->curtime )
+	{
+#ifndef CLIENT_DLL
+		if ( m_flResetBurstEffect <= gpGlobals->curtime )
+		{
+			SetWeaponState( FT_STATE_IDLE );
+		}
+#endif
+		return;
+	}
 
 	CTFPlayer *pOwner = GetTFPlayerOwner();
-	if (pOwner == nullptr)
+	if ( !pOwner )
 		return;
 
-	if (pOwner->GetWaterLevel() == WL_Eyes)
+	if ( pOwner->GetWaterLevel() == WL_Eyes )
 		return;
 
+	if ( !CanAttack() )
+	{
+		SetWeaponState( FT_STATE_IDLE );
+		return;
+	}
+
+	int iAmmo = pOwner->GetAmmoCount( m_iPrimaryAmmoType );
+
+	// charged airblast
+	int iChargedAirblast = 0;
+	CALL_ATTRIB_HOOK_INT( iChargedAirblast, set_charged_airblast );
 	int iBuffType = 0;
-	CALL_ATTRIB_HOOK_INT(iBuffType, set_buff_type);
-	if (iBuffType != 0) {
+	CALL_ATTRIB_HOOK_INT( iBuffType, set_buff_type );
+	float flMultAmmoPerShot = 1.0f;
+	CALL_ATTRIB_HOOK_FLOAT( flMultAmmoPerShot, mult_airblast_cost );
+	int iAmmoPerShot = tf_flamethrower_burstammo.GetInt() * flMultAmmoPerShot;
+
+	if ( iBuffType != 0 )
+	{
 		UseRage();
 		return;
 	}
 
-	float flMultAmmoPerShot = 1.0f;
-	CALL_ATTRIB_HOOK_FLOAT(flMultAmmoPerShot, mult_airblast_cost);
-
-	int iAmmo = pOwner->GetAmmoCount(m_iPrimaryAmmoType);
-	int iAmmoPerShot = tf_flamethrower_burstammo.GetInt() * flMultAmmoPerShot;
-	if (iAmmo < iAmmoPerShot)
+	if ( iAmmo < iAmmoPerShot )
 		return;
 
-	// charged airblast
-	int iChargedAirblast = 0;
-	CALL_ATTRIB_HOOK_INT(iChargedAirblast, set_charged_airblast);
 	// normal air blast?
-	if (iChargedAirblast == 0 && CanAirBlast()) {
-		FireAirBlast(iAmmoPerShot);
+	if ( iChargedAirblast == 0 && CanAirBlast() )
+	{
+		FireAirBlast( iAmmoPerShot );
 		return;
 	}
 
-	// Phlog + unimplemented
-
 #ifdef CLIENT_DLL
 	// Stop the flame if we're currently firing
-	StopFlame(false);
+	StopFlame( false );
 #endif
 
-	SetWeaponState(FT_STATE_SECONDARY);
+	SetWeaponState( FT_STATE_SECONDARY );
 
 #ifdef STAGING_ONLY
-	if (RocketPackCanActivate(iAmmoPerShot)) {
-		RocketPackLaunch(iAmmoPerShot);
+	if ( RocketPackCanActivate( iAmmoPerShot ) )
+	{
+		RocketPackLaunch( iAmmoPerShot );
 		return;
 	}
 #endif // STAGING_ONLY
@@ -952,9 +1012,9 @@ void CTFFlameThrower::SecondaryAttack()
 #ifdef GAME_DLL
 	m_iWeaponMode = TF_WEAPON_SECONDARY_MODE;
 	m_flChargeBeginTime = gpGlobals->curtime;
-	SendWeaponAnim(ACT_VM_PULLBACK);
+	SendWeaponAnim( ACT_VM_PULLBACK );
 	// @todo replace with the correct one
-	WeaponSound(SINGLE);
+	WeaponSound( SINGLE );
 #endif
 }
 
@@ -2140,6 +2200,8 @@ bool CTFFlameThrower::RocketPackLaunch( int nAmmoCost )
 
 	m_flNextSecondaryAttack = gpGlobals->curtime + 0.75f;
 	m_flNextPrimaryAttack = gpGlobals->curtime + 1.f;
+	m_flResetBurstEffect = gpGlobals->curtime + 0.05f;
+	m_bFiredSecondary = true;
 	m_flChargeBeginTime = 0;
 
 	pOwner->RemoveAmmo( nAmmoCost, m_iPrimaryAmmoType );

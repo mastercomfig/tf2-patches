@@ -1666,11 +1666,6 @@ void CBaseCombatWeapon::ItemPreFrame( void )
 #endif
 }
 
-bool CBaseCombatWeapon::CanPerformPrimaryAttack() const
-{
-	return m_flNextPrimaryAttack <= gpGlobals->curtime;
-}
-
 bool CBaseCombatWeapon::CanPerformSecondaryAttack() const
 {
 	return m_flNextSecondaryAttack <= gpGlobals->curtime;
