@@ -578,7 +578,7 @@ bool CTFProjectile_Arrow::StrikeTarget( mstudiobbox_t *pBox, CBaseEntity *pOther
 					}
 				}
 
-				CTakeDamageInfo info( this, pAttacker, m_hLauncher, vecVelocity, vecOrigin, GetDamage(), nDamageType, nDamageCustom );
+				CTakeDamageInfo info( this, pAttacker, GetOriginalLauncher(), vecVelocity, vecOrigin, GetDamage(), nDamageType, nDamageCustom );
 				pOther->TakeDamage( info );
 
 				// Play an impact sound.
@@ -1210,6 +1210,8 @@ void CTFProjectile_Arrow::IncrementDeflected( void )
 		m_flTrailLife = 1.0f;
 	}
 	CreateTrail();
+
+	m_nSkin = GetArrowSkin();
 }
 
 //-----------------------------------------------------------------------------
