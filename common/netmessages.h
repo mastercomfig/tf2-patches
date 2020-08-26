@@ -28,11 +28,23 @@
 #include <bitvec.h>
 #include <engine/iserverplugin.h>
 #include <Color.h>
+
 #include "proto_version.h"
+#include "tslist.h"
 
 #if !defined( _X360 )
 #include "xbox/xboxstubs.h"
 #endif
+
+
+// This is the packet payload without any header bytes (which are attached for actual sending)
+#define	NET_MAX_PAYLOAD				288000	// largest message we can send in bytes
+#define HEADER_BYTES	9	// 2*4 bytes seqnr, 1 byte flags
+
+// Pad this to next higher 16 byte boundary
+// This is the largest packet that can come in/out over the wire, before processing the header
+//  bytes will be stripped by the networking channel layer
+#define	NET_MAX_MESSAGE	PAD_NUMBER( ( NET_MAX_PAYLOAD + HEADER_BYTES ), 16 )
 
 class SendTable;
 class KeyValue;
@@ -913,5 +925,42 @@ public:
 private:
 	char		m_szCvarNameBuffer[256];
 };
+
+//////////////////////////////////////////////////////////////////////////
+// Helper class to share network buffers in the entire process
+//////////////////////////////////////////////////////////////////////////
+
+class net_scratchbuffer_t
+{
+public:
+	net_scratchbuffer_t()
+	{
+		m_pBufferNetMaxMessage = sm_NetScratchBuffers.Get();
+		if (!m_pBufferNetMaxMessage)
+			m_pBufferNetMaxMessage = new buffer_t;
+	}
+	~net_scratchbuffer_t()
+	{
+		sm_NetScratchBuffers.PutObject(m_pBufferNetMaxMessage);
+	}
+	byte* GetBuffer() const
+	{
+		return m_pBufferNetMaxMessage->buf;
+	}
+	int Size() const
+	{
+		return NET_MAX_MESSAGE;
+	}
+
+private:
+	struct buffer_t { byte buf[NET_MAX_MESSAGE]; };
+	buffer_t* m_pBufferNetMaxMessage;	// buffer that is allocated and returned to shared pool
+
+private:
+	net_scratchbuffer_t(const net_scratchbuffer_t&);				// FORBID
+	net_scratchbuffer_t& operator=(const net_scratchbuffer_t&);	// FORBID
+	static CTSPool< buffer_t > sm_NetScratchBuffers;
+};
+
 
 #endif // NETMESSAGES_H

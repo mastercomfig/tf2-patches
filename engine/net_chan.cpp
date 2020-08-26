@@ -36,7 +36,7 @@ ConVar net_blocksize( "net_maxfragments", NETSTRING( MAX_ROUTABLE_PAYLOAD ), 0, 
 static ConVar net_showmsg( "net_showmsg", "0", 0, "Show incoming message: <0|1|name>" );
 static ConVar net_showfragments( "net_showfragments", "0", 0, "Show netchannel fragments" );
 static ConVar net_showpeaks( "net_showpeaks", "0", 0, "Show messages for large packets only: <size>" );
-static ConVar net_blockmsg( "net_blockmsg", "none", FCVAR_CHEAT, "Discards incoming message: <0|1|name>" );
+static ConVar net_blockmsg("net_blockmsg", "0", FCVAR_CHEAT, "Discards incoming message: <0|1|name>"); // "none" here is bad, causes superfluous strcmp on every net message
 static ConVar net_showdrop( "net_showdrop", "0", 0, "Show dropped packets in console" );
 static ConVar net_drawslider( "net_drawslider", "0", 0, "Draw completion slider during signon" );
 static ConVar net_chokeloopback( "net_chokeloop", "0", 0, "Apply bandwidth choke to loopback packets" );
@@ -45,6 +45,7 @@ static ConVar net_compresspackets( "net_compresspackets", "1", 0, "Use compressi
 static ConVar net_compresspackets_minsize( "net_compresspackets_minsize", "1000", 0, "Don't bother compressing packets below this size." );
 static ConVar net_maxcleartime( "net_maxcleartime", "4.0", 0, "Max # of seconds we can wait for next packets to be sent based on rate setting (0 == no limit)." );
 static ConVar net_maxpacketdrop( "net_maxpacketdrop", "0", 0, "Ignore any packets with the sequence number more than this ahead (0 == no limit)" );
+static ConVar net_droponsendoverflow("net_droponsendoverflow", "1", 0, "If enabled, channel will drop client when sending too much data causes buffer overrun");
 
 extern ConVar net_maxroutable;
 
@@ -121,7 +122,7 @@ void CNetChan::Clear()
 		}
 	}
 
-	if ( m_bProcessingMessages )
+	if (m_bProcessingMessages)
 	{
 		// ProcessMessages() needs to know we just nuked the receive list from under it or bad things ensue.
 		m_bClearedDuringProcessing = true;
@@ -137,7 +138,7 @@ void CNetChan::CompressFragments()
 	// that the bf_writes that contributed to this message may have uninitialized bits at the end of the buffer
 	// (for example if it uses only the first couple bits of the last byte in the message). If the
 	// last few bits are different, it can produce a different compressed size.
-	if ( !m_bUseCompression )
+	if ( !m_bUseCompression || !net_compresspackets.GetBool())
 		return;
 
 	if ( VCRGetMode() != VCR_Disabled )
@@ -274,6 +275,8 @@ void CNetChan::UncompressFragments( dataFragments_t *data )
 	if ( !data->isCompressed )
 		return;
 
+	VPROF("UncompressFragments");
+
 	 // allocate buffer for uncompressed data, align to 4 bytes boundary
 	char *newbuffer = new char[PAD_NUMBER( data->nUncompressedSize, 4 )];
 	unsigned int uncompressedSize = data->nUncompressedSize;
@@ -328,7 +331,7 @@ void CNetChan::DenyFile(const char *filename, unsigned int transferID)
 bool CNetChan::SendFile(const char *filename, unsigned int transferID)
 {
 	// add file to waiting list
-	if ( remote_address.GetType() == NA_NULL )
+	if ( IsNull() )
 		return true;
 
 	if ( !filename )
@@ -360,7 +363,7 @@ bool CNetChan::SendFile(const char *filename, unsigned int transferID)
 
 void CNetChan::Shutdown(const char *pReason)
 {
-	// send discconect
+	// send disconnect
 
 	if ( m_Socket < 0 )
 		return;
@@ -393,11 +396,14 @@ void CNetChan::Shutdown(const char *pReason)
 	}
 
 	// free new messages
-
-	for (int i=0; i<m_NetMessages.Count(); i++ )
+	int numtypes = m_NetMessages.Count();
+	for( int i = 0; i < numtypes; i++ )
 	{
-		Assert( m_NetMessages[i] );
-		delete m_NetMessages[i];
+		if (m_NetMessages[i])
+		{
+			m_NetMessages[i]->SetNetChannel(NULL);
+		}
+		m_NetMessages.Remove( i );
 	}
 
 	m_NetMessages.Purge();
@@ -465,6 +471,8 @@ CNetChan::CNetChan()
 
 	m_flRemoteFrameTime = 0;
 	m_flRemoteFrameTimeStdDeviation = 0;
+
+	m_NetMessages.SetGrowSize(1);
 
 	FlowReset();
 }
@@ -680,7 +688,7 @@ void CNetChan::SetMaxBufferSize(bool bReliable, int nBytes, bool bVoice )
 	if ( buffer->Count() == nBytes )
 		return;
 
-	byte	copybuf[NET_MAX_DATAGRAM_PAYLOAD];
+	byte* copybuf = NULL;
 	int		copybits = stream->GetNumBitsWritten();
 	int		copybytes = Bits2Bytes( copybits );
 
@@ -692,6 +700,7 @@ void CNetChan::SetMaxBufferSize(bool bReliable, int nBytes, bool bVoice )
 
 	if ( copybits > 0 )
 	{
+		copybuf = new byte[copybytes];
 		Q_memcpy( copybuf, buffer->Base(), copybytes );
 	}
 
@@ -703,6 +712,8 @@ void CNetChan::SetMaxBufferSize(bool bReliable, int nBytes, bool bVoice )
 	if ( copybits > 0 )
 	{
 		Q_memcpy( buffer->Base(), copybuf, copybytes );
+		delete[] copybuf;
+		copybuf = NULL;
 	}
 
 	stream->StartWriting( buffer->Base(), nBytes, copybits );
@@ -834,7 +845,9 @@ void CNetChan::FlowNewPacket(int flow, int seqnr, int acknr, int nChoked, int nD
 	}
 	else
 	{
-#if !defined( SWDS )
+#if defined( SWDS )
+		Assert(seqnr > pflow->currentindex);
+#else
 		Assert( demoplayer->IsPlayingBack() || seqnr > pflow->currentindex );
 #endif
 	}
@@ -883,13 +896,12 @@ void CNetChan::FlowUpdate(int flow, int addbytes)
 
 	float   starttime = FLT_MAX;
 	float	endtime = 0.0f;
-
-	netframe_t *pprev = &pflow->frames[ NET_FRAMES_BACKUP-1 ];
+	netframe_t* pcurr;
 
 	for ( int i = 0; i < NET_FRAMES_BACKUP; i++ )
 	{
 		// Most recent message then backward from there
-		netframe_t * pcurr = &pflow->frames[ i ];
+		pcurr = &pflow->frames[ i ];
 
 		if ( pcurr->valid )
 		{
@@ -913,8 +925,6 @@ void CNetChan::FlowUpdate(int flow, int addbytes)
 		{
 			totalinvalid++;
 		}
-		
-		pprev = pcurr;
 	}
 
 	float totaltime = endtime - starttime;
@@ -935,11 +945,18 @@ void CNetChan::FlowUpdate(int flow, int addbytes)
 		pflow->avgloss *= FLOW_AVG;
 		pflow->avgloss += ( 1.0f - FLOW_AVG ) * ((float)(totalinvalid-totalchoked)/totalPackets);
 
-		if ( pflow->avgloss < 0 )
-			pflow->avgloss = 0;
+		if (totalinvalid-totalchoked < 0 )
+			pflow->avgloss = 0; // snap loss to zero if nothing lost over last ticks
 		
 		pflow->avgchoke *= FLOW_AVG;
 		pflow->avgchoke += ( 1.0f - FLOW_AVG ) * ((float)totalchoked/totalPackets);
+		if (totalchoked <= 0)
+			pflow->avgchoke = 0; // snap choke to zero if nothing lost over last ticks
+	}
+	else
+	{
+		pflow->avgloss = 0;
+		pflow->avgchoke = 0;
 	}
 	
 	if ( totallatencycount>0 )
@@ -1293,10 +1310,11 @@ bool CNetChan::SendSubChannelData( bf_write &buf )
 		{
 			// send from file
 			Assert( data->file != FILESYSTEM_INVALID_HANDLE );
-			char * tmpbuf = (char*)_alloca( length ); // alloc on stack
+			char* tmpbuf = new char[MAX(length, 1)];
 			g_pFileSystem->Seek( data->file, offset, FILESYSTEM_SEEK_HEAD );
 			g_pFileSystem->Read( tmpbuf, length, data->file );
 			buf.WriteBytes( tmpbuf, length );
+			delete[] tmpbuf;
 		}
 
 		if ( net_showfragments.GetBool() )
@@ -1402,6 +1420,14 @@ bool CNetChan::ReadSubChannelData( bf_read &buf, int stream  )
 			return false;
 		}
 
+		if (data->isCompressed && data->nUncompressedSize > MAX_FILE_SIZE)
+		{
+			// This can happen with the compressed path above, which uses VarInt32 rather than MAX_FILE_SIZE_BITS
+			Warning("Net message uncompressed size exceeds max size (%u / compressed %u / uncompressed %u)\n", MAX_FILE_SIZE, data->bytes, data->nUncompressedSize);
+			// Subsequent packets for this transfer will treated as invalid since we never setup a buffer.
+			return false;
+		}
+
 		data->buffer = new char[PAD_NUMBER(data->bytes, 4)];
 	}
 	else
@@ -1482,11 +1508,11 @@ void CNetChan::UpdateSubChannels()
 
 		// how many fragments can we send ?
 
-		int numFragments = min( nSendMaxFragments, data->numFragments - nSentFragments );
+		int numFragments = MIN( nSendMaxFragments, data->numFragments - nSentFragments );
 
 		// if we are in file background transmission mode, just send one fragment per packet
 		if ( i == FRAG_FILE_STREAM && m_bFileBackgroundTranmission )
-			numFragments = min( 1, numFragments );
+			numFragments = MIN( 1, numFragments );
 
 		// copy fragment data into subchannel
 
@@ -1517,7 +1543,7 @@ void CNetChan::UpdateSubChannels()
 
 #if 1
 
-inline unsigned short BufferToShortChecksum( const void *pvData, size_t nLength )
+unsigned short BufferToShortChecksum( const void *pvData, size_t nLength )
 {
 	CRC32_t crc = CRC32_ProcessSingleBuffer( pvData, nLength );
 
@@ -1559,10 +1585,10 @@ inline unsigned short BufferToShortChecksum( const void *pvData, size_t nSize )
 
 #endif
 
-// #define MIN_ROUTABLE_TESTING
+#define MIN_ROUTABLE_TESTING
 
 #if defined( _DEBUG ) || defined( MIN_ROUTABLE_TESTING )
-static ConVar net_minroutable( "net_minroutable", "16", 0, "Forces larger payloads." );
+static ConVar net_minroutable( "net_minroutable", "16", FCVAR_DEVELOPMENTONLY, "Forces larger payloads." );
 #endif
 
 /*
@@ -1577,6 +1603,7 @@ A 0 length will still generate a packet and deal with the reliable messages.
 */
 int CNetChan::SendDatagram(bf_write *datagram)
 {
+	VPROF("CNetChan::SendDatagram");
 	ALIGN4 byte		send_buf[ NET_MAX_MESSAGE ] ALIGN4_POST;
 
 #ifndef NO_VCR
@@ -1741,9 +1768,12 @@ int CNetChan::SendDatagram(bf_write *datagram)
 		}
 	}
 
+	int nBitsPerPayload = net_blocksize.GetInt() * 8;
 
 	// FIXME:  This isn't actually correct since compression might make the main payload usage a bit smaller
-	bool bSendVoice = IsX360() && ( m_StreamVoice.GetNumBitsWritten() > 0 &&  m_StreamVoice.GetNumBitsWritten() < send.GetNumBitsLeft() );
+	// On 360, only add voice data if the packet isn't going to be split
+	bool bSendVoice = IsX360() && ( m_StreamVoice.GetNumBitsWritten() > 0 && m_StreamVoice.GetNumBitsWritten() + send.GetNumBitsWritten() < nBitsPerPayload);
+	bool bClearVoice = (bSendVoice || m_StreamVoice.GetNumBitsWritten() >= nBitsPerPayload);
 		
 	bool bCompress = false;
 	if ( net_compresspackets.GetBool() )
@@ -1770,7 +1800,7 @@ int CNetChan::SendDatagram(bf_write *datagram)
 	// Send the datagram
 	int	bytesSent = NET_SendPacket ( this, m_Socket, remote_address, send.GetData(), send.GetNumBytesWritten(), bSendVoice ? &m_StreamVoice : 0, bCompress );
 
-	if ( bSendVoice || !IsX360() )
+	if ( bClearVoice || !IsX360() )
 	{
 		m_StreamVoice.Reset();
 	}
@@ -1876,12 +1906,12 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 	const char * showmsgname = net_showmsg.GetString();
 	const char * blockmsgname = net_blockmsg.GetString();
 
-	if ( !Q_strcmp(showmsgname, "0") )
+	if ( showmsgname[0] == '0' )
 	{
 		showmsgname = NULL;	// dont do strcmp all the time
 	}
 
-	if ( !Q_strcmp(blockmsgname, "0") )
+	if ( blockmsgname[0] == '0' )
 	{
 		blockmsgname = NULL;	// dont do strcmp all the time
 	}
@@ -1925,15 +1955,12 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 		INetMessage	* netmsg = FindMessage( cmd );
 		
 		if ( netmsg )
-		{
-			// let message parse itself from buffe
-			const char *msgname = netmsg->GetName();
-			
+		{			
 			int nMsgStartBit = buf.GetNumBitsRead();
 
 			if ( !netmsg->ReadFromBuffer( buf ) )
 			{
-				ConMsg( "Netchannel: failed reading message %s from %s.\n", msgname, remote_address.ToString() );
+				ConMsg( "Netchannel: failed reading message %d from %s.\n", cmd, remote_address.ToString() );
 				Assert ( 0 );
 				return false;
 			}
@@ -1969,7 +1996,8 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 				return false;
 			}
 
-			if ( m_bClearedDuringProcessing )
+			// This means our message buffer was freed or invalidated during the processing of that message.
+			if (m_bClearedDuringProcessing)
 			{
 				// Clear() was called during processing, our buffer is no longer valid
 				m_bClearedDuringProcessing = false;
@@ -1978,14 +2006,16 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 
 			if ( !bRet )
 			{
-				ConDMsg( "Netchannel: failed processing message %s.\n", msgname );
+				ConDMsg( "Netchannel: failed processing message %s.\n", netmsg->GetName() );
 				Assert ( 0 );
 				return false;
 			}
 
 
 			if ( IsOverflowed() )
+			{
 				return false;
+			}
 		}
 		else
 		{
@@ -2538,35 +2568,50 @@ bool CNetChan::SendNetMsg( INetMessage &msg, bool bForceReliable, bool bVoice )
 		pStream = &m_StreamVoice;
 	}
 
+	bool bResult;
+
+#ifndef NO_VCR
 	if ( vcr_verbose.GetInt() )
 	{
-		bool bRet = false;
-#ifndef NO_VCR
 		int nOldBytes = pStream->GetNumBytesWritten();
-		bRet = msg.WriteToBuffer( *pStream );
+		bResult = msg.WriteToBuffer( *pStream );
 		int nNewBytes = pStream->GetNumBytesWritten();
 
 		if ( nNewBytes > nOldBytes )
 		{
 			VCRGenericValueVerify( "NetMsg", &pStream->GetBasePointer()[nOldBytes], nNewBytes-nOldBytes-1 );
 		}
-#endif
-		return bRet;
 	}
 	else
+#endif
 	{
-		return msg.WriteToBuffer( *pStream );
+		bResult = msg.WriteToBuffer(*pStream);
 	}
+
+	if (!bResult)
+	{
+		Warning("SendNetMsg %s: stream[%s] buffer overflow (maxsize = %d)!\n", GetAddress(), pStream->GetDebugName(), (pStream->GetMaxNumBits() + 7) / 8);
+		Assert(0);
+
+		if (net_droponsendoverflow.GetBool())
+		{
+			m_MessageHandler->ConnectionCrashed("Buffer overflow in send net message");
+			return false;
+		}
+	}
+	return bResult;
 }
 
 INetMessage *CNetChan::FindMessage(int type)
 {
 	int numtypes = m_NetMessages.Count();
 
-	for (int i=0; i<numtypes; i++ )
+	for (int i = 0; i < numtypes; i++)
 	{
-		if ( m_NetMessages[i]->GetType() == type )
+	    if (m_NetMessages[i]->GetType() == type)
+	    {
 			return m_NetMessages[i];
+	    }
 	}
 
 	return NULL;
@@ -2576,14 +2621,15 @@ bool CNetChan::RegisterMessage(INetMessage *msg)
 {
 	Assert( msg );
 
-	if ( FindMessage( msg->GetType() ) )
+	int Type = msg->GetType();
+
+	if ( FindMessage( Type ) )
 	{
 		return false;
 	}
 
-	m_NetMessages.AddToTail( msg );
-	msg->SetNetChannel( this );
-
+	m_NetMessages.AddToTail(msg);
+	msg->SetNetChannel(this);
 	return true;
 }
 
@@ -3192,6 +3238,7 @@ bool CNetChan::IsValidFileForTransfer( const char *pszFilename )
 	     V_stristr( szTemp, ".ini" ) ||
 	     V_stristr( szTemp, ".log" ) ||
 	     V_stristr( szTemp, ".lua" ) ||
+		 V_stristr( szTemp, ".nut" ) ||
 	     V_stristr( szTemp, ".vdf" ) ||
 	     V_stristr( szTemp, ".smx" ) ||
 	     V_stristr( szTemp, ".gcf" ) ||
@@ -3201,7 +3248,14 @@ bool CNetChan::IsValidFileForTransfer( const char *pszFilename )
 		return false;
 	}
 
-	// Search for the first . in the base filename, and bail if not found.
+	// Allow only bsp and nav file transfers to not overwrite any assets in maps directory
+	if (V_stristr(pszFilename, "maps/") &&
+		!V_stristr(pszFilename, ".bsp") &&
+		!V_stristr(pszFilename, ".ain") &&
+		!V_stristr(pszFilename, ".nav"))
+		return false;
+
+    // Search for the first . in the base filename, and bail if not found.
 	// We don't want people passing in things like 'cfg/.wp.so'...
 	const char *basename = strrchr( szTemp, '/' );
 	if ( !basename )

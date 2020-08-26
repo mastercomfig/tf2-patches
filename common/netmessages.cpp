@@ -32,6 +32,8 @@ const char *CLC_VoiceData::ToString(void) const
 	return s_text;
 }
 
+CTSPool< net_scratchbuffer_t::buffer_t > net_scratchbuffer_t::sm_NetScratchBuffers;
+
 bool CLC_VoiceData::WriteToBuffer( bf_write &buffer )
 {
 	buffer.WriteUBitLong( GetType(), NETMSG_TYPE_BITS );

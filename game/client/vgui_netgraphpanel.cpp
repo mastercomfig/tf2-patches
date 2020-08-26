@@ -131,8 +131,8 @@ private:
 	HFont			m_hFont;
 
 	HFont			m_hFontSmall;
-	const ConVar		*cl_updateinterval;
-	const ConVar		*cl_cmdinterval;
+	const ConVar_ServerBounded		*cl_updateinterval;
+	const ConVar_ServerBounded      *cl_cmdinterval;
 
 public:
 						CNetGraphPanel( VPANEL parent );
@@ -229,8 +229,8 @@ CNetGraphPanel::CNetGraphPanel( VPANEL parent )
 
 	InitColors();
 
-	cl_updateinterval = cvar->FindVar( "cl_updateinterval" );
-	cl_cmdinterval = cvar->FindVar( "cl_cmdinterval" );
+	cl_updateinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_updateinterval" ));
+	cl_cmdinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_cmdinterval" ));
 	assert( cl_updateinterval && cl_cmdinterval );
 
 	memset( sendcolor, 0, 3 );

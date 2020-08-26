@@ -108,7 +108,7 @@ void CNetChannel::Setup( bool serverSide, const netadr_t *adr, CUDPSocket *sendS
 
 void CNetChannel::Shutdown( const char *pReason )
 {
-	// send discconect
+	// send disconnect
 	if ( !m_pSocket )
 		return;
 

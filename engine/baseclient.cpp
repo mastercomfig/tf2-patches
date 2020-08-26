@@ -685,9 +685,9 @@ bool CBaseClient::SendServerInfo( void )
 	COM_TimestampedLog( " CBaseClient::SendServerInfo" );
 
 	// supporting smaller stack
-	byte *buffer = (byte *)MemAllocScratch( NET_MAX_PAYLOAD );
+	net_scratchbuffer_t scratch;
 
-	bf_write msg( "SV_SendServerinfo->msg", buffer, NET_MAX_PAYLOAD );
+	bf_write msg( "SV_SendServerinfo->msg", scratch.GetBuffer(), NET_MAX_PAYLOAD );
 
 	// Only send this message to developer console, or multiplayer clients.
 	if ( developer.GetBool() || m_Server->IsMultiplayer() )

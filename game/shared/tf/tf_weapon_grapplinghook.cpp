@@ -315,7 +315,7 @@ void CTFGrapplingHook::ItemPostFrame( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-bool CTFGrapplingHook::CanAttack( void )
+bool CTFGrapplingHook::CanAttack( void ) const
 {
 	CTFPlayer *pPlayer = GetTFPlayerOwner();
 
