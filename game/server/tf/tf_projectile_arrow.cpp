@@ -714,7 +714,7 @@ void CTFProjectile_Arrow::BuildingHealingArrow( CBaseEntity *pOther )
 		return;
 
 	int iArrowsHealBuildings = 0;
-	CALL_ATTRIB_HOOK_INT_ON_OTHER( pAttacker, iArrowsHealBuildings, arrow_heals_buildings );
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iArrowsHealBuildings, arrow_heals_buildings );
 	if ( iArrowsHealBuildings == 0 )
 		return;
 
