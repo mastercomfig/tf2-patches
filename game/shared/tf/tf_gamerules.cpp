@@ -11858,9 +11858,21 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 	else if ( iDamageCustom == TF_DMG_CUSTOM_BASEBALL )
 	{
 		killer_weapon_name = "ball";
+
+		if ( pInflictor && pInflictor->IsPlayer() == false )
+		{
+			CTFWeaponBaseGrenadeProj *pBaseGrenade = dynamic_cast<CTFWeaponBaseGrenadeProj*>( pInflictor );
+			if ( pBaseGrenade )
+			{
+				if ( pBaseGrenade->GetDeflected() )
+				{
+					killer_weapon_name = "deflect_ball";
+				}
+			}
+		}
 	}
 	else if ( iDamageCustom == TF_DMG_CUSTOM_CLEAVER ||
-			  iDamageCustom == TF_DMG_CUSTOM_CLEAVER_CRIT )			// Throwables
+			  iDamageCustom == TF_DMG_CUSTOM_CLEAVER_CRIT )
 	{
 		killer_weapon_name = "guillotine";
 	}
