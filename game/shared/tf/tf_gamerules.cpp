@@ -11763,7 +11763,7 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			{
 				if ( pBaseRocket->GetDeflected() )
 				{
-					killer_weapon_name = "deflect_flare_detonator";
+					killer_weapon_name = "deflect_flare";
 				}
 			}
 		}
