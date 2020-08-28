@@ -247,6 +247,7 @@
 		"ypos"		"r70"	[$WIN32]
 		"xpos"		"50"	[$X360]
 		"ypos"		"330"	[$X360]
+		"zpos"		"1"
 		"wide"		"500"
 		"tall"		"200"
 		"TextFont"	"Default"	[$X360]
@@ -1039,7 +1040,7 @@
 		"xpos"			"r162"	[$WIN32]
 		"xpos_minmode"	"r110"	[$WIN32]
 		"ypos"			"r52"	[$WIN32]
-		"ypos_minmode"	"r30"	[$WIN32]
+		"ypos_minmode"	"r40"	[$WIN32]
 		"xpos"			"r194"	[$X360]
 		"ypos"			"r74"	[$X360]
 		"wide"			"100"
@@ -1151,8 +1152,8 @@
 		"visible"				"1"
 		"enabled"				"1"
 		"xpos"					"c-160"
-		"ypos"					"5"
-		"ypos_minmode"				"15"
+		"ypos"					"22"
+		"ypos_minmode"				"22"
 		"ypos_lodef"				"75"
 		"wide"					"125"
 		"tall"					"70"
@@ -1487,6 +1488,22 @@
 		"zpos"					"3"
 		"wide"					"f0"
 		"tall"					"f0"
+	}
+
+	"QueueHUDStatus"
+	{
+		"fieldName"				"QueueHUDStatus"
+		"visible"				"1"
+		"enabled"				"1"
+		"xpos"					"rs1-5"
+		"ypos"					"1"
+		"zpos"					"1001"
+		"wide"					"200"
+		"tall"					"18"
+		"proportionaltoparent"	"1"
+		"keyboardinputenabled"	"1"
+		"mouseinputenabled"		"0"
+		"alpha"					"100"
 	}
 }
 

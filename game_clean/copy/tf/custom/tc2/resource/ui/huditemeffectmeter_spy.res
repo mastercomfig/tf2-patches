@@ -7,8 +7,8 @@
 		"enabled"		"1"
 		"xpos"			"r162"	[$WIN32]
 		"ypos"			"r92"	[$WIN32]
-		"xpos_minmode"	"r70"	[$WIN32]
-		"ypos_minmode"	"r74"	[$WIN32]
+		"xpos_minmode"	"r115"	[$WIN32]
+		"ypos_minmode"	"r80"	[$WIN32]
 		"xpos"			"r194"	[$X360]
 		"ypos"			"r74"	[$X360]
 		"wide"			"100"
@@ -87,7 +87,7 @@
 		"xpos"					"25"
 		"ypos"					"10"
 		"zpos"					"2"
-		"wide"					"44"
+		"wide"					"40"
 		"tall"					"20"	
 		"pinCorner"				"2"
 		"visible"				"1"
@@ -97,6 +97,6 @@
 		"textAlignment"			"north"
 		"dulltext"				"0"
 		"brighttext"			"0"
-		"font"					"HudFontMediumSmall"
+		"font"					"HudFontMedium"
 	}
 }

@@ -646,7 +646,7 @@
 		{
 			"ControlName"	"CExButton"
 			"fieldName"		"RespecButton"
-			"xpos"			"50"
+			"xpos"			"30"
 			"ypos"			"285"
 			"zpos"			"1"
 			"wide"			"120"

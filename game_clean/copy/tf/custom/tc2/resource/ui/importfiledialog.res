@@ -62,7 +62,7 @@
 		"visible"		"1"
 		"enabled"		"1"
 		"tabPosition"		"0"
-		"bgcolor_override"	"57 52 49 255"
+		"bgcolor_override"	"0 0 0 0"
 	}
 
 	"Title"	

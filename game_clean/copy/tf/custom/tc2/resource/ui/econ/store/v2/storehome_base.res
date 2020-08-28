@@ -319,7 +319,7 @@
 			"defaultFgColor_override" "124 114 99 255"
 			"armedBgColor_override" "30 30 30 255"
 			"armedFgColor_override" "124 114 99 255"
-			"selectedBgColor_override" "10 10 10 255"
+			"selectedBgColor_override" "24 22 20 255"
 			"selectedFgColor_override"	"235 227 203 255"
 			
 			"sound_depressed"	"UI/buttonclick.wav"
