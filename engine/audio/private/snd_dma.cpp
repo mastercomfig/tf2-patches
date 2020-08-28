@@ -461,7 +461,7 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 // user configurable music volume
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
-ConVar snd_mixahead( "snd_mixahead", "0.05");
+ConVar snd_mixahead( "snd_mixahead", "0.04");
 ConVar snd_mix_async( "snd_mix_async", "0" );
 #ifdef _DEBUG
 static ConCommand snd_mixvol("snd_mixvol", MXR_DebugSetMixGroupVolume, "Set named Mixgroup to mix volume.");
@@ -6547,11 +6547,10 @@ void S_Update_Guts( float mixAheadTime )
 }
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 7
+#define THREADED_MIX_TIME 0.001
 #else
-#define THREADED_MIX_TIME XMA_POLL_RATE
+#define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif
-#define THREADED_MIX_TIME_S (THREADED_MIX_TIME) * 0.001f
 
 ConVar snd_ShowThreadFrameTime( "snd_ShowThreadFrameTime", "0" );
 
@@ -6559,49 +6558,38 @@ bool g_bMixThreadExit;
 ThreadHandle_t g_hMixThread;
 void S_Update_Thread()
 {
-	float frameTime = THREADED_MIX_TIME_S;
-	double lastFrameTime = Plat_FloatTime();
+	double frameTime = THREADED_MIX_TIME;
 
 	while ( !g_bMixThreadExit )
 	{
-#ifdef _X360
-		float t0 = Plat_FloatTime();
-#endif
+		const double t0 = Plat_FloatTime();
 		S_Update_Guts(frameTime + snd_mixahead.GetFloat());
-#ifdef _X360
+		const double tf = Plat_FloatTime();
 
-		// mixing (for 360) needs to be updated at a steady rate
-		// large update times causes the mixer to demand more audio data
-		// the 360 decoder has finite latency and cannot fulfill spike requests
-		float tf = Plat_FloatTime();
-		float dt = tf - t0;
-		float nextFrameTime = tf + THREADED_MIX_TIME_S - dt;
-		int updateTime = (int)dt * 1000;
+		const double dt = tf - t0;
+		const double fWaitTime = THREADED_MIX_TIME - dt;
+		const double fWaitEnd = tf + fWaitTime;
 
 		// try to maintain a steadier rate by compensating for fluctuating mix times
-		// leave 1 ms for tighter timings in loop
-		int sleepTime = THREADED_MIX_TIME - updateTime - 1;
-		if ( sleepTime > 0 )
+		// leave 2 ms for tighter timings in loop
+		const int nSleepMS = (int) ((THREADED_MIX_TIME - dt) * 1000 - 2);
+		if ( nSleepMS > 0 )
 		{
-			ThreadSleep( sleepTime );
+			ThreadSleep( nSleepMS );
 		}
 
-		while (Plat_FloatTime() < nextFrameTime)
+		while (Plat_FloatTime() < fWaitEnd)
 		{
 			ThreadSleep();
 		}
-#else
-		// Give up our time slice
-		ThreadSleep();
-#endif
+
 		// mimic a frametime needed for sound update
-		double t1 = Plat_FloatTime();
-		frameTime = t1 - lastFrameTime;
-		lastFrameTime = t1;
+		const double t1 = Plat_FloatTime();
+		frameTime = t1 - tf;
 
 		if ( snd_ShowThreadFrameTime.GetBool() )
 		{
-			Msg( "S_Update_Thread: frameTime: %d ms\n", (int)( frameTime * 1000.0f ) );
+			Msg( "S_Update_Thread: frameTime: %f s\n", frameTime );
 		}
 	}
 }

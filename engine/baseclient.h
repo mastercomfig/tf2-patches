@@ -274,13 +274,6 @@ public:
 	// Default time to wait for next message
 	float          m_fSnapshotInterval;  
 
-	enum
-	{
-		SNAPSHOT_SCRATCH_BUFFER_SIZE = 160000,
-	};
-
-	unsigned int		m_SnapshotScratchBuffer[ SNAPSHOT_SCRATCH_BUFFER_SIZE / 4 ];
-
 private:
 	void				StartTrace( bf_write &msg );
 	void				EndTrace( bf_write &msg );

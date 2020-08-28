@@ -363,7 +363,7 @@ void CEngine::Frame( void )
 				ThreadSleep(nSleepMS);
 			}
 
-			while (Sys_FloatTime() < fWaitEnd)
+			while (Plat_FloatTime() < fWaitEnd)
 			{
 				ThreadSleep();
 			}

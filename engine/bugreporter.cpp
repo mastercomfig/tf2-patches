@@ -2687,41 +2687,28 @@ void CBugUIPanel::OnKeyCodePressed(KeyCode code)
 // Load game-specific bug reporter defaults as params
 void CBugUIPanel::ParseDefaultParams( void )
 {
-	const char *szDefaults = "scripts/bugreporter_defaults.txt";
-
-	FileHandle_t hLocal = g_pFileSystem->Open( szDefaults, "rb" );
-	if ( FILESYSTEM_INVALID_HANDLE == hLocal )
+	CUtlBuffer buffer(0, 0, CUtlBuffer::TEXT_BUFFER);
+	if (!g_pFileSystem->ReadFile("scripts/bugreporter_defaults.txt", NULL, buffer))
 	{
 		return;
 	}
 
-	// load file into a null-terminated buffer
-	int fileSize = g_pFileSystem->Size(hLocal);
-	char *buffer = (char*)MemAllocScratch(fileSize + 1);
-
-	Assert(buffer);
-
-	g_pFileSystem->Read(buffer, fileSize, hLocal); // read into local buffer
-	buffer[fileSize] = 0; // null terminate file as EOF
-	g_pFileSystem->Close( hLocal );	// close file after reading
-
-	char token[64];
-	const char *pfile = COM_ParseFile(buffer, token, sizeof( token ) );
-
-	while ( pfile )
+	char token[256];
+	const char* pfile = COM_ParseFile((const char*)buffer.Base(), token, sizeof(token));
+	while (pfile)
 	{
-		bool success = AutoFillToken( token, false );
-		if ( !success )
+		bool success = AutoFillToken(token, false);
+		if (!success)
 		{
 			// Try partials
-			success = AutoFillToken( token, true );
-			if ( !success )
+			success = AutoFillToken(token, true);
+			if (!success)
 			{
-				Msg( "Unable to determine where to set default bug parameter '%s', ignoring...\n", token );
+				Msg("Unable to determine where to set default bug parameter '%s', ignoring...\n", token);
 			}
 		}
 
-		pfile = COM_ParseFile(pfile, token, sizeof( token ) );
+		pfile = COM_ParseFile(pfile, token, sizeof(token));
 	}
 }
 

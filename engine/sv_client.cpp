@@ -837,12 +837,14 @@ void CGameClient::WriteGameSounds( bf_write &buf )
 	}
 }
 
+static ConVar sv_multiplayer_maxsounds("sv_multiplayer_sounds", "20");
+
 int	CGameClient::FillSoundsMessage(SVC_Sounds &msg)
 {
 	int i, count = m_Sounds.Count();
 
-	// send max 64 sound in multiplayer per snapshot, 255 in SP
-	int max = m_Server->IsMultiplayer() ? 32 : 255;
+	// send max 20 sound in multiplayer per snapshot, 255 in SP
+	int max = m_Server->IsMultiplayer() ? sv_multiplayer_maxsounds.GetInt() : 255;
 
 	// Discard events if we have too many to signal with 8 bits
 	if ( count > max )
@@ -852,7 +854,7 @@ int	CGameClient::FillSoundsMessage(SVC_Sounds &msg)
 	if ( !count )
 		return 0;
 
-	SoundInfo_t defaultSound; defaultSound.SetDefault();
+	SoundInfo_t defaultSound;
 	SoundInfo_t *pDeltaSound = &defaultSound;
 	
 	msg.m_nNumSounds = count;

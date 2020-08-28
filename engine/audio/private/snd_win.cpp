@@ -81,6 +81,10 @@ IAudioDevice *IAudioDevice::AutoDetectInit( bool waveOnly )
 			if ( snd_firsttime )
 			{
 				pDevice = Audio_CreateDirectSoundDevice();
+				if (pDevice)
+				{
+					S_EnableThreadedMixing(true);
+				}
 			}
 		}
 

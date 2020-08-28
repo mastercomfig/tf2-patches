@@ -686,7 +686,6 @@ bool CBaseClient::SendServerInfo( void )
 
 	// supporting smaller stack
 	net_scratchbuffer_t scratch;
-
 	bf_write msg( "SV_SendServerinfo->msg", scratch.GetBuffer(), NET_MAX_PAYLOAD );
 
 	// Only send this message to developer console, or multiplayer clients.
@@ -752,14 +751,11 @@ bool CBaseClient::SendServerInfo( void )
 	// send server info as one data block
 	if ( !m_NetChannel->SendData( msg ) )
 	{
-		MemFreeScratch();
 		Disconnect("Server info data overflow");
 		return false;
 	}
 		
 	COM_TimestampedLog( " CBaseClient::SendServerInfo(finished)" );
-
-	MemFreeScratch();
 
 	return true;
 }
@@ -1151,6 +1147,8 @@ void CBaseClient::TraceNetworkMsg( int nBits, char const *fmt, ... )
 	m_Trace.m_Records.AddToTail( t );
 }
 
+static ConVar sv_multiplayer_maxtempentities("sv_multiplayer_maxtempentities", "32");
+
 void CBaseClient::SendSnapshot( CClientFrame *pFrame )
 {
 	// never send the same snapshot twice
@@ -1174,24 +1172,34 @@ void CBaseClient::SendSnapshot( CClientFrame *pFrame )
 
 	bool bFailedOnce = false;
 write_again:
-	bf_write msg( "CBaseClient::SendSnapshot", m_SnapshotScratchBuffer, sizeof( m_SnapshotScratchBuffer ) );
+	net_scratchbuffer_t scratch;
+	bf_write msg("CBaseClient::SendSnapshot",
+		scratch.GetBuffer(), scratch.Size());
 
 	TRACE_PACKET( ( "SendSnapshot(%d)\n", pFrame->tick_count ) );
 
 	// now create client snapshot packet
-	CClientFrame *deltaFrame = GetDeltaFrame( m_nDeltaTick ); // NULL if delta_tick is not found
+	CClientFrame* deltaFrame = m_nDeltaTick < 0 ? NULL : GetDeltaFrame(m_nDeltaTick); // NULL if delta_tick is not found
 	if ( !deltaFrame )
 	{
 		// We need to send a full update and reset the instanced baselines
 		OnRequestFullUpdate();
 	}
 
+	if (IsTracing())
+	{
+		StartTrace(msg);
+	}
+
 	// send tick time
-	NET_Tick tickmsg( pFrame->tick_count, host_frametime_unbounded, host_frametime_stddeviation );
-
-	StartTrace( msg );
-
-	tickmsg.WriteToBuffer( msg );
+	{
+		NET_Tick tickmsg(pFrame->tick_count, host_frametime_unbounded, host_frametime_stddeviation);
+		if (!tickmsg.WriteToBuffer(msg))
+		{
+			Disconnect("#GameUI_Disconnect_TickMessage");
+			return;
+		}
+	}
 
 	if ( IsTracing() )
 	{
@@ -1223,8 +1231,8 @@ write_again:
 	}
 			
 	// send all unreliable temp entities between last and current frame
-	// send max 64 events in multi player, 255 in SP
-	int nMaxTempEnts = m_Server->IsMultiplayer() ? 64 : 255;
+	// send max 32 events in multi player, 255 in SP
+	int nMaxTempEnts = m_Server->IsMultiplayer() ? sv_multiplayer_maxtempentities.GetInt() : 255;
 	m_Server->WriteTempEntities( this, pFrame->GetSnapshot(), m_pLastSnapshot.GetObject(), msg, nMaxTempEnts );
 
 	if ( IsTracing() )

@@ -349,7 +349,7 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		{
 			if (bFixedRecoilSpread)
 			{
-				iSeed = pWpn->m_iConsecutiveShots;
+				iSeed = 200 + pWpn->m_iConsecutiveShots;
 			}
 		}
 
@@ -375,7 +375,7 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 			float flScalar;
 			if (!bSpreadNormal && pWpn)
 			{
-				flScalar = clamp(pWpn->m_iConsecutiveShots + 1, 1, 6) * 0.5f;
+				flScalar = clamp(pWpn->m_iConsecutiveShots + 1, 1, 6) * 0.25f;
 			}
 			else
 			{
