@@ -862,7 +862,7 @@ soundlevel_t CSoundEmitterSystemBase::LookupSoundLevel( const char *soundname )
 void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPreload, bool bIsOverride /*=false*/, bool bRefresh /*=false*/ )
 {
 	CSoundScriptFile sf;
-	sf.hFilename = filesystem->FindOrAddFileName( filename );
+	sf.hFilename = filesystem->FindOrAddFileName(filename);
 	sf.dirty = false;
 
 	int scriptindex = m_SoundKeyValues.AddToTail( sf );
@@ -873,7 +873,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 
 	// Open the soundscape data file, and abort if we can't
 	KeyValues *kv = new KeyValues( "" );
-	if ( filesystem->LoadKeyValues( *kv, IFileSystem::TYPE_SOUNDEMITTER, filename, "GAME" ) )
+	if (filesystem->LoadKeyValues( *kv, IFileSystem::TYPE_SOUNDEMITTER, filename, "GAME" ) )
 	{
 		// parse out all of the top level sections and save their names
 		KeyValues *pKeys = kv;
@@ -907,7 +907,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 				UtlHashHandle_t lookup = m_Sounds.Insert( pEntry ); // insert returns existing item if found
 				if ( m_Sounds[ lookup ] != pEntry )
 				{
-					if ( bIsOverride )
+					if ( bIsOverride || bRefresh )
 					{
 						MEM_ALLOC_CREDIT();
 
@@ -928,10 +928,6 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 						m_Sounds.ReplaceKey( lookup, pEntry );
 
 						++replaceCount;
-					}
-					else if ( bRefresh )
-					{
-						InitSoundInternalParameters( pKeys->GetName(), pKeys, m_Sounds[ lookup ]->m_SoundParams );
 					}
 #if 0
 					else
@@ -1054,7 +1050,7 @@ int CSoundEmitterSystemBase::CheckForMissingWavFiles( bool verbose )
 			if ( name[0] == CHAR_SENTENCE )
 				continue;
 			Q_snprintf( testfile, sizeof( testfile ), "sound/%s", PSkipSoundChars( name ) );
-			if ( filesystem->FileExists( testfile ) )
+			if (filesystem->FileExists( testfile ) )
 				continue;
 
 			internal->SetHadMissingWaveFiles( true );
@@ -1146,7 +1142,7 @@ const char *CSoundEmitterSystemBase::GetSourceFileForSound( int index ) const
 		return "";
 	}
 	static char fn[ 512 ];
-	if ( filesystem->String( m_SoundKeyValues[ scriptindex ].hFilename, fn, sizeof( fn ) ))
+	if (filesystem->String( m_SoundKeyValues[ scriptindex ].hFilename, fn, sizeof( fn ) ))
 	{
 		return fn;
 	}
@@ -1293,7 +1289,7 @@ const char *CSoundEmitterSystemBase::GetSoundScriptName( int index ) const
 		return NULL;
 
 	static char fn[ 512 ];
-	if ( filesystem->String( m_SoundKeyValues[ index ].hFilename, fn, sizeof( fn ) ) )
+	if (filesystem->String( m_SoundKeyValues[ index ].hFilename, fn, sizeof( fn ) ) )
 	{
 		return fn;
 	}

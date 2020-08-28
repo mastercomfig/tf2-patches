@@ -372,12 +372,17 @@ varargs versions of all text functions.
 */
 char *va( const char *format, ... )
 {
-	char* outbuf = tmpstr512();
-	va_list argptr;
-	va_start (argptr, format);
-	Q_vsnprintf( outbuf, 512, format, argptr );
-	va_end (argptr);
-	return outbuf;
+	va_list		argptr;
+	static char	string[8][512];
+	static int	curstring = 0;
+
+	curstring = (curstring + 1) % 8;
+
+	va_start(argptr, format);
+	Q_vsnprintf(string[curstring], sizeof(string[curstring]), format, argptr);
+	va_end(argptr);
+
+	return string[curstring];
 }
 
 /*
@@ -390,9 +395,14 @@ bufffer.
 */
 const char *vstr(Vector& v)
 {
-	char* outbuf = tmpstr512();
-	Q_snprintf(outbuf, 512, "%.2f %.2f %.2f", v[0], v[1], v[2]);
-	return outbuf;
+	static int idx = 0;
+	static char string[16][1024];
+
+	idx++;
+	idx &= 15;
+
+	Q_snprintf(string[idx], sizeof(string[idx]), "%.2f %.2f %.2f", v[0], v[1], v[2]);
+	return string[idx];
 }
 
 char    com_basedir[MAX_OSPATH];

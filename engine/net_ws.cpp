@@ -468,7 +468,7 @@ void NET_CloseSocket( int hSocket, int sock = -1)
 	}
 }
 
-bool NET_SetBufferSize(unsigned int nBufferSize, int newsocket, bool bReceive, bool bUDP)
+bool NET_SetBufferSize(int nBufferSize, int newsocket, bool bReceive, bool bUDP)
 {
 	int optval = bReceive ? SO_RCVBUF : SO_SNDBUF;
 	int opt = 0;

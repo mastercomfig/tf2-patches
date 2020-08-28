@@ -2941,15 +2941,14 @@ bool CBaseFileSystem::LoadKeyValues( KeyValues& head, KeyValuesPreloadType_t typ
 	ParsePathID( filename, pPathID, tempPathID );
 
 	// FIXME:  THIS STUFF DOESN'T TRACK pPathID AT ALL RIGHT NOW!!!!!
-	if ( !m_PreloadData[ type ].m_pReader || !m_PreloadData[ type ].m_pReader->InstanceInPlace( head, filename ) )
+	if (!m_PreloadData[type].m_pReader || !m_PreloadData[type].m_pReader->InstanceInPlace(head, filename))
 	{
-		bret = head.LoadFromFile( this, filename, pPathID );
+		bret = head.LoadFromFile(this, filename, pPathID);
 	}
-	return bret;
 #else
 	bret = head.LoadFromFile( this, filename, pPathID );
-	return bret;
 #endif
+	return bret;
 }
 
 

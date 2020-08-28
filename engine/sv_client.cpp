@@ -261,10 +261,6 @@ bool CGameClient::ProcessFileCRCCheck( CLC_FileCRCCheck *msg )
 
 	char warningStr[1024] = {0};
 
-	// The client may send us files we don't care about, so filter them here
-//	if ( !sv.GetPureServerWhitelist()->GetForceMatchList()->IsFileInList( msg->m_szFilename ) )
-//		return true;
-
 	// first check against all the other files users have sent
 	FileHash_t filehash;
 	filehash.m_md5contents = msg->m_MD5;
@@ -274,8 +270,8 @@ bool CGameClient::ProcessFileCRCCheck( CLC_FileCRCCheck *msg )
 	filehash.m_nPackFileNumber = msg->m_nPackFileNumber;
 	filehash.m_PackFileID = msg->m_PackFileID;
 
-	const char *path = msg->m_szPathID;
-	const char *fileName = msg->m_szFilename;
+	const char *path = msg->GetPath();
+	const char *fileName = msg->GetFileName();
 	if ( g_PureFileTracker.DoesFileMatch( path, fileName, msg->m_nFileFraction, &filehash, GetNetworkID() ) )
 	{
 		// track successful file

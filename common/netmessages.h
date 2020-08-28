@@ -311,6 +311,8 @@ class CLC_FileCRCCheck : public CNetMessage
 {
 public:
 	DECLARE_CLC_MESSAGE( FileCRCCheck );
+	int m_iCodePath;
+	int m_iCodeFilename;
 	char		m_szPathID[MAX_PATH];
 	char		m_szFilename[MAX_PATH];
 	MD5Value_t	m_MD5;
@@ -320,7 +322,13 @@ public:
 	int			m_nPackFileNumber;
 	int			m_PackFileID;
 	int			m_nFileFraction;
+
+	void SetPath(const char* path);
+	const char* GetPath();
+	void SetFileName(const char* fileName);
+	const char* GetFileName();
 };
+
 
 class CLC_FileMD5Check : public CNetMessage
 {
