@@ -286,7 +286,7 @@ void CSaxxyAwardsPanel::OnCommand( const char *pCommand )
 	{
 		if ( steamapicontext && steamapicontext->SteamFriends() )
 		{
-			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "http://www.teamfortress.com/saxxyawards/" );
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://www.sourcefilmmaker.com/saxxyawards2017/" );
 		}
 	}
 	else if ( FStrEq( pCommand, "submit" ) )
@@ -813,7 +813,7 @@ void CSaxxyAwardsSubmitForm::OnCommand( const char *pCommand )
 	{
 		if ( steamapicontext && steamapicontext->SteamFriends() )
 		{
-			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "http://www.teamfortress.com/saxxyawards/#rules" );
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://www.sourcefilmmaker.com/saxxyawards2017/guidelines/" );
 		}
 	}
 	else
