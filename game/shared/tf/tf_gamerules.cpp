@@ -11731,12 +11731,9 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		{
 			CTFBaseRocket *pBaseRocket = dynamic_cast<CTFBaseRocket*>( pInflictor );
 
-			if ( pBaseRocket )
+			if ( pBaseRocket && pBaseRocket->GetDeflected() )
 			{
-				if ( pBaseRocket->GetDeflected() )
-				{
-					killer_weapon_name = "deflect_flare";
-				}
+				killer_weapon_name = "deflect_flare";
 			}
 		}
 
@@ -11759,12 +11756,9 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		if ( pInflictor && pInflictor->IsPlayer() == false )
 		{
 			CTFBaseRocket *pBaseRocket = dynamic_cast<CTFBaseRocket*>( pInflictor );
-			if ( pBaseRocket )
+			if ( pBaseRocket && pBaseRocket->GetDeflected() )
 			{
-				if ( pBaseRocket->GetDeflected() )
-				{
-					killer_weapon_name = "deflect_flare";
-				}
+				killer_weapon_name = "deflect_flare";
 			}
 		}
 	}
@@ -11862,12 +11856,9 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		if ( pInflictor && pInflictor->IsPlayer() == false )
 		{
 			CTFWeaponBaseGrenadeProj *pBaseGrenade = dynamic_cast<CTFWeaponBaseGrenadeProj*>( pInflictor );
-			if ( pBaseGrenade )
+			if ( pBaseGrenade && pBaseGrenade->GetDeflected() )
 			{
-				if ( pBaseGrenade->GetDeflected() )
-				{
-					killer_weapon_name = "deflect_ball";
-				}
+				killer_weapon_name = "deflect_ball";
 			}
 		}
 	}
@@ -12052,6 +12043,18 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 				else if ( *iWeaponID == TF_WEAPON_ROCKETLAUNCHER_DIRECTHIT )
 				{
 					killer_weapon_name = "rocketlauncher_directhit";
+				}
+				else if ( *iWeaponID == TF_WEAPON_COMPOUND_BOW )
+				{
+					CTFProjectile_Arrow* pArrow = dynamic_cast<CTFProjectile_Arrow*>( pBaseRocket );
+					if ( pArrow && pArrow->IsAlight() )
+					{
+						killer_weapon_name = "huntsman_flyingburn";
+
+						// force death notice to use burning arrow headshot kill icon
+						if ( iDamageCustom == TF_DMG_CUSTOM_HEADSHOT )
+							*iWeaponID = TF_WEAPON_NONE;
+					}
 				}
 			}
 			else
