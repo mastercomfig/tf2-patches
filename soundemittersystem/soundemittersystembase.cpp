@@ -923,16 +923,9 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 						}
 
 						InitSoundInternalParameters( pKeys->GetName(), pKeys, pEntry->m_SoundParams );
-						if (bIsOverride)
-						{
-							pEntry->m_SoundParams.SetShouldPreload(bPreload); // this gets handled by game code after initing.
-						}
-						else
-						{
-							pEntry->m_SoundParams.SetShouldPreload(m_Sounds[lookup]->m_SoundParams.ShouldPreload());
-						}
+						pEntry->m_SoundParams.SetShouldPreload(bIsOverride ? bPreload : m_Sounds[lookup]->m_SoundParams.ShouldPreload()); // this gets handled by game code after initing.
 
-						m_Sounds.ReplaceKey( lookup, pEntry );
+                        m_Sounds.ReplaceKey( lookup, pEntry );
 
 						++replaceCount;
 					}
