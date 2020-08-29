@@ -940,7 +940,7 @@ private:
 	int m_iDisguiseAmmo;
 
 	bool m_bEnableSeparation;		// Keeps separation forces on when player stops moving, but still penetrating
-	Vector m_vSeparationVelocity;	// Velocity used to keep player seperate from teammates
+	Vector m_vSeparationVelocity;	// Velocity used to keep player separate from teammates
 
 	float m_flInvisibility;
 	float m_flPrevInvisibility;

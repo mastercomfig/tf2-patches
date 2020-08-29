@@ -1162,7 +1162,7 @@ int MakeGameDataApp::Main()
 		scriptlib->FindFiles( g_szSourcePath, bRecurse, fileList );
 	}
 
-	// model conversions require seperate pre-processing to achieve grouping
+	// model conversions require separate pre-processing to achieve grouping
 	if ( !PreprocessModelFiles( fileList ) )
 	{
 		return 0;

@@ -276,7 +276,7 @@ namespace SurfaceV30
 	virtual void PlaySound(const char *fileName) = 0;
 
 	//!! these functions should not be accessed directly, but only through other vgui items
-	//!! need to move these to seperate interface
+	//!! need to move these to separate interface
 	virtual int GetPopupCount() = 0;
 	virtual vgui::VPANEL GetPopup(int index) = 0;
 	virtual bool ShouldPaintChildPanel(vgui::VPANEL childPanel) = 0;

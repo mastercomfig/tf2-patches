@@ -84,7 +84,7 @@ static CSceneTokenProcessor g_SceneTokenProcessor;
 ISceneTokenProcessor *tokenprocessor = &g_SceneTokenProcessor;
 
 // a simple case insensitive string pool
-// the final pool contains all the unique strings seperated by a null
+// the final pool contains all the unique strings separated by a null
 class CChoreoStringPool : public IChoreoStringPool
 {
 public:

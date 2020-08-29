@@ -805,7 +805,7 @@ void CServerRemoteAccess::GetPlayerList(CUtlBuffer &value)
 			continue;
 
 		// valid user, add to buffer
-		// format per user, each user seperated by a newline '\n'
+		// format per user, each user separated by a newline '\n'
 		//      "name authID ipAddress ping loss frags time"
 		if ( client->IsFakeClient() )
 		{

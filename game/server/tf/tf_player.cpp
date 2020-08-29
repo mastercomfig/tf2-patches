@@ -15061,7 +15061,7 @@ void CTFPlayer::FeignDeath( const CTakeDamageInfo& info )
 
 //-----------------------------------------------------------------------------
 // Purpose: Create a ragdoll entity for feign death. Does not hide the player.
-// Creates an entirely seperate ragdoll that isn't used for client death cam or other real death stuff.
+// Creates an entirely separate ragdoll that isn't used for client death cam or other real death stuff.
 //-----------------------------------------------------------------------------
 void CTFPlayer::CreateFeignDeathRagdoll( const CTakeDamageInfo& info, bool bGib, bool bBurning, bool bDisguised )
 {
@@ -21686,7 +21686,7 @@ void CTFPlayer::InputSpeakResponseConcept( inputdata_t &inputdata )
 		while (token)
 		{
 			// find the start characters for the key and value
-			// (seperated by a : which we replace with null)
+			// (separated by a : which we replace with null)
 			char * RESTRICT key = token;
 			char * RESTRICT colon = const_cast<char *>(V_strnchr(key, ':', 510)); 
 			char * RESTRICT value;

@@ -25,7 +25,7 @@ v2.0 Bug Fixes
 
 v1.5 New Features
 *Team Differentiation:  If a player plays on two different teams, tfstats 
-	gathers stats for each team seperately, then when viewing that players 
+	gathers stats for each team separately, then when viewing that players 
 	stats, there's a link to that player's merged stats. 
 *Pseudonyms for players: This is so it's not confusing if players change their
 	names. it uses the name they used for the most time, and also lists other

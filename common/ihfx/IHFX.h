@@ -454,7 +454,7 @@ public:
 	// see if the effect is explicitly paused.
 	HFX_INLINE bool IsPaused() const { return ((GetEffectState() & HFXSTATE_PAUSE)!=0); }
 
-	// scale this force (NOTE: THIS IS SEPERATE FROM PARAMETER SCALE!)
+	// scale this force (NOTE: THIS IS SEPARATE FROM PARAMETER SCALE!)
 	virtual void SetForceScale( double scale ) =0;
 	virtual double GetForceScale( ) const =0;
 

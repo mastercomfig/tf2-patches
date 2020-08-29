@@ -839,7 +839,7 @@ inline bool CBot< PlayerType >::ClientCommand( const CCommand &args )
 		}
 		
 		if (*cmd == '\n')
-		{	// a newline seperates commands in the buffer
+		{	// a newline separates commands in the buffer
 			cmd++;
 			break;
 		}

@@ -1429,7 +1429,7 @@ public:
 	// Inter-thread communication
 	//
 	// Calls in either direction take place on the same "channel."
-	// Seperate functions are specified to make identities obvious
+	// Separate functions are specified to make identities obvious
 	//
 	//-----------------------------------------------------
 

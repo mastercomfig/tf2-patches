@@ -20,9 +20,9 @@
 // are those that have been specially built such that the game or loading can operate unblocked
 // without the actual data (i.e. d3d texture bits).
 //
-// Phase 1: The reslist is parsed into seperate lists based on handled extensions. Each list
+// Phase 1: The reslist is parsed into separate lists based on handled extensions. Each list
 // call its own loader which in turn generates its own dictionaries and I/O requests through
-// "AddJob". A single reslist entry could cause a laoder to request multiple jobs. ( i.e. models )
+// "AddJob". A single reslist entry could cause a loader to request multiple jobs. ( i.e. models )
 // A loader marks its jobs as high or low priority.
 // Phase 2: The I/O requests are sorted (which achieves seek offset order) and
 // async i/o commences. Phase 2 does not end until all the high priority jobs

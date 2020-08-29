@@ -461,7 +461,7 @@ struct datamap_t
 	};
 
 //-----------------------------------------------------------------------------
-// Forward compatability with potential seperate byteswap datadescs
+// Forward compatability with potential separate byteswap datadescs
 
 #define DECLARE_BYTESWAP_DATADESC() DECLARE_SIMPLE_DATADESC()
 #define BEGIN_BYTESWAP_DATADESC(name) BEGIN_SIMPLE_DATADESC(name) 

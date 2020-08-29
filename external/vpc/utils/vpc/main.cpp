@@ -1673,7 +1673,7 @@ void CVPC::FindProjectFromVCPROJ( const char *pScriptNameVCProj )
 {
 	// caller is specifying the output vcproj, i.e. via tool shortcut from within MSDEV to re-gen
 	// use the vpc standardized output vcproj name to determine re-gen parameters
-	// mod and platform will be seperated by '_' after the project name
+	// mod and platform will be separated by '_' after the project name
 	// resolve to correct project, best will be longest match, due to project names like foo_? and foo_bar_?
 	char szProject[MAX_PATH];
 	unsigned int bestLen = 0;
@@ -1697,7 +1697,7 @@ void CVPC::FindProjectFromVCPROJ( const char *pScriptNameVCProj )
 	char szBuffer[MAX_PATH];
 	V_StripExtension( pScriptNameVCProj + strlen( szProject ), szBuffer, sizeof( szBuffer ) );
 
-	// each token is seperated by '_'
+	// each token is separated by '_'
 	int numTokens = 0;
 	char *pToken = szBuffer;
 	char *pStart = pToken;

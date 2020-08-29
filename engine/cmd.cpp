@@ -717,7 +717,7 @@ static const char *g_pBlacklistedCommands[] =
 ===============
 Cmd_Alias_f
 
-Creates a new command that executes a command string (possibly ; seperated)
+Creates a new command that executes a command string (possibly ; separated)
 ===============
 */
 CON_COMMAND( alias, "Alias a command." )

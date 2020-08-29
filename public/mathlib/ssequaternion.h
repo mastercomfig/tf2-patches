@@ -976,7 +976,7 @@ FORCEINLINE FourQuaternions FourQuaternions::Slerp(const FourQuaternions& origin
 	// yet if we need to realign, so compute them both -- there's plenty of
 	// space in the bubbles. They're roomy, those bubbles.
 	fltx4 cosineOmega;
-#if 0 // Maybe I don't need to do alignment seperately, using the xb360 technique...
+#if 0 // Maybe I don't need to do alignment separately, using the xb360 technique...
 	FourQuaternions to;
 	{
 		fltx4 diffs[4], sums[4], originalToNeg[4];

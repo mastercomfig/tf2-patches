@@ -3773,7 +3773,7 @@ bool FixupVVDFile(const char *fileName,  const studiohdr_t *pStudioHdr, const vo
 				pStudioMesh = pStudioModel->pMesh(k);
 				for (n=0; n<pStudioMesh->numvertices; n++)
 				{
-					// old vertex pools are per model, seperated per mesh by a start offset
+					// old vertex pools are per model, separated per mesh by a start offset
 					// vertexes are then isolated subpools per mesh
 					// build the flat linear array of lookup pointers
 					pFlatVertexes[numFlat] = &pVertex_old[pStudioMesh->vertexoffset + n];

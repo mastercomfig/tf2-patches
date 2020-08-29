@@ -6673,7 +6673,7 @@ bool CEconItemSchema::BInitSchema( KeyValues *pKVRawDefinition, CUtlVector<CUtlS
 	}
 
 	// TF2 Paint Kits
-	// No included in schema file (Too Big).  Loaded Seperately
+	// No included in schema file (Too Big).  Loaded Separately
 	// Load the KV and add it to the pKVRawDefinition
 	KeyValues *pPaintkitKV = new KeyValues( "item_paintkit_definitions" );
 	SCHEMA_INIT_CHECK( pPaintkitKV->LoadFromFile( g_pFullFileSystem, "scripts/items/paintkits_master.txt", "GAME" ), "Unable to Load paintkits_master.txt KV File!" );
