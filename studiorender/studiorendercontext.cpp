@@ -2497,7 +2497,7 @@ void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pS
 
 	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );
 	Assert( pRenderContext->IsRenderData( pBoneToWorld ) );
-	QUEUE_STUDIORENDER_CALL_RC( AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext, 
+	QUEUE_STUDIORENDER_CALL_RC_NF( AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext, 
 		handle, m_RC, pBoneToWorld, pStudioHdr, ray, decalUp, pDecalMaterial, radius, 
 		body, noPokethru, maxLODToDecal );
 }
