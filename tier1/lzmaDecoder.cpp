@@ -27,29 +27,42 @@
 #include "tier0/memdbgon.h"
 
 ConVar lzma_persistent_buffer( "lzma_persistent_buffer", "1", FCVAR_NONE,
-                               "If set, attempt to keep a persistent buffer for the LZMA decoder dictionary. " \
-                               "This avoids re-allocating a ~16-64meg buffer for each operation, " \
+                               "If set, attempt to keep persistent buffers for the LZMA decoder dictionary. " \
+                               "This avoids re-allocating a ~8-64meg buffer for each operation, " \
                                "at the expensive of keeping extra memory around when it is not in-use." );
 
-// Allocator to pass to LZMA functions
-static void *g_pStaticLZMABuf = NULL;
-static size_t g_unStaticLZMABufSize = 0;
-static uint32 g_unStaticLZMABufRef = 0;
-static void *SzAlloc(void *p, size_t size) {
-	// Don't touch static buffer on other threads.
-	if ( ThreadInMainThread() )
+
+struct LZMABuf_t
+{
+	void* pStaticLZMABuf = NULL;
+	size_t unStaticLZMABufSize = 0;
+	CThreadFastMutex m_mutex;
+
+    LZMABuf_t()
 	{
-		// If nobody is using the persistent buffer and size is above a threshold, use it.
-		bool bPersistentBuf = (g_pStaticLZMABuf || lzma_persistent_buffer.GetBool()) && size >= (1024 * 1024 * 8) && g_unStaticLZMABufRef == 0;
-		if ( bPersistentBuf )
+	}
+};
+
+static LZMABuf_t g_LZMABuffers[2];
+static void *SzAlloc(void *p, size_t size) {
+	
+	// If nobody is using the persistent buffer and size is above a threshold, use it.
+	bool bPersistentBuf = lzma_persistent_buffer.GetBool() && size >= (1024 * 1024 * 8);
+	if ( bPersistentBuf )
+	{
+		// see if there's an available buffer we can use
+		for (int i = 0; i < ARRAYSIZE(g_LZMABuffers); i++)
 		{
-			if ( g_unStaticLZMABufSize < size )
+			LZMABuf_t& buf = g_LZMABuffers[i];
+			if (buf.m_mutex.TryLock())
 			{
-				g_pStaticLZMABuf = g_pStaticLZMABuf ? realloc( g_pStaticLZMABuf, size ) : malloc( size );
-				g_unStaticLZMABufSize = size;
+				if (buf.unStaticLZMABufSize < size)
+				{
+					buf.pStaticLZMABuf = buf.pStaticLZMABuf ? realloc(buf.pStaticLZMABuf, size) : malloc(size);
+					buf.unStaticLZMABufSize = size;
+				}
+				return buf.pStaticLZMABuf;
 			}
-			g_unStaticLZMABufRef++;
-			return g_pStaticLZMABuf;
 		}
 	}
 
@@ -57,19 +70,20 @@ static void *SzAlloc(void *p, size_t size) {
 	return malloc(size);
 }
 static void SzFree(void *p, void *address) {
-	// Don't touch static buffer on other threads.
-	if ( ThreadInMainThread() )
+	// see if we allocated a buffer
+	for (int i = 0; i < ARRAYSIZE(g_LZMABuffers); i++)
 	{
-		if ( address != NULL && g_unStaticLZMABufRef && address == g_pStaticLZMABuf )
+		LZMABuf_t& buf = g_LZMABuffers[i];
+		if (address != NULL && buf.m_mutex.GetOwnerId() == ThreadGetCurrentId() && address == buf.pStaticLZMABuf)
 		{
-			g_unStaticLZMABufRef--;
 			// If the convar was turned off, free the buffer
-			if ( g_pStaticLZMABuf && g_unStaticLZMABufRef == 0 && !lzma_persistent_buffer.GetBool() )
+			if (buf.pStaticLZMABuf && !lzma_persistent_buffer.GetBool())
 			{
-				free( g_pStaticLZMABuf );
-				g_pStaticLZMABuf = NULL;
-				g_unStaticLZMABufSize = 0;
+				free(buf.pStaticLZMABuf);
+				buf.pStaticLZMABuf = NULL;
+				buf.unStaticLZMABufSize = 0;
 			}
+			buf.m_mutex.Unlock();
 			return;
 		}
 	}

@@ -418,7 +418,7 @@ FILE *CFileSystem_Stdio::FS_fopen( const char *filenameT, const char *options, u
 
 	CBaseFileSystem::FixUpPath ( filenameT, filename, sizeof( filename ) );
 
-#ifdef _WIN32
+#if 0 && defined(_WIN32)
 	if ( CWin32ReadOnlyFile::CanOpen( filename, options ) )
 	{
 		pFile = CWin32ReadOnlyFile::FS_fopen( filename, options, size );
