@@ -1374,7 +1374,7 @@ void CVideoMode_Common::AdjustWindow( int nWidth, int nHeight, int nBPP, bool bW
 	{
 		// Give it a frame (pretty much WS_OVERLAPPEDWINDOW except for we do not modify the
 		// flags corresponding to resizing-frame and maximize-box)
-		if( !CommandLine()->FindParm( "-noborder" ) && !m_bVROverride )
+		if( CommandLine()->FindParm( "-border" ) && !m_bVROverride )
 		{
 			style |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 		}
@@ -1444,7 +1444,7 @@ void CVideoMode_Common::AdjustWindow( int nWidth, int nHeight, int nBPP, bool bW
 	if( bWindowed )
 	{
 		SDL_Window* win = (SDL_Window*)g_pLauncherMgr->GetWindowRef();
-		if ( m_bVROverride || CommandLine()->FindParm( "-noborder" ) )
+		if ( m_bVROverride || !CommandLine()->FindParm( "-border" ) )
 			SDL_SetWindowBordered( win, SDL_FALSE );
 		else
 			SDL_SetWindowBordered( win, SDL_TRUE );

@@ -644,7 +644,10 @@ void CBaseClient::Disconnect( const char *fmt, ... )
 	if ( m_NetChannel )
 	{
 		m_NetChannel->Shutdown( string ) ;
-		m_NetChannel = NULL;
+		if (m_NetChannel)
+		{
+			m_NetChannel = NULL;
+		}
 	}
 
 	Clear(); // clear state

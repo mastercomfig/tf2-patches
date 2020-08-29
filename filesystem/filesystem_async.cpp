@@ -680,12 +680,10 @@ void CBaseFileSystem::InitAsync()
 		}
 		else if( IsPC() )
 		{
-			// override defaults
-			// maximum # of async I/O thread on PC is 2
-			params.nThreads = 1;
+			params.nStackSize = 256 * 1024;
 		}
 
-		if ( !m_pThreadPool->Start( params, "IOJob" ) )
+		if ( !m_pThreadPool->Start( params, "FsAsyncIO" ) )
 		{
 			SafeRelease( m_pThreadPool );
 		}

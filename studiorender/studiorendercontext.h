@@ -71,11 +71,22 @@ struct StudioRenderContext_t
 	OverrideType_t			m_nForcedMaterialType;
 };
 
-
 //-----------------------------------------------------------------------------
 // Helper to queue up calls if necessary
 //-----------------------------------------------------------------------------
 #define QUEUE_STUDIORENDER_CALL( FuncName, ClassName, pObject, ... )	\
+	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );			\
+	ICallQueue *pCallQueue = pRenderContext->GetCallQueue();			\
+	if ( !pCallQueue || studio_queue_mode.GetInt() == 0 )				\
+	{																	\
+		pObject->FuncName( __VA_ARGS__ );								\
+	}																	\
+	else																\
+	{																	\
+		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
+	}
+
+#define QUEUE_STUDIORENDER_CALL_NF( FuncName, ClassName, pObject, ... )	\
 	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );			\
 	ICallQueue *pCallQueue = pRenderContext->GetCallQueue();			\
 	if ( !pCallQueue || studio_queue_mode.GetInt() == 0 )				\
@@ -95,7 +106,7 @@ struct StudioRenderContext_t
 	}																	\
 	else																\
 	{																	\
-		pCallQueue->QueueCall( pObject, &ClassName::FuncName, ##__VA_ARGS__ );	\
+		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
 	}
 
 

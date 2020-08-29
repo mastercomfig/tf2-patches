@@ -304,7 +304,7 @@ class CGlobalThreadPool : public CThreadPool
 public:
 	virtual bool Start( const ThreadPoolStartParams_t &startParamsIn )
 	{
-		int nThreads = ( CommandLine()->ParmValue( "-threads", -1 ) - 1 );
+		int nThreads = CommandLine()->ParmValue( "-threads", -1 );
 		ThreadPoolStartParams_t startParams = startParamsIn;
 
 		if ( nThreads >= 0 )
@@ -313,8 +313,8 @@ public:
 		}
 		else
 		{
-			// Cap the GlobPool threads at 12.
-			startParams.nThreadsMax = 12;
+			// Cap the GlobPool threads at 4.
+			startParams.nThreadsMax = 4;
 		}
 		return CThreadPool::Start( startParams, "Glob" );
 	}
@@ -931,15 +931,8 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		}
 		else
 		{
-			nThreads = ( ci.m_nLogicalProcessors / (( ci.m_bHT ) ? 2 : 1) ) - 1; // One per
-			if ( IsPC() )
-			{
-				if ( nThreads > 3 )
-				{
-					DevMsg( "Defaulting to limit of 3 worker threads, use -threads on command line if want more\n" ); // Current >4 processor configs don't really work so well, probably due to cache issues? (toml 7/12/2007)
-					nThreads = 3;
-				}
-			}
+			// One worker thread per physical processor minus main thread and graphic driver
+			nThreads = ci.m_nPhysicalProcessors - 2;
 		}
 
 		if ( ( startParams.nThreadsMax >= 0 ) && ( nThreads > startParams.nThreadsMax ) )
@@ -998,7 +991,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 
 	if ( !pszName )
 	{
-		pszName = ( startParams.bIOThreads ) ? "IOJobX" : "CmpJobX";
+		pszName = ( startParams.bIOThreads ) ? "IOJob" : "CmpJob";
 	}
 	while ( nThreads-- )
 	{

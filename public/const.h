@@ -426,6 +426,9 @@ enum Collision_Group_t
 
 #define SOUND_NORMAL_CLIP_DIST	1000.0f
 
+// max number of cached build/draw views to support parallel building of World/Renderlists on SPU
+#define MAX_CONCURRENT_BUILDVIEWS 10
+
 // How many networked area portals do we allow?
 #define MAX_AREA_STATE_BYTES		32
 #define MAX_AREA_PORTAL_STATE_BYTES 24

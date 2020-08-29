@@ -2580,7 +2580,7 @@ void CHLClient::ClientAdjustStartSoundParams( StartSoundParams_t& params )
 			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pEntity, flVoicePitchScale, voice_pitch_scale );
 
 			int iHalloweenVoiceSpell = 0;
-			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+			if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 			{
 				CALL_ATTRIB_HOOK_INT_ON_OTHER( pEntity, iHalloweenVoiceSpell, halloween_voice_modulation );
 			}

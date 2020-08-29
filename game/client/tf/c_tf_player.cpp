@@ -9529,7 +9529,7 @@ void C_TFPlayer::FireEvent( const Vector& origin, const QAngle& angles, int even
 
 			// Halloween-specific bonus footsteps
 			int iHalloweenFootstepType = 0;
-			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+			if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 			{
 				CALL_ATTRIB_HOOK_INT( iHalloweenFootstepType, halloween_footstep_type );
 			}

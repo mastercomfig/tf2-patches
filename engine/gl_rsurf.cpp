@@ -54,6 +54,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+#include "vstdlib/jobthread.h"
 
 #define BACKFACE_EPSILON	-0.01f
 
@@ -2569,75 +2570,72 @@ static void FASTCALL R_DrawLeafNoCull( CWorldRenderList *pRenderList, mleaf_t *p
 //-----------------------------------------------------------------------------
 static void R_RecursiveWorldNodeNoCull( CWorldRenderList *pRenderList, mnode_t *node, int nCullMask )
 {
-	int			side;
-	cplane_t	*plane;
-	float		dot;
+	int leafCount = 0;
+
+	const int NODELIST_MAX = 1024;
+	mleaf_t* leafList[NODELIST_MAX];
+	mnode_t* nodeList[NODELIST_MAX];
+	int nodeReadIndex = 0;
+	int nodeWriteIndex = 0;
 
 	while (true)
 	{
 		// no polygons in solid nodes
-		if (node->contents == CONTENTS_SOLID)
-			return;		// solid
-
-		// Check PVS signature
-		if (node->visframe != r_visframecount)
-			return;
-
-		// Cull against the screen frustum or the appropriate area's frustum.
-		if ( nCullMask != FRUSTUM_SUPPRESS_CLIPPING )
+		if (node->contents != CONTENTS_SOLID && node->visframe >= r_visframecount)
 		{
-			if (node->contents >= -1)
+			// Cull against the screen frustum or the appropriate area's frustum.
+			if (nCullMask != FRUSTUM_SUPPRESS_CLIPPING)
 			{
-				if ((nCullMask != 0) || ( node->area > 0 ))
+				if (node->contents >= -1)
 				{
-					if ( R_CullNode( &g_Frustum, node, nCullMask ) )
-						return;
+					if ((nCullMask != 0) || (node->area > 0))
+					{
+						if (!R_CullNode(&g_Frustum, node, nCullMask))
+						{
+							// if a leaf node, draw stuff
+							if (node->contents >= 0)
+							{
+								if (leafCount < NODELIST_MAX)
+								{
+									leafList[leafCount++] = (mleaf_t*)node;
+								}
+							}
+							else
+							{
+#if defined( _X360 ) || defined( _PS3 )
+								PREFETCH_128(node->children[0], 0);
+								PREFETCH_128(node->children[1], 0);
+#endif
+								// node is just a decision point, so go down the appropriate sides
+								nodeList[nodeWriteIndex] = node->children[0];
+								nodeWriteIndex = (nodeWriteIndex + 1) & (NODELIST_MAX - 1);
+								// check for overflow of the ring buffer
+								Assert(nodeWriteIndex != nodeReadIndex);
+								node = node->children[1];
+								continue;
+							}
+						}
+					}
+				}
+				else
+				{
+					// This prevents us from culling nodes that are too small to worry about
+					if (node->contents == -2)
+					{
+						nCullMask = FRUSTUM_SUPPRESS_CLIPPING;
+					}
 				}
 			}
-			else
-			{
-				// This prevents us from culling nodes that are too small to worry about
-				if (node->contents == -2)
-				{
-					nCullMask = FRUSTUM_SUPPRESS_CLIPPING;
-				}
-			}
 		}
 
-		// if a leaf node, draw stuff
-		if (node->contents >= 0)
-		{
-			R_DrawLeafNoCull( pRenderList, (mleaf_t *)node );
-			return;
-		}
-
-		// node is just a decision point, so go down the appropriate sides
-
-		// find which side of the node we are on
-		plane = node->plane;
-		if ( plane->type <= PLANE_Z )
-		{
-			dot = modelorg[plane->type] - plane->dist;
-		}
-		else
-		{
-			dot = DotProduct (modelorg, plane->normal) - plane->dist;
-		}
-
-		// recurse down the children, closer side first.
-		// We have to do this because we need to find if the surfaces at this node
-		// exist in any visible leaves closer to the camera than the node is. If so,
-		// their r_surfacevisframe is set to indicate that we need to render them
-		// at this node.
-		side = dot >= 0 ? 0 : 1;
-
-		// Recurse down the side closer to the camera
-		R_RecursiveWorldNodeNoCull (pRenderList, node->children[side], nCullMask );
-
-		// recurse down the side farther from the camera
-		// NOTE: With this while loop, this is identical to just calling
-		// R_RecursiveWorldNodeNoCull (node->children[!side], nCullMask );
-		node = node->children[!side];
+		if (nodeReadIndex == nodeWriteIndex)
+			break;
+		node = nodeList[nodeReadIndex];
+		nodeReadIndex = (nodeReadIndex + 1) & (NODELIST_MAX - 1);
+	}
+	for (int i = 0; i < leafCount; i++)
+	{
+		R_DrawLeafNoCull(pRenderList, leafList[i]);
 	}
 }
 
@@ -2660,7 +2658,7 @@ static void R_RecursiveWorldNode( CWorldRenderList *pRenderList, mnode_t *node, 
 			return;		// solid
 
 		// Check PVS signature
-		if (node->visframe != r_visframecount)
+		if (node->visframe < r_visframecount)
 			return;
 
 		// Cull against the screen frustum or the appropriate area's frustum.
@@ -2743,7 +2741,18 @@ static void R_RecursiveWorldNode( CWorldRenderList *pRenderList, mnode_t *node, 
 			if ( !(nFlags & SURFDRAW_UNDERWATER) && ( side ^ !!(nFlags & SURFDRAW_PLANEBACK)) )
 				continue;		// wrong side
 
-			R_DrawSurface( pRenderList, surfID );
+			if (nFlags & SURFDRAW_SKY)
+			{
+				pRenderList->m_bSkyVisible = true;
+			}
+			else if (nFlags & SURFDRAW_TRANS)
+			{
+				Shader_TranslucentWorldSurface(pRenderList, surfID);
+			}
+			else
+			{
+				Shader_WorldSurface(pRenderList, surfID);
+			}
 		}
 
 		// recurse down the side farther from the camera
@@ -2983,6 +2992,145 @@ static void SpewLeaf()
 	ConMsg(	"view leaf %d\n", leaf );
 }
 
+//-----------------------------------------------------------------------------
+// Job for building the world rendering list
+//-----------------------------------------------------------------------------
+
+class CBuildWorldListsJob : public CJob
+{
+public:
+
+	CBuildWorldListsJob(
+		CWorldRenderList* pRenderList,
+		WorldListInfo_t* pInfo,
+		bool bShadowDepth,
+		const Vector& currentViewOrigin,
+		int visFrameCount,
+		bool bDrawTopView,
+		bool bTopViewNoBackfaceCulling,
+		bool bTopViewNoVisCheck,
+		const Vector2D& orthographicCenter,
+		const Vector2D& orthographicHalfDiagonal,
+		const Frustum_t* pFrustum,
+		const CUtlVector< Frustum_t, CUtlMemoryAligned< Frustum_t, 16 > >* pAeraFrustum,
+		unsigned char* pRenderAreaBits,
+		bool bViewerInSolidSpace,
+		const Vector& modelOrigin);
+
+private:
+
+	virtual JobStatus_t	DoExecute();
+
+	CWorldRenderList* m_pRenderList;
+	WorldListInfo_t* m_pWorldListInfo;
+	bool					m_bShadowDepth;
+
+	Vector					m_currentViewOrigin;
+	int						m_visFrameCount;
+	bool					m_bDrawTopView;
+
+	bool					m_bTopViewNoBackfaceCulling;
+	bool					m_bTopViewNoVisCheck;
+	Vector2D				m_OrthographicCenter;
+	Vector2D				m_OrthographicHalfDiagonal;
+
+	const Frustum_t* m_pFrustum;
+	const CUtlVector< Frustum_t, CUtlMemoryAligned< Frustum_t, 16 > >* m_pAreaFrustum;
+	unsigned char			m_RenderAreaBits[32];
+	bool					m_bViewerInSolidSpace;
+	Vector					m_modelOrigin;
+};
+
+CBuildWorldListsJob::CBuildWorldListsJob(
+	CWorldRenderList* pRenderList,
+	WorldListInfo_t* pInfo,
+	bool bShadowDepth,
+	const Vector& currentViewOrigin,
+	int visFrameCount,
+	bool bDrawTopView,
+	bool bTopViewNoBackfaceCulling,
+	bool bTopViewNoVisCheck,
+	const Vector2D& orthographicCenter,
+	const Vector2D& orthographicHalfDiagonal,
+	const Frustum_t* pFrustum,
+	const CUtlVector< Frustum_t, CUtlMemoryAligned< Frustum_t, 16 > >* pAeraFrustum,
+	unsigned char* pRenderAreaBits,
+	bool bViewerInSolidSpace,
+	const Vector& modelOrigin)
+	:
+	m_pRenderList(pRenderList),
+	m_pWorldListInfo(pInfo),
+	m_bShadowDepth(bShadowDepth),
+	m_currentViewOrigin(currentViewOrigin),
+	m_visFrameCount(visFrameCount),
+	m_bDrawTopView(bDrawTopView),
+	m_bTopViewNoBackfaceCulling(bTopViewNoBackfaceCulling),
+	m_bTopViewNoVisCheck(bTopViewNoVisCheck),
+	m_OrthographicCenter(orthographicCenter),
+	m_OrthographicHalfDiagonal(orthographicHalfDiagonal),
+	m_pFrustum(pFrustum),
+	m_bViewerInSolidSpace(bViewerInSolidSpace),
+	m_modelOrigin(modelOrigin)
+{
+	m_pAreaFrustum = pAeraFrustum;
+	memcpy(m_RenderAreaBits, pRenderAreaBits, sizeof(m_RenderAreaBits));
+}
+
+JobStatus_t CBuildWorldListsJob::DoExecute()
+{
+	if (!m_bDrawTopView)
+	{
+		if (m_bShadowDepth)
+		{
+			R_RecursiveWorldNodeNoCull(m_pRenderList, host_state.worldbrush->nodes, r_frustumcullworld.GetBool() ? FRUSTUM_CLIP_ALL : FRUSTUM_SUPPRESS_CLIPPING);
+		}
+		else
+		{
+			R_RecursiveWorldNode(m_pRenderList, host_state.worldbrush->nodes, r_frustumcullworld.GetBool() ? FRUSTUM_CLIP_ALL : FRUSTUM_SUPPRESS_CLIPPING);
+		}
+	}
+	else
+	{
+		R_RenderWorldTopView(m_pRenderList, host_state.worldbrush->nodes);
+	}
+
+
+	// This builds all lightmaps, including those for translucent surfaces
+	// Don't bother in topview?
+	if (!r_drawtopview && !m_bShadowDepth)
+	{
+		Shader_BuildDynamicLightmaps(m_pRenderList);
+	}
+
+	// Return the back-to-front leaf ordering
+	if (m_pWorldListInfo)
+	{
+		// Compute fog volume info for rendering
+		if (!m_bShadowDepth)
+		{
+			FogVolumeInfo_t fogInfo;
+			ComputeFogVolumeInfo(&fogInfo);
+			if (fogInfo.m_InFogVolume)
+			{
+				m_pWorldListInfo->m_ViewFogVolume = MAT_SORT_GROUP_STRICTLY_UNDERWATER;
+			}
+			else
+			{
+				m_pWorldListInfo->m_ViewFogVolume = MAT_SORT_GROUP_STRICTLY_ABOVEWATER;
+			}
+		}
+		else
+		{
+			m_pWorldListInfo->m_ViewFogVolume = MAT_SORT_GROUP_STRICTLY_ABOVEWATER;
+		}
+		m_pWorldListInfo->m_LeafCount = m_pRenderList->m_VisibleLeaves.Count();
+		m_pWorldListInfo->m_pLeafList = m_pRenderList->m_VisibleLeaves.Base();
+		m_pWorldListInfo->m_pLeafFogVolume = m_pRenderList->m_VisibleLeafFogVolumes.Base();
+	}
+
+	return JOB_OK;
+}
+
 
 //-----------------------------------------------------------------------------
 // Main entry points for starting + ending rendering the world
@@ -3035,7 +3183,7 @@ void R_BuildWorldLists( IWorldRenderList *pRenderListIn, WorldListInfo_t* pInfo,
 		R_RenderWorldTopView( pRenderList, host_state.worldbrush->nodes );
 	}
 
-		// This builds all lightmaps, including those for translucent surfaces
+	// This builds all lightmaps, including those for translucent surfaces
 	// Don't bother in topview?
 	if ( !r_drawtopview && !bShadowDepth )
 	{

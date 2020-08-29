@@ -6572,15 +6572,10 @@ void S_Update_Thread()
 
 		// try to maintain a steadier rate by compensating for fluctuating mix times
 		// leave 1 ms for tighter timings in loop
-		const int nSleepMS = (int) ((THREADED_MIX_TIME - dt) * 1000 - 1);
+		const int nSleepMS = (int) ((THREADED_MIX_TIME - dt) * 1000);
 		if ( nSleepMS > 0 )
 		{
 			ThreadSleep( nSleepMS );
-		}
-
-		while (Plat_FloatTime() < fWaitEnd)
-		{
-			ThreadSleep();
 		}
 
 		// mimic a frametime needed for sound update

@@ -150,10 +150,8 @@ inline void BuildIndicesForWorldSurface( CMeshBuilder &meshBuilder, SurfaceHandl
 		unsigned short startVert = MSurf_VertBufferIndex(surfID);
 		Assert(pPrim->indexCount == ((MSurf_VertCount(surfID) - 2) * 3));
 
-		for ( int primIndex = 0; primIndex < pPrim->indexCount; primIndex++ )
-		{
-			meshBuilder.FastIndex( pData->primindices[pPrim->firstIndex + primIndex] + startVert );
-		}
+		CIndexBuilder& indexBuilder = meshBuilder;
+		indexBuilder.FastIndexList(&pData->primindices[pPrim->firstIndex], startVert, pPrim->indexCount);
 	}
 	else
 	{

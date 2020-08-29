@@ -2747,9 +2747,9 @@ void CheckSpecialCheatVars()
 	if ( !mat_picmip )
 		mat_picmip = g_pCVar->FindVar( "mat_picmip" );
 
-	// In multiplayer, don't allow them to set mat_picmip > 2.	
+	// In multiplayer, don't allow them to set mat_picmip > 4.
 	if ( mat_picmip )
-		CheckVarRange_Generic( mat_picmip, -1, 2 );
+		CheckVarRange_Generic( mat_picmip, -1, 4 );
 	
 	CheckVarRange_r_rootlod();
 	CheckVarRange_r_lod();
@@ -4104,8 +4104,16 @@ void Host_Init( bool bDedicated )
 		startParams.iAffinityTable[1] = XBOX_PROCESSOR_4;
 		ThreadSetAffinity( NULL, 1 );
 	}
+	// Dedicated servers should not explicitly set the main thread's affinity so that machines running multiple 
+	// copies of the dedicated server can load-balance properly. 
+	// For now on the PC we use SetThreadIdealProcessor instead of explicity affinity
+	else if (!bDedicated && IsPC())
+	{
+		// this will set ideal processor on each thread
+		startParams.fDistribute = TRS_TRUE;
+	}
 	if ( g_pThreadPool )
-		g_pThreadPool->Start( startParams, "CmpJob" );
+		g_pThreadPool->Start( startParams );
 
 	// From const.h, the loaded game .dll will give us the correct value which is transmitted to the client
 	host_state.interval_per_tick = DEFAULT_TICK_INTERVAL;

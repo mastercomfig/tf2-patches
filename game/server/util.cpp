@@ -692,12 +692,6 @@ void UTIL_GetPlayerConnectionInfo( int playerIndex, int& ping, int &packetloss )
 	if ( nci && player && !player->IsBot() )
 	{
 		float latency = nci->GetAvgLatency( FLOW_OUTGOING ); // in seconds
-		
-		// get outgoing latency
-		const char * szUpdateInterval = engine->GetClientConVarValue( playerIndex, "cl_updateinterval" );
-		
-		float fUpdateInterval = MAX( 0.1f, Q_atof( szUpdateInterval ) );
-		latency -= fUpdateInterval; // correct latency
 
 		ping = latency * 1000.0f; // as msecs
 		ping = clamp( ping, 5, 1000 ); // set bounds, don't show pings under 5 msecs

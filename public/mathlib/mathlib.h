@@ -445,7 +445,7 @@ int Q_log2(int val);
 // Math routines done in optimized assembly math package routines
 void inline SinCos( float radians, float *sine, float *cosine )
 {
-#if 1
+#if 1 || defined(_X360)
     DirectX::XMScalarSinCos( sine, cosine, radians );
 #elif defined( PLATFORM_WINDOWS_PC32 )
 	_asm

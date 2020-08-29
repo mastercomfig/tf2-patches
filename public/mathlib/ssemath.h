@@ -2003,34 +2003,34 @@ FORCEINLINE fltx4 Dot4SIMD( const fltx4 &a, const fltx4 &b )
 //TODO: implement as four-way Taylor series (see xbox implementation)
 FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 {
-	return DirectX::XMVectorSinEst(radians);;
+	return DirectX::XMVectorSin(radians);;
 }
 
 FORCEINLINE void SinCos3SIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )
 {
-	DirectX::XMVectorSinCosEst(&sine, &cosine, radians);
+	DirectX::XMVectorSinCos(&sine, &cosine, radians);
 }
 
 FORCEINLINE void SinCosSIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )				// a*b + c
 {
-	DirectX::XMVectorSinCosEst(&sine, &cosine, radians);
+	DirectX::XMVectorSinCos(&sine, &cosine, radians);
 }
 
 //TODO: implement as four-way Taylor series (see xbox implementation)
 FORCEINLINE fltx4 ArcSinSIMD( const fltx4 &sine )
 {
-	return DirectX::XMVectorASinEst(sine);
+	return DirectX::XMVectorASin(sine);
 }
 
 FORCEINLINE fltx4 ArcCosSIMD( const fltx4 &cs )
 {
-	return DirectX::XMVectorACosEst(cs);
+	return DirectX::XMVectorACos(cs);
 }
 
 // tan^1(a/b) .. ie, pass sin in as a and cos in as b
 FORCEINLINE fltx4 ArcTan2SIMD( const fltx4 &a, const fltx4 &b )
 {
-	return DirectX::XMVectorATan2Est(a, b);
+	return DirectX::XMVectorATan2(a, b);
 }
 
 FORCEINLINE fltx4 NegSIMD(const fltx4 &a) // negate: -a

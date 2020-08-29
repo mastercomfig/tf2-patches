@@ -599,19 +599,8 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 	for ( int i=0; i<MAX_FLOWS; i++ )
 		netchannel->GetStreamProgress( i, &m_StreamRecv[i], &m_StreamTotal[i] );
 
-	float flAdjust = 0.0f;
-
-	if ( cl_updateinterval->GetFloat() > 0.001f )
-	{
-		flAdjust = cl_updateinterval->GetFloat();
-
-		m_AvgLatency -= flAdjust;
-	}
-
 	// Can't be below zero
 	m_AvgLatency = MAX( 0.0, m_AvgLatency );
-
-	flAdjust *= 1000.0f;
 
 	// Fill in frame data
 	for ( int seqnr =m_IncomingSequence - m_UpdateWindowSize + 1
@@ -629,7 +618,6 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 
 		if ( lat->latency < 9995 )
 		{
-			lat->latency += flAdjust;
 			lat->latency = MAX( lat->latency, 0 );
 		}		
 
