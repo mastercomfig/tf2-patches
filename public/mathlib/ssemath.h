@@ -983,7 +983,7 @@ FORCEINLINE i32x4 IntShiftLeftWordSIMD(const i32x4 &vSrcA, const i32x4 &vSrcB)
 }
 #endif
 
-#elif ( 0 )
+#elif ( 0 ) || defined(_X360)
 
 //---------------------------------------------------------------------
 // X360 implementation
@@ -1038,45 +1038,47 @@ FORCEINLINE fltx4 Dot4SIMD( const fltx4 &a, const fltx4 &b )
 {
 	return DirectX::XMVector4Dot(a, b);
 }
+#endif
 
+#if 1 || defined(_X360)
 FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 {
-	return DirectX::XMVectorSin( radians );
+	return DirectX::XMVectorSinEst( radians );
 }
 
 FORCEINLINE void SinCos3SIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )
 {
-    DirectX::XMVectorSinCos( &sine, &cosine, radians ); 	
+    DirectX::XMVectorSinCosEst( &sine, &cosine, radians );
 }
 
 FORCEINLINE void SinCosSIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )			
 {
-    DirectX::XMVectorSinCos( &sine, &cosine, radians ); 	
+    DirectX::XMVectorSinCosEst( &sine, &cosine, radians );
 }
 
 FORCEINLINE void CosSIMD( fltx4 &cosine, const fltx4 &radians )				
 {
-	cosine = DirectX::XMVectorCos( radians ); 	
+	cosine = DirectX::XMVectorCosEst( radians );
 }
 
 FORCEINLINE fltx4 ArcSinSIMD( const fltx4 &sine )
 {
-	return DirectX::XMVectorASin( sine );
+	return DirectX::XMVectorASinEst( sine );
 }
 
 FORCEINLINE fltx4 ArcCosSIMD( const fltx4 &cs )
 {
-	return DirectX::XMVectorACos( cs );
+	return DirectX::XMVectorACosEst( cs );
 }
 
 // tan^1(a/b) .. ie, pass sin in as a and cos in as b
 FORCEINLINE fltx4 ArcTan2SIMD( const fltx4 &a, const fltx4 &b )
 {
-	return DirectX::XMVectorATan2( a, b );
+	return DirectX::XMVectorATan2Est( a, b );
 }
 
 // DivSIMD defined further down, since it uses ReciprocalSIMD
-
+#if 0
 FORCEINLINE fltx4 MaxSIMD( const fltx4 & a, const fltx4 & b )				// max(a,b)
 {
 	return DirectX::XMMax( a, b );
@@ -1086,6 +1088,7 @@ FORCEINLINE fltx4 MinSIMD( const fltx4 & a, const fltx4 & b )				// min(a,b)
 {
 	return DirectX::XMMin( a, b );
 }
+#endif
 
 FORCEINLINE fltx4 AndSIMD( const fltx4 & a, const fltx4 & b )				// a & b
 {
@@ -1123,9 +1126,10 @@ FORCEINLINE bool IsAllZeros( const fltx4 & a )								// all floats of a zero?
 FORCEINLINE bool IsAnyZeros( const fltx4 & a )								// any floats are zero?
 {
 	uint32 cr;
-	XMVectorEqualR(&cr, a, DirectX::g_XMZero)
+	XMVectorEqualR(&cr, a, DirectX::g_XMZero);
 	return DirectX::XMComparisonAnyTrue(cr);
 }
+#endif
 
 #ifdef _X360
 FORCEINLINE bool IsAnyXYZZero( const fltx4 &a )								// are any of x,y,z zero?
@@ -1136,6 +1140,7 @@ FORCEINLINE bool IsAnyXYZZero( const fltx4 &a )								// are any of x,y,z zero?
 }
 #endif
 
+#if 0 || defined(_X360)
 // for branching when a.xyzw > b.xyzw
 FORCEINLINE bool IsAllGreaterThan( const fltx4 &a, const fltx4 &b )
 {
@@ -1760,6 +1765,7 @@ FORCEINLINE fltx4 LoadAlignedSIMD( const void *pSIMD )
 	return _mm_load_ps( reinterpret_cast< const float *> ( pSIMD ) );
 }
 
+#if 0
 FORCEINLINE fltx4 AndSIMD( const fltx4 & a, const fltx4 & b )				// a & b
 {
 	return _mm_and_ps( a, b );
@@ -1779,6 +1785,7 @@ FORCEINLINE fltx4 OrSIMD( const fltx4 & a, const fltx4 & b )				// a | b
 {
 	return _mm_or_ps( a, b );
 }
+#endif
 
 // Squelch the w component of a vector to +0.0.
 // Most efficient when you say a = SetWToZeroSIMD(a) (avoids a copy)
@@ -2000,6 +2007,7 @@ FORCEINLINE fltx4 Dot4SIMD( const fltx4 &a, const fltx4 &b )
 	return DirectX::XMVector4Dot(a, b);
 }
 
+#if 0
 //TODO: implement as four-way Taylor series (see xbox implementation)
 FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 {
@@ -2037,6 +2045,7 @@ FORCEINLINE fltx4 NegSIMD(const fltx4 &a) // negate: -a
 {
 	return DirectX::XMVectorNegate(a);
 }
+#endif
 
 FORCEINLINE int TestSignSIMD( const fltx4 & a )								// mask of which floats have the high bit set
 {
@@ -2096,6 +2105,7 @@ FORCEINLINE fltx4 CmpInBoundsSIMD( const fltx4 & a, const fltx4 & b )		// (a <= 
 	return AndSIMD( CmpLeSIMD(a,b), CmpGeSIMD(a, NegSIMD(b)) );
 }
 
+#if 1
 FORCEINLINE fltx4 MinSIMD( const fltx4 & a, const fltx4 & b )				// min(a,b)
 {
 	return _mm_min_ps( a, b );
@@ -2105,6 +2115,7 @@ FORCEINLINE fltx4 MaxSIMD( const fltx4 & a, const fltx4 & b )				// max(a,b)
 {
 	return _mm_max_ps( a, b );
 }
+#endif
 
 FORCEINLINE fltx4 CeilSIMD( const fltx4 &a )
 {
@@ -2117,10 +2128,12 @@ FORCEINLINE fltx4 FloorSIMD( const fltx4 &val )
 	return DirectX::XMVectorFloor(val);
 }
 
+#if 0
 inline bool IsAllZeros( const fltx4 & var )
 {
 	return TestSignSIMD( CmpEqSIMD( var, Four_Zeros ) ) == 0xF;
 }
+#endif
 
 FORCEINLINE fltx4 SqrtEstSIMD( const fltx4 & a )					// sqrt(a), more or less
 {
