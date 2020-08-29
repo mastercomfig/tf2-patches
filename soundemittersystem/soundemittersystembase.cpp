@@ -913,7 +913,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 
 						// Store off the old sound if it's not already an "override" from another file!!!
 						// Otherwise, just whack it again!!!
-						if ( !m_Sounds[ lookup ]->IsOverride() )
+						if ( bIsOverride && !m_Sounds[ lookup ]->IsOverride() )
 						{
 							m_SavedOverrides.AddToTail( m_Sounds[ lookup ] );
 						}
@@ -923,7 +923,14 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 						}
 
 						InitSoundInternalParameters( pKeys->GetName(), pKeys, pEntry->m_SoundParams );
-						pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initting.
+						if (bIsOverride)
+						{
+							pEntry->m_SoundParams.SetShouldPreload(bPreload); // this gets handled by game code after initing.
+						}
+						else
+						{
+							pEntry->m_SoundParams.SetShouldPreload(m_Sounds[lookup]->m_SoundParams.ShouldPreload());
+						}
 
 						m_Sounds.ReplaceKey( lookup, pEntry );
 
@@ -984,22 +991,25 @@ void CSoundEmitterSystemBase::ReloadSoundEntriesInList( IFileList *pFilesToReloa
 {
 	int i, c;
 	c = m_SoundKeyValues.Count();
-	CUtlVector< const char * > processed;
-	for ( i = 0; i < c ; i++ )
+	CUtlVector< char* > processed;
+	for ( i = 0; i < c; i++ )
 	{
 		const char *pszFileName = GetSoundScriptName( i );
+		char* pszFilename = V_strdup(pszFileName);
 		if ( pszFileName && pszFileName[0] )
 		{
-			if ( processed.Find( pszFileName) == processed.InvalidIndex() && pFilesToReload->IsFileInList( pszFileName ) )
+			if ( processed.Find(pszFilename) == processed.InvalidIndex() && pFilesToReload->IsFileInList( pszFileName ) )
 			{
-				Msg( "Reloading sound file '%s' due to pure settings.\n", pszFileName );
-
-				AddSoundsFromFile( pszFileName, false, false, true );
-				
-				// Now mark this file name as being reloaded
-				processed.AddToTail( pszFileName );
+				// Mark this file name to be reloaded
+				processed.AddToTail( pszFilename );
 			}
 		}
+	}
+
+	for ( auto& pszFileName : processed )
+	{
+		Msg("Reloading sound file '%s' due to pure settings.\n", pszFileName);
+		AddSoundsFromFile(pszFileName, false, false, true);
 	}
 }
 
