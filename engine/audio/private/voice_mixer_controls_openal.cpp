@@ -213,7 +213,7 @@ bool CMixerControls::SetValue_Float(Control iControl, float value)
 				return err==noErr;
 			}
 			
-			// try seperate channels
+			// try separate channels
 			// get channels
 			UInt32	channels[2];
 			size = sizeof(channels);

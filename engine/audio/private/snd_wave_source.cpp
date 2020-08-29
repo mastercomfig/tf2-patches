@@ -2795,7 +2795,7 @@ CON_COMMAND( snd_buildcache, "<directory or VPK filename>  Rebulds sound cache f
 		return;
 	}
 
-	// Allow them to eitehr specify multiple args, or comma-seperated list.
+	// Allow them to eitehr specify multiple args, or comma-separated list.
 	// You cannot easily pas multiple args on the (OS) command line.
 	for ( int idxArg = 1 ; idxArg < args.ArgC() ; ++idxArg )
 	{

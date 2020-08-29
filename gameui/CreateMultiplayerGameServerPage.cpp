@@ -201,7 +201,7 @@ void CCreateMultiplayerGameServerPage::LoadMaps( const char *pszPathID )
 		}
 
 		//!! hack: strip out single player HL maps
-		// this needs to be specified in a seperate file
+		// this needs to be specified in a separate file
 		if ( !stricmp( ModInfo().GetGameName(), "Half-Life" ) && ( mapname[0] == 'c' || mapname[0] == 't') && mapname[2] == 'a' && mapname[1] >= '0' && mapname[1] <= '5' )
 		{
 			goto nextFile;

@@ -958,7 +958,7 @@ side_t *SelectSplitSide (bspbrush_t *brushes, node_t *node)
 					value = 9999999;
 
 				// save off the side test so we don't need
-				// to recalculate it when we actually seperate
+				// to recalculate it when we actually separate
 				// the brushes
 				if (value > bestvalue)
 				{

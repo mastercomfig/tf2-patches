@@ -503,7 +503,7 @@ void CMainFrame::DockControlBarLeftOf(CControlBar* Bar, CControlBar* LeftOf)
 	n = (dw&CBRS_ALIGN_RIGHT && n==0) ? AFX_IDW_DOCKBAR_RIGHT : n;
 
 	// When we take the default parameters on rect, DockControlBar will dock
-	// each Toolbar on a seperate line.  By calculating a rectangle, we in effect
+	// each Toolbar on a separate line.  By calculating a rectangle, we in effect
 	// are simulating a Toolbar being dragged to that location and docked.
 	DockControlBar(Bar,n,&rect);
 }

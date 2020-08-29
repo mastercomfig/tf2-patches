@@ -1900,7 +1900,7 @@ XMFINLINE XMVECTOR XMLoadXIcoN4
 	XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));
@@ -1956,7 +1956,7 @@ XMFINLINE XMVECTOR XMLoadXIco4
     XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));
@@ -2002,7 +2002,7 @@ XMFINLINE XMVECTOR XMLoadUIcoN4
     XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));
@@ -2047,7 +2047,7 @@ XMFINLINE XMVECTOR XMLoadUIco4
     XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));
@@ -2100,7 +2100,7 @@ XMFINLINE XMVECTOR XMLoadIcoN4
     XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));
@@ -2152,7 +2152,7 @@ XMFINLINE XMVECTOR XMLoadIco4
     XMASSERT(pSource);
     // Grab the 64 bit structure
     __m128d vResultd = _mm_load_sd(reinterpret_cast<const double *>(&pSource->v));
-    // By shifting down 8 bits, y and z are in seperate 32 bit elements
+    // By shifting down 8 bits, y and z are in separate 32 bit elements
     __m128i vResulti = _mm_srli_si128(reinterpret_cast<const __m128i *>(&vResultd)[0],8/8);
     // vResultd has x and w, vResulti has y and z, merge into one as x,w,y,z
     XMVECTOR vTemp = _mm_shuffle_ps(reinterpret_cast<const __m128 *>(&vResultd)[0],reinterpret_cast<const __m128 *>(&vResulti)[0],_MM_SHUFFLE(1,0,1,0));

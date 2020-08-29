@@ -137,8 +137,8 @@ CGUnregisterScreenRefreshCallback(
 
 
 /*
- * In some applications it may be preferable to have a seperate thread wait for screen refresh data.
- * This function should be called on a thread seperate from the event processing thread.
+ * In some applications it may be preferable to have a separate thread wait for screen refresh data.
+ * This function should be called on a thread separate from the event processing thread.
  * If screen refresh callback functions are registered, this function should not be used.
  * The mechanisms are mutually exclusive.
  *

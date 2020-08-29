@@ -12,7 +12,7 @@
 
 // imported from MainIntegration/Deliverables/Production/Client/Inc/NewValveCDKeyGenerator.h
 // if the enums there change, this needs to change
-//!! these need to be moved out into a seperate file in steam, so that src can use the directly published version
+//!! these need to be moved out into a separate file in steam, so that src can use the directly published version
 
 //
 // GameCode

@@ -307,7 +307,7 @@ int _xdbg_tokenize( CHAR* tokenStream, CHAR** tokens, int maxTokens )
 {
 	char	token[64];
 
-	// tokenize stream into seperate tokens
+	// tokenize stream into separate tokens
 	int	numTokens = 0;
 	while ( 1 )
 	{

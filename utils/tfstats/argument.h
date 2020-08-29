@@ -22,7 +22,7 @@
 
 //------------------------------------------------------------------------------------------------------
 // Purpose: CLogEventArgument represents a variable in the text of an event.
-// for example, "X" killed "Y" with "Z".  X Y and Z are all represented by seperate
+// for example, "X" killed "Y" with "Z".  X Y and Z are all represented by separate
 // instances of this class.
 //------------------------------------------------------------------------------------------------------
 class CLogEventArgument

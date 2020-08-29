@@ -149,7 +149,7 @@ const PhysicalItemId_t k_uPhysicalItemIdInvalid = 0x0;
 // this is baked into client messages and interfaces as an int, 
 // make sure we never break this.  AppIds and DepotIDs also presently
 // share the same namespace, but since we'd like to change that in the future
-// I've defined it seperately here.
+// I've defined it separately here.
 typedef uint32 DepotId_t;
 const DepotId_t k_uDepotIdInvalid = 0x0;
 

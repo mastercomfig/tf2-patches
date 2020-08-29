@@ -195,7 +195,7 @@ BOOL lc_dir( int argc, char* argv[] )
 
 	strcpy( newPath, argv[1] );
 
-	// seperate components
+	// separate components
 	Sys_StripFilename( newPath, filePath, sizeof( filePath ) );
 	Sys_StripPath( newPath, fileName, sizeof( fileName ) );
 
@@ -315,7 +315,7 @@ BOOL lc_del( int argc, char* argv[] )
 		goto cleanUp;
 	}
 
-	// seperate components
+	// separate components
 	Sys_StripFilename( argv[1], filePath, sizeof( filePath ) );
 	Sys_StripPath( argv[1], fileName, sizeof( fileName ) );
 

@@ -9624,7 +9624,7 @@ float CAI_BaseNPC::GetSpreadBias( CBaseCombatWeapon *pWeapon, CBaseEntity *pTarg
 				Assert( scale >= 0.0 && scale <= 1.0 );
 				bias *= scale;
 			}
-			else if ( timeSinceReacquire < timeToFocus ) // handled seperately as might be tuning seperately
+			else if ( timeSinceReacquire < timeToFocus ) // handled separately as might be tuning separately
 			{
 				float scale = timeSinceReacquire / timeToFocus;
 				Assert( scale >= 0.0 && scale <= 1.0 );

@@ -87,7 +87,7 @@ float4 main( PS_INPUT i ) : COLOR
 	albedo *= detailColor;
 	alpha *= detailColor.a;
 
-	// FIXME: seperate vertexcolor and vertexalpha?
+	// FIXME: separate vertexcolor and vertexalpha?
 	// vertex alpha is ignored if vertexcolor isn't set. . need to check other version.
 	if( bVertexColor )
 	{

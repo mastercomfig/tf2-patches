@@ -204,7 +204,7 @@ public:
 	virtual void PlaySound(const char *fileName);
 
 	//!! these functions Should not be accessed directly, but only through other vgui items
-	//!! need to move these to seperate interface
+	//!! need to move these to separate interface
 	virtual int GetPopupCount();
 	virtual vgui::VPANEL GetPopup( int index );
 	virtual bool ShouldPaintChildPanel(vgui::VPANEL childPanel);

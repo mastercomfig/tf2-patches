@@ -380,7 +380,7 @@ InvokeAECoercePtrUPP(
 /* a AECoercionHandlerUPP is by default a AECoerceDescUPP.  If you are registering a 
     Ptr based coercion handler you will have to add a cast to AECoerceDescUPP from 
     your AECoercePtrUPP type.  A future release of the interfaces will fix this by
-    introducing seperate Desc and Ptr coercion handler installation/remove/query routines. */
+    introducing separate Desc and Ptr coercion handler installation/remove/query routines. */
 typedef AECoerceDescUPP                 AECoercionHandlerUPP;
 /*
  *  AEInstallCoercionHandler()

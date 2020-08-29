@@ -235,7 +235,7 @@ void CServerInfoPanel::UpdateMapCycleValue()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Seperates out a newline-seperated map list into an array
+// Purpose: Separates out a newline-separated map list into an array
 //-----------------------------------------------------------------------------
 void CServerInfoPanel::ParseIntoMapList(const char *maplist, CUtlVector<CUtlSymbol> &mapArray)
 {
@@ -244,7 +244,7 @@ void CServerInfoPanel::ParseIntoMapList(const char *maplist, CUtlVector<CUtlSymb
 	const char *parse = maplist;
 	while (*parse)
 	{
-		// newline-seperated map list
+		// newline-separated map list
 		//!! this should be done with a more standard tokenizer
 		if (isspace(*parse))
 		{

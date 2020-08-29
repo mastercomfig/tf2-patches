@@ -842,7 +842,7 @@ enum {
   kSyncDigitalCompositeMask     = (1 << 4),
   kSyncDigitalCompositeSerrateMask = (1 << 2),
   kSyncDigitalCompositeMatchHSyncMask = (1 << 2),
-  kSyncDigitalSeperateMask      = (1 << 4) + (1 << 3),
+  kSyncDigitalSeparateMask      = (1 << 4) + (1 << 3),
   kSyncDigitalVSyncPositiveMask = (1 << 2),
   kSyncDigitalHSyncPositiveMask = (1 << 1)
 };
@@ -1003,11 +1003,11 @@ enum {
 
 enum {
                                         /* csTimingRangeSyncFlags*/
-  kRangeSupportsSeperateSyncsBit = 0,
+  kRangeSupportsSeparateSyncsBit = 0,
   kRangeSupportsSyncOnGreenBit  = 1,
   kRangeSupportsCompositeSyncBit = 2,
   kRangeSupportsVSyncSerrationBit = 3,
-  kRangeSupportsSeperateSyncsMask = (1 << kRangeSupportsSeperateSyncsBit),
+  kRangeSupportsSeparateSyncsMask = (1 << kRangeSupportsSeparateSyncsBit),
   kRangeSupportsSyncOnGreenMask = (1 << kRangeSupportsSyncOnGreenBit),
   kRangeSupportsCompositeSyncMask = (1 << kRangeSupportsCompositeSyncBit),
   kRangeSupportsVSyncSerrationMask = (1 << kRangeSupportsVSyncSerrationBit)
