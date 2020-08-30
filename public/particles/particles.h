@@ -1188,7 +1188,7 @@ public:
 
 	int GetGroupID() const;
 
-	void InitializeNewParticles( int nFirstParticle, int nParticleCount, uint32 nInitedMask );
+	void InitializeNewParticles( int nFirstParticle, int nParticleCount, uint32 nInittedMask );
 	
 	// update hit boxes for control point if not updated yet for this sim step
 	void UpdateHitBoxInfo( int nControlPointNumber );

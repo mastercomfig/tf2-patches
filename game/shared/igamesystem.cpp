@@ -32,7 +32,7 @@ static void InvokeMethodReverseOrder( GameSystemFunc_t f );
 // Used to invoke a method of all added Game systems in order
 static void InvokePerFrameMethod( PerFrameGameSystemFunc_t f, char const *timed = 0 );
 
-static bool s_bSystemsInited = false; 
+static bool s_bSystemsInitted = false; 
 
 // List of all installed Game systems
 static CUtlVector<IGameSystem*> s_GameSystems( 0, 4 );
@@ -56,7 +56,7 @@ CAutoGameSystem::CAutoGameSystem( char const *name ) :
 	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
-	if ( s_bSystemsInited )
+	if ( s_bSystemsInitted )
 	{
 		Add( this );
 	}
@@ -78,7 +78,7 @@ CAutoGameSystemPerFrame::CAutoGameSystemPerFrame( char const *name ) :
 	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
-	if ( s_bSystemsInited )
+	if ( s_bSystemsInitted )
 	{
 		Add( this );
 	}
@@ -204,7 +204,7 @@ bool IGameSystem::InitAllSystems()
 		s_pSystemList = NULL;
 	}
 	// Now remember that we are inited so new CAutoGameSystems will add themselves automatically.
-	s_bSystemsInited = true;
+	s_bSystemsInitted = true;
 
 	for ( i = 0; i < s_GameSystems.Count(); ++i )
 	{
