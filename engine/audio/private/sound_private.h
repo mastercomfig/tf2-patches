@@ -44,7 +44,7 @@ void SNDDMA_Shutdown(void);
 // User-setable variables
 // ====================================================================
 
-extern int g_paintedtime;
+extern int64 g_paintedtime;
 
 extern bool	snd_initialized;
 

@@ -236,16 +236,17 @@ vec_t S_GetNominalClipDist()
 	return sound_nominal_clip_dist;
 }
 
-int				g_soundtime = 0;		// sample PAIRS output since start
-int   			g_paintedtime = 0; 		// sample PAIRS mixed since start
+int64				g_soundtime = 0;		// sample PAIRS output since start
+double			g_soundtimeerror = 0.0;  // Error in sound time (used for synchronizing movie output sound to host_time)
+int64   			g_paintedtime = 0; 		// sample PAIRS mixed since start
 
 float			g_ReplaySoundTimeFracAccumulator = 0.0f;	// Used by replay
 
 float			g_ClockSyncArray[NUM_CLOCK_SYNCS] = {0};
-int				g_SoundClockPaintTime[NUM_CLOCK_SYNCS] = {0};
+int64				g_SoundClockPaintTime[NUM_CLOCK_SYNCS] = {0};
 
 // default 10ms
-ConVar snd_delay_sound_shift("snd_delay_sound_shift","0");
+ConVar snd_delay_sound_shift("snd_delay_sound_shift","0.01");
 // this forces the clock to resync on the next delayed/sync sound
 void S_SyncClockAdjust( clocksync_index_t syncIndex )
 {
@@ -277,7 +278,7 @@ float S_ComputeDelayForSoundtime( float soundtime, clocksync_index_t syncIndex )
 	int delaySamples = gameSamples - paintedSamples;
 	float delay = delaySamples / float(dmaSpeed);
 
-	if ( gameDeltaTime < 0 || fabs(delay) > 0.500f )
+	if ( gameDeltaTime < 0 || fabs(delay) > 0.200f )
 	{
 		// Note that the equations assume a correlation between game time and real time
 		// some kind of clock error.  This can happen with large host_timescale or when the 
@@ -6375,8 +6376,9 @@ CON_COMMAND( snd_dumpclientsounds, "Dump sounds to VXConsole" )
 //-----------------------------------------------------------------------------
 void GetSoundTime(void)
 {
-	int		fullsamples;
-	int		sampleOutCount;
+	// Make them 64 bits so calculation is done in 64 bits.
+	int64		fullsamples;
+	int64		sampleOutCount;
 
 	// size of output buffer in *full* 16 bit samples
 	// A 2 channel device has a *full* sample consisting of a 16 bit LR pair.
@@ -6394,13 +6396,6 @@ void GetSoundTime(void)
 	{
 		// buffer wrapped
 		s_buffers++;
-		if ( g_paintedtime > 0x70000000 )
-		{	
-			// time to chop things off to avoid 32 bit limits
-			s_buffers = 0;
-			g_paintedtime = fullsamples;
-			S_StopAllSounds( true );
-		}
 	}
 	
 	s_oldsampleOutCount = sampleOutCount;
@@ -6440,8 +6435,18 @@ void GetSoundTime(void)
 			float t = g_pSoundServices->GetHostTime();
 			if ( s_lastsoundtime != t )
 			{
-				g_soundtime += g_pSoundServices->GetHostFrametime() * g_AudioDevice->DeviceDmaSpeed();
-				
+				double flSamples = (double) g_pSoundServices->GetHostFrametime() * (double) g_AudioDevice->DeviceDmaSpeed();
+				int nSamples = (int)flSamples;
+				double flSampleError = flSamples - (double)nSamples;
+				g_soundtimeerror += flSampleError;
+				if (fabs(g_soundtimeerror) > 1.0)
+				{
+					int nErrorSamples = (int)g_soundtimeerror;
+					g_soundtimeerror -= (double)nErrorSamples;
+					nSamples += nErrorSamples;
+				}
+
+				g_soundtime += nSamples;
 				s_lastsoundtime = t;
 			}
 		}
@@ -6547,7 +6552,7 @@ void S_Update_Guts( float mixAheadTime )
 }
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 0.001
+#define THREADED_MIX_TIME 0.015
 #else
 #define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif
@@ -6567,8 +6572,6 @@ void S_Update_Thread()
 		const double tf = Plat_FloatTime();
 
 		const double dt = tf - t0;
-		const double fWaitTime = THREADED_MIX_TIME - dt;
-		const double fWaitEnd = tf + fWaitTime;
 
 		// try to maintain a steadier rate by compensating for fluctuating mix times
 		// leave 1 ms for tighter timings in loop
