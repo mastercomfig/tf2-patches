@@ -32,7 +32,7 @@ static void InvokeMethodReverseOrder( GameSystemFunc_t f );
 // Used to invoke a method of all added Game systems in order
 static void InvokePerFrameMethod( PerFrameGameSystemFunc_t f, char const *timed = 0 );
 
-static bool s_bSystemsInitted = false; 
+static bool s_bSystemsInited = false; 
 
 // List of all installed Game systems
 static CUtlVector<IGameSystem*> s_GameSystems( 0, 4 );
@@ -53,10 +53,10 @@ static	CAutoGameSystem *s_pSystemList = NULL;
 CAutoGameSystem::CAutoGameSystem( char const *name ) :
 	m_pszName( name )
 {
-	// If s_GameSystems hasn't been initted yet, then add ourselves to the global list
+	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
-	if ( s_bSystemsInitted )
+	if ( s_bSystemsInited )
 	{
 		Add( this );
 	}
@@ -75,10 +75,10 @@ static	CAutoGameSystemPerFrame *s_pPerFrameSystemList = NULL;
 CAutoGameSystemPerFrame::CAutoGameSystemPerFrame( char const *name ) :
 	m_pszName( name )
 {
-	// If s_GameSystems hasn't been initted yet, then add ourselves to the global list
+	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
-	if ( s_bSystemsInitted )
+	if ( s_bSystemsInited )
 	{
 		Add( this );
 	}
@@ -203,8 +203,8 @@ bool IGameSystem::InitAllSystems()
 		}
 		s_pSystemList = NULL;
 	}
-	// Now remember that we are initted so new CAutoGameSystems will add themselves automatically.
-	s_bSystemsInitted = true;
+	// Now remember that we are inited so new CAutoGameSystems will add themselves automatically.
+	s_bSystemsInited = true;
 
 	for ( i = 0; i < s_GameSystems.Count(); ++i )
 	{

@@ -1124,7 +1124,7 @@ void C_TFRagdoll::CreateTFRagdoll()
 		matrix3x4_t currentBones[MAXSTUDIOBONES];
 		const float boneDt = 0.05f;
 
-		// We have to make sure that we're initting this client ragdoll off of the same model.
+		// We have to make sure that we're initing this client ragdoll off of the same model.
 		// GetRagdollInitBoneArrays uses the *player* Hdr, which may be a different model than
 		// the ragdoll Hdr, if we try to create a ragdoll in the same frame that the player
 		// changes their player model.
@@ -10012,7 +10012,7 @@ static void cc_tf_player_lastdisguise( const CCommand &args )
 	if ( pPlayer == NULL )
 		return;
 
-	// disguise as our last known disguise. desired disguise will be initted to something sensible
+	// disguise as our last known disguise. desired disguise will be inited to something sensible
 	if ( pPlayer->CanDisguise() || pPlayer->CanDisguise_OnKill() )
 	{
 		// disguise as the previous class, if one exists

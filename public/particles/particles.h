@@ -618,7 +618,7 @@ public:
 	}
 
 
-	// emitters over-ride this. Return a mask of what fields you initted
+	// emitters over-ride this. Return a mask of what fields you inited
 	virtual uint32 Emit( CParticleCollection *pParticles, float flOpCurStrength,
 						 void *pContext ) const
 	{
@@ -634,7 +634,7 @@ public:
 	}
 	virtual void Restart( CParticleCollection *pParticles, void *pContext ) {}
 
-	// initters over-ride this
+	// initers over-ride this
 	virtual void InitParticleSystem( CParticleCollection *pParticles, void *pContext ) const
 	{
 	}
@@ -687,12 +687,12 @@ public:
 		return false;
 	}
 
-	// particle-initters over-ride this
+	// particle-initers over-ride this
 	virtual void InitNewParticlesScalar( CParticleCollection *pParticles, int nFirstParticle, int n_particles, int attribute_write_mask, void *pContext ) const
 	{
 	}
 
-	// init new particles in blocks of 4. initters that have sse smarts should over ride this. the scalar particle initter will still be cllaed for head/tail.
+	// init new particles in blocks of 4. initers that have sse smarts should over ride this. the scalar particle initer will still be cllaed for head/tail.
 	virtual void InitNewParticlesBlock( CParticleCollection *pParticles, int start_block, int n_blocks, int attribute_write_mask, void *pContext ) const
 	{
 		// default behaviour is to call the scalar one 4x times
@@ -771,7 +771,7 @@ public:
 	}
 
 protected:
-	// utility function for initting a scalar attribute to a random range in an sse fashion
+	// utility function for initing a scalar attribute to a random range in an sse fashion
 	void InitScalarAttributeRandomRangeBlock( int nAttributeId, float fMinValue, float fMaxValue,
 		CParticleCollection *pParticles, int nStartBlock, int nBlockCount ) const;
 	void InitScalarAttributeRandomRangeExpBlock( int nAttributeId, float fMinValue, float fMaxValue, float fExp,
@@ -1188,7 +1188,7 @@ public:
 
 	int GetGroupID() const;
 
-	void InitializeNewParticles( int nFirstParticle, int nParticleCount, uint32 nInittedMask );
+	void InitializeNewParticles( int nFirstParticle, int nParticleCount, uint32 nInitedMask );
 	
 	// update hit boxes for control point if not updated yet for this sim step
 	void UpdateHitBoxInfo( int nControlPointNumber );
