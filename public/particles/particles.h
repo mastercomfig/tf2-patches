@@ -692,19 +692,19 @@ public:
 	{
 	}
 
-	// init new particles in blocks of 4. initers that have sse smarts should over ride this. the scalar particle initer will still be cllaed for head/tail.
+	// init new particles in blocks of 4. initers that have sse smarts should over ride this. the scalar particle initer will still be called for head/tail.
 	virtual void InitNewParticlesBlock( CParticleCollection *pParticles, int start_block, int n_blocks, int attribute_write_mask, void *pContext ) const
 	{
 		// default behaviour is to call the scalar one 4x times
 		InitNewParticlesScalar( pParticles, 4*start_block, 4*n_blocks, attribute_write_mask, pContext );
 	}
 
-	// splits particle initialization up into scalar and block sections, callingt he right code
+	// splits particle initialization up into scalar and block sections, calling the right code
 	void InitNewParticles( CParticleCollection *pParticles, int nFirstParticle, int n_particles, int attribute_write_mask , void *pContext) const;
 
 
-	// this function is queried to determine if a particle system is over and doen with. A particle
-	// system is done with when it has noparticles and no operators intend to create any more
+	// this function is queried to determine if a particle system is over and done with. A particle
+	// system is done with when it has no particles and no operators intend to create any more
 	virtual bool MayCreateMoreParticles( CParticleCollection *pParticles, void *pContext ) const
 	{
 		return false;
