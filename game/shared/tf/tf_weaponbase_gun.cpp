@@ -786,6 +786,9 @@ CBaseEntity *CTFWeaponBaseGun::FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombTy
 		if ( attrCustomModelName.has_value() )
 		{
 			pProjectile->SetModel( attrCustomModelName.value().c_str() );
+
+			// fix iron bomber using a bigger size than intended
+			UTIL_SetSize( pProjectile, Vector( -2, -2, -2 ), Vector( 2, 2, 2 ) );
 		}
 
 	}
