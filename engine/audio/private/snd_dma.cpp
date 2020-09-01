@@ -6552,7 +6552,7 @@ void S_Update_Guts( float mixAheadTime )
 }
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 0.015
+#define THREADED_MIX_TIME 0.01
 #else
 #define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif

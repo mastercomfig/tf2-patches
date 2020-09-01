@@ -205,8 +205,11 @@ void ThreadSleep(unsigned nMilliseconds)
 		timeBeginPeriod( 1 );
 	}
 #endif // IS_WINDOWS_PC
-
-	Sleep( nMilliseconds );
+	YieldProcessor();
+	if (nMilliseconds > 0 || !SwitchToThread())
+	{
+		Sleep(nMilliseconds);
+	}
 #elif defined(POSIX)
    usleep( nMilliseconds * 1000 ); 
 #endif

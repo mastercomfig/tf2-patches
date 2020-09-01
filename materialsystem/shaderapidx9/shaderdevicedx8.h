@@ -152,7 +152,7 @@ inline IDirect3D9* D3D()
 
 #endif
 
-#define NUM_FRAME_SYNC_QUERIES 2
+#define NUM_FRAME_SYNC_QUERIES 1
 #define NUM_FRAME_SYNC_FRAMES_LATENCY 0
 
 //-----------------------------------------------------------------------------

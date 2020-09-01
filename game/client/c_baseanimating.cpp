@@ -5836,7 +5836,7 @@ int C_BaseAnimating::LookupPoseParameter( CStudioHdr *pstudiohdr, const char *sz
 
 	for (int i = 0; i < pstudiohdr->GetNumPoseParameters(); i++)
 	{
-		if (stricmp( pstudiohdr->pPoseParameter( i ).pszName(), szName ) == 0)
+		if (V_stricmp( pstudiohdr->pPoseParameter( i ).pszName(), szName ) == 0)
 		{
 			return i;
 		}

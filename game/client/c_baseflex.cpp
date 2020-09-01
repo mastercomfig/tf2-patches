@@ -1384,7 +1384,7 @@ const flexsetting_t *C_BaseFlex::FindNamedSetting( const flexsettinghdr_t *pSett
 
 		const char *name = pSetting->pszName();
 
-		if ( !stricmp( name, expr ) )
+		if ( !V_stricmp( name, expr ) )
 			break;
 	}
 
@@ -1674,7 +1674,7 @@ LocalFlexController_t C_BaseFlex::FindFlexController( const char *szName )
 {
 	for (LocalFlexController_t i = LocalFlexController_t(0); i < GetNumFlexControllers(); i++)
 	{
-		if (stricmp( GetFlexControllerName( i ), szName ) == 0)
+		if (V_stricmp( GetFlexControllerName( i ), szName ) == 0)
 		{
 			return i;
 		}

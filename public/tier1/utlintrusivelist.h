@@ -506,7 +506,7 @@ namespace IntrusiveList
 	template<class T> void AddSortedByName(T * & head, T * node)
 	{
 		if ( (! head) ||                                          // empty list?
-			 (stricmp(node->m_Name,head->m_Name)==-1))                // or we should be first?
+			 (V_stricmp(node->m_Name,head->m_Name)==-1))                // or we should be first?
 		{
 			node->m_pNext=head;                                        // make us head
 			head=node;
@@ -515,7 +515,7 @@ namespace IntrusiveList
 		{
 			T *t;
 			for(t=head;t->m_pNext;t=t->m_pNext)                        // find the node we should be before
-				if (stricmp(t->m_pNext->m_Name,node->m_Name)>=0)
+				if (V_stricmp(t->m_pNext->m_Name,node->m_Name)>=0)
 					break;
 			node->m_pNext=t->m_pNext;
 			t->m_pNext=node;
@@ -561,7 +561,7 @@ namespace IntrusiveList
 	// find a named node in any list which has both a Next field and a Name field.
 	template <class T> static inline T * FindNamedNode(T * head, char const *name)
 	{
-		for(;head && stricmp(head->m_Name,name); head=head->m_pNext)
+		for(;head && V_stricmp(head->m_Name,name); head=head->m_pNext)
 		{
 		}
 		return head;
@@ -569,7 +569,7 @@ namespace IntrusiveList
 
 	template <class T> static inline T * FindNamedNodeCaseSensitive(T * head, char const *name)
 	{
-		for(;head && strcmp(head->m_Name,name); head=head->m_pNext)
+		for(;head && V_strcmp(head->m_Name,name); head=head->m_pNext)
 		{
 		}
 		return head;
