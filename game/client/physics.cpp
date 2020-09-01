@@ -771,9 +771,9 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 	Vector velocity;
 	pObject->GetVelocity( &velocity, NULL );
 	
-	float impactSpeed = velocity.Length();
+	float impactSpeed = velocity.LengthSqr();
 
-	if ( impactSpeed < 25.0f )
+	if ( impactSpeed < 25.0f * 25.0f )
 		return;
 
 	Vector normal;
@@ -854,7 +854,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 		FX_GetSplashLighting( centerPoint + ( normal * 8.0f ), &color, &luminosity );
 	}
 
-	if ( impactSpeed > 150 )
+	if ( impactSpeed > 150 * 150 )
 	{
 		if ( bInSlime )
 		{
@@ -880,7 +880,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 
 		point += corner[i];
 
-		if ( impactSpeed > 150 )
+		if ( impactSpeed > 150 * 150 )
 		{
 			if ( bInSlime )
 			{

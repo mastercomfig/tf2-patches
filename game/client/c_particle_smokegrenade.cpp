@@ -397,16 +397,16 @@ void C_ParticleSmokeGrenade::ClientThink()
 	{
 		// Add our influence to the global smoke fog alpha.
 		
-		float testDist = (MainViewOrigin() - m_SmokeBasePos ).Length();
+		float testDist = (MainViewOrigin() - m_SmokeBasePos ).LengthSqr();
 
 		float fadeEnd = m_ExpandRadius;
 
 		// The center of the smoke cloud that always gives full fog overlay
 		float flCoreDistance = fadeEnd * 0.3;
 		
-		if(testDist < fadeEnd)
+		if(testDist < fadeEnd * fadeEnd)
 		{			
-			if( testDist < flCoreDistance )
+			if( testDist < flCoreDistance * flCoreDistance )
 			{
 				EngineGetSmokeFogOverlayAlpha() += m_FadeAlpha;
 			}

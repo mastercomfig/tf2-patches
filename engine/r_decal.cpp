@@ -1810,17 +1810,17 @@ CDecalVert* R_DecalSetupVerts( decalcontext_t &context, decal_t *pDecal, Surface
 
 			Vector playerOrigin = CurrentViewOrigin();
 
-			float dist = 0;
+			float dist;
 			
 			if ( pDecal->entityIndex == 0 )
 			{
-				dist = (playerOrigin - pDecal->position).Length();
+				dist = (playerOrigin - pDecal->position).LengthSqr();
 			}
 			else
 			{
 				Vector worldSpaceCenter;
 				Vector3DMultiplyPosition(g_BrushToWorldMatrix, pDecal->position, worldSpaceCenter );
-				dist = (playerOrigin - worldSpaceCenter).Length();
+				dist = (playerOrigin - worldSpaceCenter).LengthSqr();
 			}
 			float fov = g_EngineRenderer->GetFov();
 
@@ -1850,12 +1850,13 @@ CDecalVert* R_DecalSetupVerts( decalcontext_t &context, decal_t *pDecal, Surface
 			// attenuation factor rather than a scale, so we compute 1/scale
 			// to account for this.
 			//
-			if ( dist < nearDist )
+			if ( dist < nearDist * nearDist )
 				scaleFactor = 1.0f;
-			else if( dist >= farDist )
+			else if( dist >= farDist * farDist )
 				scaleFactor = farScale;
 			else
 			{
+				dist = FastSqrt(dist);
 				float percent = (dist - nearDist) / (farDist - nearDist);
 				scaleFactor = nearScale + percent * (farScale - nearScale);
 			}

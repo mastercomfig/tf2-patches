@@ -1529,18 +1529,20 @@ bool CSniperDot::GetRenderingPositions( C_TFPlayer *pPlayer, Vector &vecAttachme
 		vecEndPos = tr.endpos + vecDir * -4;
 		if ( UseVR() )
 		{
-			float fDist = ( vecEndPos - vecAttachment ).Length();
-			if ( fDist > c_fMaxSizeDistVR )
+			float fDist = ( vecEndPos - vecAttachment ).LengthSqr();
+			if ( fDist > c_fMaxSizeDistVR * c_fMaxSizeDistVR)
 			{
+				fDist = FastSqrt(fDist);
 				// Scale the dot up so it's still visible in first person.
 				flSize *= ( fDist * ( 1.0f / c_fMaxSizeDistVR ) );
 			}
 		}
 		else if ( bScaleSizeByDistance )
 		{
-			float fDist = ( vecEndPos - vecAttachment ).Length();
-			if ( fDist > c_flMaxSizeDistUnzoomed )
+			float fDist = ( vecEndPos - vecAttachment ).LengthSqr();
+			if ( fDist > c_flMaxSizeDistUnzoomed * c_flMaxSizeDistUnzoomed)
 			{
+				fDist = FastSqrt(fDist);
 				// Scale the dot up so it's still visible in first person.
 				flSize *= ( fDist * ( 1.0f / c_flMaxSizeDistUnzoomed ) );
 			}

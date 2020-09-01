@@ -306,7 +306,7 @@ void CSheetSimulator::ComputeForces()
 			springConstant = m_PointSpringConstant;
 		}
 
-		float length = dx.Length();
+		float length = dx.LengthSqr();
 		if (length < 1e-6)
 			continue;
 

@@ -1807,7 +1807,7 @@ void CViewRenderBeams::DrawBeamWithHalo(	Beam_t*			pbeam,
 	// Find out how close we are to the "line" of the spotlight
 	CalcClosestPointOnLine( CurrentViewOrigin(), pbeam->attachment[0], pbeam->attachment[0] + ( beamDir * 2 ), out, &distToLine );
 
-	distToLine = ( CurrentViewOrigin() - out ).Length();
+	distToLine = ( CurrentViewOrigin() - out ).LengthSqr();
 
 	float scaleColor[4];
 	float dotScale = 1.0f;
@@ -1817,6 +1817,7 @@ void CViewRenderBeams::DrawBeamWithHalo(	Beam_t*			pbeam,
 
 	if ( distToLine < distThreshold )
 	{
+		distToLine = FastSqrt(distToLine);
 		dotScale = RemapVal( distToLine, distThreshold, pbeam->width, 1.0f, 0.0f );
 		dotScale = clamp( dotScale, 0.f, 1.f );
 	}
@@ -1894,10 +1895,11 @@ void CViewRenderBeams::DrawLaser( Beam_t *pbeam, int frame, int rendermode, floa
 		Vector localDir = CurrentViewOrigin() - pbeam->attachment[0];
 		flDot = DotProduct( beamDir, localDir );
 		Vector vecProjection = flDot * beamDir;
-		float flDistance = ( localDir - vecProjection ).Length();
+		float flDistance = ( localDir - vecProjection ).LengthSqr();
 
-		if ( flDistance > 30 )
+		if ( flDistance > 30 * 30 )
 		{
+			flDistance = FastSqrt(flDistance);
 			flDistance = 1 - ((flDistance - 30) / 64);
 			if ( flDistance <= 0 )
 			{
@@ -1905,7 +1907,7 @@ void CViewRenderBeams::DrawLaser( Beam_t *pbeam, int frame, int rendermode, floa
 			}
 			else
 			{
-				flFade *= pow( flDistance, 3 );
+				flFade *= powf( flDistance, 3 );
 			}
 		}
 
@@ -1942,7 +1944,7 @@ void CViewRenderBeams::DrawBeam( Beam_t *pbeam )
 		return;
 
 	// Don't draw really short beams
-	if (pbeam->delta.Length() < 0.1)
+	if (pbeam->delta.LengthSqr() < 0.01f)
 	{
 		return;
 	}

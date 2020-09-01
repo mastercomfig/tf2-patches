@@ -966,7 +966,7 @@ static float CalcProgressFrac( const Vector& vecOrigin )
 		flThisLen = (vecThisPoint - vecPrevPoint).Length();
 		flTotalLen += flThisLen;
 		CalcClosestPointOnLineSegment( vecOrigin, vecPrevPoint, vecThisPoint, vecPointOnLine, &flThisFrac );
-		flThisDist = (vecPointOnLine - vecOrigin).Length();
+		flThisDist = (vecPointOnLine - vecOrigin).LengthSqr();
 		if ( flThisDist < flBestDist )
 		{
 			flBestDist = flThisDist;

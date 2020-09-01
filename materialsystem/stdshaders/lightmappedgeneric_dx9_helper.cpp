@@ -469,14 +469,17 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 				int nDetailBlendMode = 0;
 				if (hasDetailTexture)
 				{
-					nDetailBlendMode = GetIntParam(info.m_nDetailTextureCombineMode, params);
-					ITexture* pDetailTexture = params[info.m_nDetail]->GetTextureValue();
-					if (pDetailTexture->GetFlags() & TEXTUREFLAGS_SSBUMP)
+					if (g_pHardwareConfig->SupportsPixelShaders_2_b() && !prefersReducedFillrate)
 					{
-						if (hasBump)
-							nDetailBlendMode = 10;					// ssbump
-						else
-							nDetailBlendMode = 11;					// ssbump_nobump
+					    nDetailBlendMode = GetIntParam(info.m_nDetailTextureCombineMode, params);
+					    ITexture* pDetailTexture = params[info.m_nDetail]->GetTextureValue();
+					    if (pDetailTexture->GetFlags() & TEXTUREFLAGS_SSBUMP)
+					    {
+						    if (hasBump)
+							    nDetailBlendMode = 10;					// ssbump
+						    else
+							    nDetailBlendMode = 11;					// ssbump_nobump
+					    }
 					}
 				}
 

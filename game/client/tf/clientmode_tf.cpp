@@ -1384,9 +1384,9 @@ void ClientModeTFNormal::FireGameEvent( IGameEvent *event )
 				// check that this player isn't too far away
 				Vector vecStart = pLocalPlayer->EyePosition();
 				Vector vecEnd = pHighFiveInitiator->EyePosition();
-				float flLength = (vecEnd - vecStart).Length();
+				float flLength = (vecEnd - vecStart).LengthSqr();
 
-				if ( flLength < TF_HIGHFIVE_HINT_MAXDIST )
+				if ( flLength < TF_HIGHFIVE_HINT_MAXDIST * TF_HIGHFIVE_HINT_MAXDIST)
 				{
 					// check that we have line of sight to this player
 					trace_t tr;

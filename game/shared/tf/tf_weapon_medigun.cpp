@@ -629,8 +629,8 @@ void CWeaponMedigun::MaintainTargetInSlot()
 	// If it's brush built, use absmins/absmaxs
 	pTarget->CollisionProp()->CalcNearestPoint( vecSrc, &vecPoint );
 
-	float flDistance = (vecPoint - vecSrc).Length();
-	if ( flDistance < GetStickRange() )
+	float flDistance = (vecPoint - vecSrc).LengthSqr();
+	if ( flDistance < GetStickRange() * GetStickRange() )
 	{
 		if ( m_flNextTargetCheckTime > gpGlobals->curtime )
 			return;

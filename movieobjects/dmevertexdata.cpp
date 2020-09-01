@@ -904,13 +904,13 @@ float CDmeVertexDeltaData::ComputeMaxDeflection( )
 	int nCount = pos.Count();
 	for ( int i = 0; i < nCount; ++i )
 	{
-		float flDeflection = pos[i].Length();
+		float flDeflection = pos[i].LengthSqr();
 		if ( flMaxDeflection < flDeflection )
 		{
 			flMaxDeflection = flDeflection;
 		}
 	}
-	return flMaxDeflection;
+	return FastSqrt(flMaxDeflection);
 }
 
 

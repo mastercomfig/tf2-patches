@@ -1119,8 +1119,8 @@ int CheckEntityVelocity( Vector &v )
 		// The usual case.  It's totally reasonable
 		return 1;
 	}
-	float speed = v.Length();
-	if ( speed < k_flMaxEntitySpeed * 100.0f )
+	float speed = v.LengthSqr();
+	if ( speed < (k_flMaxEntitySpeed * 100.0f) * (k_flMaxEntitySpeed * 100.0f) )
 	{
 		// Sort of suspicious.  Clamp it
 		v *= k_flMaxEntitySpeed / speed;

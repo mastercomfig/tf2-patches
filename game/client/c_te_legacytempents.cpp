@@ -373,7 +373,7 @@ bool C_LocalTempEntity::Frame( float frametime, int framenumber )
 	}
 	else if ( flags & FTENT_ALIGNTOMOTION )
 	{
-		if ( m_vecTempEntVelocity.Length() > 0.0f )
+		if ( m_vecTempEntVelocity.LengthSqr() > 0.0f )
 		{
 			QAngle angles;
 			VectorAngles( m_vecTempEntVelocity, angles );

@@ -436,17 +436,19 @@ bool CTFGameMovement::GrapplingHookMove()
 	if ( tf_grapplinghook_use_acceleration.GetBool() )
 	{
 		// Use acceleration with dampening
-		float flSpeed = mv->m_vecVelocity.Length();
+		float flSpeed = mv->m_vecVelocity.LengthSqr();
 		if ( flSpeed > 0.f ) {
+			flSpeed = FastSqrt(flSpeed);
 			float flDampen = Min( tf_grapplinghook_dampening.GetFloat() * gpGlobals->frametime, flSpeed );
 			mv->m_vecVelocity *= ( flSpeed - flDampen ) / flSpeed;
 		}
 
 		mv->m_vecVelocity += vDesiredMove.Normalized() * ( tf_grapplinghook_acceleration.GetFloat() * gpGlobals->frametime );
 
-		flSpeed = mv->m_vecVelocity.Length();
-		if ( flSpeed > mv->m_flMaxSpeed )
+		flSpeed = mv->m_vecVelocity.LengthSqr();
+		if ( flSpeed > mv->m_flMaxSpeed * mv->m_flMaxSpeed)
 		{
+			flSpeed = FastSqrt(flSpeed);
 			mv->m_vecVelocity *= mv->m_flMaxSpeed / flSpeed;
 		}
 	}
@@ -1101,10 +1103,11 @@ void CTFGameMovement::PreventBunnyJumping()
 		return;
 
 	// Current player speed
-	float spd = mv->m_vecVelocity.Length();
-	if ( spd <= maxscaledspeed )
+	float spd = mv->m_vecVelocity.LengthSqr();
+	if ( spd <= maxscaledspeed * maxscaledspeed)
 		return;
 
+	spd = FastSqrt(spd);
 	// Apply this cropping fraction to velocity
 	float fraction = ( maxscaledspeed / spd );
 

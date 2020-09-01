@@ -48,9 +48,7 @@ CWin32Font::CWin32Font() : m_ExtendedABCWidthsCache(256, 0, &ExtendedABCWidthsCa
 	m_bAdditive = false;
 	m_rgiBitmapSize[ 0 ] = m_rgiBitmapSize[ 1 ] = 0;
 
-#if defined( _X360 )
 	Q_memset( m_ABCWidthsCache, 0, sizeof( m_ABCWidthsCache ) );
-#endif
 
 	m_ExtendedABCWidthsCache.EnsureCapacity( 128 );
 
@@ -84,6 +82,13 @@ CWin32Font::~CWin32Font()
 		::DeleteDC( m_hDC );
 	if ( m_hDIB )
 		::DeleteObject( m_hDIB );
+#ifndef _X360
+	for (int i = 0; i < ARRAYSIZE(m_ABCWidthsCache); i++)
+	{
+		delete m_ABCWidthsCache[i];
+		m_ABCWidthsCache[i] = 0;
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -241,6 +246,14 @@ bool CWin32Font::Create(const char *windowsFontName, int tall, int weight, int b
 				m_ABCWidthsCache[i].b = (char)tm.tmAveCharWidth;
 			}
 		}
+	}
+#else
+	Assert(ABCWIDTHS_CACHE_SIZE <= 256);
+	Q_memset(m_ABCWidthsCache, 0, sizeof(m_ABCWidthsCache));
+	for (int i = 0; i < ARRAYSIZE(m_ABCWidthsCache); i++)
+	{
+		delete m_ABCWidthsCache[i];
+		m_ABCWidthsCache[i] = 0;
 	}
 #endif
 
@@ -513,16 +526,34 @@ void CWin32Font::GetCharABCWidths(int ch, int &a, int &b, int &c)
 {
 	Assert(IsValid());
 
-	// look for it in the cache
-	abc_cache_t finder = { (wchar_t)ch };
-
-	unsigned short i = m_ExtendedABCWidthsCache.Find(finder);
-	if (m_ExtendedABCWidthsCache.IsValidIndex(i))
+	bool bFastPath = ch < ABCWIDTHS_CACHE_SIZE;
+	abc_cache_t finder;
+	if (bFastPath)
 	{
-		a = m_ExtendedABCWidthsCache[i].abc.a;
-		b = m_ExtendedABCWidthsCache[i].abc.b;
-		c = m_ExtendedABCWidthsCache[i].abc.c;
-		return;
+		// use the cache entry
+		abc_t* p_abc = m_ABCWidthsCache[ch];
+		if (p_abc)
+		{
+			abc_t& abc = *p_abc;
+			a = abc.a;
+			b = abc.b;
+			c = abc.c;
+			return;
+		}
+	}
+    else
+	{
+		// look for it in the cache
+		finder = { (wchar_t)ch };
+
+		unsigned short i = m_ExtendedABCWidthsCache.Find(finder);
+		if (i != m_ExtendedABCWidthsCache.InvalidIndex())
+		{
+			a = m_ExtendedABCWidthsCache[i].abc.a;
+			b = m_ExtendedABCWidthsCache[i].abc.b;
+			c = m_ExtendedABCWidthsCache[i].abc.c;
+			return;
+		}
 	}
 
 	// not in the cache, get from windows (this call is a little slow)
@@ -553,11 +584,25 @@ void CWin32Font::GetCharABCWidths(int ch, int &a, int &b, int &c)
 		}
 	}
 
-	// add to the cache
-	finder.abc.a = a - m_iBlur - m_iOutlineSize;
-	finder.abc.b = b + ((m_iBlur + m_iOutlineSize) * 2) + m_iDropShadowOffset;
-	finder.abc.c = c - m_iBlur - m_iDropShadowOffset - m_iOutlineSize;
-	m_ExtendedABCWidthsCache.Insert(finder);
+	char s_a = a - m_iBlur - m_iOutlineSize;
+	short s_b = b + ((m_iBlur + m_iOutlineSize) * 2) + m_iDropShadowOffset;
+	char s_c = c - m_iBlur - m_iDropShadowOffset - m_iOutlineSize;
+
+	if (bFastPath)
+	{
+		m_ABCWidthsCache[ch] = new abc_t;
+		m_ABCWidthsCache[ch]->a = s_a;
+		m_ABCWidthsCache[ch]->b = s_b;
+		m_ABCWidthsCache[ch]->c = s_c;
+	}
+	else
+	{
+		// add to the cache
+		finder.abc.a = s_a;
+		finder.abc.b = s_b;
+		finder.abc.c = s_c;
+		m_ExtendedABCWidthsCache.Insert(finder);
+	}
 }
 
 //-----------------------------------------------------------------------------

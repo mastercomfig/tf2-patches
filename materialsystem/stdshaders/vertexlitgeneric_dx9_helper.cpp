@@ -368,7 +368,9 @@ static void DrawVertexLitGeneric_DX9_Internal( CBaseVSShader *pShader, IMaterial
 
 /*^*/ // 	printf("\t\t>DrawVertexLitGeneric_DX9_Internal\n");
 
-	bool bHasBump = IsTextureSet( info.m_nBumpmap, params );
+	bool prefersReducedFillrate = g_pHardwareConfig->PreferReducedFillrate();
+	bool shouldUseBump = g_pConfig->UseBumpmapping() && (!prefersReducedFillrate);
+	bool bHasBump = shouldUseBump && IsTextureSet( info.m_nBumpmap, params );
 #if !defined( _X360 )
 	bool bIsDecal = IS_FLAG_SET( MATERIAL_VAR_DECAL );
 #endif

@@ -18,6 +18,8 @@
 
 class ITexture;
 
+#define MAX_COMMON_CHARS	256
+
 //-----------------------------------------------------------------------------
 // Purpose: manages texture memory for unicode fonts in vgui
 //-----------------------------------------------------------------------------
@@ -51,13 +53,24 @@ private:
 		FONT_PAGE_SIZE_COUNT,
 	};
 
+	// hold the common characters
+	struct charDetail_t
+	{
+		int page;
+		float texCoords[4];
+	};
+	struct CommonChar_t
+	{
+		charDetail_t	details[MAX_COMMON_CHARS];
+	};
+
 	// a single character in the cache
 	typedef unsigned short HCacheEntry;
 	struct CacheEntry_t
 	{
 		vgui::HFont		font;
 		wchar_t			wch;
-		unsigned char	page;
+		int	page;
 		float			texCoords[4];
 
 		// doubly-linked list for use in the LRU
@@ -80,6 +93,8 @@ private:
 
 	// Creates font materials
 	void CreateFontMaterials( Page_t &page, ITexture *pFontTexture, bool bitmapFont = false );
+
+	CommonChar_t* m_CommonCharCache[384];
 
 	// Computes the page size given a character height
 	int ComputePageType( int charTall ) const;

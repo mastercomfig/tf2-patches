@@ -349,12 +349,15 @@ float FloatBitMap_t::BrightestColor(void)
 {
 	float ret=0.0;
 	for(int y=0;y<Height;y++)
-		for(int x=0;x<Width;x++)
+	{
+		for (int x = 0; x < Width; x++)
 		{
-			Vector v(Pixel(x,y,0),Pixel(x,y,1),Pixel(x,y,2));
-			ret=max(ret,v.Length());
+			Vector v(Pixel(x, y, 0), Pixel(x, y, 1), Pixel(x, y, 2));
+			ret = max(ret, v.LengthSqr());
 		}
-		return ret;
+	}
+	ret = FastSqrt(ret);
+	return ret;
 }
 
 template <class T> static inline void SWAP(T & a, T & b)

@@ -2646,9 +2646,9 @@ void C_BaseAnimating::CalculateIKLocks( float currentTime )
 
 					// debugoverlay->AddBoxOverlay( origin, Vector( -1, -1, -1 ), Vector( 1, 1, 1 ), QAngle( 0, 0, 0 ), 255, 0, 0, 0, 0 );
 
-					float d = (pTarget->est.pos - origin).Length();
+					float d = (pTarget->est.pos - origin).LengthSqr();
 
-					if ( d >= flDist)
+					if ( d >= flDist * flDist)
 						continue;
 
 					flDist = d;

@@ -3434,18 +3434,22 @@ void CMeshDX8::RenderPass()
 	LOCK_SHADERAPI();
 	VPROF( "CMeshDX8::RenderPass" );
 
+#ifdef DX_TO_GL_ABSTRACTION
 	HandleLateCreation();
+#endif
 
 	Assert( m_Type != MATERIAL_HETEROGENOUS );
 
 	// make sure the vertex format is a superset of the current material's
 	// vertex format...
+#ifdef _DEBUG
 	if ( !IsValidVertexFormat( g_LastVertexFormat ) )
 	{
 		Warning( "Material %s does not support vertex format used by the mesh (maybe missing fields or mismatched vertex compression?), mesh will not be rendered. Grab a programmer!\n",
 			ShaderAPI()->GetBoundMaterial()->GetName() );
 		return;
 	}
+#endif
 
 	for ( int iPrim=0; iPrim < s_nPrims; iPrim++ )
 	{

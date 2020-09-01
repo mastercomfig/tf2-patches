@@ -1676,6 +1676,87 @@ void CEngineVGui::BackwardCompatibility_Paint()
 }
 
 
+class CVGuiPaintHelper
+{
+public:
+
+	void	AddUIPanel(vgui::VPANEL panel);
+	void	Paint(vgui::VPANEL rootPanel, PaintMode_t mode);
+
+private:
+
+	struct Entry_t
+	{
+		bool	m_bWasVisible;
+        vgui::VPANEL	m_pVPanel;
+        vgui::VPANEL	m_Parent;
+	};
+
+	typedef void (CVGuiPaintHelper::* mapFunc)(Entry_t& entry);
+
+	void	MapOverEntries(mapFunc mapper);
+
+	// Mapping functions
+	void	MapHide(Entry_t& entry);
+	void	MapRestore(Entry_t& entry);
+	void	MapPaintTraverse(Entry_t& entry);
+
+	CUtlVector< Entry_t >	m_Entries;
+};
+
+void CVGuiPaintHelper::AddUIPanel(vgui::VPANEL panel)
+{
+	Entry_t e;
+	e.m_pVPanel = panel;
+	e.m_bWasVisible = vgui::ipanel()->IsVisible(panel);
+	e.m_Parent = vgui::ipanel()->GetParent(panel);
+
+	m_Entries.AddToTail(e);
+}
+
+void CVGuiPaintHelper::MapOverEntries(mapFunc mapper)
+{
+	for (int i = 0; i < m_Entries.Count(); ++i)
+	{
+		(this->*mapper)(m_Entries[i]);
+	}
+}
+
+void CVGuiPaintHelper::MapHide(Entry_t& entry)
+{
+    vgui::ipanel()->SetVisible(entry.m_pVPanel, false);
+}
+
+void CVGuiPaintHelper::MapRestore(Entry_t& entry)
+{
+    vgui::ipanel()->SetVisible(entry.m_pVPanel, entry.m_bWasVisible);
+}
+
+void CVGuiPaintHelper::MapPaintTraverse(Entry_t& entry)
+{
+    vgui::ipanel()->SetParent(entry.m_pVPanel, 0);
+    vgui::surface()->PaintTraverseEx(entry.m_pVPanel, true);
+    vgui::ipanel()->SetParent(entry.m_pVPanel, entry.m_Parent);
+}
+
+void CVGuiPaintHelper::Paint(vgui::VPANEL rootPanel, PaintMode_t mode)
+{
+	if (mode & PAINT_UIPANELS)
+	{
+		MapOverEntries(&CVGuiPaintHelper::MapHide);
+        vgui::surface()->PaintTraverseEx(rootPanel, true);
+		MapOverEntries(&CVGuiPaintHelper::MapRestore);
+	}
+
+	if (mode & PAINT_INGAMEPANELS)
+	{
+		bool bSaveVisible = vgui::ipanel()->IsVisible(rootPanel);
+        vgui::ipanel()->SetVisible(rootPanel, false);
+		MapOverEntries(&CVGuiPaintHelper::MapPaintTraverse);
+        vgui::ipanel()->SetVisible(rootPanel, bSaveVisible);
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: paints all the vgui elements
 //-----------------------------------------------------------------------------
@@ -1704,73 +1785,84 @@ void CEngineVGui::Paint( PaintMode_t mode )
 		return;
 	}
 
+	int w, h;
+#if defined( USE_SDL ) || defined ( OSX )
+	uint width, height;
+	g_pLauncherMgr->RenderedSize(width, height, false);	// false = get
+	w = width;
+	h = height;
+
+#elif defined( WIN32 )
+	if (::IsIconic(*pmainwindow))
+	{
+		w = videomode->GetModeWidth();
+		h = videomode->GetModeHeight();
+	}
+	else
+	{
+		RECT rect;
+		::GetClientRect(*pmainwindow, &rect);
+
+		w = rect.right;
+		h = rect.bottom;
+	}
+#elif defined( _PS3 )
+	g_pMaterialSystem->GetBackBufferDimensions(w, h);
+#else
+#error
+#endif
+
 	// draw from the main panel down
 	vgui::Panel *panel = staticPanel;
-
-	// Force engine's root panel (staticPanel) to be full screen size
-	{
-		int x, y, w, h;
-		CMatRenderContextPtr pRenderContext( materials );
-		pRenderContext->GetViewport( x, y, w, h );
-		panel->SetBounds(0, 0, w, h); // ignore x and y here because the viewport takes care of that
-	}
-
+	panel->SetBounds(0, 0, w, h);
 	panel->Repaint();
 
 	toolframework->VGui_PreRenderAllTools( mode );
 
 	// Paint both ( backward compatibility support )
+	CVGuiPaintHelper helper;
 
 	// It's either the full screen, or just the client .dll stuff
 	if ( mode & PAINT_UIPANELS )
 	{
-		// Hide the client .dll, and paint everything else
-		bool saveVisible = staticClientDLLPanel->IsVisible();
-		bool saveToolsVisible = staticClientDLLToolsPanel->IsVisible();
-		staticClientDLLPanel->SetVisible( false );
-		staticClientDLLToolsPanel->SetVisible( false );
-
-		if (saveVisible || saveToolsVisible)
+		// AddUIPanel excludes the 2 non-fullscreen panels from rendering in this pass
+		int childcount = vgui::ipanel()->GetChildCount(staticClientDLLPanel->GetVPanel());
+		for (int i = 0; i < childcount; i++)
 		{
-			vgui::surface()->PaintTraverseEx(pVPanel, true);
-		}
+			// child always returns null, not in the same module!
+            vgui::VPANEL child = vgui::ipanel()->GetChild(staticClientDLLPanel->GetVPanel(), i);
 
-		staticClientDLLPanel->SetVisible( saveVisible );
-		staticClientDLLToolsPanel->SetVisible( saveToolsVisible );
+			if (child)
+			{
+				helper.AddUIPanel(child);
+			}
+		}
 	}
 	
 	if ( mode & PAINT_INGAMEPANELS )
 	{
-		bool bSaveVisible = vgui::ipanel()->IsVisible( pVPanel );
-		vgui::ipanel()->SetVisible( pVPanel, false );
-
-		// Remove the client .dll from the main hierarchy so that popups will only paint for the client .dll here
-		// NOTE: Disconnect each surface one at a time so that we don't draw popups twice
-
-		if (bSaveVisible)
+		int childcount = vgui::ipanel()->GetChildCount(staticClientDLLPanel->GetVPanel());
+		for (int i = 0; i < childcount; i++)
 		{
-			// Paint the client .dll only
-			vgui::VPANEL ingameRoot = staticClientDLLPanel->GetVPanel();
-			vgui::VPANEL saveParent = vgui::ipanel()->GetParent(ingameRoot);
-			vgui::ipanel()->SetParent(ingameRoot, 0);
-			vgui::surface()->PaintTraverseEx(ingameRoot, true);
-			vgui::ipanel()->SetParent(ingameRoot, saveParent);
+			// child always returns null, not in the same module!
+            vgui::VPANEL child = vgui::ipanel()->GetChild(staticClientDLLPanel->GetVPanel(), i);
 
-			// Overlay the client .dll tools next
-			vgui::VPANEL ingameToolsRoot = staticClientDLLToolsPanel->GetVPanel();
-			vgui::VPANEL saveToolParent = vgui::ipanel()->GetParent(ingameToolsRoot);
-			vgui::ipanel()->SetParent(ingameToolsRoot, 0);
-			vgui::surface()->PaintTraverseEx(ingameToolsRoot, true);
-			vgui::ipanel()->SetParent(ingameToolsRoot, saveToolParent);
+			if (child)
+			{
+				helper.AddUIPanel(child);
+			}
 		}
 
-		vgui::ipanel()->SetVisible( pVPanel, bSaveVisible );
+		helper.AddUIPanel(staticClientDLLToolsPanel->GetVPanel());
 	}
 
 	if ( mode & PAINT_CURSOR )
 	{
 		vgui::surface()->PaintSoftwareCursor();
 	}
+
+	// It's either the full screen, or just the client .dll stuff
+	helper.Paint(pVPanel, mode);
 
 	toolframework->VGui_PostRenderAllTools( mode );
 }

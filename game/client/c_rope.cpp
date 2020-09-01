@@ -931,9 +931,10 @@ void LockNodeDirection(
 		Vector &v1 = pNodes[(i+1)*parity].m_vPos;
 
 		Vector vDir = v1 - v0;
-		float len = vDir.Length();
+		float len = vDir.LengthSqr();
 		if ( len > 0.0001f )
 		{
+			len = FastSqrt(len);
 			vDir /= len;
 
 			Vector vActual;

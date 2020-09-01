@@ -7868,9 +7868,10 @@ void C_TFPlayer::CreatePlayerGibs( const Vector &vecOrigin, const Vector &vecVel
 	vecBreakVelocity *= tf_playergib_force.GetFloat();
 
 	// Cap the impulse.
-	float flSpeed = vecBreakVelocity.Length();
-	if ( flSpeed > tf_playergib_maxspeed.GetFloat() )
+	float flSpeed = vecBreakVelocity.LengthSqr();
+	if ( flSpeed > tf_playergib_maxspeed.GetFloat() * tf_playergib_maxspeed.GetFloat())
 	{
+		flSpeed = FastSqrt(flSpeed);
 		VectorScale( vecBreakVelocity, tf_playergib_maxspeed.GetFloat() / flSpeed, vecBreakVelocity );
 	}
 

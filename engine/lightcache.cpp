@@ -1089,8 +1089,8 @@ static float LightIntensityAndDirectionInBox( dworldlight_t* pLight,
 			{
 				float sphereRadius = (maxs-mid).Length();
 				// first do a sphere/sphere check
-				float dist = (pLight->origin - mid).Length();
-				if ( dist > (sphereRadius + pLight->radius) )
+				float dist = (pLight->origin - mid).LengthSqr();
+				if ( dist > (sphereRadius + pLight->radius) * (sphereRadius + pLight->radius) )
 					return 0;
 				// PERFORMANCE: precalc this and store in the light?
 				float angle = acos(pLight->stopdot2);
@@ -1111,8 +1111,8 @@ static float LightIntensityAndDirectionInBox( dworldlight_t* pLight,
 			{
 				float sphereRadius = (maxs-mid).Length();
 				// first do a sphere/sphere check
-				float dist = (pLight->origin - mid).Length();
-				if ( dist > (sphereRadius + pLight->radius) )
+				float dist = (pLight->origin - mid).LengthSqr();
+				if ( dist > (sphereRadius + pLight->radius) * (sphereRadius + pLight->radius))
 					return 0;
 				// PERFORMANCE: precalc this and store in the light?
 				if ( !IsSphereIntersectingCone( mid, sphereRadius, pLight->origin, pLight->normal, 1.0f, 0.0f ) )

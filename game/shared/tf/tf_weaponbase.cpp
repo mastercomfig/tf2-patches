@@ -144,7 +144,7 @@ void FindHullIntersection( const Vector &vecSrc, trace_t &tr, const Vector &mins
 				UTIL_TraceLine( vecSrc, vecEnd, MASK_SOLID, pEntity, COLLISION_GROUP_NONE, &tmpTrace );
 				if ( tmpTrace.fraction < 1.0 )
 				{
-					float thisDistance = (tmpTrace.endpos - vecSrc).Length();
+					float thisDistance = (tmpTrace.endpos - vecSrc).LengthSqr();
 					if ( thisDistance < distance )
 					{
 						tr = tmpTrace;
