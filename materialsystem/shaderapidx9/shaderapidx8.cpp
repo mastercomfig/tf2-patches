@@ -3880,11 +3880,15 @@ void CShaderAPIDx8::DrawMesh( CMeshBase *pMesh )
 #endif
 
 	m_pRenderMesh = pMesh;
-	VertexFormat_t vertexFormat = m_pRenderMesh->GetVertexFormat();
-	SetVertexDecl( vertexFormat, m_pRenderMesh->HasColorMesh(), m_pRenderMesh->HasFlexMesh(), m_pMaterial->IsUsingVertexID() );
-	CommitStateChanges();
-	Assert( m_pRenderMesh && m_pMaterial );
-	m_pMaterial->DrawMesh( CompressionType( vertexFormat ) );
+	
+	if (m_pRenderMesh)
+	{
+		VertexFormat_t vertexFormat = m_pRenderMesh->GetVertexFormat();
+		SetVertexDecl(vertexFormat, m_pRenderMesh->HasColorMesh(), m_pRenderMesh->HasFlexMesh(), m_pMaterial->IsUsingVertexID());
+		CommitStateChanges();
+		Assert(m_pMaterial);
+		m_pMaterial->DrawMesh(CompressionType(vertexFormat));
+	}
 	m_pRenderMesh = NULL;
 
 #if defined( PIX_INSTRUMENTATION ) || defined( NVPERFHUD )

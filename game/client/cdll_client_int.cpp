@@ -2220,11 +2220,15 @@ void OnRenderStart()
 
 	// Finally, link all the entities into the leaf system right before rendering.
 	C_BaseEntity::AddVisibleEntities();
+
+	g_pClientLeafSystem->DisableLeafReinsertion(true);
 }
 
 
 void OnRenderEnd()
 {
+	g_pClientLeafSystem->DisableLeafReinsertion(false);
+
 	// Disallow access to bones (access is enabled in CViewRender::SetUpView).
 	C_BaseAnimating::PopBoneAccess( "CViewRender::SetUpView->OnRenderEnd" );
 

@@ -132,6 +132,7 @@ public:
 
 	// Find all shadow casters in a set of leaves
 	virtual void EnumerateShadowsInLeaves( int leafCount, LeafIndex_t* pLeaves, IClientLeafShadowEnum* pEnum );
+	virtual void DisableLeafReinsertion(bool bDisable);
 
 	// methods of ISpatialLeafEnumerator
 public:
@@ -329,6 +330,7 @@ private:
 	// Should I draw static props?
 	bool m_DrawStaticProps;
 	bool m_DrawSmallObjects;
+	bool m_bDisableLeafReinsertion;
 
 	// A little enumerator to help us when adding shadows to renderables
 	// TODO: fix client leaf system infinitely adding shadows
@@ -358,7 +360,7 @@ void DefaultRenderBoundsWorldspace( IClientRenderable *pRenderable, Vector &absM
 	// Tracker 37433:  This fixes a bug where if the stunstick is being wielded by a combine soldier, the fact that the stick was
 	//  attached to the soldier's hand would move it such that it would get frustum culled near the edge of the screen.
 	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
-	if ( pEnt && (pEnt->IsFollowingEntity() || pEnt->GetParentAttachment() > 0) )
+	if (pEnt && (pEnt->IsFollowingEntity() || (pEnt->GetMoveParent() && (pEnt->GetParentAttachment() > 0))))
 	{
 		C_BaseEntity *pParent = pEnt->GetMoveParent();
 		if ( pParent )
@@ -428,6 +430,7 @@ CClientLeafSystem::CClientLeafSystem() : m_DrawStaticProps(true), m_DrawSmallObj
 	m_RenderablesInLeaf.Init( FirstRenderableInLeaf, FirstLeafInRenderable );
 	m_ShadowsInLeaf.Init( FirstShadowInLeaf, FirstLeafInShadow ); 
 	m_ShadowsOnRenderable.Init( FirstShadowOnRenderable, FirstRenderableInShadow );
+	m_bDisableLeafReinsertion = false;
 }
 
 CClientLeafSystem::~CClientLeafSystem()
@@ -445,6 +448,11 @@ void CClientLeafSystem::DrawStaticProps( bool enable )
 void CClientLeafSystem::DrawSmallEntities( bool enable )
 {
 	m_DrawSmallObjects = enable;
+}
+
+void CClientLeafSystem::DisableLeafReinsertion(bool bDisable)
+{
+	m_bDisableLeafReinsertion = bDisable;
 }
 
 
@@ -1338,6 +1346,12 @@ void CClientLeafSystem::RenderableChanged( ClientRenderHandle_t handle )
 	Assert( m_Renderables.IsValidIndex( handle ) );
 	if ( !m_Renderables.IsValidIndex( handle ) )
 		return;
+
+	if (m_bDisableLeafReinsertion)
+	{
+		DevWarning("Renderable reinserted after frame: %d!\n", handle);
+		return;
+	}
 
 	if ( (m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED ) == 0 )
 	{
