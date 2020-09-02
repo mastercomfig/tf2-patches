@@ -133,18 +133,6 @@ struct StudioRenderDecalInfo_t
 		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
 	}
 
-#define QUEUE_STUDIORENDER_CALL_NF( FuncName, ClassName, pObject, ... )	\
-	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );			\
-	ICallQueue *pCallQueue = pRenderContext->GetCallQueue();			\
-	if ( !pCallQueue || studio_queue_mode.GetInt() == 0 )				\
-	{																	\
-		pObject->FuncName( __VA_ARGS__ );								\
-	}																	\
-	else																\
-	{																	\
-		pCallQueue->QueueCall( pObject, &ClassName::FuncName, ##__VA_ARGS__ );	\
-	}
-
 #define QUEUE_STUDIORENDER_CALL_RC( FuncName, ClassName, pObject, pRenderContext, ... )	\
 	ICallQueue *pCallQueue = pRenderContext->GetCallQueue();			\
 	if ( !pCallQueue || studio_queue_mode.GetInt() == 0 )				\
@@ -154,17 +142,6 @@ struct StudioRenderDecalInfo_t
 	else																\
 	{																	\
 		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
-	}
-
-#define QUEUE_STUDIORENDER_CALL_RC_NF( FuncName, ClassName, pObject, pRenderContext, ... )	\
-	ICallQueue *pCallQueue = pRenderContext->GetCallQueue();			\
-	if ( !pCallQueue || studio_queue_mode.GetInt() == 0 )				\
-	{																	\
-		pObject->FuncName( __VA_ARGS__ );								\
-	}																	\
-	else																\
-	{																	\
-		pCallQueue->QueueCall( pObject, &ClassName::FuncName, ##__VA_ARGS__ );	\
 	}
 
 
