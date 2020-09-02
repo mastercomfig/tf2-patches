@@ -4020,7 +4020,7 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 			// don't wait more than 10ms for these
 			if ( flCurrTime - flStartTime > 0.010f )
 				break;
-			ThreadSleep( 0 );
+			ThreadSleepEx();
 		}
 		m_bQueryIssued[queryIndex] = false;
 		Assert(hr == S_OK || hr == D3DERR_DEVICELOST);

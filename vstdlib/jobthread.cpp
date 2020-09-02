@@ -311,11 +311,13 @@ public:
 		{
 			startParams.nThreads = nThreads;
 		}
+#if 0
 		else
 		{
 			// Cap the GlobPool threads at 4.
 			startParams.nThreadsMax = 4;
 		}
+#endif
 		return CThreadPool::Start( startParams, "Glob" );
 	}
 
@@ -666,6 +668,9 @@ int CThreadPool::YieldWait( CJob **ppJobs, int nJobs, bool bWaitAll, unsigned ti
 
 void CThreadPool::Yield( unsigned timeout )
 {
+#if 1
+	ThreadSleepEx(timeout);
+#else
 	// @MULTICORE (toml 10/24/2006): not implemented
 	Assert( ThreadInMainThread() );
 	if ( !ThreadInMainThread() )
@@ -674,6 +679,7 @@ void CThreadPool::Yield( unsigned timeout )
 		return;
 	}
 	ThreadSleep( timeout );
+#endif
 }
 
 //---------------------------------------------------------
@@ -931,8 +937,8 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		}
 		else
 		{
-			// One worker thread per physical processor minus main thread and graphic driver
-			nThreads = ci.m_nPhysicalProcessors - 2;
+			// One worker thread per logic processor minus main thread and graphic driver
+			nThreads = MAX(1, ci.m_nLogicalProcessors - 4);
 		}
 
 		if ( ( startParams.nThreadsMax >= 0 ) && ( nThreads > startParams.nThreadsMax ) )
@@ -1112,7 +1118,7 @@ bool CThreadPool::Stop( int timeout )
 	{
 		while( m_Threads[i]->IsAlive() )
 		{
-			ThreadSleep( 0 );
+			ThreadSleepEx();
 		}
 		delete m_Threads[i];
 	}
@@ -1228,7 +1234,7 @@ void Test( bool bDistribute, bool bSleep = true, bool bFinishExecute = false, bo
 					g_pTestThreadPool->AddJob( &jobs[j] );
 					if ( bSleep && j % 16 == 0 )
 					{
-						ThreadSleep( 0 );
+						ThreadSleepEx( 0 );
 					}
 				}
 				if ( !bInterleavePushPop )

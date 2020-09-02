@@ -360,12 +360,12 @@ void CEngine::Frame( void )
 			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
 			if ( nSleepMS > 3 )
 			{
-				ThreadSleep(nSleepMS);
+				ThreadSleepEx(nSleepMS);
 			}
 
 			while (Plat_FloatTime() < fWaitEnd)
 			{
-				ThreadSleep();
+				ThreadSleepEx();
 			}
 
 			// Go back to the top of the loop and see if it is time yet.

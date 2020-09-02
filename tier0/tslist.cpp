@@ -142,7 +142,7 @@ unsigned PopThreadFunc( void *)
 	g_nThreads++;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	int ignored;
 	for (;;)
@@ -154,7 +154,7 @@ unsigned PopThreadFunc( void *)
 				// Pop the rest 
 				while ( g_pTestOps->Pop( &ignored ) )
 				{
-					ThreadSleep( 0 );
+					ThreadSleepEx();
 				}
 				break;
 			}
@@ -172,7 +172,7 @@ unsigned PushThreadFunc( void * )
 	g_nThreads++;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 
 	while ( g_nTested < NUM_TEST )
@@ -200,12 +200,12 @@ void TestWait()
 {
 	while ( g_nThreads < NUM_THREADS )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	g_bStart = true;
 	while ( g_nThreads > 0 )
 	{
-		ThreadSleep( 50 );
+		ThreadSleepEx(50);
 	}
 }
 
@@ -312,7 +312,7 @@ unsigned PushPopInterleavedTestThreadFunc( void * )
 	g_nThreads++;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	PushPopInterleavedTestGuts();
 	g_nThreads--;

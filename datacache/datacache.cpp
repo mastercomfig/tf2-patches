@@ -479,8 +479,7 @@ int CDataCacheSection::BeginFrameLocking()
 	{
 		while ( ( pFrameLock = m_FreeFrameLocks.Pop() ) == NULL )
 		{
-			ThreadPause();
-			ThreadSleep( 1 );
+			ThreadSleepEx( 1 );
 		}
 		pFrameLock->m_iLock = 1;
 		pFrameLock->m_pFirst = NULL;

@@ -118,6 +118,7 @@ PLATFORM_INTERFACE bool ReleaseThreadHandle( ThreadHandle_t );
 //-----------------------------------------------------------------------------
 
 PLATFORM_INTERFACE void ThreadSleep(unsigned duration = 0);
+PLATFORM_INTERFACE void ThreadSleepEx(unsigned duration = 0);
 PLATFORM_INTERFACE uint ThreadGetCurrentId();
 PLATFORM_INTERFACE ThreadHandle_t ThreadGetCurrentHandle();
 PLATFORM_INTERFACE int ThreadGetPriority( ThreadHandle_t hThread = NULL );
@@ -139,7 +140,6 @@ extern "C" unsigned long __declspec(dllimport) __stdcall GetCurrentThreadId();
 inline void ThreadPause()
 {
 #if defined( PLATFORM_WINDOWS_PC )
-	// Intrinsic for __asm pause; from <intrin.h>
 	_mm_pause();
 #elif POSIX
 	__asm __volatile( "pause" );

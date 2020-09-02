@@ -2700,7 +2700,7 @@ void CParticleSystemMgr::AttachKillList( CParticleCollection *pParticles )
 			}
 		}
 		Assert(0);											// why don't we have enough buffers?
-		ThreadSleep();
+		ThreadSleepEx(0);
 	}
 }
 #else

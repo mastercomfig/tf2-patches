@@ -163,7 +163,7 @@ int CWorkThread::Run()
 			if ( pPool->BNeverSetEventOnAdd() && nIterations < nMaxFastIterations )
 			{
 				VPROF_BUDGET( "CWorkThread -- Sleep", VPROF_BUDGETGROUP_SLEEPING );
-				ThreadSleep( 2 );
+				ThreadSleepEx( 2 );
 			}
 		}
 
@@ -332,7 +332,7 @@ void CWorkThreadPool::StartWorkThreads()
 	// XXX why?
 	while ( m_cThreadsRunning == (uint) 0 )
 	{
-		ThreadSleep( 1 );
+		ThreadSleepEx( 1 );
 	}
 }
 

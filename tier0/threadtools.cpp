@@ -205,13 +205,40 @@ void ThreadSleep(unsigned nMilliseconds)
 		timeBeginPeriod( 1 );
 	}
 #endif // IS_WINDOWS_PC
-	YieldProcessor();
+	
 	if (nMilliseconds > 0 || !SwitchToThread())
 	{
-		Sleep(nMilliseconds);
+		SleepEx(nMilliseconds, true);
 	}
 #elif defined(POSIX)
    usleep( nMilliseconds * 1000 ); 
+#endif
+}
+
+void ThreadSleepEx(unsigned nMilliseconds)
+{
+	// hint to CPU that we're spin waiting
+	ThreadPause();
+#ifdef _WIN32
+
+#ifdef IS_WINDOWS_PC
+	static bool bInitialized = false;
+	if (!bInitialized)
+	{
+		bInitialized = true;
+		// Set the timer resolution to 1 ms (default is 10.0, 15.6, 2.5, 1.0 or
+		// some other value depending on hardware and software) so that we can
+		// use Sleep( 1 ) to avoid wasting CPU time without missing our frame
+		// rate.
+		timeBeginPeriod(1);
+	}
+#endif // IS_WINDOWS_PC
+	if (nMilliseconds > 0 || !SwitchToThread())
+	{
+		SleepEx(nMilliseconds, true);
+	}
+#elif defined(POSIX)
+	usleep(nMilliseconds * 1000);
 #endif
 }
 
@@ -232,7 +259,7 @@ uint ThreadGetCurrentId()
 ThreadHandle_t ThreadGetCurrentHandle()
 {
 #ifdef _WIN32
-	return (ThreadHandle_t)GetCurrentThread();
+	return(ThreadHandle_t)GetCurrentThread();
 #elif defined(POSIX)
 	return (ThreadHandle_t)pthread_self();
 #endif
@@ -1368,7 +1395,7 @@ void CThreadFastMutex::Lock( const uint32 threadId, unsigned nSpinSleepTime ) vo
 			ThreadPause();
 			if ( i % 1024 == 0 )
 			{
-				ThreadSleep( 0 );
+				ThreadSleep(0);
 			}
 		}
 
@@ -1390,7 +1417,7 @@ void CThreadFastMutex::Lock( const uint32 threadId, unsigned nSpinSleepTime ) vo
 				}
 
 				ThreadPause();
-				ThreadSleep( 0 );
+				ThreadSleep();
 			}
 
 		}

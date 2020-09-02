@@ -207,7 +207,7 @@ protected:
 		// Wait for it to finish.
 		while ( m_bHTTPRequestPending && !m_bCancelled )
 		{
-			ThreadSleep( 100 );
+			ThreadSleepEx( 100 );
 		}
 
 		GetISteamHTTP()->ReleaseHTTPRequest( hSteamAPICall );

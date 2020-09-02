@@ -2531,7 +2531,6 @@ void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pS
 	Assert( pRenderContext->IsRenderData( pBoneToWorld ) );
 
 	const StudioRenderDecalInfo_t queuedDecal(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal);
-
 	m_addDecalRequests.PushItem(queuedDecal);
 }
 

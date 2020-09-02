@@ -653,7 +653,7 @@ void CTFMapsWorkshop::PrepareLevelResources( /* in/out */ char *pszMapName, size
 			TFWorkshopMsg( "Waiting for steam connection\n" );
 			while ( !steamgameserverapicontext->SteamGameServer()->BLoggedOn() )
 			{
-				ThreadSleep( 10 );
+				ThreadSleepEx( 10 );
 			}
 		}
 	}
@@ -663,7 +663,7 @@ void CTFMapsWorkshop::PrepareLevelResources( /* in/out */ char *pszMapName, size
 	while ( AsyncPrepareLevelResources( pszMapName, nMapNameSize, pszMapFile, nMapFileSize ) == \
 	        IServerGameDLL::ePrepareLevelResources_InProgress )
 	{
-		ThreadSleep( 10 );
+		ThreadSleepEx( 10 );
 		if ( engine->IsDedicatedServer() )
 		{
 			SteamGameServer_RunCallbacks();
