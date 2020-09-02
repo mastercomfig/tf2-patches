@@ -47,7 +47,8 @@ static ConVar r_flexstats( "r_flexstats", "0", FCVAR_CHEAT );
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
-CStudioRender::CStudioRender()
+CStudioRender::CStudioRender() :
+	m_ModelDecalMaterials(DefLessFunc(IMaterial*))
 {
 	m_pRC = NULL;
 	m_pBoneToWorld = NULL;

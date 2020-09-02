@@ -1115,7 +1115,37 @@ void CStudioRender::ProjectDecalsOntoMeshes( DecalBuildInfo_t& build, int nMeshC
 	}
 }
 
+// Function to do replacement
+IMaterial* CStudioRender::GetModelSpecificDecalMaterial(IMaterial* pDecalMaterial)
+{
+	// Since we're adding this to a studio model, check the decal to see if 
+	// there's an alternate form used for static props...
 
+	unsigned short Index = m_ModelDecalMaterials.Find(pDecalMaterial);
+	if (Index != m_ModelDecalMaterials.InvalidIndex())
+	{
+		IMaterial* pMaterial = m_ModelDecalMaterials[Index];
+	    if (pMaterial == NULL)
+	    {
+			return pDecalMaterial;
+	    }
+        return pMaterial;
+    }
+
+	bool found;
+	IMaterialVar* pModelMaterialVar = pDecalMaterial->FindVar("$modelmaterial", &found, false);
+	if (found)
+	{
+		IMaterial* pModelMaterial = g_pMaterialSystem->FindMaterial(pModelMaterialVar->GetStringValue(), TEXTURE_GROUP_DECAL, false);
+		if (!IsErrorMaterial(pModelMaterial))
+		{
+			m_ModelDecalMaterials.Insert(pDecalMaterial, pModelMaterial);
+			return pModelMaterial;
+		}
+	}
+	m_ModelDecalMaterials.Insert(pDecalMaterial, nullptr);
+	return pDecalMaterial;
+}
 	
 //-----------------------------------------------------------------------------
 // Add decals to a decal list by doing a planar projection along the ray
@@ -1152,6 +1182,8 @@ void CStudioRender::AddDecal( StudioDecalHandle_t hDecal, const StudioRenderCont
 		m_pBoneToWorld = NULL;
 		return;
 	}
+
+	pDecalMaterial = GetModelSpecificDecalMaterial(pDecalMaterial);
 
 	// Get dynamic information from the material (fade start, fade time)
 	float fadeStartTime	= 0.0f;

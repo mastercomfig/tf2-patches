@@ -1963,6 +1963,8 @@ void CStudioRenderContext::BeginFrame( void )
 		g_RenderDataAllocator.BeginFrame(pRenderContext);
 		pCallQueue->QueueCall(g_pStudioRenderImp, &CStudioRender::PrecacheGlint);
 	}
+	AddDecals();
+	DestroyDecals();
 
 	m_RC.m_Config.m_bStatsMode = false;
 }
@@ -2479,47 +2481,58 @@ void CStudioRenderContext::ClearAllShadows()
     }
 }
 
+void CStudioRenderContext::DestroyDecals()
+{
+	StudioDecalHandle_t handle;
+	while (m_removeDecalRequests.PopItem(&handle))
+	{
+		if (handle)
+		{
+			QUEUE_STUDIORENDER_CALL(DestroyDecalList, CStudioRender, g_pStudioRenderImp, handle);
+		}
+	}
+}
 
 //-----------------------------------------------------------------------------
 // Methods related to decals
 //-----------------------------------------------------------------------------
 void CStudioRenderContext::DestroyDecalList( StudioDecalHandle_t handle )
 {
-	QUEUE_STUDIORENDER_CALL_NF( DestroyDecalList, CStudioRender, g_pStudioRenderImp, handle );
+	m_removeDecalRequests.PushItem(handle);
+}
+
+void CStudioRenderContext::AddDecals()
+{
+	StudioRenderDecalInfo_t decalInfo;
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+    while (m_addDecalRequests.PopItem(&decalInfo))
+    {
+		if (decalInfo.handle)
+		{
+			QUEUE_STUDIORENDER_CALL_RC(AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext,
+				decalInfo.handle, m_RC, decalInfo.pBoneToWorld, decalInfo.pStudioHdr, decalInfo.ray, decalInfo.decalUp, decalInfo.pDecalMaterial, decalInfo.radius,
+				decalInfo.body, decalInfo.noPokethru, decalInfo.maxLODToDecal);
+		}
+    }
+}
+
+StudioRenderDecalInfo_t::StudioRenderDecalInfo_t() : handle(nullptr), pStudioHdr(nullptr), pBoneToWorld(nullptr), ray(Ray_t()), decalUp(Vector()),
+                                                     pDecalMaterial(nullptr),
+                                                     radius(0), body(0),
+                                                     noPokethru(false),
+                                                     maxLODToDecal(0)
+{
 }
 
 void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pStudioHdr, 
-	matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
-	IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
+                                     matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
+                                     IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
 {
-	// This substition always has to be done in the main thread, so do it here.
-	pDecalMaterial = GetModelSpecificDecalMaterial( pDecalMaterial );
-
-	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );
 	Assert( pRenderContext->IsRenderData( pBoneToWorld ) );
-	QUEUE_STUDIORENDER_CALL_RC_NF( AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext, 
-		handle, m_RC, pBoneToWorld, pStudioHdr, ray, decalUp, pDecalMaterial, radius, 
-		body, noPokethru, maxLODToDecal );
-}
 
-// Function to do replacement because we always need to do this from the main thread.
-IMaterial* GetModelSpecificDecalMaterial( IMaterial* pDecalMaterial )
-{
-	Assert( ThreadInMainThread() );
-	// Since we're adding this to a studio model, check the decal to see if 
-	// there's an alternate form used for static props...
-	bool found;
-	IMaterialVar* pModelMaterialVar = pDecalMaterial->FindVar( "$modelmaterial", &found, false );
-	if ( found )
-	{
-		IMaterial* pModelMaterial = g_pMaterialSystem->FindMaterial( pModelMaterialVar->GetStringValue(), TEXTURE_GROUP_DECAL, false );
-		if ( !IsErrorMaterial( pModelMaterial ) )
-		{
-			return pModelMaterial;
-		}
-	}
+	const StudioRenderDecalInfo_t queuedDecal(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal);
 
-	return pDecalMaterial;
+	m_addDecalRequests.PushItem(queuedDecal);
 }
 
 
