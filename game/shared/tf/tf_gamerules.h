@@ -842,6 +842,8 @@ bool IsCreepWaveMode( void ) const;
 	virtual Vector VecItemRespawnSpot( CItem *pItem );
 	virtual QAngle VecItemRespawnAngles( CItem *pItem );
 
+	virtual void CheckChatText( CBasePlayer *pPlayer, char *pText );
+
 	virtual const char *GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer );
 	void ClientSettingsChanged( CBasePlayer *pPlayer );
 	void ChangePlayerName( CTFPlayer *pPlayer, const char *pszNewName );
