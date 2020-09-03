@@ -138,7 +138,7 @@ END_SHADER_PARAMS
 
 	SHADER_FALLBACK
 	{
-		if( g_pHardwareConfig->GetDXSupportLevel() < 90 || g_pHardwareConfig->PreferReducedFillrate() )
+		if( g_pHardwareConfig->GetDXSupportLevel() < 90 )
 			return "LightmappedGeneric_DX8";
 
 		return 0;

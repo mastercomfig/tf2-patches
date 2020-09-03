@@ -24,6 +24,7 @@
 static ConVar mat_fullbright( "mat_fullbright", "0", FCVAR_CHEAT );
 static ConVar r_lightwarpidentity( "r_lightwarpidentity", "0", FCVAR_CHEAT );
 static ConVar r_rimlight( "r_rimlight", "1", FCVAR_NONE );
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_NONE);
 
 // Textures may be bound to the following samplers:
 //	SHADER_SAMPLER0	 Base (Albedo) / Gloss in alpha
@@ -229,7 +230,7 @@ void DrawSkin_DX9_Internal( CBaseVSShader *pShader, IMaterialVar** params, IShad
 							CBasePerMaterialContextData **pContextDataPtr )
 {
 	bool bHasBaseTexture = (info.m_nBaseTexture != -1) && params[info.m_nBaseTexture]->IsTexture();
-	bool bHasBump = (info.m_nBumpmap != -1) && params[info.m_nBumpmap]->IsTexture();
+	bool bHasBump = !r_force_fastpath.GetBool() && (info.m_nBumpmap != -1) && params[info.m_nBumpmap]->IsTexture();
 
 	bool bHasBaseTextureWrinkle = bHasBaseTexture && 
 		(info.m_nWrinkle != -1) && params[info.m_nWrinkle]->IsTexture() &&
@@ -242,16 +243,16 @@ void DrawSkin_DX9_Internal( CBaseVSShader *pShader, IMaterialVar** params, IShad
 	bool bHasVertexColor = IS_FLAG_SET( MATERIAL_VAR_VERTEXCOLOR );
 	bool bHasVertexAlpha = IS_FLAG_SET( MATERIAL_VAR_VERTEXALPHA );
 	bool bIsAlphaTested = IS_FLAG_SET( MATERIAL_VAR_ALPHATEST ) != 0;
-	bool bHasSelfIllum = IS_FLAG_SET( MATERIAL_VAR_SELFILLUM ) != 0;
+	bool bHasSelfIllum = !r_force_fastpath.GetBool() && IS_FLAG_SET( MATERIAL_VAR_SELFILLUM ) != 0;
 	bool bHasSelfIllumFresnel = ( bHasSelfIllum ) && ( info.m_nSelfIllumFresnel != -1 ) && ( params[info.m_nSelfIllumFresnel]->GetIntValue() != 0 );
 	bool bHasSelfIllumMask = ( bHasSelfIllum ) && (info.m_nSelfIllumMask != -1) && params[info.m_nSelfIllumMask]->IsTexture();
 
 	// Tie these to specular
 	bool bHasPhong = (info.m_nPhong != -1) && ( params[info.m_nPhong]->GetIntValue() != 0 );
-	bool bHasSpecularExponentTexture = (info.m_nPhongExponentTexture != -1) && params[info.m_nPhongExponentTexture]->IsTexture();
+	bool bHasSpecularExponentTexture = !r_force_fastpath.GetBool() && (info.m_nPhongExponentTexture != -1) && params[info.m_nPhongExponentTexture]->IsTexture();
 	bool bHasPhongTintMap = bHasSpecularExponentTexture && (info.m_nPhongAlbedoTint != -1) && ( params[info.m_nPhongAlbedoTint]->GetIntValue() != 0 );
 	bool bHasDiffuseWarp = (info.m_nDiffuseWarpTexture != -1) && params[info.m_nDiffuseWarpTexture]->IsTexture();
-	bool bHasPhongWarp = (info.m_nPhongWarpTexture != -1) && params[info.m_nPhongWarpTexture]->IsTexture();
+	bool bHasPhongWarp = !r_force_fastpath.GetBool() && (info.m_nPhongWarpTexture != -1) && params[info.m_nPhongWarpTexture]->IsTexture();
 	bool bHasNormalMapAlphaEnvmapMask = IS_FLAG_SET( MATERIAL_VAR_NORMALMAPALPHAENVMAPMASK );
 
 #if !defined( _X360 )
@@ -259,14 +260,14 @@ void DrawSkin_DX9_Internal( CBaseVSShader *pShader, IMaterialVar** params, IShad
 #endif
 
 	// Rimlight must be set to non-zero to trigger rim light combo (also requires Phong)
-	bool bHasRimLight = r_rimlight.GetBool() && bHasPhong && (info.m_nRimLight != -1) && ( params[info.m_nRimLight]->GetIntValue() != 0 );
+	bool bHasRimLight = !r_force_fastpath.GetBool() && r_rimlight.GetBool() && bHasPhong && (info.m_nRimLight != -1) && ( params[info.m_nRimLight]->GetIntValue() != 0 );
 	bool bHasRimMaskMap = bHasSpecularExponentTexture && bHasRimLight && (info.m_nRimMask != -1) && ( params[info.m_nRimMask]->GetIntValue() != 0 );
 
 	float fBlendFactor=( info.m_nDetailTextureBlendFactor == -1 )? 1 : params[info.m_nDetailTextureBlendFactor]->GetFloatValue();
-	bool hasDetailTexture = ( info.m_nDetail != -1 ) && params[info.m_nDetail]->IsTexture();
+	bool hasDetailTexture = !r_force_fastpath.GetBool() && ( info.m_nDetail != -1 ) && params[info.m_nDetail]->IsTexture();
 	int nDetailBlendMode = ( hasDetailTexture && info.m_nDetailTextureCombineMode != -1 ) ? params[info.m_nDetailTextureCombineMode]->GetIntValue() : 0;
 
-	bool bBlendTintByBaseAlpha = IsBoolSet( info.m_nBlendTintByBaseAlpha, params ) && !bHasSelfIllum;	// Pixel shader can't do both BLENDTINTBYBASEALPHA and SELFILLUM, so let selfillum win
+	bool bBlendTintByBaseAlpha = !r_force_fastpath.GetBool() && IsBoolSet( info.m_nBlendTintByBaseAlpha, params ) && !bHasSelfIllum;	// Pixel shader can't do both BLENDTINTBYBASEALPHA and SELFILLUM, so let selfillum win
 
 	float flTintReplacementAmount = GetFloatParam( info.m_nTintReplacesBaseColor, params );
 
@@ -290,12 +291,12 @@ void DrawSkin_DX9_Internal( CBaseVSShader *pShader, IMaterialVar** params, IShad
 		// Unlit generic never uses the flashlight
 		bool bHasEnvmap = !bHasFlashlight && params[info.m_nEnvmap]->IsTexture();
 		bool bHasNormal = params[info.m_nBumpmap]->IsTexture();
-		bool bCanUseBaseAlphaPhongMaskFastPath = (info.m_nBaseMapAlphaPhongMask != -1) && ( params[info.m_nBaseMapAlphaPhongMask]->GetIntValue() != 0 );
+		bool bCanUseBaseAlphaPhongMaskFastPath = r_force_fastpath.GetBool() || (info.m_nBaseMapAlphaPhongMask != -1) && ( params[info.m_nBaseMapAlphaPhongMask]->GetIntValue() != 0 );
 
 		if ( ! ( params[info.m_nBaseTexture]->GetTextureValue()->IsTranslucent() ) )
 			bCanUseBaseAlphaPhongMaskFastPath = true;
 		
-		pContextData->m_bFastPath =
+		pContextData->m_bFastPath = 
 			(! bHasBump ) && 
 			(! bHasSpecularExponentTexture ) &&
 			(! bHasPhongTintMap ) &&

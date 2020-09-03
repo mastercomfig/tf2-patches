@@ -21,6 +21,7 @@ ConVar mat_disable_fancy_blending( "mat_disable_fancy_blending", "0" );
 ConVar mat_fullbright( "mat_fullbright","0", FCVAR_CHEAT );
 ConVar my_mat_fullbright( "mat_fullbright","0", FCVAR_CHEAT );
 extern ConVar r_flashlight_version2;
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_NONE);
 
 class CLightmappedGeneric_DX9_Context : public CBasePerMaterialContextData
 {
@@ -28,9 +29,9 @@ public:
 	uint8 *m_pStaticCmds;
 	CCommandBufferBuilder< CFixedCommandStorageBuffer< 1000 > > m_SemiStaticCmdsOut;
 
-	bool m_bVertexShaderFastPath;
-	bool m_bPixelShaderFastPath;
-	bool m_bPixelShaderForceFastPathBecauseOutline;
+	bool m_bVertexShaderFastPath = true;
+	bool m_bPixelShaderFastPath = true;
+	bool m_bPixelShaderForceFastPathBecauseOutline = false;
 	bool m_bFullyOpaque;
 	bool m_bFullyOpaqueWithoutAlphaTest;
 
@@ -302,7 +303,7 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 
 		bool prefersReducedFillrate = g_pHardwareConfig->PreferReducedFillrate();
 		bool shouldUseBump = g_pConfig->UseBumpmapping() && (!prefersReducedFillrate);
-		bool hasBump = (params[info.m_nBumpmap]->IsTexture()) && shouldUseBump;
+		bool hasBump = shouldUseBump && (params[info.m_nBumpmap]->IsTexture());
 		bool hasSSBump = hasBump && (info.m_nSelfShadowedBumpFlag != -1) && (params[info.m_nSelfShadowedBumpFlag]->GetIntValue());
 		bool hasBaseTexture2 = hasBaseTexture && params[info.m_nBaseTexture2]->IsTexture();
 		bool hasLightWarpTexture = params[info.m_nLightWarpTexture]->IsTexture();
@@ -648,9 +649,12 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 
 			bHasTextureTransform |= bHasBlendMaskTransform;
 
-			pContextData->m_bVertexShaderFastPath = !bHasTextureTransform;
+			if (!r_force_fastpath.GetBool())
+			{
+				pContextData->m_bVertexShaderFastPath = !bHasTextureTransform;
+			}
 
-			if (params[info.m_nDetail]->IsTexture())
+			if (!r_force_fastpath.GetBool() && params[info.m_nDetail]->IsTexture())
 			{
 				pContextData->m_bVertexShaderFastPath = false;
 			}
@@ -721,7 +725,7 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 			bool bUsingContrast = hasEnvmap && ((envmapContrast != 0.0f) && (envmapContrast != 1.0f)) && (envmapSaturation != 1.0f);
 			bool bUsingFresnel = hasEnvmap && (fresnelReflection != 1.0f);
 			bool bUsingSelfIllumTint = IS_FLAG_SET(MATERIAL_VAR_SELFILLUM) && (selfIllumTintVal[0] != 1.0f || selfIllumTintVal[1] != 1.0f || selfIllumTintVal[2] != 1.0f);
-			if (bUsingContrast || bUsingFresnel || bUsingSelfIllumTint || !g_pConfig->bShowSpecular)
+			if (!r_force_fastpath.GetBool() && (bUsingContrast || bUsingFresnel || bUsingSelfIllumTint || !g_pConfig->bShowSpecular))
 			{
 				pContextData->m_bPixelShaderFastPath = false;
 			}
@@ -882,16 +886,23 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 		{
 			DynamicCmdsOut.BindTexture(pShader, SHADER_SAMPLER2, info.m_nEnvmap, info.m_nEnvmapFrame);
 		}
-		int nFixedLightingMode = pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING);
 
 		bool bVertexShaderFastPath = pContextData->m_bVertexShaderFastPath;
+		bool bPixelShaderFastPath = pContextData->m_bPixelShaderFastPath;
 
-		if (nFixedLightingMode != 0)
+		int nFixedLightingMode;
+		if (r_force_fastpath.GetBool() || pContextData->m_bPixelShaderForceFastPathBecauseOutline)
 		{
-			if (pContextData->m_bPixelShaderForceFastPathBecauseOutline)
-				nFixedLightingMode = 0;
-			else
+			nFixedLightingMode = 0;
+		}
+		else
+		{
+			nFixedLightingMode = pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING);
+			if (nFixedLightingMode != 0)
+			{
 				bVertexShaderFastPath = false;
+				bPixelShaderFastPath = false;
+			}
 		}
 
 		MaterialFogMode_t fogType = pShaderAPI->GetSceneFogMode();
@@ -903,12 +914,6 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 			(nFixedLightingMode) ? 1 : 0
 			);
 		SET_DYNAMIC_VERTEX_SHADER_CMD(DynamicCmdsOut, lightmappedgeneric_vs20);
-
-		bool bPixelShaderFastPath = pContextData->m_bPixelShaderFastPath;
-		if (nFixedLightingMode != 0)
-		{
-			bPixelShaderFastPath = false;
-		}
 		bool bWriteDepthToAlpha;
 		bool bWriteWaterFogToAlpha;
 		if (pContextData->m_bFullyOpaque)
@@ -924,7 +929,15 @@ void DrawLightmappedGeneric_DX9(CBaseVSShader *pShader, IMaterialVar** params,
 			bWriteWaterFogToAlpha = false;
 		}
 
-		float envmapContrast = params[info.m_nEnvmapContrast]->GetFloatValue();
+		float envmapContrast;
+		if (r_force_fastpath.GetBool())
+		{
+			envmapContrast = 1.0f;
+		}
+		else
+		{
+			envmapContrast = params[info.m_nEnvmapContrast]->GetFloatValue();
+		}
 		if (g_pHardwareConfig->SupportsPixelShaders_2_b())
 		{
 			DECLARE_DYNAMIC_PIXEL_SHADER(lightmappedgeneric_ps20b);

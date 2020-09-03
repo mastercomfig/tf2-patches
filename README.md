@@ -42,6 +42,10 @@ Although configs are not recommended (use video options to customize), there are
 * `cl_hud_playerclass_playermodel_lod`: Controls LOD for the player model preview in the HUD
 * `g_ragdoll_fadespeed`, `g_ragdoll_lvfadespeed`: Controls how fast ragdolls fade (lv is for low violence mode)
 * `cl_particle_retire_cost`: Unlocked from base TF2, set to `0.0001` to force lower quality particles
+* `r_force_fastpath 1`: Forces shader fast paths for higher GPU performance.
+* `tf_weaponspread_continuous_seed`: If set to >-1, the base seed for fixed recoil spread for continuo
+us single bullet fire weapons.
+* `tf_weaponspread_continuous_seed_multishot`: If set to >-1, the base seed for fixed recoil spread for continuous multi-bullet fire weapons like the Minigun.
 
 **Launch options:**
 
