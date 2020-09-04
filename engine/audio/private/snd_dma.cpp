@@ -6267,6 +6267,8 @@ void S_Update_New()
 	CChannelList list;
 	g_ActiveChannels.GetActiveChannels(list);
 
+	g_SndMutex.Lock();
+
 	if (snd_spatialize_roundrobin.GetInt() == 0)
 	{
 		// spatialize each channel each time
@@ -6277,12 +6279,7 @@ void S_Update_New()
 			Assert(ch->sfx);
 			Assert(ch->activeIndex > 0);
 
-			if (!ch->sfx || !ch->activeIndex)
-			{
-				continue;
-			}
-
-			SND_Spatialize(ch);         // respatialize channel
+			SND_Spatialize(ch);       // respatialize channel
 
 			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
 			{
@@ -6321,6 +6318,8 @@ void S_Update_New()
 	}
 
 	SND_ChannelTraceReset();
+
+	g_SndMutex.Unlock();
 
 	// set new target for voice ducking
 	float frametime = g_pSoundServices->GetHostFrametime();
