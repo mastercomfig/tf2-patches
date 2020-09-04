@@ -9719,6 +9719,70 @@ float CTFGameRules::FlItemRespawnTime( CItem *pItem )
 
 
 //-----------------------------------------------------------------------------
+// Purpose: remove newlines and "mean" spaces from chat
+//-----------------------------------------------------------------------------
+int CleanChatText( char *pch )
+{
+	// convert to unicode
+	int cch = Q_strlen( pch );
+	int cubDest = (cch + 1 ) * sizeof( wchar_t );
+	wchar_t *pwch = (wchar_t *)stackalloc( cubDest );
+	int cwch = Q_UTF8ToUnicode( pch, pwch, cubDest ) / sizeof( wchar_t );
+
+	int iResult = 0;
+
+	// Walk through and skip over evil characters
+	int nWalk = 0;
+	for( int i=0; i<cwch; ++i )
+	{
+		wchar_t wch = pwch[i];
+
+		if ( wch == L'\n' || wch == L'\r' )
+		{
+			pwch[nWalk] = L'?';
+
+			iResult |= 2;
+		}
+		else if ( V_IsMeanSpaceW( wch ) )
+		{
+			pwch[nWalk] = L' ';
+
+			iResult |= 1;
+		}
+		else
+		{
+			pwch[nWalk] = wch;
+		}
+
+		++nWalk;
+	}
+
+	// Null terminate
+	pwch[nWalk-1] = L'\0';
+
+	// copy back, if necessary
+	if ( iResult )
+	{
+		Q_UnicodeToUTF8( pwch, pch, cch );
+	}
+
+	// 1 = has "mean" spaces, 2 = has newline characters, 3 = has both
+	// maybe add an option to auto-punish users for sending newline characters
+	return iResult;
+}
+
+ConVar sv_chat_clean_text ( "mp_chat_clean_text", "1", FCVAR_NONE, "Prevent clients from sending invisible and newline characters in chat" );
+
+void CTFGameRules::CheckChatText( CBasePlayer *pPlayer, char *pText )
+{
+	if ( sv_chat_clean_text.GetBool() )
+	{
+		CleanChatText( pText );
+	}
+}
+
+
+//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 const char *CTFGameRules::GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer )
