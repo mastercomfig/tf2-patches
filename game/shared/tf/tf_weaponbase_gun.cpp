@@ -785,7 +785,13 @@ CBaseEntity *CTFWeaponBaseGun::FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombTy
 		GetCustomProjectileModel( &attrCustomModelName );
 		if ( attrCustomModelName.has_value() )
 		{
+			Vector vecMins = pProjectile->CollisionProp()->OBBMinsPreScaled();
+			Vector vecMaxs = pProjectile->CollisionProp()->OBBMaxsPreScaled();
+
 			pProjectile->SetModel( attrCustomModelName.value().c_str() );
+
+			// keep original size
+			UTIL_SetSize( pProjectile, vecMins, vecMaxs );
 		}
 
 	}
