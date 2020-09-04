@@ -1349,7 +1349,11 @@ bool CClientShadowMgr::Init()
 
 	Vector dir( 0.1, 0.1, -1 );
 	SetShadowDirection(dir);
+#ifdef TF_CLIENT_DLL
 	SetShadowDistance( 25 );
+#else
+	SetShadowDistance( 50 );
+#endif
 
 	SetShadowBlobbyCutoffArea( 0.005 );
 

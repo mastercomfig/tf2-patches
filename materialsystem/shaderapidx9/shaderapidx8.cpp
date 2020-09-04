@@ -4017,8 +4017,8 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 			if ( hr != S_FALSE )
 				break;
 			double flCurrTime = Plat_FloatTime();
-			// don't wait more than 10ms for these
-			if ( flCurrTime - flStartTime > 0.010f )
+			// don't wait more than 100ms for these
+			if ( flCurrTime - flStartTime > 0.100f )
 				break;
 			ThreadSleepEx();
 		}
