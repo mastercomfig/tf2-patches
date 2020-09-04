@@ -69,6 +69,8 @@ extern IVideoServices *g_pVideo;
 #define SNDLVL_TO_DIST_MULT( sndlvl ) ( sndlvl ? ((pow( 10.0f, snd_refdb.GetFloat() / 20 ) / pow( 10.0f, (float)sndlvl / 20 )) / snd_refdist.GetFloat()) : 0 )
 #define DIST_MULT_TO_SNDLVL( dist_mult ) (soundlevel_t)(int)( dist_mult ? ( 20 * log10( pow( 10.0f, snd_refdb.GetFloat() / 20 ) / (dist_mult * snd_refdist.GetFloat()) ) ) : 0 )
 
+#define THREADED_SOUND_UPDATE
+
 extern ConVar dsp_spatial;
 extern IPhysicsSurfaceProps	*physprop;
 
@@ -78,7 +80,11 @@ static void S_Play( const CCommand &args );
 static void S_PlayVol( const CCommand &args );
 void S_SoundList(void);
 static void S_Say ( const CCommand &args );
+#ifdef THREADED_SOUND_UPDATE
+void S_Update_();
+#else
 void S_Update_(float);
+#endif
 void S_StopAllSounds(bool clear);
 void S_StopAllSoundsC(void);
 void S_ShutdownMixThread();
@@ -463,7 +469,11 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
 ConVar snd_mixahead( "snd_mixahead", "0.05");
-ConVar snd_mix_async( "snd_mix_async", "0" );
+#ifdef THREADED_SOUND_UPDATE
+ConVar snd_mix_async( "snd_mix_async", "1", FCVAR_CHEAT );
+#else
+ConVar snd_mix_async("snd_mix_async", "0");
+#endif
 #ifdef _DEBUG
 static ConCommand snd_mixvol("snd_mixvol", MXR_DebugSetMixGroupVolume, "Set named Mixgroup to mix volume.");
 #endif
@@ -6114,11 +6124,218 @@ S_Update
 Called once each time through the main loop
 ============
 */
+#ifdef THREADED_SOUND_UPDATE
+void S_Update(const AudioState_t* pAudioState)
+{
+	VPROF("S_Update");
+	if (!g_AudioDevice->IsActive())
+		return;
+
+	g_SndMutex.Lock();
+
+	if (pAudioState)
+	{
+		VectorCopy(pAudioState->m_Origin, listener_origin);
+		AngleVectors(pAudioState->m_Angles, &listener_forward, &listener_right, &listener_up);
+		s_bIsListenerUnderwater = pAudioState->m_bIsUnderwater;
+	}
+	else
+	{
+		VectorCopy(vec3_origin, listener_origin);
+		VectorCopy(vec3_origin, listener_forward);
+		VectorCopy(vec3_origin, listener_right);
+		VectorCopy(vec3_origin, listener_up);
+		s_bIsListenerUnderwater = false;
+	}
+
+	//
+	// debugging output
+	//
+	if (snd_show.GetInt())
+	{
+		con_nprint_t np;
+		np.time_to_live = 2.0f;
+		np.fixed_width_font = true;
+
+		int total = 0;
+
+		CChannelList activeChannels;
+		g_ActiveChannels.GetActiveChannels(activeChannels);
+		for (int i = 0; i < activeChannels.Count(); i++)
+		{
+			channel_t* channel = activeChannels.GetChannel(i);
+			if (!channel->sfx)
+				continue;
+
+			np.index = total + 2;
+			if (channel->flags.fromserver)
+			{
+				np.color[0] = 1.0;
+				np.color[1] = 0.8;
+				np.color[2] = 0.1;
+			}
+			else
+			{
+				np.color[0] = 0.1;
+				np.color[1] = 0.9;
+				np.color[2] = 1.0;
+			}
+
+			unsigned int sampleCount = RemainingSamples(channel);
+			float timeleft = (float)sampleCount / (float)channel->sfx->pSource->SampleRate();
+			bool bLooping = channel->sfx->pSource->IsLooped();
+
+			if (snd_surround.GetInt() < 4)
+			{
+				Con_NXPrintf(&np, "%02i l(%03d) r(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s",
+					total + 1,
+					(int)channel->fvolume[IFRONT_LEFT],
+					(int)channel->fvolume[IFRONT_RIGHT],
+					channel->master_vol,
+					channel->soundsource,
+					(int)channel->origin[0],
+					(int)channel->origin[1],
+					(int)channel->origin[2],
+					timeleft,
+					bLooping,
+					channel->sfx->getname());
+			}
+			else
+			{
+				Con_NXPrintf(&np, "%02i l(%03d) c(%03d) r(%03d) rl(%03d) rr(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s",
+					total + 1,
+					(int)channel->fvolume[IFRONT_LEFT],
+					(int)channel->fvolume[IFRONT_CENTER],
+					(int)channel->fvolume[IFRONT_RIGHT],
+					(int)channel->fvolume[IREAR_LEFT],
+					(int)channel->fvolume[IREAR_RIGHT],
+					channel->master_vol,
+					channel->soundsource,
+					(int)channel->origin[0],
+					(int)channel->origin[1],
+					(int)channel->origin[2],
+					timeleft,
+					bLooping,
+					channel->sfx->getname());
+			}
+
+			if (snd_visualize.GetInt())
+			{
+				CDebugOverlay::AddTextOverlay(channel->origin, 0.05f, channel->sfx->getname());
+			}
+
+			total++;
+		}
+
+		while (total <= 128)
+		{
+			Con_NPrintf(total + 2, "");
+			total++;
+		}
+	}
+
+	g_SndMutex.Unlock();
+
+	if (s_bOnLoadScreen)
+		return;
+
+	S_Update_();
+}
+void S_Update_New()
+{
+	channel_t* ch;
+	static unsigned int s_roundrobin = 0; ///< number of times this function is called.
+									  ///< used instead of host_frame because that number
+									  ///< isn't necessarily available here (sez Yahn).
+
+	g_AudioDevice->UpdateListener(listener_origin, listener_forward, listener_right, listener_up);
+
+	int voiceChannelCount = 0;
+	int voiceChannelMaxVolume = 0;
+
+	// reset traceline counter for this frame
+	g_snd_trace_count = 0;
+
+	// calculate distance to nearest walls, update dsp_spatial
+	// updates one wall only per frame (one trace per frame)
+	SND_SetSpatialDelays();
+
+	// updates dsp_room if automatic room detection enabled
+	DAS_CheckNewRoomDSP();
+
+	// update spatialization for static and dynamic sounds	
+	CChannelList list;
+	g_ActiveChannels.GetActiveChannels(list);
+
+	if (snd_spatialize_roundrobin.GetInt() == 0)
+	{
+		// spatialize each channel each time
+		for (int i = 0; i < list.Count(); i++)
+		{
+			ch = list.GetChannel(i);
+
+			if (!ch->sfx || !ch->activeIndex)
+			{
+				continue;
+			}
+
+			Assert(ch->sfx);
+			Assert(ch->activeIndex > 0);
+
+			SND_Spatialize(ch);         // respatialize channel
+
+			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
+			{
+				voiceChannelCount++;
+				voiceChannelMaxVolume = max(voiceChannelMaxVolume, ChannelGetMaxVol(ch));
+			}
+		}
+	}
+	else	// lowend performance improvement: spatialize only some  channels each frame.
+	{
+		unsigned int robinmask = (1 << snd_spatialize_roundrobin.GetInt()) - 1;
+
+		// now do static channels
+		for (int i = 0; i < list.Count(); ++i)
+		{
+			ch = list.GetChannel(i);
+			if (!ch->sfx || !ch->activeIndex)
+			{
+				continue;
+			}
+
+			// need to check bfirstpass because sound tracing may have been deferred
+			if (ch->flags.bfirstpass || (robinmask & s_roundrobin) == (i & robinmask))
+			{
+				SND_Spatialize(ch);         // respatialize channel
+			}
+
+			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
+			{
+				voiceChannelCount++;
+				voiceChannelMaxVolume = max(voiceChannelMaxVolume, ChannelGetMaxVol(ch));
+			}
+		}
+
+		++s_roundrobin;
+	}
+
+	SND_ChannelTraceReset();
+
+	// set new target for voice ducking
+	float frametime = g_pSoundServices->GetHostFrametime();
+	S_UpdateVoiceDuck(voiceChannelCount, voiceChannelMaxVolume, frametime);
+
+#ifdef _X360
+	// update x360 music volume
+	g_DashboardMusicMixValue = Approach(g_DashboardMusicMixTarget, g_DashboardMusicMixValue, g_DashboardMusicFadeRate * frametime);
+#endif
+}
+#else
 void S_Update( const AudioState_t *pAudioState )
 {
 	VPROF("S_Update");
 	channel_t	*ch;
-	channel_t	*combine;
 	static unsigned int s_roundrobin = 0 ; ///< number of times this function is called.
 									  ///< used instead of host_frame because that number
 									  ///< isn't necessarily available here (sez Yahn).
@@ -6147,8 +6364,6 @@ void S_Update( const AudioState_t *pAudioState )
 	}
 
 	g_AudioDevice->UpdateListener( listener_origin, listener_forward, listener_right, listener_up );
- 
-	combine = NULL;
 
 	int voiceChannelCount = 0;
 	int voiceChannelMaxVolume = 0;
@@ -6212,16 +6427,16 @@ void S_Update( const AudioState_t *pAudioState )
 		++s_roundrobin;
 	}
 
-
-
 	SND_ChannelTraceReset();
 
 	// set new target for voice ducking
 	float frametime = g_pSoundServices->GetHostFrametime();
 	S_UpdateVoiceDuck( voiceChannelCount, voiceChannelMaxVolume, frametime );
 
+#ifdef _X360
 	// update x360 music volume
 	g_DashboardMusicMixValue = Approach( g_DashboardMusicMixTarget, g_DashboardMusicMixValue, g_DashboardMusicFadeRate * frametime );
+#endif
 
 	//
 	// debugging output
@@ -6325,6 +6540,7 @@ void S_Update( const AudioState_t *pAudioState )
 	g_EstFrameTime = (g_EstFrameTime * 0.9f) + (g_pSoundServices->GetHostFrametime() * 0.1f);
 	S_Update_( g_EstFrameTime + snd_mixahead.GetFloat() );
 }
+#endif
 
 CON_COMMAND( snd_dumpclientsounds, "Dump sounds to VXConsole" )
 {
@@ -6461,6 +6677,7 @@ void GetSoundTime(void)
 
 void S_ExtraUpdate( void )
 {
+#ifndef THREADED_SOUND_UPDATE
 	if ( !g_AudioDevice || !g_pSoundServices )
 		return;
 
@@ -6495,6 +6712,7 @@ void S_ExtraUpdate( void )
 	g_pSoundServices->OnExtraUpdate();
 	// Shouldn't have to do any work here if your framerate hasn't dropped
 	S_Update_( snd_mixahead.GetFloat() );
+#endif
 }
 
 extern void DEBUG_StartSoundMeasure(int type, int samplecount );
@@ -6568,6 +6786,7 @@ void S_Update_Thread()
 	while ( !g_bMixThreadExit )
 	{
 		const double t0 = Plat_FloatTime();
+		S_Update_New();
 		S_Update_Guts(frameTime + snd_mixahead.GetFloat());
 		const double tf = Plat_FloatTime();
 
@@ -6603,6 +6822,20 @@ void S_ShutdownMixThread()
 	}
 }
 
+#ifdef THREADED_SOUND_UPDATE
+void S_Update_()
+{
+	if (!g_hMixThread)
+	{
+		g_bMixThreadExit = false;
+		g_hMixThread = ThreadExecuteSolo("SndMix", S_Update_Thread);
+		if (IsX360())
+		{
+			ThreadSetAffinity(g_hMixThread, XBOX_PROCESSOR_5);
+		}
+	}
+}
+#else
 void S_Update_( float mixAheadTime )
 {
 	if ( !snd_mix_async.GetBool() )
@@ -6623,6 +6856,7 @@ void S_Update_( float mixAheadTime )
 		}
 	}
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Threaded mixing enable. Purposely hiding enable/disable details.
