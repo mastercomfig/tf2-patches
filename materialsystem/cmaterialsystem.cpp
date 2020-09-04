@@ -53,7 +53,7 @@ static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_
 // In GL mode, we currently require mat_dxlevel to be between 90-92
 static ConVar mat_dxlevel( "mat_dxlevel", "92", 0, "", true, 90, true, 92, NULL );
 #else
-static ConVar mat_dxlevel( "mat_dxlevel", "0", 0, "Current DirectX Level. Competitive play requires at least mat_dxlevel 90", false, 0, false, 0, true, 90, false, 0, NULL  );
+static ConVar mat_dxlevel( "mat_dxlevel", "0", 0, "Current DirectX Level. Competitive play requires at least mat_dxlevel 90", true, 90, true, 100);
 #endif
 
 IMaterialInternal *g_pErrorMaterial = NULL;

@@ -114,7 +114,7 @@ ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
 CShaderDeviceMgrDx8::CShaderDeviceMgrDx8()
 {
 	m_pD3D = NULL;
-	m_bObeyDxCommandlineOverride = true;
+	m_bObeyDxCommandlineOverride = false;
 	m_bAdapterInfoIntialized = false;
 
 #if defined( PIX_INSTRUMENTATION ) && defined ( DX_TO_GL_ABSTRACTION ) && defined( _WIN32 )

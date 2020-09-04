@@ -468,6 +468,7 @@ static void ReadMaterialSystemConfigFromRegistry( MaterialSystem_Config_t &confi
 	}
 
 	int nValue = ReadVideoConfigInt( "DXLevel_V1", -1 );
+#if 0
 	if ( nValue != -1 )
 	{
 		nValue = OverrideVideoConfigFromCommandLine( "mat_dxlevel", nValue );
@@ -478,6 +479,7 @@ static void ReadMaterialSystemConfigFromRegistry( MaterialSystem_Config_t &confi
 			conVar.SetValue( nValue );
 		}
 	}
+#endif
 
 	nValue = ReadVideoConfigInt( "MotionBlur", -1 );
 	if ( nValue != -1 )

@@ -1238,10 +1238,10 @@ DLL_EXPORT int LauncherMain( int argc, char **argv )
 #endif
 
 	// No -dxlevel or +mat_hdr_level allowed on POSIX
+	CommandLine()->RemoveParm("-dxlevel");
+	CommandLine()->RemoveParm("+mat_dxlevel");
 #ifdef POSIX	
-	CommandLine()->RemoveParm( "-dxlevel" );
 	CommandLine()->RemoveParm( "+mat_hdr_level" );
-	CommandLine()->RemoveParm( "+mat_dxlevel" );
 #endif
 
 	// If we're using -default command line parameters, get rid of DX8 settings. 
