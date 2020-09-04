@@ -1349,7 +1349,7 @@ bool CClientShadowMgr::Init()
 
 	Vector dir( 0.1, 0.1, -1 );
 	SetShadowDirection(dir);
-	SetShadowDistance( 50 );
+	SetShadowDistance( 25 );
 
 	SetShadowBlobbyCutoffArea( 0.005 );
 

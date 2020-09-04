@@ -156,7 +156,42 @@ static Vector2D s_OrthographicHalfDiagonal;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-typedef CVarBitVec CVisitedSurfs;
+class CVisitedSurfs
+{
+public:
+	FORCEINLINE bool VisitSurface(SurfaceHandle_t surfID)
+	{
+		return !m_bits.TestAndSet(MSurf_Index(surfID));
+	}
+
+	FORCEINLINE void MarkSurfaceVisited(SurfaceHandle_t surfID)
+	{
+		m_bits.Set(MSurf_Index(surfID));
+	}
+
+	FORCEINLINE bool VisitedSurface(SurfaceHandle_t surfID)
+	{
+		return m_bits.IsBitSet(MSurf_Index(surfID));
+	}
+
+	FORCEINLINE bool VisitedSurface(int index)
+	{
+		return m_bits.IsBitSet(index);
+	}
+
+	FORCEINLINE int GetSize() { return m_bits.GetNumBits(); }
+
+	void Resize(int nSurfaces)
+	{
+		m_bits.Resize(nSurfaces);
+	}
+	void ClearAll()
+	{
+		m_bits.ClearAll();
+	}
+
+	CVarBitVec m_bits;
+};
 
 
 //-----------------------------------------------------------------------------
@@ -249,7 +284,7 @@ public:
 	static CWorldRenderList *FindOrCreateList( int nSurfaces )
 	{
 		CWorldRenderList *p = g_Pool.GetObject();
-		if ( p->m_VisitedSurfs.GetNumBits() == 0 )
+		if ( p->m_VisitedSurfs.GetSize() == 0 )
 		{
 			p->Init( nSurfaces );
 		}
@@ -363,27 +398,6 @@ IWorldRenderList *AllocWorldRenderList()
 	return CWorldRenderList::FindOrCreateList( host_state.worldbrush->numsurfaces );
 }
 
-
-FORCEINLINE bool VisitSurface( CVisitedSurfs &visitedSurfs, SurfaceHandle_t surfID )
-{
-	return !visitedSurfs.TestAndSet( MSurf_Index( surfID ) );
-}
-
-FORCEINLINE void MarkSurfaceVisited( CVisitedSurfs &visitedSurfs, SurfaceHandle_t surfID )
-{
-	visitedSurfs.Set( MSurf_Index( surfID ) );
-}
-
-FORCEINLINE bool VisitedSurface( CVisitedSurfs &visitedSurfs, SurfaceHandle_t surfID )
-{
-	return visitedSurfs.IsBitSet( MSurf_Index( surfID ) );
-}
-
-FORCEINLINE bool VisitedSurface( CVisitedSurfs &visitedSurfs, int index )
-{
-	return visitedSurfs.IsBitSet( index );
-}
-
 //-----------------------------------------------------------------------------
 // Activates top view
 //-----------------------------------------------------------------------------
@@ -440,10 +454,10 @@ void Shader_TranslucentWorldSurface( CWorldRenderList *pRenderList, SurfaceHandl
 	// Hook into the chain of translucent objects for this leaf
 	int sortGroup = MSurf_SortGroup( surfID );
 	pRenderList->m_AlphaSortList.AddSurfaceToTail( surfID, sortGroup, pRenderList->m_VisibleLeaves.Count()-1 );
-	if ( MSurf_Flags( surfID ) & (SURFDRAW_HASLIGHTSYTLES|SURFDRAW_HASDLIGHT) )
+	if (MSurf_Flags(surfID) & (SURFDRAW_HASLIGHTSYTLES | SURFDRAW_HASDLIGHT))
 	{
-		pRenderList->m_DlightSurfaces[sortGroup].AddToTail( surfID );
-		
+		pRenderList->m_DlightSurfaces[sortGroup].AddToTail(surfID);
+
 		DlightSurfaceSetQueuingFlag(surfID);
 	}
 }
@@ -457,11 +471,13 @@ inline void Shader_WorldSurface( CWorldRenderList *pRenderList, SurfaceHandle_t 
 	// Each surface is in exactly one group
 	int nSortGroup = MSurf_SortGroup( surfID );
 
+#if 0
 	// Add decals on non-displacement surfaces
 	if( SurfaceHasDecals( surfID ) )
 	{
 		DecalSurfaceAdd( surfID, nSortGroup );
 	}
+#endif
 
 	int nMaterialSortID = MSurf_MaterialSortID( surfID );
 
@@ -2438,7 +2454,7 @@ static inline void DrawDisplacementsInLeaf( CWorldRenderList *pRenderList, mleaf
 		SurfaceHandle_t parentSurfID = pDispInfo->GetParent();
 
 		// already processed this frame? Then don't do it again!
-		if ( VisitSurface( visitedSurfs, parentSurfID ) )
+		if ( visitedSurfs.VisitSurface(parentSurfID) )
 		{
 			if ( MSurf_Flags( parentSurfID ) & SURFDRAW_TRANS)
 			{
@@ -2477,6 +2493,10 @@ static inline void UpdateVisibleLeafLists( CWorldRenderList *pRenderList, mleaf_
 //-----------------------------------------------------------------------------
 static void FASTCALL R_DrawLeaf( CWorldRenderList *pRenderList, mleaf_t *pleaf )
 {
+	SurfaceHandle_t* pSurfID = &host_state.worldbrush->marksurfaces[pleaf->firstmarksurface];
+#if defined( _X360 ) || defined( _PS3 )
+	PREFETCH_128(pSurfID, 0);
+#endif
 	// Add this leaf to the list of visible leaves
 	UpdateVisibleLeafLists( pRenderList, pleaf );
 
@@ -2495,14 +2515,19 @@ static void FASTCALL R_DrawLeaf( CWorldRenderList *pRenderList, mleaf_t *pleaf )
 #endif
 
 	// Add non-displacement surfaces
+#if defined( _X360 ) || defined( _PS3 )
+	int count = MIN(pleaf->nummarksurfaces, 7);
+	for (int i = 0; i < count; ++i)
+	{
+		PREFETCH_128(pSurfID[i], 0);
+	}
+#endif
+
 	int i;
 	int nSurfaceCount = pleaf->nummarknodesurfaces;
-	SurfaceHandle_t *pSurfID = &host_state.worldbrush->marksurfaces[pleaf->firstmarksurface];
 	CVisitedSurfs &visitedSurfs = pRenderList->m_VisitedSurfs;
 	for ( i = 0; i < nSurfaceCount; ++i )
 	{
-		// garymctoptimize - can we prefetch the next surfaces?
-		// We seem to be taking a huge hit here for referencing the surface for the first time.
 		SurfaceHandle_t surfID = pSurfID[i];
 		ASSERT_SURF_VALID( surfID );
 		// there are never any displacements or nodraws in the leaf list
@@ -2510,7 +2535,10 @@ static void FASTCALL R_DrawLeaf( CWorldRenderList *pRenderList, mleaf_t *pleaf )
 		Assert( (MSurf_Flags( surfID ) & SURFDRAW_NODE) );
 		Assert( !SurfaceHasDispInfo(surfID) );
 		// mark this one to be drawn at the node
-		MarkSurfaceVisited( visitedSurfs, surfID );
+		visitedSurfs.MarkSurfaceVisited(surfID);
+#if defined( _X360 ) || defined( _PS3 )
+		PREFETCH_128(pSurfID[i + 7], 0);
+#endif
 	}
 
 #ifdef USE_CONVARS
@@ -2523,20 +2551,56 @@ static void FASTCALL R_DrawLeaf( CWorldRenderList *pRenderList, mleaf_t *pleaf )
 		SurfaceHandle_t surfID = pSurfID[i];
 
 		// Don't process the same surface twice
-		if ( !VisitSurface( visitedSurfs, surfID ) )
+		if (!visitedSurfs.VisitSurface(surfID))
 			continue;
 
-		Assert( !(MSurf_Flags( surfID ) & SURFDRAW_NODE) );
+		uint32 flags = surfID->flags;
+		Assert( !(flags & SURFDRAW_NODE) );
 
 		// Back face cull; only func_detail are drawn here
-		if ( (MSurf_Flags( surfID ) & SURFDRAW_NOCULL) == 0 )
+		if ( (flags & SURFDRAW_NOCULL) == 0 )
 		{
-			if ( (DotProduct(MSurf_Plane( surfID ).normal, modelorg) -
-				  MSurf_Plane( surfID ).dist ) < BACKFACE_EPSILON )
+			if ( (DotProduct(surfID->plane->normal, modelorg) -
+				  surfID->plane->dist ) < BACKFACE_EPSILON )
 				continue;
 		}
 
-		R_DrawSurface( pRenderList, surfID );
+		int sortGroup = (flags & SURFDRAW_SORTGROUP_MASK) >> SURFDRAW_SORTGROUP_SHIFT;
+
+		if ( flags & SURFDRAW_TRANS )
+		{
+			pRenderList->m_AlphaSortList.AddSurfaceToTail(surfID, sortGroup, pRenderList->m_VisibleLeaves.Count() - 1);
+			if (flags & (SURFDRAW_HASLIGHTSYTLES | SURFDRAW_HASDLIGHT))
+			{
+				pRenderList->m_DlightSurfaces[sortGroup].AddToTail(surfID);
+
+				DlightSurfaceSetQueuingFlag(surfID);
+			}
+		}
+		else
+		{
+#if 0
+			// Add decals on non-displacement surfaces
+			if (SurfaceHasDecals(surfID))
+			{
+				DecalSurfaceAdd(surfID, sortGroup);
+			}
+#endif
+
+			int nMaterialSortID = MSurf_MaterialSortID(surfID);
+			if (flags & (SURFDRAW_HASLIGHTSYTLES | SURFDRAW_HASDLIGHT))
+			{
+				pRenderList->m_DlightSurfaces[sortGroup].AddToTail(surfID);
+				if (!DlightSurfaceSetQueuingFlag(surfID))
+				{
+					pRenderList->m_SortList.AddSurfaceToTail(surfID, sortGroup, nMaterialSortID);
+				}
+			}
+			else
+			{
+				pRenderList->m_SortList.AddSurfaceToTail(surfID, sortGroup, nMaterialSortID);
+			}
+		}
 	}
 }
 
@@ -2557,7 +2621,7 @@ static void FASTCALL R_DrawLeafNoCull( CWorldRenderList *pRenderList, mleaf_t *p
 		SurfaceHandle_t surfID = pSurfID[i];
 
 		// Don't process the same surface twice
-		if ( !VisitSurface( visitedSurfs, surfID ) )
+		if ( !visitedSurfs.VisitSurface( surfID ) )
 			continue;
 
 		R_DrawSurfaceNoCull( pRenderList, surfID );
@@ -2721,7 +2785,7 @@ static void R_RecursiveWorldNode( CWorldRenderList *pRenderList, mnode_t *node, 
 		for ( ; i < nLastSurface; ++i, ++surfID )
 		{
 			// Only render things at this node that have previously been marked as visible
-			if ( !VisitedSurface( visitedSurfs, i ) )
+			if ( !visitedSurfs.VisitedSurface( i ) )
 				continue;
 
 			// Don't add surfaces that have displacement
@@ -2732,7 +2796,7 @@ static void R_RecursiveWorldNode( CWorldRenderList *pRenderList, mnode_t *node, 
 			// If a surface is marked to draw at a node, then it's not a func_detail.
 			// Only func_detail render at leaves. In the case of normal world surfaces,
 			// we only want to render them if they intersect a visible leaf.
-			int nFlags = MSurf_Flags( surfID );
+			uint32 nFlags = MSurf_Flags( surfID );
 
 			Assert( nFlags & SURFDRAW_NODE );
 
@@ -2874,7 +2938,7 @@ static void R_DrawTopViewLeaf( CWorldRenderList *pRenderList, mleaf_t *pleaf )
 		// Mark this surface as being in a visible leaf this frame. If this
 		// surface is meant to be drawn at a node (SURFDRAW_NODE), 
 		// then it will be drawn in the recursive code down below.
-		if ( !VisitSurface( visitedSurfs, surfID ) )
+		if ( !visitedSurfs.VisitSurface( surfID ) )
 			continue;
 
 		// Don't add surfaces that have displacement; they are handled above
@@ -2942,7 +3006,7 @@ void R_RenderWorldTopView( CWorldRenderList *pRenderList, mnode_t *node )
 			SurfaceHandle_t surfID = SurfaceHandleFromIndex( node->firstsurface );
 			for ( int i = 0; i < node->numsurfaces; i++, surfID++ )
 			{
-				if ( !VisitSurface( visitedSurfs, surfID ) )
+				if ( !visitedSurfs.VisitSurface(surfID ) )
 					continue;
 
 				// Don't add surfaces that have displacement

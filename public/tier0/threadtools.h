@@ -9,6 +9,8 @@
 #ifndef THREADTOOLS_H
 #define THREADTOOLS_H
 
+#include <atomic>
+
 #include "tier0/type_traits.h"
 
 #include <limits.h>
@@ -1203,11 +1205,11 @@ private:
 			int		m_nReaders;
 		};
 
-	bool AssignIf( const LockInfo_t &newValue, const LockInfo_t &comperand );
+	bool AssignIf( LockInfo_t &newValue, LockInfo_t &comperand );
 	bool TryLockForWrite( const uint32 threadId );
 	void SpinLockForWrite( const uint32 threadId );
 
-	volatile LockInfo_t m_lockInfo;
+	std::atomic<LockInfo_t> m_lockInfo;
 	CInterlockedInt m_nWriters;
 } ALIGN8_POST;
 
@@ -1735,20 +1737,20 @@ inline void CThreadRWLock::UnlockRead()
 //
 //-----------------------------------------------------------------------------
 
-inline bool CThreadSpinRWLock::AssignIf( const LockInfo_t &newValue, const LockInfo_t &comperand )
+inline bool CThreadSpinRWLock::AssignIf( LockInfo_t &newValue, LockInfo_t &comperand )
 {
-	return ThreadInterlockedAssignIf64( (int64 *)&m_lockInfo, *((int64 *)&newValue), *((int64 *)&comperand) );
+	return m_lockInfo.compare_exchange_weak(comperand, newValue);
 }
 
 inline bool CThreadSpinRWLock::TryLockForWrite( const uint32 threadId )
 {
 	// In order to grab a write lock, there can be no readers and no owners of the write lock
-	if ( m_lockInfo.m_nReaders > 0 || ( m_lockInfo.m_writerId && m_lockInfo.m_writerId != threadId ) )
+	if ( m_lockInfo.load().m_nReaders > 0 || ( m_lockInfo.load().m_writerId && m_lockInfo.load().m_writerId != threadId ) )
 	{
 		return false;
 	}
 
-	static const LockInfo_t oldValue = { 0, 0 };
+	static LockInfo_t oldValue = { 0, 0 };
 	LockInfo_t newValue = { threadId, 0 };
 	const bool bSuccess = AssignIf( newValue, oldValue );
 #if defined(_X360)
@@ -1781,7 +1783,7 @@ inline bool CThreadSpinRWLock::TryLockForRead()
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		oldValue.m_writerId = 0;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 		newValue.m_writerId = 0;
