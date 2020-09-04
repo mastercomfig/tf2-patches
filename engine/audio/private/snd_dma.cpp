@@ -6274,13 +6274,13 @@ void S_Update_New()
 		{
 			ch = list.GetChannel(i);
 
+			Assert(ch->sfx);
+			Assert(ch->activeIndex > 0);
+
 			if (!ch->sfx || !ch->activeIndex)
 			{
 				continue;
 			}
-
-			Assert(ch->sfx);
-			Assert(ch->activeIndex > 0);
 
 			SND_Spatialize(ch);         // respatialize channel
 

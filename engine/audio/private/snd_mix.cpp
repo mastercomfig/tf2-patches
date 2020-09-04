@@ -435,7 +435,7 @@ void S_FreeChannel(channel_t *ch)
 
 	ch->flags.isSentence = false;
 //	Msg("End sound %s\n", ch->sfx->getname() );
-	
+
 	delete ch->pMixer;
 	ch->pMixer = NULL;
 	ch->sfx = NULL;
