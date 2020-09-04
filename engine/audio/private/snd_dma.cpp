@@ -6279,6 +6279,11 @@ void S_Update_New()
 			Assert(ch->sfx);
 			Assert(ch->activeIndex > 0);
 
+			if (!ch->sfx || !ch->activeIndex > 0)
+			{
+				continue;
+			}
+
 			SND_Spatialize(ch);       // respatialize channel
 
 			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
