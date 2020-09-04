@@ -70,14 +70,14 @@ extern IAudioDevice *g_AudioDevice;
 extern "C" {
 #endif // __cplusplus
 
-void S_TransferStereo16 (void *pOutput, const portable_samplepair_t *pfront, int lpaintedtime, int endtime);
-void S_TransferPaintBuffer(void *pOutput, const portable_samplepair_t *pfront, int lpaintedtime, int endtime);
+void S_TransferStereo16 (void *pOutput, const portable_samplepair_t *pfront, int lpaintedtime, int64 endtime);
+void S_TransferPaintBuffer(void *pOutput, const portable_samplepair_t *pfront, int lpaintedtime, int64 endtime);
 void S_MixBufferUpsample2x( int count, portable_samplepair_t *pbuffer, portable_samplepair_t *pfiltermem, int cfltmem, int filtertype );
 
-extern void Mix8MonoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, byte *pData, int inputOffset, fixedint rateScaleFix, int outCount );
-extern void Mix8StereoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, byte *pData, int inputOffset, fixedint rateScaleFix, int outCount );
-extern void Mix16MonoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount );
-extern void Mix16StereoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount );
+extern void Mix8MonoWavtype(channel_t* pChannel, portable_samplepair_t* pOutput, float* volume, byte* pData, int inputOffset, fixedint rateScaleFix, int outCount);
+extern void Mix8StereoWavtype(channel_t* pChannel, portable_samplepair_t* pOutput, float* volume, byte* pData, int inputOffset, fixedint rateScaleFix, int outCount);
+extern void Mix16MonoWavtype(channel_t* pChannel, portable_samplepair_t* pOutput, float* volume, short* pData, int inputOffset, fixedint rateScaleFix, int outCount);
+extern void Mix16StereoWavtype(channel_t* pChannel, portable_samplepair_t* pOutput, float* volume, short* pData, int inputOffset, fixedint rateScaleFix, int outCount);
 
 extern void SND_MoveMouth8(channel_t *pChannel, CAudioSource *pSource, int count);
 extern void SND_CloseMouth(channel_t *pChannel);
@@ -88,9 +88,9 @@ extern bool SND_IsMouth( channel_t *pChannel );
 extern bool SND_ShouldPause( channel_t *pChannel );
 extern bool SND_IsRecording();
 
-void MIX_PaintChannels( int endtime, bool bIsUnderwater );
+void MIX_PaintChannels( int64 endtime, bool bIsUnderwater );
 // Play a big of zeroed out sound
-void MIX_PaintNullChannels( int endtime );
+void MIX_PaintNullChannels( int64 endtime );
 
 bool AllocDsps( bool bLoadPresetFile );
 void FreeDsps( bool bReleaseTemplateMemory );
@@ -108,6 +108,7 @@ extern int idsp_speaker;
 extern int idsp_spatial;
 
 extern float g_DuckScale;
+extern int g_DuckScaleInt256;
 
 // Legacy DSP Routines
 

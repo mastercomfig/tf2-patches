@@ -16,19 +16,19 @@ extern Vector		listener_right;
 
 extern void DEBUG_StartSoundMeasure(int type, int samplecount );
 extern void DEBUG_StopSoundMeasure(int type, int samplecount );
-extern bool MIX_ScaleChannelVolume( paintbuffer_t *pPaint, channel_t *pChannel, int volume[CCHANVOLUMES], int mixchans );
+extern bool MIX_ScaleChannelVolume( paintbuffer_t *pPaint, channel_t *pChannel, float volume[CCHANVOLUMES], int mixchans );
 
-inline bool FVolumeFrontNonZero( int *pvol )
+inline bool FVolumeFrontNonZero(float* pvol)
 {
 	return (pvol[IFRONT_RIGHT] || pvol[IFRONT_LEFT]);
 }
 
-inline bool FVolumeRearNonZero( int *pvol )
+inline bool FVolumeRearNonZero(float* pvol)
 {
 	return (pvol[IREAR_RIGHT] || pvol[IREAR_LEFT]);
 }
 
-inline bool FVolumeCenterNonZero( int *pvol )
+inline bool FVolumeCenterNonZero(float* pvol)
 {
 	return (pvol[IFRONT_CENTER] != 0);
 }
@@ -542,7 +542,7 @@ void CAudioDeviceBase::Mix16Mono( channel_t *pChannel, short *pData, int outputO
 
 void CAudioDeviceBase::Mix16Stereo( channel_t *pChannel, short *pData, int outputOffset, int inputOffset, fixedint rateScaleFix, int outCount, int timecompress )
 {
-	int volume[CCHANVOLUMES];
+	float volume[CCHANVOLUMES];
 
 	paintbuffer_t *pPaint = MIX_GetCurrentPaintbufferPtr();
 

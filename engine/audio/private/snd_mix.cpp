@@ -44,13 +44,32 @@ extern IReplayMovieManager *g_pReplayMovieManager;
 #define SND_SCALE_SHIFT16	(8-SND_SCALE_BITS16)
 #define SND_SCALE_LEVELS16	(1<<SND_SCALE_BITS16)
 
+// In debug, we are going to compare the old code and the new code and make sure we get the exact same output
+#if _DEBUG
+
+# define CHECK_VALUES_AFTER_REFACTORING	1
+# define CULLED_VOLUME					0		// If we check value, we can't cull the volume (otherwise will create false-positive asserts)
+portable_samplepair_t* DuplicateSamplePairs(portable_samplepair_t* pInputBuffer, int nSampleCount);
+void FreeDuplicatedSamplePairs(portable_samplepair_t* pInputBuffer, int nSampleCount);
+
+#else
+
+# define CHECK_VALUES_AFTER_REFACTORING	0
+# define CULLED_VOLUME					1		// Volume of 1 or less will be culled
+
+#endif
+
+ConVar snd_mix_optimization("snd_mix_optimization", "1", FCVAR_NONE, "Turns optimization on for mixing if set to 1 (default). 0 to turn the optimization off.");
+
+#define SKIP_MIXING_IF_TOTAL_VOLUME_LESS_OR_EQUAL_THAN	0
+
 void Snd_WriteLinearBlastStereo16(void);
 void SND_PaintChannelFrom8( portable_samplepair_t *pOutput, int *volume, byte *pData8, int count );
 bool Con_IsVisible( void );
 void SND_RecordBuffer( void );
 bool DSP_RoomDSPIsOff( void );
 bool BChannelLowVolume( channel_t *pch, int vol_min );
-void ChannelCopyVolumes( channel_t *pch, int *pvolume_dest, int ivol_start, int cvol );
+void ChannelCopyVolumes( channel_t *pch, float *pvolume_dest, int ivol_start, int cvol );
 float ChannelLoudestCurVolume( const channel_t * RESTRICT pch );
 
 extern int64 g_soundtime;
@@ -2507,7 +2526,7 @@ void MIX_PaintChannels( int endtime, bool bIsUnderwater )
 
 // returns false if channel is to be entirely skipped. 
 
-bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int volume[CCHANVOLUMES], int mixchans )
+bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, float volume[CCHANVOLUMES], int mixchans )
 {
 	int i;
 	int	mixflag = ppaint->flags;
@@ -2520,6 +2539,8 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 	ChannelCopyVolumes( pChannel, volume, 0, CCHANVOLUMES );
 
 	dspmix = pChannel->dspmix;
+	dspmix *= 256.0;						// Pre-multiply the dspmix by 256 so we can do integer arithmetic
+											// It will reduce LHS on game console.
 	
 	// if dsp is off, or room dsp is off, mix 0% to mono room buffer, 100% to facing buffer
 
@@ -2528,9 +2549,9 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 	
 	// duck all sound volumes except speaker's voice
 #if !defined( NO_VOICE )
-	int duckScale = min((int)(g_DuckScale * 256), g_SND_VoiceOverdriveInt);
+	int duckScale = MIN(g_DuckScaleInt256, g_SND_VoiceOverdriveInt);
 #else
-	int duckScale = (int)(g_DuckScale * 256);
+	int duckScale = g_DuckScaleInt256;
 #endif
 	if( duckScale < 256 )
 	{
@@ -2541,7 +2562,7 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 			{
 				// Apply voice overdrive..
 				for (i = 0; i < CCHANVOLUMES; i++)
-					volume[i] = (volume[i] * duckScale) >> 8;
+					volume[i] = (volume[i] * duckScale) / 256.0f;
 			}
 		}
 	}
@@ -2552,13 +2573,13 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 	if ( mixflag & SOUND_BUSS_ROOM )
 	{
 		// set dsp mix volume, scaled by global dsp_volume
-
-		float dspmixvol = fpmin(dspmix * g_dsp_volume, 1.0f);
+		// Values are pre-multiplied by 256 
+		float dspmixvol =  MIN((int)(dspmix * g_dsp_volume), 256);		// LHS
 
 		// if dspmix is 1.0, 100% of sound goes to SOUND_BUFFER_ROOM and 0% to SOUND_BUFFER_FACING
 
 		for (i = 0; i < CCHANVOLUMES; i++)
-			volume[i] = (int)((float)(volume[i]) * dspmixvol);
+			volume[i] = (volume[i] * dspmixvol) / 256.0f;
 	}
 
 	// If global dsp volume is less than 1, reduce dspmix (ie: increase dry volume)
@@ -2605,16 +2626,22 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 		// facing player
 		// if dspface is 1.0, 100% of sound goes to SOUND_BUFFER_FACING
 
+		float fMultiplier = scale * (256.0f - dspmix);				// dspmix is pre-multiplied by 256
+		int nMultiplier = (int)fMultiplier;								// LHS
+
 		for (i = 0; i < CCHANVOLUMES; i++)
-			volume[i] = (int)((float)(volume[i]) * scale * (1.0 - dspmix));
+			volume[i] = (volume[i] * nMultiplier) / 256.0f;
 	}
 	else if ( mixflag & SOUND_BUSS_FACINGAWAY )
 	{
 		// facing away from player
 		// if dspface is 0.0, 100% of sound goes to SOUND_BUFFER_FACINGAWAY
 
+		float fMultiplier = (1.0f - scale) * (256.0f - dspmix);		// dspmix is pre-multiplied by 256
+		int nMultiplier = (int)fMultiplier;								// LHS
+
 		for (i = 0; i < CCHANVOLUMES; i++)
-			volume[i] = (int)((float)(volume[i]) * (1.0 - scale) * (1.0 - dspmix));
+			volume[i] = (volume[i] * nMultiplier) / 256.0f;
 	}
 
 	// NOTE: this must occur last in this routine: 
@@ -2624,22 +2651,33 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 		// if 4ch or 5ch spatialization on, but current mix buffer is 2ch, 
 		// recombine front + rear volumes (revert to 2ch spatialization)
 
-		volume[IFRONT_RIGHT] += volume[IREAR_RIGHT];
-		volume[IFRONT_LEFT]  += volume[IREAR_LEFT];
+		// Use temp variables to reduce LHS
+		int nFrontRight = volume[IFRONT_RIGHT];
+		int nFrontLeft = volume[IFRONT_LEFT];
+		int nFrontRightD = volume[IFRONT_RIGHTD];
+		int nFrontLeftD = volume[IFRONT_LEFTD];
 
-		volume[IFRONT_RIGHTD] += volume[IREAR_RIGHTD];
-		volume[IFRONT_LEFTD]  += volume[IREAR_LEFTD];
+		nFrontRight += volume[IREAR_RIGHT];
+		nFrontLeft += volume[IREAR_LEFT];
+
+		nFrontRightD += volume[IREAR_RIGHTD];
+		nFrontLeftD += volume[IREAR_LEFTD];
 
 		// if 5 ch, recombine center channel vol
 
-		if ( g_AudioDevice->IsSurroundCenter() )
+		if (g_AudioDevice->IsSurroundCenter())
 		{
-			volume[IFRONT_RIGHT] += volume[IFRONT_CENTER] / 2;
-			volume[IFRONT_LEFT]  += volume[IFRONT_CENTER] / 2;
+			nFrontRight += volume[IFRONT_CENTER] / 2;
+			nFrontLeft += volume[IFRONT_CENTER] / 2;
 
-			volume[IFRONT_RIGHTD] += volume[IFRONT_CENTERD] / 2;
-			volume[IFRONT_LEFTD]  += volume[IFRONT_CENTERD] / 2;
+			nFrontRightD += volume[IFRONT_CENTERD] / 2;
+			nFrontLeftD += volume[IFRONT_CENTERD] / 2;
 		}
+
+		volume[IFRONT_RIGHT] = nFrontRight;
+		volume[IFRONT_LEFT] = nFrontLeft;
+		volume[IFRONT_RIGHTD] = nFrontRightD;
+		volume[IFRONT_LEFTD] = nFrontLeftD;
 
 		// clear rear & center volumes
 
@@ -2651,6 +2689,7 @@ bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int vol
 		volume[IREAR_LEFTD] = 0;
 		volume[IFRONT_CENTERD] = 0;
 
+		// Note that we pay another set of LHS with clamp below, we could embed the clamp above (and have a simpler fzerovolume test).
 	}
 
 	bool fzerovolume = true;
@@ -3748,6 +3787,176 @@ END:
 #endif
 }
 
+enum SW_FillMode
+{
+	FM_SAME_VOL,
+	FM_LEFT_ZERO,
+	FM_RIGHT_ZERO,
+	FM_NORMAL,
+};
+
+// Try to keep the number of parameters to 4 to make sure the optimizer is not doing something too stupid.
+// Pass the volume by pointer instead of left and right values. It seems that the compiler has harder time optimizing with one more variable.
+template <SW_FillMode MODE>
+void FillMonoOutput(int nValue, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume);
+
+template <>
+FORCEINLINE
+void FillMonoOutput<FM_SAME_VOL>(int nValue, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	nValue = int((pVolume[0] * nValue) / 256.0f);
+	pOutput->left += nValue;
+	pOutput->right += nValue;
+}
+
+template <>
+FORCEINLINE
+void FillMonoOutput<FM_LEFT_ZERO>(int nValue, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->right += int((pVolume[1] * nValue) / 256.0f);
+}
+
+template <>
+FORCEINLINE
+void FillMonoOutput<FM_RIGHT_ZERO>(int nValue, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->left += int((pVolume[0] * nValue) / 256.0f);
+}
+
+template <>
+FORCEINLINE
+void FillMonoOutput<FM_NORMAL>(int nValue, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->left += int((pVolume[0] * nValue) / 256.0f);
+	pOutput->right += int((pVolume[1] * nValue) / 256.0f);
+}
+
+template <SW_FillMode MODE>
+void SW_Mix16Mono_Shift_OptMeta(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	fixedint nSampleFrac = nInputOffset;
+
+	while (nOutCount >= 4)
+	{
+		FillMonoOutput<MODE>(*pData, pOutput, pVolume);
+
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac);
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillMonoOutput<MODE>(*pData, pOutput + 1, pVolume);
+
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac);
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillMonoOutput<MODE>(*pData, pOutput + 2, pVolume);
+
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac);
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillMonoOutput<MODE>(*pData, pOutput + 3, pVolume);
+
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac);
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		pOutput += 4;
+		nOutCount -= 4;
+	}
+
+	while (nOutCount > 0)
+	{
+		FillMonoOutput<MODE>(*pData, pOutput, pVolume);
+
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac);
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		++pOutput;
+		--nOutCount;
+	}
+}
+
+void SW_Mix16Mono_Shift_Opt(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	int nVolumeLeft = pVolume[0];
+	int nVolumeRight = pVolume[1];
+
+	if (nVolumeLeft == nVolumeRight)
+	{
+		SW_Mix16Mono_Shift_OptMeta<FM_SAME_VOL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+	}
+	else
+	{
+		if (nVolumeLeft <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_Shift_OptMeta<FM_LEFT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+		else if (nVolumeRight <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_Shift_OptMeta<FM_RIGHT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+		else
+		{
+			SW_Mix16Mono_Shift_OptMeta<FM_NORMAL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+	}
+}
+
+template <SW_FillMode MODE>
+void SW_Mix16Mono_NoShift_OptMeta(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nOutCount)
+{
+	// This code is relatively lightweight, and usually 255 to 1020 samples are passed. So 8 at a time.
+	while (nOutCount >= 4)
+	{
+		FillMonoOutput<MODE>(pData[0], pOutput, pVolume);
+		FillMonoOutput<MODE>(pData[1], pOutput + 1, pVolume);
+		FillMonoOutput<MODE>(pData[2], pOutput + 2, pVolume);
+		FillMonoOutput<MODE>(pData[3], pOutput + 3, pVolume);
+
+		pData += 4;
+		pOutput += 4;
+		nOutCount -= 4;
+	}
+
+	while (nOutCount > 0)
+	{
+		FillMonoOutput<MODE>(pData[0], pOutput, pVolume);
+
+		++pData;
+		++pOutput;
+		--nOutCount;
+	}
+}
+
+void SW_Mix16Mono_NoShift_Opt(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nOutCount)
+{
+	int nVolumeLeft = pVolume[0];
+	int nVolumeRight = pVolume[1];
+
+	if (nVolumeLeft == nVolumeRight)
+	{
+		SW_Mix16Mono_NoShift_OptMeta<FM_SAME_VOL>(pOutput, pVolume, pData, nOutCount);
+	}
+	else
+	{
+		if (nVolumeLeft <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_NoShift_OptMeta<FM_LEFT_ZERO>(pOutput, pVolume, pData, nOutCount);
+		}
+		else if (nVolumeRight <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_NoShift_OptMeta<FM_RIGHT_ZERO>(pOutput, pVolume, pData, nOutCount);
+		}
+		else
+		{
+			SW_Mix16Mono_NoShift_OptMeta<FM_NORMAL>(pOutput, pVolume, pData, nOutCount);
+		}
+	}
+}
+
 void SW_Mix16Mono( portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
 {
 	if ( rateScaleFix == FIX(1) )
@@ -3787,20 +3996,307 @@ void SW_Mix16Mono_Interp( portable_samplepair_t *pOutput, int *volume, short *pD
 	}
 }
 
-void SW_Mix16Stereo( portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
+template <SW_FillMode MODE>
+void SW_Mix16Mono_Interp_OptMeta(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
 {
-	int sampleIndex = 0;
-	fixedint sampleFrac = inputOffset;
+	fixedint rateScaleFix14 = FIX_28TO14(nRateScaleFix);		// convert 28 bit fixed point to 14 bit fixed point
+	fixedint sampleFrac14 = FIX_28TO14(nInputOffset);
 
-	for ( int i = 0; i < outCount; i++ )
+	int first, second, interp;
+
+	while (nOutCount >= 4)
 	{
-		pOutput[i].left  += (volume[0] * (int)(pData[sampleIndex]))>>8;
-		pOutput[i].right += (volume[1] * (int)(pData[sampleIndex+1]))>>8;
+		first = (int)(pData[0]);
+		second = (int)(pData[1]);
+		interp = first + (((second - first) * (int)sampleFrac14) >> 14);
+		FillMonoOutput<MODE>(interp, pOutput, pVolume);
 
-		sampleFrac += rateScaleFix;
-		sampleIndex += FIX_INTPART(sampleFrac)<<1;
-		sampleFrac = FIX_FRACPART(sampleFrac);
+		sampleFrac14 += rateScaleFix14;
+		pData += FIX_INTPART14(sampleFrac14);
+		sampleFrac14 = FIX_FRACPART14(sampleFrac14);
+
+		first = (int)(pData[0]);
+		second = (int)(pData[1]);
+		interp = first + (((second - first) * (int)sampleFrac14) >> 14);
+		FillMonoOutput<MODE>(interp, pOutput + 1, pVolume);
+
+		sampleFrac14 += rateScaleFix14;
+		pData += FIX_INTPART14(sampleFrac14);
+		sampleFrac14 = FIX_FRACPART14(sampleFrac14);
+
+		first = (int)(pData[0]);
+		second = (int)(pData[1]);
+		interp = first + (((second - first) * (int)sampleFrac14) >> 14);
+		FillMonoOutput<MODE>(interp, pOutput + 2, pVolume);
+
+		sampleFrac14 += rateScaleFix14;
+		pData += FIX_INTPART14(sampleFrac14);
+		sampleFrac14 = FIX_FRACPART14(sampleFrac14);
+
+		first = (int)(pData[0]);
+		second = (int)(pData[1]);
+		interp = first + (((second - first) * (int)sampleFrac14) >> 14);
+		FillMonoOutput<MODE>(interp, pOutput + 3, pVolume);
+
+		sampleFrac14 += rateScaleFix14;
+		pData += FIX_INTPART14(sampleFrac14);
+		sampleFrac14 = FIX_FRACPART14(sampleFrac14);
+
+		pOutput += 4;
+		nOutCount -= 4;
 	}
+
+	while (nOutCount > 0)
+	{
+		first = (int)(pData[0]);
+		second = (int)(pData[1]);
+		interp = first + (((second - first) * (int)sampleFrac14) >> 14);
+		FillMonoOutput<MODE>(interp, pOutput, pVolume);
+
+		sampleFrac14 += rateScaleFix14;
+		pData += FIX_INTPART14(sampleFrac14);
+		sampleFrac14 = FIX_FRACPART14(sampleFrac14);
+
+		++pOutput;
+		--nOutCount;
+	}
+}
+
+void SW_Mix16Mono_Interp_Opt(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	// Besides unrolling, there are 2 other possible optimizations:
+	//	In some cases both volumes are the same.
+	//  In other cases, one of the volume is zero. (no case where both volumes are zero).
+
+	// Would doing one 32 bit load and one 64 bits write instead of 2 be better? (although the 32 bit load would be unaligned, so may not be possible).
+	// We "save" on the potential memory access, on the other hand we have to mask / shift, etc... to get the two members. (On PPC, it could save on the numbers of write that can be scheduled out of order).
+
+	// Except for the multiplication, there would be a potential to use integer VMX. It is not clear if that would be a real gain though as we would only do the calculation 2 samples at a time. :(
+
+	// There is also a potential for not always load 2 samples every time (can at least re-use a previous one) but I don't know how much this would save though.
+	// Would have to do a branch-less select and still load one regardless, may not be worth the effort.
+
+	int nVolumeLeft = pVolume[0];
+	int nVolumeRight = pVolume[1];
+
+	if (nVolumeLeft == nVolumeRight)
+	{
+		SW_Mix16Mono_Interp_OptMeta<FM_SAME_VOL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+	}
+	else
+	{
+		if (nVolumeLeft <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_Interp_OptMeta<FM_LEFT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+		else if (nVolumeRight <= CULLED_VOLUME)
+		{
+			SW_Mix16Mono_Interp_OptMeta<FM_RIGHT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+		else
+		{
+			SW_Mix16Mono_Interp_OptMeta<FM_NORMAL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+	}
+}
+
+// Try to keep the number of parameters to 4 to make sure the optimizer is not doing something too stupid.
+// Pass the volume by pointer instead of left and right values. It seems that the compiler has harder time optimizing with one more variable.
+template <SW_FillMode MODE>
+void FillStereoOutput(short* RESTRICT pInput, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume);
+
+template <>
+FORCEINLINE
+void FillStereoOutput<FM_SAME_VOL>(short* RESTRICT pInput, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	int nVolume = pVolume[0];
+	pOutput->left += int((nVolume * (int)(pInput[0])) / 256.0f);
+	pOutput->right += int((nVolume * (int)(pInput[1])) / 256.0f);
+}
+
+template <>
+FORCEINLINE
+void FillStereoOutput<FM_LEFT_ZERO>(short* RESTRICT pInput, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->right += int((pVolume[1] * (int)(pInput[1])) / 256.0f);
+}
+
+template <>
+FORCEINLINE
+void FillStereoOutput<FM_RIGHT_ZERO>(short* RESTRICT pInput, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->left += int((pVolume[0] * (int)(pInput[0])) / 256.0f);
+}
+
+template <>
+FORCEINLINE
+void FillStereoOutput<FM_NORMAL>(short* RESTRICT pInput, portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume)
+{
+	pOutput->left += int((pVolume[0] * (int)(pInput[0])) / 256.0f);
+	pOutput->right += int((pVolume[1] * (int)(pInput[1])) / 256.0f);
+}
+
+template <SW_FillMode MODE>
+void SW_Mix16Stereo_NoShift_OptMeta(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nOutCount)
+{
+	while (nOutCount >= 4)
+	{
+		FillStereoOutput<MODE>(pData + 0, pOutput + 0, pVolume);
+		FillStereoOutput<MODE>(pData + 2, pOutput + 1, pVolume);
+		FillStereoOutput<MODE>(pData + 4, pOutput + 2, pVolume);
+		FillStereoOutput<MODE>(pData + 6, pOutput + 3, pVolume);
+
+		pOutput += 4;
+		pData += 8;
+		nOutCount -= 4;
+	}
+
+	while (nOutCount > 0)
+	{
+		FillStereoOutput<MODE>(pData, pOutput, pVolume);
+
+		++pOutput;
+		pData += 2;
+		--nOutCount;
+	}
+}
+
+template <SW_FillMode MODE>
+void SW_Mix16Stereo_Shift_OptMeta(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	fixedint nSampleFrac = nInputOffset;
+
+	while (nOutCount >= 4)
+	{
+		FillStereoOutput<MODE>(pData, pOutput, pVolume);
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillStereoOutput<MODE>(pData, pOutput + 1, pVolume);
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillStereoOutput<MODE>(pData, pOutput + 2, pVolume);
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		FillStereoOutput<MODE>(pData, pOutput + 3, pVolume);
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		pOutput += 4;
+		nOutCount -= 4;
+	}
+
+	while (nOutCount > 0)
+	{
+		FillStereoOutput<MODE>(pData, pOutput, pVolume);
+		nSampleFrac += nRateScaleFix;
+		pData += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+
+		++pOutput;
+		--nOutCount;
+	}
+}
+
+void SW_Mix16Stereo_Opt(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	int nVolumeLeft = pVolume[0];
+	int nVolumeRight = pVolume[1];
+
+	if (nRateScaleFix == FIX(1))
+	{
+		if (nVolumeLeft == nVolumeRight)
+		{
+			SW_Mix16Stereo_NoShift_OptMeta<FM_SAME_VOL>(pOutput, pVolume, pData, nOutCount);
+		}
+		else
+		{
+			if (nVolumeLeft <= CULLED_VOLUME)
+			{
+				SW_Mix16Stereo_NoShift_OptMeta<FM_LEFT_ZERO>(pOutput, pVolume, pData, nOutCount);
+			}
+			else if (nVolumeRight <= CULLED_VOLUME)
+			{
+				SW_Mix16Stereo_NoShift_OptMeta<FM_RIGHT_ZERO>(pOutput, pVolume, pData, nOutCount);
+			}
+			else
+			{
+				SW_Mix16Stereo_NoShift_OptMeta<FM_NORMAL>(pOutput, pVolume, pData, nOutCount);
+			}
+		}
+	}
+	else
+	{
+		if (nVolumeLeft == nVolumeRight)
+		{
+			SW_Mix16Stereo_Shift_OptMeta<FM_SAME_VOL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+		}
+		else
+		{
+			if (nVolumeLeft <= CULLED_VOLUME)
+			{
+				SW_Mix16Stereo_Shift_OptMeta<FM_LEFT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+			}
+			else if (nVolumeRight <= CULLED_VOLUME)
+			{
+				SW_Mix16Stereo_Shift_OptMeta<FM_RIGHT_ZERO>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+			}
+			else
+			{
+				SW_Mix16Stereo_Shift_OptMeta<FM_NORMAL>(pOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+			}
+		}
+	}
+}
+
+void SW_Mix16Stereo_NoOpt(portable_samplepair_t* RESTRICT pOutput, float* RESTRICT pVolume, short* RESTRICT pData, int nInputOffset, fixedint nRateScaleFix, int nOutCount)
+{
+	int nSampleIndex = 0;
+	fixedint nSampleFrac = nInputOffset;
+
+	for (int i = 0; i < nOutCount; i++)
+	{
+		pOutput[i].left += int((pVolume[0] * (int)(pData[nSampleIndex])) / 256.0f);
+		pOutput[i].right += int((pVolume[1] * (int)(pData[nSampleIndex + 1])) / 256.0f);
+
+		nSampleFrac += nRateScaleFix;
+		nSampleIndex += FIX_INTPART(nSampleFrac) << 1;
+		nSampleFrac = FIX_FRACPART(nSampleFrac);
+	}
+}
+
+void SW_Mix16Stereo( portable_samplepair_t *pOutput, float *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
+{
+#if CHECK_VALUES_AFTER_REFACTORING
+	// Backup the output and apply the same changes
+	portable_samplepair_t* pOldOutput = DuplicateSamplePairs(pOutput, nOutCount);
+
+	// Run the old code
+	SW_Mix16Stereo_NoOpt(pOldOutput, pVolume, pData, nInputOffset, nRateScaleFix, nOutCount);
+#endif
+
+	if (snd_mix_optimization.GetBool())
+	{
+		SW_Mix16Stereo_Opt(pOutput, volume, pData, inputOffset, rateScaleFix, outCount);
+	}
+	else
+	{
+		SW_Mix16Stereo_NoOpt(pOutput, volume, pData, inputOffset, rateScaleFix, outCount);
+	}
+
+#if CHECK_VALUES_AFTER_REFACTORING
+	// Compare side by side
+	bool bFailed = (memcmp(pOutput, pOldOutput, nOutCount * sizeof(portable_samplepair_t)) != 0);
+	Assert(bFailed == false);
+
+	FreeDuplicatedSamplePairs(pOldOutput, nOutCount);
+#endif
 }
 
 // interpolating pitch shifter - sample(s) from preceding buffer are preloaded in
@@ -3861,6 +4357,13 @@ void Mix8MonoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *
 
 void Mix16MonoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
 {
+	float fTotalVolume = volume[0] + volume[1];
+	if (fTotalVolume <= SKIP_MIXING_IF_TOTAL_VOLUME_LESS_OR_EQUAL_THAN)
+	{
+		// Not enough volume to mix, skip it
+		return;
+	}
+
 	if ( FUseHighQualityPitch( pChannel ) )
 		SW_Mix16Mono_Interp( pOutput, volume, pData, inputOffset, rateScaleFix, outCount );
 	else
@@ -3910,8 +4413,15 @@ void Mix8StereoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int
 }
 
 
-void Mix16StereoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, int *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
+void Mix16StereoWavtype( channel_t *pChannel, portable_samplepair_t *pOutput, float *volume, short *pData, int inputOffset, fixedint rateScaleFix, int outCount )
 {
+	float fTotalVolume = volume[0] + volume[1];
+	if (fTotalVolume <= SKIP_MIXING_IF_TOTAL_VOLUME_LESS_OR_EQUAL_THAN)
+	{
+		// Not enough volume to mix, skip it
+		return;
+	}
+
 	switch ( pChannel->wavtype )
 	{
 	case CHAR_DOPPLER:

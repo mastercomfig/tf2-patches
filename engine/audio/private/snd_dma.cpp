@@ -426,6 +426,7 @@ bool CSfxTable::IsPrecachedSound()
 }
 
 float		g_DuckScale = 1.0f;
+int         g_DuckScaleInt256 = 256.0f;
 
 // Structure used for fading in and out client sound volume.
 typedef struct
@@ -4925,13 +4926,34 @@ void ChannelSetVol( channel_t *pch, int ivol, int vol )
 
 // copy current channel volumes into target array, starting at ivol, copying cvol entries
 
-void ChannelCopyVolumes( channel_t *pch, int *pvolume_dest, int ivol_start, int cvol )
+void ChannelCopyVolumes( channel_t *pch, float *pvolume_dest, int ivol_start, int cvol )
 {
 	Assert (ivol_start < CCHANVOLUMES);
 	Assert (ivol_start + cvol <= CCHANVOLUMES);
 
-	for (int i = 0; i < cvol; i++)
-		pvolume_dest[i] = (int)(pch->fvolume[i + ivol_start]);
+	if ((ivol_start == 0) && (cvol == CCHANVOLUMES))
+	{
+		// This is the path executed in most cases
+		// Unroll by hand so the code can be optimized to reduce LHS a bit (due to float to int conversion)
+		// I.e. if the compiler does a proper job, we will only pay for the first LHS
+		pvolume_dest[0] = pch->fvolume[0];
+		pvolume_dest[1] = pch->fvolume[1];
+		pvolume_dest[2] = pch->fvolume[2];
+		pvolume_dest[3] = pch->fvolume[3];
+		pvolume_dest[4] = pch->fvolume[4];
+		pvolume_dest[5] = pch->fvolume[5];
+		pvolume_dest[6] = pch->fvolume[6];
+		pvolume_dest[7] = pch->fvolume[7];
+		pvolume_dest[8] = pch->fvolume[8];
+		pvolume_dest[9] = pch->fvolume[9];
+		pvolume_dest[10] = pch->fvolume[10];
+		pvolume_dest[11] = pch->fvolume[11];
+	}
+	else
+	{
+		for (int i = 0; i < cvol; i++)
+			pvolume_dest[i] = pch->fvolume[i + ivol_start];
+	}
 }
 
 // volume has hit target, shut off crossfading increment
@@ -6065,6 +6087,7 @@ static void S_UpdateVoiceDuck( int voiceChannelCount, int voiceChannelMaxVolume,
 	}
 	float rate = ( duckTarget < g_DuckScale ) ? snd_duckerattacktime.GetFloat() : snd_duckerreleasetime.GetFloat();
 	g_DuckScale = Approach( duckTarget, g_DuckScale, frametime * ((1-volume_when_ducked) / rate) );
+	g_DuckScaleInt256 = g_DuckScale * 256.0f;
 }
 
 // set 2d forward vector, given 3d right vector.
@@ -6528,7 +6551,7 @@ void S_Update_Guts( float mixAheadTime )
 //	time.
 
 	// mix ahead of current position
-	unsigned endtime = g_AudioDevice->PaintBegin( mixAheadTime, g_soundtime, g_paintedtime );
+	int64 endtime = g_AudioDevice->PaintBegin( mixAheadTime, g_soundtime, g_paintedtime );
 
 	int samples = endtime - g_paintedtime;
 	samples = samples < 0 ? 0 : samples;
