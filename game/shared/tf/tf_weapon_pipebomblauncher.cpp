@@ -407,6 +407,24 @@ CBaseEntity *CTFPipebombLauncher::FireProjectile( CTFPlayer *pPlayer )
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: Detonate this demoman's pipebombs if secondary fire is down.
+//-----------------------------------------------------------------------------
+void CTFPipebombLauncher::ItemBusyFrame( void )
+{
+#ifdef GAME_DLL
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	if ( pOwner && pOwner->m_nButtons & IN_ATTACK2 )
+	{
+		// We need to do this to catch the case of player trying to detonate
+		// pipebombs while in the middle of reloading.
+		SecondaryAttack();
+	}
+#endif
+
+	BaseClass::ItemBusyFrame();
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: Detonate active pipebombs
 //-----------------------------------------------------------------------------
 void CTFPipebombLauncher::SecondaryAttack( void )
