@@ -652,7 +652,7 @@ ITexture* CStudioRender::RenderGlintTexture( const eyeballstate_t *pState,
 		DisableScissor();
 	}
 	pRenderContext->ClearColor4ub( 0, 0, 0, 0 );
-	//pRenderContext->ClearBuffers( true, false, false );
+	pRenderContext->ClearBuffers( true, false, false );
 
 	pRenderContext->SetFlashlightMode( false );
 	pRenderContext->SetHeightClipMode( MATERIAL_HEIGHTCLIPMODE_DISABLE );
