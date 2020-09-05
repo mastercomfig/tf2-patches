@@ -1045,16 +1045,16 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable, bool bFullC
 					{
 						ThreadHandle_t hMainThread = ThreadGetCurrentHandle();
 						Thread_SetIdealProcessor( hMainThread, 0 );
-						static int iProc = 2;
+						static int iProc = ci.m_nLogicalProcessors > 2 ? 2 : 0;
 						for ( int i = 0; i < m_Threads.Count(); i++ )
 						{
 							iProc += nHwThreadsPer;
 							if ( iProc >= ci.m_nLogicalProcessors )
 							{
 								iProc %= ci.m_nLogicalProcessors;
-								if ( nHwThreadsPer > 1 )
+								if (iProc < 2 && ci.m_nLogicalProcessors > 2)
 								{
-									iProc = ( iProc + 1 ) % nHwThreadsPer;
+									iProc = 2;
 								}
 							}
 							Thread_SetIdealProcessor((ThreadHandle_t)m_Threads[i]->GetThreadHandle(), iProc);
@@ -1064,16 +1064,16 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable, bool bFullC
 				}
 #else
 				// no affinity table, distribution is cycled across all available
-				static int iProc = 1;
+				static int iProc = ci.m_nLogicalProcessors > 2 ? 2 : 0;
 				for ( int i = 0; i < m_Threads.Count(); i++ )
 				{
 					iProc += nHwThreadsPer;
 					if ( iProc >= ci.m_nLogicalProcessors )
 					{
 						iProc %= ci.m_nLogicalProcessors;
-						if ( nHwThreadsPer > 1 )
+						if (iProc < 2 && ci.m_nLogicalProcessors > 2)
 						{
-							iProc = ( iProc + 1 ) % nHwThreadsPer;
+							iProc = 2;
 						}
 					}
 #ifdef WIN32

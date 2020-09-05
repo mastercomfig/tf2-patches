@@ -2192,9 +2192,6 @@ void WorldStaticMeshCreate( void )
 			}
 		}
 		meshBuilder.End();
-		Msg("Mesh builder cnt: %d\n", vertBufferIndex);
-		Msg("Mesh builder cnt: %d\n", meshBuilder.VertexCount());
-		Msg("Mesh builder size: %d\n", meshBuilder.VertexSize());
 		Assert(vertBufferIndex == g_Meshes[i].vertCount);
 		if ( g_VBAllocTracker )
 			g_VBAllocTracker->TrackMeshAllocations( NULL );
