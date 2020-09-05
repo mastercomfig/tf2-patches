@@ -368,6 +368,8 @@ public:
 
 	WNDPROC m_ChainedWndProc;
 	HWND m_hAttachedHWnd;
+	int m_windowOffsetX;
+	int m_windowOffsetY;
 	bool m_bEnabled;
 	bool m_bPumpEnabled;
 	bool m_bIsPolling;

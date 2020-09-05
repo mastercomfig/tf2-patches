@@ -1660,7 +1660,7 @@ void CEngineVGui::Simulate()
 		VGui_UpdateDrawTreePanel();
 		VGui_UpdateTextureListPanel();
 
-		vgui::surface()->CalculateMouseVisible();
+		//vgui::surface()->CalculateMouseVisible();
 		VGui_ActivateMouse();
 	}
 

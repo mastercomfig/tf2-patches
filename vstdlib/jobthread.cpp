@@ -194,7 +194,7 @@ public:
 	bool Start( const ThreadPoolStartParams_t &startParams = ThreadPoolStartParams_t() ) { return Start( startParams, NULL ); }
 	bool Start( const ThreadPoolStartParams_t &startParams, const char *pszNameOverride );
 	bool Stop( int timeout = TT_INFINITE );
-	void Distribute( bool bDistribute = true, int *pAffinityTable = NULL );
+	void Distribute( bool bDistribute = true, int *pAffinityTable = NULL, bool bFullCore = true );
 
 	//-----------------------------------------------------
 	// Functions for any thread
@@ -1017,19 +1017,19 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 #endif
 	}
 
-	Distribute( bDistribute, startParams.bUseAffinityTable ? (int *)startParams.iAffinityTable : NULL );
+	Distribute( bDistribute, startParams.bUseAffinityTable ? (int *)startParams.iAffinityTable : NULL, startParams.bFullCore );
 
 	return true;
 }
 
 //---------------------------------------------------------
 
-void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
+void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable, bool bFullCore )
 {
 	if ( bDistribute )
 	{
 		const CPUInformation &ci = *GetCPUInformation();
-		int nHwThreadsPer = (( ci.m_bHT ) ? 2 : 1);
+		int nHwThreadsPer = (( ci.m_bHT && bFullCore ) ? 2 : 1);
 		if ( ci.m_nLogicalProcessors > 1 )
 		{
 			if ( !pAffinityTable )
@@ -1045,7 +1045,7 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
 					{
 						ThreadHandle_t hMainThread = ThreadGetCurrentHandle();
 						Thread_SetIdealProcessor( hMainThread, 0 );
-						int iProc = 0;
+						static int iProc = 2;
 						for ( int i = 0; i < m_Threads.Count(); i++ )
 						{
 							iProc += nHwThreadsPer;
@@ -1064,7 +1064,7 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
 				}
 #else
 				// no affinity table, distribution is cycled across all available
-				int iProc = 0;
+				static int iProc = 1;
 				for ( int i = 0; i < m_Threads.Count(); i++ )
 				{
 					iProc += nHwThreadsPer;

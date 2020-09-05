@@ -462,7 +462,7 @@ void OnChangeThreadAffinity( IConVar *var, const char *pOldValue, float flOldVal
 {
 	if ( g_pThreadPool->NumThreads() )
 	{
-		g_pThreadPool->Distribute( threadpool_affinity.GetBool() );
+		g_pThreadPool->Distribute( threadpool_affinity.GetBool(), NULL, false );
 	}
 }
 

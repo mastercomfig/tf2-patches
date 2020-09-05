@@ -305,6 +305,14 @@ void CInputSystem::AttachToWindow( void* hWnd )
 
 	m_hAttachedHWnd = (HWND)hWnd;
 
+#if defined( PLATFORM_WINDOWS )
+	POINT pt;
+	pt.x = 0; pt.y = 0;
+	ClientToScreen((HWND)m_hAttachedHWnd, &pt);
+	m_windowOffsetX = pt.x;
+	m_windowOffsetY = pt.y;
+#endif
+
 #if defined( PLATFORM_WINDOWS_PC ) && !defined( USE_SDL )
 	// NVNT inform novint devices of window
 	AttachWindowToNovintDevices( hWnd );
@@ -1202,8 +1210,7 @@ void CInputSystem::SetCursorPosition( int x, int y )
 
 #if defined( PLATFORM_WINDOWS )
 	POINT pt;
-	pt.x = x; pt.y = y;
-	ClientToScreen( (HWND)m_hAttachedHWnd, &pt );
+	pt.x = x + m_windowOffsetX; pt.y = y + m_windowOffsetY;
 	SetCursorPos( pt.x, pt.y );
 #elif defined( USE_SDL )
 	m_pLauncherMgr->SetCursorPosition( x, y );

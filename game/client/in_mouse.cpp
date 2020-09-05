@@ -134,7 +134,7 @@ void CInput::ActivateMouse (void)
 		}
 		m_fMouseActive = true;
 
-		ResetMouse();
+		//ResetMouse();
 #if !defined( PLATFORM_WINDOWS )
 		int dx, dy;
 		engine->GetMouseDelta( dx, dy, true );
@@ -683,7 +683,7 @@ void CInput::MouseMove( CUserCmd *cmd )
 		ApplyMouse( viewangles, cmd, mouse_x, mouse_y );
 
 		// Re-center the mouse.
-		ResetMouse();
+		//ResetMouse();
 	}
 
 	// Store out the new viewangles.
