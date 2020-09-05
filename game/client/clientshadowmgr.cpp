@@ -1641,7 +1641,7 @@ void CClientShadowMgr::RestoreRenderState()
 	}
 
 	SetShadowColor( m_AmbientLightColor.r, m_AmbientLightColor.g, m_AmbientLightColor.b );
-	m_bRenderTargetNeedsClear = true;
+	//m_bRenderTargetNeedsClear = true;
 }
 
 

@@ -1190,7 +1190,7 @@ void CViewRender::Render( vrect_t *rect )
 		if( viewEye.m_flAspectRatio <= 0.f )
 			viewEye.m_flAspectRatio	= (float)viewEye.width / (float)viewEye.height;
 
-	    int nClearFlags = VIEW_CLEAR_DEPTH | VIEW_CLEAR_STENCIL;
+		int nClearFlags = 0;
 
 	    if( gl_clear_randomcolor.GetBool() )
 	    {

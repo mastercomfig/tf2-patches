@@ -2359,8 +2359,8 @@ void CMatRenderContext::CopyTextureToRenderTargetEx( int nRenderTargetID, ITextu
 void CMatRenderContext::ClearBuffers( bool bClearColor, bool bClearDepth, bool bClearStencil )
 {
 	int width, height;
-	GetRenderTargetDimensions( width, height );
-	g_pShaderAPI->ClearBuffers( bClearColor, bClearDepth, bClearStencil, width, height );
+	GetRenderTargetDimensions(width, height);
+	g_pShaderAPI->ClearBuffers(bClearColor, bClearDepth, bClearStencil, width, height);
 }
 
 void CMatRenderContext::DrawClearBufferQuad( unsigned char r, unsigned char g, unsigned char b, unsigned char a, bool bClearColor, bool bClearAlpha, bool bClearDepth )

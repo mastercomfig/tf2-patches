@@ -1825,7 +1825,7 @@ void CViewRender::SetupMain3DView( const CViewSetup &viewRender, int &nClearFlag
 	// instead of whatever was previously the render target
 	if( g_pMaterialSystemHardwareConfig->GetHDRType() == HDR_TYPE_FLOAT )
 	{
-		render->Push3DView( viewRender, nClearFlags, GetFullFrameFrameBufferTexture( 0 ), GetFrustum() );
+		render->Push3DView( viewRender, 0, GetFullFrameFrameBufferTexture( 0 ), GetFrustum() );
 	}
 	else
 	{
@@ -1837,7 +1837,7 @@ void CViewRender::SetupMain3DView( const CViewSetup &viewRender, int &nClearFlag
 			pRTDepth = g_pSourceVR->GetRenderTarget( (ISourceVirtualReality::VREye)(viewRender.m_eStereoEye-1), ISourceVirtualReality::RT_Depth );
 		}
 
-		render->Push3DView( viewRender, nClearFlags, pRTColor, GetFrustum(), pRTDepth );
+		render->Push3DView( viewRender, 0, pRTColor, GetFrustum(), pRTDepth );
 	}
 
 	// If we didn't clear the depth here, we'll need to clear it later
@@ -4876,7 +4876,7 @@ bool CSkyboxView::Setup( const CViewSetup &viewRender, int *pClearFlags, SkyboxV
 	// The next path will need to clear depth, though.
 	m_ClearFlags = *pClearFlags;
 	*pClearFlags &= ~( VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH | VIEW_CLEAR_STENCIL | VIEW_CLEAR_FULL_TARGET );
-	*pClearFlags |= VIEW_CLEAR_DEPTH; // Need to clear depth after rednering the skybox
+	*pClearFlags |= VIEW_CLEAR_DEPTH; // Need to clear depth after rendering the skybox
 
 	m_DrawFlags = DF_RENDER_UNDERWATER | DF_RENDER_ABOVEWATER | DF_RENDER_WATER;
 	if( r_skybox.GetBool() )
@@ -5010,7 +5010,7 @@ void CShadowDepthView::Draw()
 
 	if( IsPC() )
 	{
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
+		render->Push3DView( (*this), 0, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
 	}
 	else if( IsX360() )
 	{
@@ -5669,7 +5669,7 @@ void CSimpleWorldView::Draw()
 	}
 	else
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 
 		SetFogVolumeState( m_fogInfo, false );
 
@@ -5826,7 +5826,7 @@ void CAboveWaterView::Draw()
 	}
 	else if ( !( m_DrawFlags & DF_DRAWSKYBOX ) )
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 	}
 
 #ifdef PORTAL
@@ -5934,7 +5934,8 @@ void CAboveWaterView::CRefractionView::Setup()
 {
 	BaseClass::Setup( *GetOuter() );
 
-	m_ClearFlags = VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH;
+	//m_ClearFlags = VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH;
+	m_ClearFlags = VIEW_CLEAR_DEPTH;
 
 	m_DrawFlags = DF_RENDER_REFRACTION | DF_CLIP_Z | 
 		DF_RENDER_UNDERWATER | DF_FUDGE_UP | 
@@ -6110,7 +6111,7 @@ void CUnderWaterView::CRefractionView::Setup()
 	m_ClearFlags = VIEW_CLEAR_DEPTH;
 	if ( GetOuter()->m_bDrawSkybox )
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 		m_DrawFlags |= DF_DRAWSKYBOX | DF_CLIP_SKYBOX;
 	}
 }

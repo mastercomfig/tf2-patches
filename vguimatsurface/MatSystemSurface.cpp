@@ -3201,7 +3201,7 @@ void CMatSystemSurface::PaintTraverseEx(VPANEL panel, bool paintPopups /*= false
 
 		// clear z + stencil buffer
 		// NOTE: Stencil is used to get 3D painting in vgui panels working correctly 
-		pRenderContext->ClearBuffers( false, true, true );
+		pRenderContext->ClearBuffers( false, false, true );
 		pRenderContext->SetStencilEnable( true );
 		pRenderContext->SetStencilFailOperation( STENCILOPERATION_KEEP );
 		pRenderContext->SetStencilZFailOperation( STENCILOPERATION_KEEP );
