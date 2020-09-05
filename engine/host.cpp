@@ -4111,6 +4111,7 @@ void Host_Init( bool bDedicated )
 	{
 		// this will set ideal processor on each thread
 		startParams.fDistribute = TRS_TRUE;
+		startParams.iThreadPriority = 1;
 	}
 	if ( g_pThreadPool )
 		g_pThreadPool->Start( startParams );

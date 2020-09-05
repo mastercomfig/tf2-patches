@@ -1305,7 +1305,7 @@ CThreadMutex::CThreadMutex()
 #ifdef THREAD_MUTEX_TRACING_ENABLED
 	memset( &m_CriticalSection, 0, sizeof(m_CriticalSection) );
 #endif
-	InitializeCriticalSectionAndSpinCount((CRITICAL_SECTION *)&m_CriticalSection, 4000);
+	InitializeCriticalSectionAndSpinCount((CRITICAL_SECTION *)&m_CriticalSection, 0);
 #ifdef THREAD_MUTEX_TRACING_SUPPORTED
 	// These need to be initialized unconditionally in case mixing release & debug object modules
 	// Lock and unlock may be emitted as COMDATs, in which case may get spurious output
@@ -1596,7 +1596,7 @@ void CThreadSpinRWLock::UnlockRead()
 {
 	int i;
 
-	Assert( m_lockInfo.m_nReaders > 0 && m_lockInfo.m_writerId == 0 );
+	Assert( m_lockInfo.load().m_nReaders > 0 && m_lockInfo.load().m_writerId == 0 );
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
@@ -1643,7 +1643,7 @@ void CThreadSpinRWLock::UnlockRead()
 
 void CThreadSpinRWLock::UnlockWrite()
 {
-	Assert( m_lockInfo.m_writerId == ThreadGetCurrentId()  && m_lockInfo.m_nReaders == 0 );
+	Assert( m_lockInfo.load().m_writerId == ThreadGetCurrentId()  && m_lockInfo.load().m_nReaders == 0 );
 	static const LockInfo_t newValue = { 0, 0 };
 #if defined(_X360)
 	// X360TBD: Serious Perf implications, not yet. __sync();
