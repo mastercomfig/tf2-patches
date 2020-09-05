@@ -1222,10 +1222,6 @@ int CMatQueuedRenderContext::GetMaxVerticesToRender( IMaterial *pMaterial )
 	g_pShaderAPI->ComputeVertexDescription( 0, materialFormat, temp );
 
 	int maxVerts = g_pShaderAPI->GetCurrentDynamicVBSize() / temp.m_ActualVertexSize;
-	if ( maxVerts > 65535 )
-	{
-		maxVerts = 65535;
-	}
 	return maxVerts;
 }
 
@@ -1236,10 +1232,6 @@ void CMatQueuedRenderContext::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush,
 {
 	Assert( !bMaxUntilFlush );
 	*pMaxVerts = g_pShaderAPI->GetCurrentDynamicVBSize() / m_pQueuedMesh->GetVertexSize();
-	if ( *pMaxVerts > 65535 )
-	{
-		*pMaxVerts = 65535;
-	}
 	*pMaxIndices = INDEX_BUFFER_SIZE;
 }
 

@@ -508,7 +508,7 @@ struct msurface2_t
 	ShadowDecalHandle_t		m_ShadowDecals; // unsigned short
 	OverlayFragmentHandle_t m_nFirstOverlayFragment;	// First overlay fragment on the surface (short)
 	short					materialSortID;
-	unsigned short			vertBufferIndex;
+	int			            vertBufferIndex;
 
 	unsigned short			m_bDynamicShadowsEnabled : 1;	// Can this surface receive dynamic shadows?
 	unsigned short			texinfo : 15;
@@ -755,7 +755,7 @@ inline unsigned int &MSurf_FirstVertNormal( SurfaceHandle_t surfID, worldbrushda
 	return pData->surfacenormals[surfaceIndex].firstvertnormal;
 }
 
-inline unsigned short &MSurf_VertBufferIndex( SurfaceHandle_t surfID )
+inline int &MSurf_VertBufferIndex( SurfaceHandle_t surfID )
 {
 	return surfID->vertBufferIndex;
 }

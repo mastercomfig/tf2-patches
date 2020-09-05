@@ -1986,7 +1986,7 @@ int FindOrAddMesh( IMaterial *pMaterial, int vertexCount )
 
 	int nMaxVertices = pRenderContext->GetMaxVerticesToRender( pMaterial );
 	int worldLimit = mat_max_worldmesh_vertices.GetInt();
-	worldLimit = max(worldLimit,1024);
+	worldLimit = MAX(worldLimit,1024);
 	if ( nMaxVertices > worldLimit )
 	{
 		nMaxVertices = mat_max_worldmesh_vertices.GetInt();
@@ -2111,7 +2111,7 @@ void WorldStaticMeshCreate( void )
 //			|| SurfaceHasDispInfo( surfID ) )
 		if( SurfaceHasDispInfo( surfID ) )
 		{
-			MSurf_VertBufferIndex( surfID ) = 0xFFFF;
+			MSurf_VertBufferIndex( surfID ) = INT_MAX;
 			continue;
 		}
 
@@ -2174,7 +2174,7 @@ void WorldStaticMeshCreate( void )
 		// NOTE: Index count is zero because this will be a static vertex buffer!!!
 		CMeshBuilder meshBuilder;
 		meshBuilder.Begin( g_Meshes[i].pMesh, MATERIAL_TRIANGLES, g_Meshes[i].vertCount, 0 );
-
+		Msg("Start world mesh draw: %d\n", g_Meshes[i].vertCount);
 		for ( int j = 0; j < g_WorldStaticMeshes.Count(); j++ )
 		{
 			int meshId = sortIndex[j];
@@ -2192,6 +2192,9 @@ void WorldStaticMeshCreate( void )
 			}
 		}
 		meshBuilder.End();
+		Msg("Mesh builder cnt: %d\n", vertBufferIndex);
+		Msg("Mesh builder cnt: %d\n", meshBuilder.VertexCount());
+		Msg("Mesh builder size: %d\n", meshBuilder.VertexSize());
 		Assert(vertBufferIndex == g_Meshes[i].vertCount);
 		if ( g_VBAllocTracker )
 			g_VBAllocTracker->TrackMeshAllocations( NULL );

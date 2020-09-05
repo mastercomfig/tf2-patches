@@ -147,7 +147,11 @@ private:
 		// default max # of particles at one time
 		DEFAULT_PARTICLES	= 2048,
 #else
+#ifdef TF_CLIENT_DLL
+		DEFAULT_PARTICLES   = 512,
+#else
 		DEFAULT_PARTICLES   = 1024,
+#endif
 #endif
 
 		// no fewer than this no matter what's on the command line

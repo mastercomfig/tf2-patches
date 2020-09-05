@@ -654,12 +654,6 @@ CPhysCollide* CEngineTrace::GetCollidableFromDisplacementsInAABB( const Vector& 
 			// Don't allow more than 64k triangles in a collision model
 			// TODO: Return a list of collidables? How often do we break 64k triangles?
 			iTriCount += meshTriList.triangleCount;
-			if ( iTriCount > 65535 )
-			{
-				AssertMsg ( 0, "Displacement surfaces have too many triangles to duplicate in GetCollidableFromDisplacementsInBox." );
-				EndTrace( pTraceInfo );
-				return NULL;
-			}
 
 			for ( int j = 0; j < meshTriList.indexCount; j+=3 )
 			{
