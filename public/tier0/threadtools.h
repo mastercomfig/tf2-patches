@@ -976,6 +976,7 @@ protected:
 
 	bool m_bAutoReset = false;
 	bool m_bSignaled = false;
+	bool m_bInitialized = false;
 public:
 	std::mutex m_Mutex;
 	std::condition_variable m_Condition;

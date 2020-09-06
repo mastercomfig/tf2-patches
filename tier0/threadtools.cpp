@@ -548,13 +548,14 @@ CThreadSyncObject::CThreadSyncObject()
 
 CThreadSyncObject::~CThreadSyncObject()
 {
+	m_bInitialized = false;
 }
 
 //---------------------------------------------------------
 
 bool CThreadSyncObject::operator!() const
 {
-   return false;
+   return !m_bInitialized;
 }
 
 //---------------------------------------------------------
@@ -562,7 +563,7 @@ bool CThreadSyncObject::operator!() const
 void CThreadSyncObject::AssertUseable()
 {
 #ifdef THREADS_DEBUG
-	AssertMsg(m_bInitialized.load(), "Thread synchronization object is unuseable");
+	AssertMsg(m_bInitialized, "Thread synchronization object is unuseable");
 #endif
 }
 
@@ -574,7 +575,20 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
    AssertUseable();
 #endif
 	std::unique_lock<std::mutex> lock(m_Mutex);
-	return m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
+	if (m_bSignaled && !m_bAutoReset)
+	{
+		return true;
+	}
+	if (dwTimeout == 0)
+	{
+		return m_bSignaled;
+	}
+	if (dwTimeout == TT_INFINITE)
+	{
+		m_Condition.wait(lock);
+		return true;
+	}
+	return m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout)) == std::cv_status::no_timeout;
 }
 
 //-----------------------------------------------------------------------------
@@ -585,6 +599,7 @@ CThreadEvent::CThreadEvent( bool bManualReset )
 {
 	m_bAutoReset = !bManualReset;
 	m_bSignaled = false;
+	m_bInitialized = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -601,11 +616,17 @@ bool CThreadEvent::Set()
 #endif
     {
         std::unique_lock<std::mutex> lock(m_Mutex);
-	    if (m_bSignaled)
-	    {
-			return true;
-	    }
-        m_bSignaled = true;
+		if (m_bSignaled)
+		{
+			if (!m_bAutoReset)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			m_bSignaled = true;
+		}
     }
 	if (m_bAutoReset)
 	{
@@ -635,12 +656,12 @@ bool CThreadEvent::Reset()
 bool CThreadEvent::Check()
 {
 #ifdef THREADS_DEBUG
-   AssertUseable();
+    AssertUseable();
 #endif
-	return Wait( 0 );
+    return Wait( 0 );
 }
 
-
+//---------------------------------------------------------
 
 bool CThreadEvent::Wait( uint32 dwTimeout )
 {
