@@ -2394,7 +2394,7 @@ void Mod_LoadCubemapSamples( void )
 
 	// We have separate HDR versions of the textures.  In order to deal with this,
 	// we have blahenvmap.hdr.vtf and blahenvmap.vtf.
-	char *pHDRExtension = "";
+	char *pHDRExtension = (char*)"";
 	if( bHDR )
 	{
 		pHDRExtension = ".hdr";

@@ -169,9 +169,7 @@ bool VoiceRecord_DSound::Init(int sampleRate)
 	DSCBUFFERDESC dscDesc;
 	DirectSoundCaptureCreateFn createFn;
 
-	
 	Term();
-
 
 	WAVEFORMATEX recordFormat =
 	{
@@ -183,80 +181,72 @@ bool VoiceRecord_DSound::Init(int sampleRate)
 		16,						// wBitsPerSample
 		sizeof(WAVEFORMATEX)	// cbSize
 	};
-
-
 	
 	// Load the DSound DLL.
 	m_hInstDS = LoadLibrary("dsound.dll");
-	if(!m_hInstDS)
-		goto HandleError;
-
-	createFn = (DirectSoundCaptureCreateFn)GetProcAddress(m_hInstDS, "DirectSoundCaptureCreate");
-	if(!createFn)
-		goto HandleError;
-
-	const GUID FAR *pGuid = &DSDEVID_DefaultVoiceCapture;
-	if ( IsRunningWindows7() )
+	if(m_hInstDS)
 	{
-		pGuid = NULL;
+		createFn = (DirectSoundCaptureCreateFn)GetProcAddress(m_hInstDS, "DirectSoundCaptureCreate");
+		if (createFn)
+		{
+			const GUID FAR* pGuid = &DSDEVID_DefaultVoiceCapture;
+			if (IsRunningWindows7())
+			{
+				pGuid = NULL;
+			}
+			hr = createFn(pGuid, &m_pCapture, NULL);
+			if (!FAILED(hr))
+			{
+				// Create the capture buffer.
+				memset(&dscDesc, 0, sizeof(dscDesc));
+				dscDesc.dwSize = sizeof(dscDesc);
+				dscDesc.dwFlags = 0;
+				dscDesc.dwBufferBytes = recordFormat.nAvgBytesPerSec;
+				dscDesc.lpwfxFormat = &recordFormat;
+
+				hr = m_pCapture->CreateCaptureBuffer(&dscDesc, &m_pCaptureBuffer, NULL);
+				if (!FAILED(hr))
+				{
+					// Figure out how many bytes we got in our capture buffer.
+					DSCBCAPS caps;
+					memset(&caps, 0, sizeof(caps));
+					caps.dwSize = sizeof(caps);
+
+					hr = m_pCaptureBuffer->GetCaps(&caps);
+					if (!FAILED(hr))
+					{
+						m_nCaptureBufferBytes = caps.dwBufferBytes;
+						// Set it up so we get notification when the buffer wraps.
+						m_hWrapEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+						if (m_hWrapEvent)
+						{
+							DSBPOSITIONNOTIFY dsbNotify;
+							dsbNotify.dwOffset = dscDesc.dwBufferBytes - 1;
+							dsbNotify.hEventNotify = m_hWrapEvent;
+
+							// Get the IDirectSoundNotify interface.
+							LPDIRECTSOUNDNOTIFY pNotify;
+							hr = m_pCaptureBuffer->QueryInterface(IID_IDirectSoundNotify, (void**)&pNotify);
+							if (!FAILED(hr))
+							{
+								hr = pNotify->SetNotificationPositions(1, &dsbNotify);
+								pNotify->Release();
+								if (!FAILED(hr))
+								{
+									// Start capturing.
+									hr = m_pCaptureBuffer->Start(DSCBSTART_LOOPING);
+									if (!FAILED(hr))
+										return true;
+									// TODO(mastercoms): skip term or not?
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
-	hr = createFn(pGuid, &m_pCapture, NULL);
-	if(FAILED(hr))
-		goto HandleError;
 
-	// Create the capture buffer.
-	memset(&dscDesc, 0, sizeof(dscDesc));
-	dscDesc.dwSize = sizeof(dscDesc);
-	dscDesc.dwFlags = 0;
-	dscDesc.dwBufferBytes = recordFormat.nAvgBytesPerSec;
-	dscDesc.lpwfxFormat = &recordFormat;
-
-	hr = m_pCapture->CreateCaptureBuffer(&dscDesc, &m_pCaptureBuffer, NULL);
-	if(FAILED(hr))
-		goto HandleError;
-
-
-	// Figure out how many bytes we got in our capture buffer.
-	DSCBCAPS caps;
-	memset(&caps, 0, sizeof(caps));
-	caps.dwSize = sizeof(caps);
-
-	hr = m_pCaptureBuffer->GetCaps(&caps);
-	if(FAILED(hr))
-		goto HandleError;
-
-	m_nCaptureBufferBytes = caps.dwBufferBytes;
-
-
-	// Set it up so we get notification when the buffer wraps.
-	m_hWrapEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	if(!m_hWrapEvent)
-		goto HandleError;
-
-	DSBPOSITIONNOTIFY dsbNotify;
-	dsbNotify.dwOffset = dscDesc.dwBufferBytes - 1;
-	dsbNotify.hEventNotify = m_hWrapEvent;
-	
-	// Get the IDirectSoundNotify interface.
-	LPDIRECTSOUNDNOTIFY pNotify;
-	hr = m_pCaptureBuffer->QueryInterface(IID_IDirectSoundNotify, (void**)&pNotify);
-	if(FAILED(hr))
-		goto HandleError;
-	
-	hr = pNotify->SetNotificationPositions(1, &dsbNotify);
-	pNotify->Release();
-	if(FAILED(hr))
-		goto HandleError;
-
-	// Start capturing.
-	hr = m_pCaptureBuffer->Start(DSCBSTART_LOOPING);
-	if(FAILED(hr))
-		return false;
-
-	return true;
-
-
-HandleError:;
 	Term();
 	return false;
 }

@@ -89,7 +89,7 @@ void CDevShotGenerator::BuildMapList()
 	CommandLine()->CheckParm( "-usedevshotsfile", &pMapFile );
 
 	// Build the map list
-	if ( !BuildGeneralMapList( &m_Maps, CommandLine()->FindParm("-usedevshotsfile") != 0, pMapFile, "devshots", &m_iCurrentMap ) )
+	if ( !BuildGeneralMapList( &m_Maps, CommandLine()->FindParm("-usedevshotsfile") != 0, pMapFile, (char*)"devshots", &m_iCurrentMap ) )
 	{
 		m_bDevShotsEnabled = false;
 	}

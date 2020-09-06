@@ -1493,7 +1493,7 @@ ConversionErrorType ImgUtl_ConvertTGAToVTF(const char *tgaPath, int nMaxWidth/*=
 		return CE_ERROR_LOADING_DLL;
 	}
 
-	char *vtfParams[4];
+	const char *vtfParams[4];
 
 	// the 0th entry is skipped cause normally thats the program name.
 	vtfParams[0] = "";

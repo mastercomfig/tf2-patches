@@ -929,7 +929,7 @@ void CMDLPicker::GenerateBackpackIcons( void )
 	Q_FixSlashes( pOutputPathGame );
 
 	// run vtex on the TGA and .txt file to create .VTF and add it to our Perforce changelist
-	char *vTexArgv[64];
+	const char *vTexArgv[64];
 	int vTexArgc = 0;
 	vTexArgv[ vTexArgc++ ] = "";
 	vTexArgv[ vTexArgc++ ] = "-quiet";

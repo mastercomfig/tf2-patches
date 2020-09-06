@@ -228,7 +228,7 @@ SYSTEM_CALL_RESULT_t Plat_GetPagedPoolInfo( PAGED_POOL_INFO_t *pPPI )
 {
 	memset( pPPI, 0, sizeof( *pPPI ) );
 
-	static CSysCallCacheEntry_FindModule qsi( _T( "ntdll.dll" ), "NtQuerySystemInformation" );
+	static CSysCallCacheEntry_FindModule qsi( _T((char*)"ntdll.dll" ), (char*)"NtQuerySystemInformation" );
 	
 	if ( qsi.CallResult() != SYSCALL_SUCCESS )
 		return qsi.CallResult();
@@ -252,7 +252,7 @@ SYSTEM_CALL_RESULT_t Plat_GetPagedPoolInfo( PAGED_POOL_INFO_t *pPPI )
 		}
 
 		// Don't care for 64-bit Windows
-		CSysCallCacheEntry_FindModule wow64( _T( "kernel32.dll" ), "IsWow64Process" );
+		CSysCallCacheEntry_FindModule wow64( _T((char*)"kernel32.dll" ), (char*)"IsWow64Process" );
 		if ( wow64.CallResult() == SYSCALL_SUCCESS )
 		{
 			typedef BOOL ( WINAPI * PFNWOW64 )( HANDLE, PBOOL );

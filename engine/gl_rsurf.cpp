@@ -125,7 +125,7 @@ static ConVar r_drawleaf( "r_drawleaf", "-1", FCVAR_CHEAT, "Draw the specified l
 static ConVar r_drawworld( "r_drawworld", "1", FCVAR_CHEAT, "Render the world." );
 static ConVar r_drawfuncdetail( "r_drawfuncdetail", "1", FCVAR_CHEAT, "Render func_detail" );
 static ConVar fog_enable_water_fog( "fog_enable_water_fog", "1", FCVAR_CHEAT );
-static ConVar r_fastzreject( "r_fastzreject", "1", FCVAR_ALLOWED_IN_COMPETITIVE, "Activate/deactivates a fast z-setting algorithm to take advantage of hardware with fast z reject. Use -1 to default to hardware settings" );
+static ConVar r_fastzreject( "r_fastzreject", "0", FCVAR_ALLOWED_IN_COMPETITIVE, "Activate/deactivates a fast z-setting algorithm to take advantage of hardware with fast z reject. Use -1 to default to hardware settings" );
 static ConVar r_fastzrejectdisp( "r_fastzrejectdisp", "0", 0, "Activates/deactivates fast z rejection on displacements (360 only). Only active when r_fastzreject is on." );
 
 

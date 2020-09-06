@@ -119,14 +119,14 @@ void CSessionBrowserDialog::SessionSearchResult( int searchIdx, void *pHostData,
 	switch ( ping )
 	{
 	case 0:
-		pPing = "#TF_Icon_Ping_Green";
+		pPing = (char*)"#TF_Icon_Ping_Green";
 		break;
 	case 1:
-		pPing = "#TF_Icon_Ping_Yellow";
+		pPing = (char*)"#TF_Icon_Ping_Yellow";
 		break;
 	case 2:
 	default:
-		pPing = "#TF_Icon_Ping_Red";
+		pPing = (char*)"#TF_Icon_Ping_Red";
 		break;
 	}
 

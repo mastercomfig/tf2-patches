@@ -207,6 +207,8 @@ public:
 
 	// Warns about leaf reinsertion
 	virtual void DisableLeafReinsertion(bool bDisable) = 0;
+
+	virtual void ComputeAllBounds(void) = 0;
 };
 
 

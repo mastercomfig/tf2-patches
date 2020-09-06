@@ -1637,7 +1637,7 @@ void CRenderTextureEditor::OnCommand( const char *command )
 		StripDirName( szVTFFilename );
 
 		// Now we've modified the source, rebuild the texture
-		char *argv[64];
+		const char *argv[64];
 		int iArg = 0;
 		argv[iArg++] = "";
 		argv[iArg++] = "-quiet";
@@ -2119,7 +2119,7 @@ void CRenderTexturesListViewPanel::RenderTile( int iTile, int x, int y )
 	char const *szTxFormat = kv->GetString( KEYNAME_FORMAT );
 
 	int iTxFormatLen = strlen( szTxFormat );
-	char *szTxFormatSuffix = "";
+	char *szTxFormatSuffix = (char*)"";
 	if ( iTxFormatLen > 4 )
 	{
 fmtlenreduce:
@@ -2144,7 +2144,7 @@ fmtlenreduce:
 			if ( !*szTxFormatSuffix )
 			{
 				iTxFormatLen --;
-				szTxFormatSuffix = "F";
+				szTxFormatSuffix = (char*)"F";
 				goto fmtlenreduce;
 			}
 			break;

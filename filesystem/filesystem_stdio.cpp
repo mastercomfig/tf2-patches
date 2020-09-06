@@ -1382,6 +1382,9 @@ int CWin32ReadOnlyFile::FS_feof()
 //-----------------------------------------------------------------------------
 size_t CWin32ReadOnlyFile::FS_fread( void *dest, size_t destSize, size_t size )
 {
+#if 1
+	return 0;
+#else
 	VPROF_BUDGET( "CWin32ReadOnlyFile::FS_fread", VPROF_BUDGETGROUP_OTHER_FILESYSTEM );
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s %t", __FUNCTION__, tmSendCallStack( TELEMETRY_LEVEL0, 0 ) );
 	if( ThreadInMainThread() )
@@ -1568,6 +1571,7 @@ size_t CWin32ReadOnlyFile::FS_fread( void *dest, size_t destSize, size_t size )
 	m_ReadPos += result;
 
 	return result;
+#endif
 }
 
 //-----------------------------------------------------------------------------

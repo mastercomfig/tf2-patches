@@ -465,8 +465,8 @@ CON_COMMAND( key_findbinding, "Find key bound to specified command string." )
 //-----------------------------------------------------------------------------
 void Key_Init (void)
 {
-	ReadCheatCommandsFromFile( "scripts/cheatcodes.txt" );
-	ReadCheatCommandsFromFile( "scripts/mod_cheatcodes.txt" );
+	ReadCheatCommandsFromFile( (char*)"scripts/cheatcodes.txt" );
+	ReadCheatCommandsFromFile( (char*)"scripts/mod_cheatcodes.txt" );
 }
 
 void Key_Shutdown( void )

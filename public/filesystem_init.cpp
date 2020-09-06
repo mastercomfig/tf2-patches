@@ -377,7 +377,7 @@ void LaunchVConfig()
 	char *argv[] =
 	{
 		vconfigExe,
-		"-allowdebug",
+		(char*)"-allowdebug",
 		NULL
 	};
 

@@ -66,7 +66,7 @@ bool CollisionBSPData_Init( CCollisionBSPData *pBSPData )
 	pBSPData->map_vis = NULL;
 	pBSPData->numareas = 1;
 	pBSPData->numclusters = 1;
-	pBSPData->map_nullname = "**empty**";
+	pBSPData->map_nullname = (char*)"**empty**";
 	pBSPData->numtextures = 0;
 
 	return true;

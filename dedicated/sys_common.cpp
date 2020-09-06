@@ -50,7 +50,7 @@ void Load3rdParty( void )
 	// ( In case of malicious code, too )
 	if ( CommandLine()->CheckParm( "-usegh" ) )   
 	{
-		hDLLThirdParty = sys->LoadLibrary( "ghostinj.dll" );
+		hDLLThirdParty = sys->LoadLibrary((char*)"ghostinj.dll");
 	}
 }
 

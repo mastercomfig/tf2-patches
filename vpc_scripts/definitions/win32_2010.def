@@ -525,6 +525,16 @@
 		}
 
 		// Language
+		//"$LanguageStandard"
+		//{
+		//	"ordinals"
+		//	{
+		//		"ISO C++14 Standard (std:c++14)"	"stdcpp14"
+		//		"ISO C++17 Standard (std:c++17)"	"stdcpp17"
+		//		"Preview - Features from the Latest C++ Working Draft (std:c++latest)"		"stdcpplatest"
+		//	}
+		//}
+
 		"$DisableLanguageExtensions"
 		{
 			"type"	"bool"

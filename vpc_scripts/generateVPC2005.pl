@@ -274,6 +274,7 @@ my(%configOptionsMultiValue) = (
 		"EnableEnhancedInstructionSet"		=>	"EnableEnhancedInstructionSet",
 		"FloatingPointModel"			=>	"FloatingPointModel",
 		"FloatingPointExceptions"		=>	"EnableFloatingPointExceptions",
+		"LanguageStandard"              =>  "LanguageStandard"
 
 		# Language
 		"DisableLanguageExtensions"		=>	"DisableLanguageExtensions",
@@ -579,6 +580,12 @@ my(%configOptionValues) = (
 		},
 
 		# Language
+		"LanguageStandard"			=>
+		{
+			"0"	=>	"ISO C++14 Standard (std:c++14)",
+			"1"	=>	"ISO C++17 Standard (std:c++17)",
+			"2"	=>	"Preview - Features from the Latest C++ Working Draft (std:c++latest)",
+		},
 		"DisableLanguageExtensions"		=>
 		{
 			"false"	=>	"No",

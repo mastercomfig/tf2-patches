@@ -355,7 +355,6 @@ private:
 	{
 		unsigned waitResult;
 		tmZone( TELEMETRY_LEVEL0, TMZF_IDLE, "%s", __FUNCTION__ );
-#ifdef WIN32
 		enum Event_t
 		{
 			CALL_FROM_MASTER,
@@ -365,38 +364,19 @@ private:
 			NUM_EVENTS
 		};
 
-		HANDLE	 waitHandles[NUM_EVENTS];
+		CThreadEvent*	 waitHandles[NUM_EVENTS];
 		
-		waitHandles[CALL_FROM_MASTER]	= GetCallHandle().GetHandle();
-		waitHandles[SHARED_QUEUE]		= m_SharedQueue.GetEventHandle().GetHandle();
-		waitHandles[DIRECT_QUEUE] 		= m_DirectQueue.GetEventHandle().GetHandle();
+		waitHandles[CALL_FROM_MASTER]	= &GetCallHandle();
+		waitHandles[SHARED_QUEUE]		= &m_SharedQueue.GetEventHandle();
+		waitHandles[DIRECT_QUEUE] 		= &m_DirectQueue.GetEventHandle();
 		
 #ifdef _DEBUG
-		while ( ( waitResult = WaitForMultipleObjects( ARRAYSIZE(waitHandles), waitHandles, FALSE, 10 ) ) == WAIT_TIMEOUT )
+		while ( (waitResult = ThreadWaitForEvents(ARRAYSIZE(waitHandles), waitHandles, false, 10); ) == WAIT_TIMEOUT )
 		{
 			waitResult = waitResult; // break here
 		}
 #else
-		waitResult = WaitForMultipleObjects( ARRAYSIZE(waitHandles), waitHandles, FALSE, INFINITE );
-#endif
-#else // !win32
-		bool bSet = false;
-		int nWaitTime = 100;
-
-		while( !bSet )
-		{
-			// Jobs are typically enqueued to the shared job queue so wait on it first.
-			bSet = m_SharedQueue.GetEventHandle().Wait( nWaitTime );
-			if( !bSet )
-				bSet = m_DirectQueue.GetEventHandle().Wait( 10 );
-			if ( !bSet )
-				bSet = GetCallHandle().Wait( 0 );
-		}
-
-		if ( !bSet )
-			waitResult = WAIT_TIMEOUT;
-		else
-			waitResult = WAIT_OBJECT_0;
+		waitResult = ThreadWaitForEvents( ARRAYSIZE(waitHandles), waitHandles, false, 0xFFFFFFFF);
 #endif
 		return waitResult;
 	}

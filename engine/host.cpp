@@ -3773,14 +3773,14 @@ void Host_InitProcessor( void )
 	const CPUInformation& pi = *GetCPUInformation();
 
 	// Compute Frequency in Mhz: 
-	char* szFrequencyDenomination = "Mhz";
+	char* szFrequencyDenomination = (char*)"Mhz";
 	double fFrequency = pi.m_Speed / 1000000.0;
 
 	// Adjust to Ghz if nessecary:
 	if( fFrequency > 1000.0 )
 	{
 		fFrequency /= 1000.0;
-		szFrequencyDenomination = "Ghz";
+		szFrequencyDenomination = (char*)"Ghz";
 	}
 
 	char szFeatureString[256];

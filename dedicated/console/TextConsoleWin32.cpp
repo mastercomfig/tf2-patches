@@ -77,14 +77,14 @@ CTextConsoleWin32::CTextConsoleWin32()
 bool CTextConsoleWin32::Init()
 {
 	(void) AllocConsole();
-	SetTitle( "SOURCE DEDICATED SERVER" );
+	SetTitle( (char*)"SOURCE DEDICATED SERVER" );
 
 	hinput = GetStdHandle ( STD_INPUT_HANDLE );
 	houtput = GetStdHandle ( STD_OUTPUT_HANDLE );
 	
 	if ( !SetConsoleCtrlHandler( &ConsoleHandlerRoutine, TRUE) )
 	{
-		Print( "WARNING! TextConsole::Init: Could not attach console hook.\n" );
+		Print((char*)"WARNING! TextConsole::Init: Could not attach console hook.\n" );
 	}
 
 	Attrib = FOREGROUND_GREEN | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY ;

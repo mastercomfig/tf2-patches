@@ -1796,7 +1796,7 @@ public:
 
 	virtual char *GetDisplayDeviceName() const OVERRIDE
 	{
-		return "";
+		return (char*)"";
 	}
 
 	// Creates/destroys morph data associated w/ a particular material

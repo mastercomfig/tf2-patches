@@ -1,5 +1,5 @@
 
-//========= Copyright © 1996-2006, Valve Corporation, All rights reserved. ============//
+//========= Copyright ï¿½ 1996-2006, Valve Corporation, All rights reserved. ============//
 //
 //	Property Enumerations
 //
@@ -60,6 +60,7 @@ PROPERTYNAME( WIN32_2010_COMPILER, EnableFunctionLevelLinking )
 PROPERTYNAME( WIN32_2010_COMPILER, EnableEnhancedInstructionSet )
 PROPERTYNAME( WIN32_2010_COMPILER, FloatingPointModel )
 PROPERTYNAME( WIN32_2010_COMPILER, EnableFloatingPointExceptions )
+PROPERTYNAME( WIN32_2010_COMPILER, LanguageStandard )
 PROPERTYNAME( WIN32_2010_COMPILER, DisableLanguageExtensions )
 PROPERTYNAME( WIN32_2010_COMPILER, DefaultCharUnsigned )
 PROPERTYNAME( WIN32_2010_COMPILER, TreatWCHAR_TAsBuiltInType )

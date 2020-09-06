@@ -1936,6 +1936,10 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	}
 
 	CMatRenderContextPtr pRenderContext( materials );
+
+	// Update bounds of all renderables
+	ClientLeafSystem()->ComputeAllBounds();
+
 	ITexture *saveRenderTarget = pRenderContext->GetRenderTarget();
 	pRenderContext.SafeRelease(); // don't want to hold for long periods in case in a locking active share thread mode
 

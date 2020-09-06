@@ -134,6 +134,8 @@ public:
 	virtual void EnumerateShadowsInLeaves( int leafCount, LeafIndex_t* pLeaves, IClientLeafShadowEnum* pEnum );
 	virtual void DisableLeafReinsertion(bool bDisable);
 
+	virtual void ComputeAllBounds(void);
+
 	// methods of ISpatialLeafEnumerator
 public:
 
@@ -163,6 +165,8 @@ private:
 		RENDER_FLAGS_HASCHANGED = 0x10,
 		RENDER_FLAGS_ALTERNATE_SORTING = 0x20,
 		RENDER_FLAGS_BLOAT_BOUNDS = 0x40,
+		RENDER_FLAGS_BOUNDS_VALID = 0x80,
+		RENDER_FLAGS_DISABLE_RENDERING = 0x100,
 	};
 
 	// All the information associated with a particular handle
@@ -182,6 +186,8 @@ private:
 		signed char			m_TranslucencyCalculatedView;
 		Vector				m_vecBloatedAbsMins;		// Use this for tree insertion
 		Vector				m_vecBloatedAbsMaxs;
+		Vector				m_vecAbsMins;			// NOTE: These members are not threadsafe!!
+		Vector				m_vecAbsMaxs;			// They can be updated from any viewpoint (based on RENDER_FLAGS_BOUNDS_VALID)
 	};
 
 	// Creates a new renderable
@@ -455,6 +461,35 @@ void CClientLeafSystem::DisableLeafReinsertion(bool bDisable)
 	m_bDisableLeafReinsertion = bDisable;
 }
 
+void CClientLeafSystem::ComputeAllBounds(void)
+{
+	MDLCACHE_CRITICAL_SECTION();
+	for (int i = m_Renderables.Head(); i != m_Renderables.InvalidIndex(); i = m_Renderables.Next(i))
+	{
+		RenderableInfo_t* pInfo = &m_Renderables[i];
+
+		if (pInfo->m_Flags & RENDER_FLAGS_DISABLE_RENDERING)
+			continue;
+
+		if ((pInfo->m_Flags & RENDER_FLAGS_BOUNDS_VALID) == 0)
+		{
+			CalcRenderableWorldSpaceAABB(pInfo->m_pRenderable, pInfo->m_vecAbsMins, pInfo->m_vecAbsMaxs);
+			pInfo->m_Flags |= RENDER_FLAGS_BOUNDS_VALID;
+		}
+#ifdef _DEBUG
+		else
+		{
+			// If these assertions trigger, it means there's some state that GetRenderBounds
+			// depends on which, on change, doesn't call ClientLeafSystem::RenderableChanged().
+			Vector vecTestMins, vecTestMaxs;
+			CalcRenderableWorldSpaceAABB(pInfo->m_pRenderable, vecTestMins, vecTestMaxs);
+			Assert(VectorsAreEqual(vecTestMins, pInfo->m_vecAbsMins, 1e-3));
+			Assert(VectorsAreEqual(vecTestMaxs, pInfo->m_vecAbsMaxs, 1e-3));
+		}
+#endif
+	}
+}
+
 
 //-----------------------------------------------------------------------------
 // Level init, shutdown
@@ -630,6 +665,8 @@ void CClientLeafSystem::NewRenderable( IClientRenderable* pRenderable, RenderGro
 	info.m_RenderLeaf = m_RenderablesInLeaf.InvalidIndex();
 	info.m_vecBloatedAbsMins.Init(FLT_MAX, FLT_MAX, FLT_MAX);
 	info.m_vecBloatedAbsMaxs.Init(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	info.m_vecAbsMins.Init();
+	info.m_vecAbsMaxs.Init();
 
 	if ( IsViewModelRenderGroup( (RenderGroup_t)info.m_RenderGroup ) )
 	{
@@ -1342,20 +1379,22 @@ void CClientLeafSystem::RemoveFromTree( ClientRenderHandle_t handle )
 //-----------------------------------------------------------------------------
 void CClientLeafSystem::RenderableChanged( ClientRenderHandle_t handle )
 {
+	if (m_bDisableLeafReinsertion)
+	{
+		DevWarning("Renderable %d reinserted after frame!\n", handle);
+		return;
+	}
+
 	Assert ( handle != INVALID_CLIENT_RENDER_HANDLE );
 	Assert( m_Renderables.IsValidIndex( handle ) );
 	if ( !m_Renderables.IsValidIndex( handle ) )
 		return;
 
-	if (m_bDisableLeafReinsertion)
+	RenderableInfo_t& info = m_Renderables[handle];
+	info.m_Flags &= ~RENDER_FLAGS_BOUNDS_VALID;
+	if ( (info.m_Flags & RENDER_FLAGS_HASCHANGED ) == 0 )
 	{
-		DevWarning("Renderable reinserted after frame: %d!\n", handle);
-		return;
-	}
-
-	if ( (m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED ) == 0 )
-	{
-		m_Renderables[handle].m_Flags |= RENDER_FLAGS_HASCHANGED;
+		info.m_Flags |= RENDER_FLAGS_HASCHANGED;
 		m_DirtyRenderables.AddToTail( handle );
 	}
 #if _DEBUG
@@ -1708,8 +1747,8 @@ void CClientLeafSystem::CollateRenderablesInLeaf( int leaf, int worldListLeafInd
 				continue;
 		}
 
-		Vector absMins, absMaxs;
-		CalcRenderableWorldSpaceAABB( renderable.m_pRenderable, absMins, absMaxs );
+		Vector absMins = renderable.m_vecAbsMins;
+		Vector absMaxs = renderable.m_vecAbsMaxs;
 		// If the renderable is inside an area, cull it using the frustum for that area.
 		if ( portalTestEnts && renderable.m_Area != -1 )
 		{
@@ -1844,11 +1883,12 @@ void CClientLeafSystem::SortEntities( const Vector &vecRenderOrigin, const Vecto
 	for( i=0; i < nEntities; i++ )
 	{
 		IClientRenderable *pRenderable = pEntities[i].m_pRenderable;
+		RenderableInfo_t& renderable = m_Renderables[pEntities[i].m_RenderHandle];
 
 		// Compute the center of the object (needed for translucent brush models)
 		Vector boxcenter;
-		Vector mins,maxs;
-		pRenderable->GetRenderBounds( mins, maxs );
+		Vector mins = renderable.m_vecAbsMins;
+	    Vector maxs = renderable.m_vecAbsMaxs;
 		VectorAdd( mins, maxs, boxcenter );
 		VectorMA( pRenderable->GetRenderOrigin(), 0.5f, boxcenter, boxcenter );
 

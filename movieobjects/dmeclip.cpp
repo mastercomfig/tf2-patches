@@ -1025,30 +1025,29 @@ void CDmeFilmClip::OnElementUnserialized( )
 		// Backward compat conversion
 		// If this is an older file with an overlay attribute, strip it out into materialoverlay
 		CDmAttribute *pOverlayAttribute = GetAttribute( "overlay" );
-		if ( !pOverlayAttribute )
-			goto cleanUp;
-
-		const char *pName = pOverlayAttribute->GetValueString();
-		if ( !pName || !pName[0] )
-			goto cleanUp;
-
-		// If we don't yet have a material overlay, create one
-		if ( m_MaterialOverlayEffect.GetElement() == NULL )
+		if ( pOverlayAttribute )
 		{
-			m_MaterialOverlayEffect = CreateElement<CDmeMaterialOverlayFXClip>( "materialOverlay", GetFileId() );
+			const char* pName = pOverlayAttribute->GetValueString();
+			if (pName && pName[0])
+			{
+				// If we don't yet have a material overlay, create one
+				if (m_MaterialOverlayEffect.GetElement() == NULL)
+				{
+					m_MaterialOverlayEffect = CreateElement<CDmeMaterialOverlayFXClip>("materialOverlay", GetFileId());
+				}
+
+				m_MaterialOverlayEffect->SetOverlayEffect(pName);
+
+				// If this is an older file with an overlayalpha attribute, strip it out into materialoverlay
+				CDmAttribute* pOverlayAlphaAttribute = GetAttribute("overlayalpha");
+				if (pOverlayAlphaAttribute)
+				{
+					const float alpha = pOverlayAlphaAttribute->GetValue<float>();
+					m_MaterialOverlayEffect->SetAlpha(alpha);
+				}
+			}
 		}
 
-		m_MaterialOverlayEffect->SetOverlayEffect( pName );
-
-		// If this is an older file with an overlayalpha attribute, strip it out into materialoverlay
-		CDmAttribute *pOverlayAlphaAttribute = GetAttribute( "overlayalpha" );
-		if ( pOverlayAlphaAttribute )
-		{
-			float alpha = pOverlayAlphaAttribute->GetValue<float>();
-			m_MaterialOverlayEffect->SetAlpha( alpha );
-		}
-
-cleanUp:
 		// Always strip out the old overlay attribute
 		RemoveAttribute( "overlay" );							
 		RemoveAttribute( "overlayalpha" );

@@ -3147,7 +3147,7 @@ char 	*ValueForKey (entity_t *ent, char *key)
 	for (epair_t *ep=ent->epairs ; ep ; ep=ep->next)
 		if (!Q_stricmp (ep->key, key) )
 			return ep->value;
-	return "";
+	return (char*)"";
 }
 
 vec_t	FloatForKey (entity_t *ent, char *key)

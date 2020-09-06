@@ -104,7 +104,7 @@ bool WriteMiniDumpUsingExceptionInfo(
 			}
 			else
 			{
-				pch = _T("unknown");
+				pch = _T((char*)"unknown");
 			}
 			strcpy( g_rgchMinidumpFilenamePrefix, pch );
 		}

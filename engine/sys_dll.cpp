@@ -392,7 +392,7 @@ void Sys_Error_Internal( bool bMinidump, const char *error, va_list argsList )
 	}
 	else
 	{
-		Sys_Printf( "%s\n", text );
+		Sys_Printf( (char*)"%s\n", text );
 	}
 
 	// Write the error to the log and ensure the log contents get written to disk
@@ -1254,7 +1254,7 @@ void LoadEntityDLLs( const char *szBaseDir, bool bIsServerOnly )
 	modinfo->deleteThis();
 	
 	// Load the game .dll
-	LoadThisDll( "server" DLL_EXT_STRING, bIsServerOnly );
+	LoadThisDll( (char*)"server" DLL_EXT_STRING, bIsServerOnly );
 
 	if ( serverGameDLL )
 	{
@@ -1289,7 +1289,7 @@ void Sys_GetRegKeyValueUnderRoot( HKEY rootKey, const char *pszSubKey, const cha
 		rootKey,	// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,
@@ -1355,7 +1355,7 @@ void Sys_GetRegKeyValueUnderRootInt( HKEY rootKey, const char *pszSubKey, const 
 		rootKey,	// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,
@@ -1406,7 +1406,7 @@ void Sys_SetRegKeyValueUnderRoot( HKEY rootKey, const char *pszSubKey, const cha
 		rootKey,			// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,

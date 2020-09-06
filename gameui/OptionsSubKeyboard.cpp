@@ -491,10 +491,10 @@ void COptionsSubKeyboard::SaveCurrentBindings( void )
 void COptionsSubKeyboard::BindKey( const char *key, const char *binding )
 {
 #ifndef _XBOX
-	engine->ClientCmd_Unrestricted( UTIL_va( "bind \"%s\" \"%s\"\n", key, binding ) );
+	engine->ClientCmd_Unrestricted( UTIL_va((char*)"bind \"%s\" \"%s\"\n", key, binding ) );
 #else
 	char buff[256];
-	Q_snprintf(buff, sizeof(buff), "bind \"%s\" \"%s\"\n", key, binding);
+	Q_snprintf(buff, sizeof(buff), (char*)"bind \"%s\" \"%s\"\n", key, binding);
 	engine->ClientCmd_Unrestricted(buff);
 #endif
 }
@@ -505,10 +505,10 @@ void COptionsSubKeyboard::BindKey( const char *key, const char *binding )
 void COptionsSubKeyboard::UnbindKey( const char *key )
 {
 #ifndef _XBOX
-	engine->ClientCmd_Unrestricted( UTIL_va( "unbind \"%s\"\n", key ) );
+	engine->ClientCmd_Unrestricted(UTIL_va((char*)"unbind \"%s\"\n", key ) );
 #else
 	char buff[256];
-	Q_snprintf(buff, sizeof(buff), "unbind \"%s\"\n", key);
+	Q_snprintf(buff, sizeof(buff), (char*)"unbind \"%s\"\n", key);
 	engine->ClientCmd_Unrestricted(buff);
 #endif
 }

@@ -353,7 +353,8 @@ bool CClientState::SetSignonState ( int state, int count )
 	if ( state >= SIGNONSTATE_CONNECTED && m_NetChannel )
 	{
 		// tell server that we entered now that state
-		m_NetChannel->SendNetMsg( NET_SignonState( state, count) );
+		NET_SignonState msg(state, count);
+		m_NetChannel->SendNetMsg( msg );
 	}
 
 	return true;
@@ -1828,7 +1829,8 @@ void CClientState::FinishSignonState_New()
 	CL_SetSteamCrashComment();
 
 	// tell server that we entered now that state
-	m_NetChannel->SendNetMsg( NET_SignonState( m_nSignonState, m_nServerCount ) );
+	NET_SignonState msg(m_nSignonState, m_nServerCount);
+	m_NetChannel->SendNetMsg( msg );
 }
 
 
