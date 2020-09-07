@@ -1070,8 +1070,14 @@
 		// Debugging
 		"$GenerateDebugInfo"
 		{
-			"type"		"bool"
 			"output"	"GenerateDebugInformation"
+			"ordinals"
+			{
+				"No"					"false"
+				"Yes (/DEBUG)"			"true"
+				"Generate Debug Information optimized for faster links (/DEBUG:FASTLINK)"	"DebugFastLink"
+				"Generate Debug Information optimized for sharing and publishing (/DEBUG:FULL)"	"DebugFull"
+			}
 		}
 		
 		"$GenerateProgramDatabaseFile"

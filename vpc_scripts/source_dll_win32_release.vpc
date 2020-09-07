@@ -185,7 +185,7 @@ $Configuration "Release"
 		//$UACExecutionLevel
 
 		// Debugging
-		$GenerateDebugInfo					"Yes (/DEBUG)"
+		$GenerateDebugInfo					"Generate Debug Information optimized for faster links (/DEBUG:FASTLINK)"
 		$GenerateProgramDatabaseFile		"$(IntDir)/$(TargetName).pdb"
 		$StripPrivateSymbols
 		$MapExports

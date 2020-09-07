@@ -1047,7 +1047,6 @@ inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool
 			{
 				if (pEvents[i]->m_bSignaled)
 				{
-					pEvents[i]->m_bSignaled = false;
 					WaitStatus = i;
 					return WaitStatus;
 				}
@@ -1055,21 +1054,13 @@ inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool
 		}
 		if (bWaitAll && WaitedAll)
 		{
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->m_bSignaled = false;
-			}
 			return 0;
 		}
-#ifdef _DEBUG
-		const unsigned CurrentTime = Plat_MSTime();
-		if (timeout == 0 || timeout != TT_INFINITE && (CurrentTime - StartTime) >= timeout)
-#else
 		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
-#endif
 		{
 			return 0x00000102L;
 		}
+		ThreadSleepEx();
 	} while (true);
 }
 
