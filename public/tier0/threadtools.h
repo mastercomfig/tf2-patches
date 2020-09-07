@@ -1025,10 +1025,10 @@ public:
 
 inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE )
 {
-	unsigned StartTime;
+	unsigned StartTime = 0;
 	if (timeout != 0 && timeout != TT_INFINITE)
 	{
-		StartTime = (unsigned)(Plat_FloatTime() * 1000);
+		StartTime = Plat_MSTime();
 	}
 	do
 	{
@@ -1061,11 +1061,15 @@ inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool
 			}
 			return 0;
 		}
-		if (timeout == 0 || timeout != TT_INFINITE && ((unsigned)(Plat_FloatTime() * 1000) - StartTime) >= timeout)
+#ifdef _DEBUG
+		const unsigned CurrentTime = Plat_MSTime();
+		if (timeout == 0 || timeout != TT_INFINITE && (CurrentTime - StartTime) >= timeout)
+#else
+		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
+#endif
 		{
 			return 0x00000102L;
 		}
-		ThreadPause();
 	} while (true);
 }
 

@@ -582,7 +582,7 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 	}
 	else if (dwTimeout == 0)
 	{
-		bRet = m_Condition.wait_until(lock, std::chrono::steady_clock::now(), [this] { return m_bSignaled; });
+		bRet = m_bSignaled;
 	}
 	else if (dwTimeout == TT_INFINITE)
 	{
@@ -2106,16 +2106,9 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 	{
 		pfnWait = DefaultWaitFunc;
 	}
-
-#ifdef WIN32
-	CThreadEvent threadEvent( GetThreadHandle() );
-#endif
 	
 	CThreadEvent *waits[] =
 	{
-#ifdef WIN32
-		&threadEvent,
-#endif
 		&m_EventComplete
 	};
 	
