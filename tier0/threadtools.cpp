@@ -582,7 +582,7 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 	}
 	else if (dwTimeout == 0)
 	{
-		bRet = false;
+		bRet = m_Condition.wait_until(lock, std::chrono::steady_clock::now(), [this] { return m_bSignaled; });
 	}
 	else if (dwTimeout == TT_INFINITE)
 	{
