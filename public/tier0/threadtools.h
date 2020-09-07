@@ -1056,7 +1056,7 @@ inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool
 		{
 			return 0;
 		}
-		if (timeout == 0 || timeout != TT_INFINITE && ((unsigned)(Plat_FloatTime() * 1000) - StartTime) <= timeout)
+		if (timeout == 0 || timeout != TT_INFINITE && ((unsigned)(Plat_FloatTime() * 1000) - StartTime) >= timeout)
 		{
 			return 0x00000102L;
 		}
