@@ -574,23 +574,30 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 #ifdef THREADS_DEBUG
    AssertUseable();
 #endif
-	std::unique_lock lock(m_Mutex);
-#if 0
-	if (m_bSignaled && !m_bAutoReset)
+	std::unique_lock<std::mutex> lock(m_Mutex);
+	bool bRet;
+	if (m_bSignaled)
 	{
-		return true;
+		bRet = true;
 	}
-	if (dwTimeout == 0)
+	else if (dwTimeout == 0)
 	{
-		return m_bSignaled;
+		bRet = false;
 	}
-#endif
-	if (dwTimeout == TT_INFINITE)
+	else if (dwTimeout == TT_INFINITE)
 	{
-		m_Condition.wait(lock, [this] { return m_bSignaled; });
-		return true;
+	    m_Condition.wait(lock, [this] { return m_bSignaled; });
+		bRet = true;
 	}
-	return m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
+	else
+	{
+		bRet = m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
+	}
+	if (m_bAutoReset && bRet)
+	{
+		m_bSignaled = false;
+	}
+	return bRet;
 }
 
 //-----------------------------------------------------------------------------
@@ -617,8 +624,18 @@ bool CThreadEvent::Set()
 	AssertUseable();
 #endif
     {
-        std::unique_lock lock(m_Mutex);
-		m_bSignaled = true;
+        std::unique_lock<std::mutex> lock(m_Mutex);
+		if (m_bSignaled)
+		{
+			if (!m_bAutoReset)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			m_bSignaled = true;
+		}
     }
 	if (m_bAutoReset)
 	{
@@ -638,7 +655,7 @@ bool CThreadEvent::Reset()
 #ifdef THREADS_DEBUG
     AssertUseable();
 #endif
-    std::unique_lock lock(m_Mutex);
+    std::unique_lock<std::mutex> lock(m_Mutex);
     m_bSignaled = false;
     return true;
 }

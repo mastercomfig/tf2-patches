@@ -2509,6 +2509,7 @@ void CStudioRenderContext::AddDecals()
     {
 		if (decalInfo.handle)
 		{
+			Assert(pRenderContext->IsRenderData(decalInfo.pBoneToWorld));
 			QUEUE_STUDIORENDER_CALL_RC(AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext,
 				decalInfo.handle, m_RC, decalInfo.pBoneToWorld, decalInfo.pStudioHdr, decalInfo.ray, decalInfo.decalUp, decalInfo.pDecalMaterial, decalInfo.radius,
 				decalInfo.body, decalInfo.noPokethru, decalInfo.maxLODToDecal);
@@ -2528,8 +2529,6 @@ void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pS
                                      matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
                                      IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
 {
-	Assert( pRenderContext->IsRenderData( pBoneToWorld ) );
-
 	const StudioRenderDecalInfo_t queuedDecal(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal);
 	m_addDecalRequests.PushItem(queuedDecal);
 }

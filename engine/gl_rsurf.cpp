@@ -293,7 +293,7 @@ public:
 			p->AddRef();
 		}
 
-		AssertMsg( p->m_VisitedSurfs.GetNumBits() == nSurfaces, "World render list pool not cleared between maps" );
+		AssertMsg( p->m_VisitedSurfs.GetSize() == nSurfaces, "World render list pool not cleared between maps" );
 
 		return p;
 	}

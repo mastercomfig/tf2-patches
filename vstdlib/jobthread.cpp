@@ -371,7 +371,7 @@ private:
 		waitHandles[DIRECT_QUEUE] 		= &m_DirectQueue.GetEventHandle();
 		
 #ifdef _DEBUG
-		while ( (waitResult = ThreadWaitForEvents(ARRAYSIZE(waitHandles), waitHandles, false, 10); ) == WAIT_TIMEOUT )
+		while ( (waitResult = ThreadWaitForEvents(ARRAYSIZE(waitHandles), waitHandles, false, 10) ) == WAIT_TIMEOUT )
 		{
 			waitResult = waitResult; // break here
 		}
@@ -956,7 +956,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 	{
 		if ( startParams.bIOThreads )
 		{
-			priority = THREAD_PRIORITY_HIGHEST;
+			priority = THREAD_PRIORITY_ABOVE_NORMAL;
 		}
 		else
 		{

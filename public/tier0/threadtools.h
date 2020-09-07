@@ -1025,7 +1025,11 @@ public:
 
 inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE )
 {
-	unsigned ExpireTime = (unsigned)(Plat_FloatTime() * 1000) + timeout;
+	unsigned StartTime;
+	if (timeout != 0 && timeout != TT_INFINITE)
+	{
+		StartTime = (unsigned)(Plat_FloatTime() * 1000);
+	}
 	do
 	{
 		int WaitStatus;
@@ -1048,16 +1052,15 @@ inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool
 				}
 			}
 		}
-		if (WaitedAll)
+		if (bWaitAll && WaitedAll)
 		{
 			return 0;
 		}
-		if (timeout <= 0)
+		if (timeout == 0 || timeout != TT_INFINITE && ((unsigned)(Plat_FloatTime() * 1000) - StartTime) <= timeout)
 		{
 			return 0x00000102L;
 		}
-		timeout = ExpireTime - (unsigned)(Plat_FloatTime() * 1000);
-		ThreadSleepEx();
+		ThreadSleepEx(0);
 	} while (true);
 }
 
