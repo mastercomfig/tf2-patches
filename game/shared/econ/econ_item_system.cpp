@@ -266,8 +266,12 @@ void CEconItemSystem::ParseItemSchemaFile( const char *pFilename )
 		FOR_EACH_VEC( vecErrors, nError )
 		{
 			// we want this to be an Error because several
-			// places rely on loading a valid item schema 
+			// places rely on loading a valid item schema
+#ifdef VALVE_PURE
 			Error( "%s\n", vecErrors[nError].String() );
+#else
+			Warning("%s\n", vecErrors[nError].String());
+#endif
 		}
 	}
 }

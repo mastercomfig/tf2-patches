@@ -1023,45 +1023,45 @@ public:
 	}
 };
 
-inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE )
+inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE)
 {
-	unsigned StartTime = 0;
-	if (timeout != 0 && timeout != TT_INFINITE)
-	{
-		StartTime = Plat_MSTime();
-	}
-	do
-	{
-		int WaitStatus;
-		bool WaitedAll = true;
-		for (int i = 0; i < nEvents; i++)
-		{
-			if (bWaitAll)
-			{
-				if (!pEvents[i]->m_bSignaled)
-				{
-					WaitedAll = false;
-				}
-			}
-			else
-			{
-				if (pEvents[i]->m_bSignaled)
-				{
-					WaitStatus = i;
-					return WaitStatus;
-				}
-			}
-		}
-		if (bWaitAll && WaitedAll)
-		{
-			return 0;
-		}
-		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
-		{
-			return 0x00000102L;
-		}
-		ThreadSleepEx();
-	} while (true);
+    unsigned StartTime = 0;
+    if (timeout != 0 && timeout != TT_INFINITE)
+    {
+        StartTime = Plat_MSTime();
+    }
+    do
+    {
+        int WaitStatus;
+        bool WaitedAll = true;
+        for (int i = 0; i < nEvents; i++)
+        {
+            if (bWaitAll)
+            {
+                if (!pEvents[i]->Check())
+                {
+                    WaitedAll = false;
+                }
+            }
+            else
+            {
+                if (pEvents[i]->Check())
+                {
+                    WaitStatus = i;
+                    return WaitStatus;
+                }
+            }
+        }
+        if (bWaitAll && WaitedAll)
+        {
+            return 0;
+        }
+        if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
+        {
+            return 0x00000102L;
+        }
+        ThreadPause();
+    } while (true);
 }
 
 //-----------------------------------------------------------------------------

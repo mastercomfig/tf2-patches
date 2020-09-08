@@ -325,7 +325,7 @@ inline size_t MemAlloc_GetSizeAligned( void *pMemBlock )
 
 	// pAlloc is the pointer to the start of memory block
 	pAlloc = *((void **)pAlloc );
-	return g_pMemAlloc->GetSize( pAlloc ) - ( (byte *)pMemBlock - (byte *)pAlloc );
+	return g_pMemAlloc->GetSize( pAlloc ) - ( (BYTE *)pMemBlock - (BYTE *)pAlloc );
 }
 
 //-----------------------------------------------------------------------------
