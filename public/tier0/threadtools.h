@@ -31,8 +31,8 @@
 #include <pthread.h>
 #include <errno.h>
 #define WAIT_OBJECT_0 0
-#define WAIT_TIMEOUT 0x00000102
-#define WAIT_FAILED -1
+#define WAIT_TIMEOUT 258L
+#define WAIT_FAILED 0xFFFFFFFF
 #define THREAD_PRIORITY_HIGHEST 2
 #endif
 
@@ -145,6 +145,7 @@ extern "C" unsigned long __declspec(dllimport) __stdcall GetCurrentThreadId();
 inline void ThreadPause()
 {
 #if defined( PLATFORM_WINDOWS_PC )
+	// Intrinsic for __asm pause; from <intrin.h>
 	_mm_pause();
 #elif POSIX
 	__asm __volatile( "pause" );
@@ -169,9 +170,14 @@ PLATFORM_INTERFACE void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinity
 
 enum ThreadWaitResult_t
 {
-	TW_FAILED = 0xffffffff, // WAIT_FAILED
-	TW_TIMEOUT = 0x00000102, // WAIT_TIMEOUT
+	TW_FAILED = 0xFFFFFFFF, // WAIT_FAILED
+	TW_TIMEOUT = 258L, // WAIT_TIMEOUT
 };
+
+#ifdef _WIN32
+PLATFORM_INTERFACE int ThreadWaitForObjects(int nEvents, const HANDLE* pHandles, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
+inline int ThreadWaitForObject(HANDLE handle, bool bWaitAll = true, unsigned timeout = TT_INFINITE) { return ThreadWaitForObjects(1, &handle, bWaitAll, timeout); }
+#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -616,11 +622,6 @@ private:
 	CInterlockedInt* mCounter;
 };
 
-#ifdef _WIN32
-PLATFORM_INTERFACE int ThreadWaitForObjects(int nEvents, const HANDLE * pHandles, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
-inline int ThreadWaitForObject(HANDLE handle, bool bWaitAll = true, unsigned timeout = TT_INFINITE) { return ThreadWaitForObjects(1, &handle, bWaitAll, timeout); }
-#endif
-
 //-----------------------------------------------------------------------------
 //
 // Platform independent for critical sections management
@@ -1030,6 +1031,12 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
     {
         StartTime = Plat_MSTime();
     }
+	if (nEvents == 1)
+	{
+		if (pEvents[0]->Wait(timeout))
+			return 0;
+		return TW_TIMEOUT;
+	}
     do
     {
         int WaitStatus;
@@ -1058,9 +1065,9 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         }
         if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
         {
-            return 0x00000102L;
+            return TW_TIMEOUT;
         }
-        ThreadPause();
+        ThreadSleepEx();
     } while (true);
 }
 

@@ -8,6 +8,7 @@
 #include "tf_weaponbase_melee.h"
 #include "effect_dispatch_data.h"
 #include "tf_gamerules.h"
+#include "tf_weapon_wrench.h"
 
 // Server specific.
 #if !defined( CLIENT_DLL )
@@ -981,8 +982,25 @@ float CTFWeaponBaseMelee::GetForceScale( void )
 //-----------------------------------------------------------------------------
 float CTFWeaponBaseMelee::GetMeleeDamage( CBaseEntity *pTarget, int* piDamageType, int* piCustomDamage )
 {
-	float flDamage = m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage;
-	CALL_ATTRIB_HOOK_FLOAT( flDamage, mult_dmg );
+	float flDamage = m_pWeaponInfo->GetWeaponData(m_iWeaponMode).m_nDamage;
+
+	if (dynamic_cast<CBaseObject*>(pTarget) && GetWeaponID() == TF_WEAPON_WRENCH)
+	{
+		// Don't stack damage mults for buildings if we're using a wrench.
+		// This is so that damage vs sappers and buildings are similar
+		// Sappers use a static value of 65 base damage, modified by the building damage multiplier
+		// However, buildings **are** usually affected by the base multiplier
+		float flDamageBuildingMult = 1.0f;
+		CALL_ATTRIB_HOOK_FLOAT(flDamageBuildingMult, mult_dmg_vs_buildings);
+		if (flDamageBuildingMult == 1.0f)
+		{
+			CALL_ATTRIB_HOOK_FLOAT(flDamage, mult_dmg);
+		}
+	}
+	else
+	{
+		CALL_ATTRIB_HOOK_FLOAT(flDamage, mult_dmg);
+	}
 
 	int iCritDoesNoDamage = 0;
 	CALL_ATTRIB_HOOK_INT( iCritDoesNoDamage, crit_does_no_damage );

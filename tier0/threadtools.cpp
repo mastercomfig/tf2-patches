@@ -576,11 +576,7 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 #endif
 	std::unique_lock<std::mutex> lock(m_Mutex);
 	bool bRet;
-	if (m_bSignaled)
-	{
-		bRet = true;
-	}
-	else if (dwTimeout == 0)
+	if (dwTimeout == 0)
 	{
 		bRet = m_bSignaled;
 	}
