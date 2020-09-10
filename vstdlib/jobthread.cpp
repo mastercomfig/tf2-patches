@@ -917,7 +917,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		}
 		else
 		{
-			// One worker thread per logic processor minus main thread and graphic driver
+			// One worker thread per logical processor minus main thread and graphic driver
 			nThreads = ci.m_nLogicalProcessors - 4;
 			if (nThreads < 2)
 			{
