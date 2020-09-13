@@ -2177,6 +2177,8 @@ class CProxyUrineLevel : public CResultProxy
 public:
 	void OnBind( void *pC_BaseEntity )
 	{
+		// FIXME(mastercoms): set vec value is pretty expensive here
+
 		Assert( m_pResult );
 
 		// default to zero

@@ -957,7 +957,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 	{
 		if ( startParams.bIOThreads )
 		{
-			priority = THREAD_PRIORITY_ABOVE_NORMAL;
+			priority = THREAD_PRIORITY_HIGHEST;
 		}
 		else
 		{

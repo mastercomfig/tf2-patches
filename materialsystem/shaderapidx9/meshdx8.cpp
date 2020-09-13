@@ -39,6 +39,7 @@
 #include "tier1/strtools.h"
 #include "convar.h"
 #include "shaderdevicedx8.h"
+#include "vstdlib/jobthread.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -47,6 +48,11 @@
 // Uncomment this to test buffered state
 //-----------------------------------------------------------------------------
 //#define DEBUG_BUFFERED_MESHES 1
+
+//-----------------------------------------------------------------------------
+// Uncomment this to try threaded device submits
+//-----------------------------------------------------------------------------
+//#define THREADED_DEVICE_SUBMIT 1
 
 #define MAX_DX8_STREAMS 16
 
@@ -405,6 +411,10 @@ public:
 
 	// Draws a single pass
 	void RenderPass();
+
+	// Queued calls
+	static void DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, unsigned StartVertex, int PrimitiveCount);
+	static void DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType, int BaseVertexIndex, unsigned MinVertexIndex, unsigned NumVertices, int startIndex, int primCount);
 
 	// Sets the primitive type
 	void SetPrimitiveType( MaterialPrimitiveType_t type );
@@ -906,6 +916,8 @@ public:
 
 	IDirect3DVertexBuffer9 *GetZeroVertexBuffer() const { return m_pZeroVertexBuffer; }
 
+	IThreadPool* GetRenderDeviceThreadPool() { return m_pRenderDeviceThreadPool; }
+
 private:
 	void SetVertexIDStreamState( );
 	void SetColorStreamState( );
@@ -985,6 +997,8 @@ private:
 
 	// 4096 byte static VB containing all-zeros
 	IDirect3DVertexBuffer9 *m_pZeroVertexBuffer;
+
+	IThreadPool* m_pRenderDeviceThreadPool;
 };
 
 //-----------------------------------------------------------------------------
@@ -3464,7 +3478,12 @@ void CMeshDX8::RenderPass()
 
 			// (For point/instanced-quad lists, we don't actually fill in indices, but we treat it as
 			// though there are indices for the list up until here).
-			Dx9Device()->DrawPrimitive( m_Mode, s_FirstVertex, pPrim->m_NumIndices );
+#if 1
+			Dx9Device()->DrawPrimitive(m_Mode, s_FirstVertex, pPrim->m_NumIndices);
+#else
+			// FIXME(mastercoms): not working. something not queued properly?
+			g_MeshMgr.GetRenderDeviceThreadPool()->QueueCall(&CMeshDX8::DrawPrimitive, m_Mode, s_FirstVertex, pPrim->m_NumIndices);
+#endif
 		}
 		else
 		{
@@ -3480,6 +3499,7 @@ void CMeshDX8::RenderPass()
 				VPROF_INCREMENT_GROUP_COUNTER( "render/DrawIndexedPrimitive", COUNTER_GROUP_TELEMETRY, 1 );
 				VPROF_INCREMENT_GROUP_COUNTER( "render/numPrimitives", COUNTER_GROUP_TELEMETRY, 1 );
 
+#if 1
 				Dx9Device()->DrawIndexedPrimitive( 
 					m_Mode,			// Member of the D3DPRIMITIVETYPE enumerated type, describing the type of primitive to render. D3DPT_POINTLIST is not supported with this method.
 
@@ -3493,7 +3513,12 @@ void CMeshDX8::RenderPass()
 					pPrim->m_FirstIndex, // Index of the first index to use when accesssing the vertex buffer. Beginning at StartIndex to index vertices from the vertex buffer.
 
 					numPrimitives );// Number of primitives to render. The number of vertices used is a function of the primitive count and the primitive type.
+#else
+				g_MeshMgr.GetRenderDeviceThreadPool()->QueueCall(&CMeshDX8::DrawIndexedPrimitive, m_Mode, m_FirstIndex, s_FirstVertex, s_NumVertices, pPrim->m_FirstIndex, numPrimitives);
+#endif
 			}
+
+			
 		}
 	}
 
@@ -3506,6 +3531,17 @@ void CMeshDX8::RenderPass()
 	{
 		g_pLastIndex->MarkUsedInRendering();
 	}
+}
+
+void CMeshDX8::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, unsigned StartVertex, int PrimitiveCount)
+{
+	Dx9Device()->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount);
+}
+
+void CMeshDX8::DrawIndexedPrimitive(D3DPRIMITIVETYPE mode, int BaseVertexIndex, unsigned MinVertexIndex,
+                                    unsigned NumVertices, int startIndex, int primCount)
+{
+	Dx9Device()->DrawIndexedPrimitive(mode, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 }
 
 //-----------------------------------------------------------------------------
@@ -4903,11 +4939,35 @@ void CMeshMgr::Init()
 	CreateZeroVertexBuffer();
 		
 	m_BufferedMode = !IsX360();
+
+#if THREADED_DEVICE_SUBMIT
+	if (!m_pRenderDeviceThreadPool)
+	{
+		ThreadPoolStartParams_t startParams;
+
+		startParams.nThreads = 1;
+		startParams.fDistribute = TRS_TRUE;
+
+		// Only call render device on a separate thread
+		startParams.bExecOnThreadPoolThreadsOnly = true;
+
+		m_pRenderDeviceThreadPool = CreateThreadPool();
+		m_pRenderDeviceThreadPool->Start(startParams, "RenderDeviceThread");
+	}
+#endif
 }
 
 void CMeshMgr::Shutdown()
 {
 	CleanUp();
+#if THREADED_DEVICE_SUBMIT
+	if (m_pRenderDeviceThreadPool)
+	{
+		m_pRenderDeviceThreadPool->Stop();
+		delete m_pRenderDeviceThreadPool;
+		m_pRenderDeviceThreadPool = NULL;
+	}
+#endif
 }
 
 

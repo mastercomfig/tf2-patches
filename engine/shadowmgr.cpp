@@ -1743,6 +1743,8 @@ void CShadowMgr::ApplyFlashlightToLeaf( const Shadow_t &shadow, mleaf_t* pLeaf, 
 //-----------------------------------------------------------------------------
 void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pLeaf, ShadowBuildInfo_t* RESTRICT pBuild )
 {
+	// FIXME(mastercoms): optimize
+
 	// Iterate over all surfaces in the leaf, check for backfacing
 	// and apply the shadow to the surface if it's not backfaced.
 	// Note that this really only indicates that the shadow may potentially

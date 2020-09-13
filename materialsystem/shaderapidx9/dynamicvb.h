@@ -18,6 +18,7 @@
 #include "shaderapidx8_global.h"
 #include "shaderapidx8.h"
 #include "imeshdx8.h"
+#include "vstdlib/jobthread.h"
 #include "materialsystem/ivballoctracker.h"
 #include "gpubufferallocator.h"
 #include "tier1/utllinkedlist.h"
@@ -192,18 +193,36 @@ public:
 #endif
 	}
 
+	static void BufferUnlock(LPDIRECT3DVERTEXBUFFER pVB)
+	{
+		pVB->Unlock();
+	};
+
 private:
 	void Create( IDirect3DDevice9 *pD3D );
-	inline void ReallyUnlock( int unlockBytes )
+	inline void ReallyUnlock(int unlockBytes)
 	{
-		#if DX_TO_GL_ABSTRACTION
-			// Knowing how much data was actually written is critical for performance under OpenGL.
-			m_pVB->UnlockActualSize( unlockBytes );
-		#else
-			unlockBytes; // Unused here
-			m_pVB->Unlock();
-		#endif
-	}
+#ifdef DX_TO_GL_ABSTRACTION
+		// Knowing how much data was actually written is critical for performance under OpenGL.
+		m_pVB->UnlockActualSize(unlockBytes);
+#else
+#ifdef _DEBUG
+		unlockBytes; // Unused here
+#endif
+#if 1
+		m_pVB->Unlock();
+#else
+		if (MeshMgr() && MeshMgr()->GetRenderDeviceThreadPool())
+		{
+		    MeshMgr()->GetRenderDeviceThreadPool()->QueueCall(&CVertexBuffer::BufferUnlock, m_pVB);
+		}
+		else
+		{
+			BufferUnlock(m_pVB);
+		}
+#endif
+#endif
+	};
 
 	enum LOCK_FLAGS
 	{
