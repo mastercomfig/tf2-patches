@@ -590,7 +590,8 @@ static void OverrideMaterialSystemConfigFromCommandLine( MaterialSystem_Config_t
 	}
 
 	// Check for windowed mode command line override
-	if ( CommandLine()->FindParm( "-sw" ) || 
+	if ( !CommandLine()->FindParm("-dev") ||
+		CommandLine()->FindParm( "-sw" ) ||
 		CommandLine()->FindParm( "-startwindowed" ) ||
 		CommandLine()->FindParm( "-windowed" ) ||
 		CommandLine()->FindParm( "-window" ) )
