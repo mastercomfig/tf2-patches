@@ -666,7 +666,7 @@ void CBaseFileSystem::InitAsync()
 		m_pThreadPool = CreateThreadPool();
 
 		ThreadPoolStartParams_t params;
-		params.iThreadPriority = 1;
+		params.iThreadPriority = 0;
 		params.bIOThreads = true;
 		params.nThreads = 1; // Single I/O thread
 		if ( IsX360() )
