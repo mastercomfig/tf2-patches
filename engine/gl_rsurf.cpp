@@ -471,13 +471,11 @@ inline void Shader_WorldSurface( CWorldRenderList *pRenderList, SurfaceHandle_t 
 	// Each surface is in exactly one group
 	int nSortGroup = MSurf_SortGroup( surfID );
 
-#if 0
 	// Add decals on non-displacement surfaces
 	if( SurfaceHasDecals( surfID ) )
 	{
 		DecalSurfaceAdd( surfID, nSortGroup );
 	}
-#endif
 
 	int nMaterialSortID = MSurf_MaterialSortID( surfID );
 

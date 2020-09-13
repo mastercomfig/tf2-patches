@@ -7520,19 +7520,7 @@ void C_TFPlayer::UpdateIDTarget()
 	}
 	else
 	{
-		// Add DEBRIS when a medic has revive (for tracing against revive markers)
-		int iReviveMedic = 0;
-		CALL_ATTRIB_HOOK_INT( iReviveMedic, revive );
-		if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() && pLocalPlayer->IsPlayerClass( TF_CLASS_MEDIC ) )
-		{
-			iReviveMedic = 1;
-		}
-
-		int nMask = MASK_SOLID;
-		if (iReviveMedic == 1)
-		{
-			nMask |= CONTENTS_DEBRIS;
-		}
+		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
 
