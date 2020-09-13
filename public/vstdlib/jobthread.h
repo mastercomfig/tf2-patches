@@ -1239,7 +1239,6 @@ inline JobStatus_t CJob::Execute()
 
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s %s %d", __FUNCTION__, Describe(), m_status );
 
-	AUTO_LOCK( m_mutex );
 	AddRef();
 
 	JobStatus_t result;

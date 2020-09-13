@@ -4699,7 +4699,6 @@ void SND_SpatializeFirstFrameNoTrace( channel_t *pChannel)
 
 int S_AlterChannel( int soundsource, int entchannel, CSfxTable *sfx, int vol, int pitch, int flags )
 {
-	THREAD_LOCK_SOUND();
 	int ch_idx;
 
 	const char *name = sfx->getname();
@@ -5382,6 +5381,8 @@ int S_StartStaticSound( StartSoundParams_t& params )
 		vol = 255;
 	}
 
+	THREAD_LOCK_SOUND();
+
 	int nSndShowStart = snd_showstart.GetInt();
 
 	if ((params.flags & SND_STOP) && nSndShowStart > 0)
@@ -5435,8 +5436,6 @@ int S_StartStaticSound( StartSoundParams_t& params )
 	g_pSoundServices->GetSoundSpatialization( params.soundsource, si );
 
 	// pick a channel to play on from the static area
-	THREAD_LOCK_SOUND();
-
 	ch = SND_PickStaticChannel(params.soundsource, params.pSfx); // Autolooping sounds are always fixed origin(?)
 	if ( !ch )
 		return 0;

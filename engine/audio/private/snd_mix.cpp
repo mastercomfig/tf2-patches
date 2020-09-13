@@ -428,9 +428,6 @@ void S_FreeChannel(channel_t *ch)
 	if ( ch->flags.m_bIsFreeingChannel )
 		return;
 
-	extern CThreadMutex g_SndMutex;
-	g_SndMutex.Lock();
-
 	ch->flags.m_bIsFreeingChannel = true;
 
 	SND_CloseMouth(ch);
@@ -447,8 +444,6 @@ void S_FreeChannel(channel_t *ch)
 	// zero all data in channel
 	g_ActiveChannels.Remove( ch );
 	Q_memset(ch, 0, sizeof(channel_t));
-
-	g_SndMutex.Unlock();
 }
 
 

@@ -665,7 +665,7 @@ private:
 	CThreadMutex( const CThreadMutex & );
 	CThreadMutex &operator=( const CThreadMutex & );
 
-	std::recursive_mutex m_Mutex;
+	std::mutex m_Mutex;
 };
 
 //-----------------------------------------------------------------------------
