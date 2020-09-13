@@ -984,7 +984,7 @@ float CTFWeaponBaseMelee::GetMeleeDamage( CBaseEntity *pTarget, int* piDamageTyp
 {
 	float flDamage = m_pWeaponInfo->GetWeaponData(m_iWeaponMode).m_nDamage;
 
-	if (dynamic_cast<CBaseObject*>(pTarget) && GetWeaponID() == TF_WEAPON_WRENCH)
+	if (GetWeaponID() == TF_WEAPON_WRENCH && dynamic_cast<CBaseObject*>(pTarget))
 	{
 		// Don't stack damage mults for buildings if we're using a wrench.
 		// This is so that damage vs sappers and buildings are similar

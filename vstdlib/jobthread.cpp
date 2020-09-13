@@ -25,6 +25,7 @@
 
 #include "tier0/memdbgon.h"
 
+//#define JOBS_DEBUG
 
 class CJobThread;
 
@@ -370,13 +371,13 @@ private:
 		waitHandles[SHARED_QUEUE]		= &m_SharedQueue.GetEventHandle();
 		waitHandles[DIRECT_QUEUE] 		= &m_DirectQueue.GetEventHandle();
 		
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(JOBS_DEBUG)
 		while ( (waitResult = ThreadWaitForEvents(ARRAYSIZE(waitHandles), waitHandles, false, 10) ) == WAIT_TIMEOUT )
 		{
 			waitResult = waitResult; // break here
 		}
 #else
-		waitResult = ThreadWaitForEvents( ARRAYSIZE(waitHandles), waitHandles, false, 0xFFFFFFFF);
+		waitResult = ThreadWaitForEvents( ARRAYSIZE(waitHandles), waitHandles, false, TT_INFINITE);
 #endif
 		return waitResult;
 	}
@@ -585,7 +586,7 @@ int CThreadPool::ResumeExecution()
 
 void CThreadPool::WaitForIdle( bool bAll )
 {
-	ThreadWaitForEvents( m_IdleEvents.Count(), m_IdleEvents.Base(), bAll, 60000 );
+	ThreadWaitForEvents( m_IdleEvents.Count(), m_IdleEvents.Base(), bAll, 10000 );
 }
 
 //---------------------------------------------------------

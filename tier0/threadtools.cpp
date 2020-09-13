@@ -2114,16 +2114,8 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 
 	do
 	{
-#ifdef WIN32
-		// Make sure the thread handle hasn't been closed
-		if ( !GetThreadHandle() )
-		{
-			result = WAIT_OBJECT_0 + 1;
-			break;
-		}
-#endif
 		result = (*pfnWait)((sizeof(waits) / sizeof(waits[0])), waits, false,
-			(timeout != TT_INFINITE) ? timeout : 30000);
+			(timeout != TT_INFINITE) ? timeout : 10000);
 
 		AssertMsg(timeout != TT_INFINITE || result != WAIT_TIMEOUT, "Possible hung thread, call to thread timed out");
 

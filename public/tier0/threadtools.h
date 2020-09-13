@@ -1040,14 +1040,15 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
     do
     {
         int WaitStatus;
-        bool WaitedAll = true;
+        bool bWaitedAll = true;
         for (int i = 0; i < nEvents; i++)
         {
             if (bWaitAll)
             {
                 if (!pEvents[i]->Check())
                 {
-                    WaitedAll = false;
+                    bWaitedAll = false;
+					break;
                 }
             }
             else
@@ -1059,7 +1060,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
                 }
             }
         }
-        if (bWaitAll && WaitedAll)
+        if (bWaitAll && bWaitedAll)
         {
             return 0;
         }
@@ -1067,7 +1068,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         {
             return TW_TIMEOUT;
         }
-        ThreadSleepEx();
+        ThreadSleepEx(1);
     } while (true);
 }
 
