@@ -19,8 +19,9 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
 2. Copy your current `Team Fortress 2` installation to a new folder.
 3. Extract the ZIP download to this new folder.
-4. Double click `start_tf2.bat`. Note that you must have Steam running.
-5. Enjoy!
+4. Make sure you don't have any configs installed.
+5. Double click `start_tf2.bat`. Note that you must have Steam running.
+6. Enjoy!
 
 ## New console commands and launch options
 
