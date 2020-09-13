@@ -590,6 +590,7 @@ static void OverrideMaterialSystemConfigFromCommandLine( MaterialSystem_Config_t
 	}
 
 	// Check for windowed mode command line override
+	// HACK(mastercoms): force windowed for now because fullscreen is busted
 	if ( !CommandLine()->FindParm("-dev") ||
 		CommandLine()->FindParm( "-sw" ) ||
 		CommandLine()->FindParm( "-startwindowed" ) ||
