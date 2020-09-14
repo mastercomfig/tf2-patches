@@ -801,11 +801,11 @@ void CThreadSyncObject::AssertUseable()
 {
 #ifdef THREADS_DEBUG
 #if PLATFORM_PS3
-	AssertMsg( m_bstaticMutexInitialized, "Thread synchronization object is unuseable" );
+	AssertMsg( m_bstaticMutexInitialized, "Thread synchronization object is unusable" );
 #elif defined( _WIN32 )
-   AssertMsg( m_hSyncObject, "Thread synchronization object is unuseable" );
+   AssertMsg( m_hSyncObject, "Thread synchronization object is unusable" );
 #elif defined(POSIX)
-   AssertMsg( m_bInitalized, "Thread synchronization object is unuseable" );
+   AssertMsg( m_bInitalized, "Thread synchronization object is unusable" );
 #endif
 #endif
 }
