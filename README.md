@@ -16,7 +16,7 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 
 ## Install
 
-1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) the latest release.
+1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
 2. Copy your current `Team Fortress 2` installation to a new folder.
 3. Extract the ZIP download to this new folder.
 4. Make sure you don't have any configs installed.
