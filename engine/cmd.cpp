@@ -1,6 +1,6 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose: 
+// Purpose:
 //
 // $Workfile:     $
 // $Date:         $
@@ -13,7 +13,7 @@
 #include <windows.h>
 #endif
 
-#include "quakedef.h"						 
+#include "quakedef.h"
 #include "zone.h"
 #include "tier0/vcrmode.h"
 #include "demo.h"
@@ -163,7 +163,7 @@ static bool FindAndRemoveExecutionMarker( int iCode )
 	int i = g_ExecutionMarkers.Find( iCode );
 	if ( i == g_ExecutionMarkers.InvalidIndex() )
 		return false;
-	
+
 	g_ExecutionMarkers.Remove( i );
 	return true;
 }
@@ -207,7 +207,7 @@ CON_COMMAND( BindToggle, "Performs a bind <key> \"increment var <cvar> 0 1 1\"" 
 
 CON_COMMAND_F( PerfMark, "inserts a telemetry marker into the stream. If args are provided, they will be included.", FCVAR_NONE )
 {
-	// Nothing to do, we had our message written out by Cbuf_ExecuteCommand. 
+	// Nothing to do, we had our message written out by Cbuf_ExecuteCommand.
 }
 
 
@@ -342,7 +342,7 @@ bool Cbuf_AddTextWithMarkers( ECmdExecutionMarker markerLeft, const char *text, 
 		return false;
 	}
 
-	bool bSuccess = Cbuf_AddExecutionMarker( markerLeft, szMarkerLeft ) && 
+	bool bSuccess = Cbuf_AddExecutionMarker( markerLeft, szMarkerLeft ) &&
 		s_CommandBuffer.AddText( text ) &&
 		Cbuf_AddExecutionMarker( markerRight, szMarkerRight );
 	if ( !bSuccess )
@@ -423,8 +423,8 @@ void Cbuf_Execute()
 
 
 //-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *param - 
+// Purpose:
+// Input  : *param -
 // Output : static char const
 //-----------------------------------------------------------------------------
 static char const *Cmd_TranslateFileAssociation(char const *param )
@@ -446,18 +446,18 @@ static char const *Cmd_TranslateFileAssociation(char const *param )
 	for ( int i = 0; i < c; i++ )
 	{
 		FileAssociationInfo& info = g_FileAssociations[ i ];
-		
-		if ( ! Q_strcmp( extension, info.extension+1 ) && 
+
+		if ( ! Q_strcmp( extension, info.extension+1 ) &&
 			 ! CommandLine()->FindParm(va( "+%s", info.command_to_issue ) ) )
 		{
-			// Translate if haven't already got one of these commands			
+			// Translate if haven't already got one of these commands
 			Q_strncpy( sz, temp, sizeof( sz ) );
 			Q_FileBase( sz, temp, sizeof( sz ) );
 
 			Q_snprintf( sz, sizeof( sz ), "%s %s", info.command_to_issue, temp );
 			retval = sz;
 			break;
-		}		
+		}
 	}
 
 	// return null if no translation, otherwise return commands
@@ -473,7 +473,7 @@ static char const *Cmd_TranslateFileAssociation(char const *param )
 // Output : void Cmd_StuffCmds_f
 //-----------------------------------------------------------------------------
 CON_COMMAND( stuffcmds, "Parses and stuffs command line + commands to command buffer." )
-{		
+{
 	if ( args.ArgC() != 1 )
 	{
 		ConMsg( "stuffcmds : execute command line parameters\n" );
@@ -490,7 +490,7 @@ CON_COMMAND( stuffcmds, "Parses and stuffs command line + commands to command bu
 		const char *szParm = CommandLine()->GetParm(i);
 		if (!szParm) continue;
 
-		if (szParm[0] == '-') 
+		if (szParm[0] == '-')
 		{
 			// skip -XXX options and eat their args
 			const char *szValue = CommandLine()->ParmValueByIndex( i );
@@ -513,7 +513,7 @@ CON_COMMAND( stuffcmds, "Parses and stuffs command line + commands to command bu
 				build.PutChar('\n');
 			}
 		}
-		else 
+		else
 		{
 			// singleton values, convert to command
 			char const *translated = Cmd_TranslateFileAssociation( CommandLine()->GetParm( i ) );
@@ -526,7 +526,7 @@ CON_COMMAND( stuffcmds, "Parses and stuffs command line + commands to command bu
 	}
 
 	build.PutChar( '\0' );
-		
+
 	if ( build.TellPut() > 1 )
 	{
 		Cbuf_InsertText( (char *)build.Base() );
@@ -708,7 +708,7 @@ CON_COMMAND_F( echo, "Echo text to console.", FCVAR_SERVER_CAN_EXECUTE )
 
 // Users can alias these commands to remove their functionality because the game systems use convars to implement these features
 // The blacklist prevents that exploit
-static const char *g_pBlacklistedCommands[] = 
+static const char *g_pBlacklistedCommands[] =
 {
 	"dsp_player",
 	"room_type",
@@ -720,74 +720,89 @@ Cmd_Alias_f
 Creates a new command that executes a command string (possibly ; separated)
 ===============
 */
-CON_COMMAND( alias, "Alias a command." )
-{
-	cmdalias_t	*a;
-	char		cmd[MAX_COMMAND_LENGTH];
-	int			c;
-	const char	*s;
-
+CON_COMMAND(alias, "Alias a command.") {
 	int argc = args.ArgC();
-	if ( argc == 1 )
-	{
-		ConMsg ("Current alias commands:\n");
-		for (a = cmd_alias ; a ; a=a->next)
-		{
-			ConMsg ("%s : %s\n", a->name, a->value);
-		}
+	if (argc == 1) {
+		ConMsg("Current alias commands:\n");
+		for (cmdalias_t* cur = cmd_alias; cur != nullptr; cur = cur->next)
+			ConMsg ("%s : %s\n", cur->name, cur->value);
 		return;
 	}
 
-	s = args[1];
-	if ( Q_strlen(s) >= MAX_ALIAS_NAME )
-	{
-		ConMsg ("Alias name is too long\n");
+	const char* name = args[1];
+	if (Q_strlen(name) >= MAX_ALIAS_NAME) {
+		ConMsg ("Alias name is too long.\n");
 		return;
 	}
 
-	for ( int i = 0; i < ARRAYSIZE(g_pBlacklistedCommands); i++ )
-	{
-		if ( !V_stricmp( g_pBlacklistedCommands[i], s) )
-		{
-			ConMsg("Can't alias %s\n", g_pBlacklistedCommands[i] );
-			return;
-		}
+	for (int i = 0; i < ARRAYSIZE(g_pBlacklistedCommands); i++) {
+		if (V_stricmp(g_pBlacklistedCommands[i], name) != 0)
+			continue;
+
+		ConMsg("Command %s is blacklisted and cannot be aliased.\n", g_pBlacklistedCommands[i]);
+		return;
 	}
-// copy the rest of the command line
-	cmd[0] = 0;		// start out with a null string
-	c = argc;
-	for ( int i=2 ; i< c ; i++)
-	{
-		Q_strncat(cmd, args[i], sizeof( cmd ), COPY_ALL_CHARACTERS);
-		if (i != c)
-		{
-			Q_strncat (cmd, " ", sizeof( cmd ), COPY_ALL_CHARACTERS );
-		}
+
+	// copy the rest of the command line
+	char cmd[MAX_COMMAND_LENGTH] = "";
+	for (int i = 2; i < argc; ++i) {
+		Q_strncat(cmd, args[i], sizeof(cmd), COPY_ALL_CHARACTERS);
+		if (i != argc)
+			Q_strncat(cmd, " ", sizeof(cmd), COPY_ALL_CHARACTERS);
 	}
-	Q_strncat (cmd, "\n", sizeof( cmd ), COPY_ALL_CHARACTERS);
+	Q_strncat(cmd, "\n", sizeof(cmd), COPY_ALL_CHARACTERS);
 
 	// if the alias already exists, reuse it
-	for (a = cmd_alias ; a ; a=a->next)
-	{
-		if (!Q_strcmp(s, a->name))
-		{
-			if ( !Q_strcmp( a->value, cmd ) )		// Re-alias the same thing
-				return;
+	cmdalias_t* aliasNode = cmd_alias;
+	for (aliasNode = cmd_alias; aliasNode != nullptr; aliasNode = aliasNode->next) {
+		if (Q_strcmp(name, aliasNode->name) != 0)
+			continue;
 
-			delete[] a->value;
-			break;
+		if (Q_strcmp(aliasNode->value, cmd) == 0) // Re-alias the same thing
+			return;
+
+		delete[] aliasNode->value;
+		break;
+	}
+
+	if (aliasNode == nullptr) {
+		aliasNode = new cmdalias_t;
+		aliasNode->next = cmd_alias;
+		cmd_alias = aliasNode;
+	}
+
+	Q_strncpy(aliasNode->name, name, sizeof(aliasNode->name));
+	aliasNode->value = COM_StringCopy(cmd);
+}
+CON_COMMAND( unalias, "Unalias a command." ) {
+	int argc = args.ArgC();
+	if (argc == 1) {
+		ConMsg("Usage: unalais <alias name>\n");
+		return;
+	}
+
+	const char* name = args[1];
+	if (Q_strlen(name) >= MAX_ALIAS_NAME) {
+		ConMsg("Alias name is too long\n");
+		return;
+	}
+
+	cmdalias_t* last = NULL;
+	for (cmdalias_t* cur = cmd_alias; cur; cur = cur->next) {
+		if (Q_strcmp(name, cur->name) == 0) {
+			delete[] cur->value;
+
+			if (last == nullptr)
+				cmd_alias = nullptr;
+			else
+				last->next = cur->next;
+			delete cur;
+			return;
 		}
+		last = cur;
 	}
 
-	if (!a)
-	{
-		a = (cmdalias_t *)new cmdalias_t;
-		a->next = cmd_alias;
-		cmd_alias = a;
-	}
-	Q_strncpy (a->name, s, sizeof( a->name ) );	
-
-	a->value = COM_StringCopy(cmd);
+	ConMsg("No such alias.\n");
 }
 
 /*
@@ -803,7 +818,7 @@ int				cmd_clientslot = -1;
 
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 // Output : void Cmd_Init
 //-----------------------------------------------------------------------------
 CON_COMMAND( cmd, "Forward command to server." )
@@ -822,7 +837,7 @@ void Cmd_Init( void )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 void Cmd_Shutdown( void )
 {
@@ -851,7 +866,7 @@ static void HandleExecutionMarker( const char *pCommand, const char *pMarkerCode
 {
 	char cCommand = pCommand[0];
 	int iMarkerCode = atoi( pMarkerCode );
-	
+
 	// Validate..
 	if ( FindAndRemoveExecutionMarker( iMarkerCode ) )
 	{
@@ -881,7 +896,7 @@ static bool ShouldPreventServerCommand( const ConCommandBase *pCommand )
 		if ( g_iFilterCommandsByServerCanExecute > 0 )
 		{
 			// If we don't understand the command, and it came from a server command, then forward it back to the server.
-			// Lots of server plugins use this.  They use engine->ClientCommand() to have a client execute a command that 
+			// Lots of server plugins use this.  They use engine->ClientCommand() to have a client execute a command that
 			// they have hooked on the server. We disabled it once and they freaked. It IS redundant since they could just
 			// code the call to their command on the server, but they complained loudly enough that we're adding it back in
 			// since there's no exploit that we know of by allowing it.
@@ -895,15 +910,15 @@ static bool ShouldPreventServerCommand( const ConCommandBase *pCommand )
 			}
 		}
 	}
-	
+
 	return false;
 }
 
-		
+
 static bool ShouldPreventClientCommand( const ConCommandBase *pCommand )
 {
-	if ( g_iFilterCommandsByClientCmdCanExecute > 0 && 
-		!pCommand->IsFlagSet( FCVAR_CLIENTCMD_CAN_EXECUTE ) && 
+	if ( g_iFilterCommandsByClientCmdCanExecute > 0 &&
+		!pCommand->IsFlagSet( FCVAR_CLIENTCMD_CAN_EXECUTE ) &&
 		g_ExtraClientCmdCanExecuteCvars.Find( pCommand->GetName() ) == g_ExtraClientCmdCanExecuteCvars.InvalidIndex() )
 	{
 		// If this command is in the game DLL, don't mention it because we're going to forward this
@@ -912,10 +927,10 @@ static bool ShouldPreventClientCommand( const ConCommandBase *pCommand )
 		{
 			Warning( "FCVAR_CLIENTCMD_CAN_EXECUTE prevented running command: %s\n", pCommand->GetName() );
 		}
-		
+
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -925,11 +940,11 @@ static bool ShouldPreventClientCommand( const ConCommandBase *pCommand )
 // FIXME: lookupnoadd the token to speed search?
 //-----------------------------------------------------------------------------
 const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t src, int nClientSlot )
-{	
+{
 	// execute the command line
 	if ( !command.ArgC() )
 		return NULL;		// no tokens
-			
+
 	// First, check for execution markers.
 	if ( Q_strcmp( command[0], CMDSTR_ADD_EXECUTION_MARKER ) == 0 )
 	{
@@ -941,7 +956,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 		{
 			Warning( "WARNING: INVALID EXECUTION MARKER.\n" );
 		}
-		
+
 		return NULL;
 	}
 
@@ -955,7 +970,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 			return NULL;
 		}
 	}
-	
+
 	cmd_source = src;
 	cmd_clientslot = nClientSlot;
 
@@ -970,7 +985,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 	{
 		if ( !ShouldPreventClientCommand( pCommand ) && pCommand->IsCommand() )
 		{
-			bool isServerCommand = ( pCommand->IsFlagSet( FCVAR_GAMEDLL ) && 
+			bool isServerCommand = ( pCommand->IsFlagSet( FCVAR_GAMEDLL ) &&
 									// Typed at console
 									cmd_source == src_command &&
 									// Not HLDS
@@ -1032,7 +1047,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 					return NULL;
 				}
 			}
-			
+
 			if ( pCommand->IsFlagSet( FCVAR_DEVELOPMENTONLY ) )
 			{
 				Msg( "Unknown command \"%s\"\n", pCommand->GetName() );
@@ -1064,7 +1079,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 			return NULL;
 		}
 	}
-	
+
 	Msg( "Unknown command \"%s\"\n", command[0] );
 	return NULL;
 }
@@ -1090,12 +1105,12 @@ void Cmd_ForwardToServer( const CCommand &args, bool bReliable )
 		Q_strncat( str, args[0], sizeof( str ), COPY_ALL_CHARACTERS );
 		Q_strncat( str, " ", sizeof( str ), COPY_ALL_CHARACTERS );
 	}
-	
+
 	if ( args.ArgC() > 1)
 	{
 		Q_strncat( str, args.ArgS(), sizeof( str ), COPY_ALL_CHARACTERS );
 	}
-	
+
 	cl.SendStringCmd( str );
 #endif
 }
