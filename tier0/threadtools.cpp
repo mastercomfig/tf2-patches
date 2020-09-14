@@ -563,7 +563,7 @@ bool CThreadSyncObject::operator!() const
 void CThreadSyncObject::AssertUseable()
 {
 #ifdef THREADS_DEBUG
-	AssertMsg(m_bInitialized, "Thread synchronization object is unuseable");
+	AssertMsg(m_bInitialized, "Thread synchronization object is unusable");
 #endif
 }
 
