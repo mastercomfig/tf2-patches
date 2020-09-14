@@ -2098,7 +2098,7 @@ bool CVPC::ParseProjectScript( const char *pScriptName, int depth, bool bQuiet, 
 		FindOrCreateMacro( "ROOTSCRIPT", true, szScriptName );
 
 		// create reserved $PROJECTNAME - tracks the undecorated pure project name
-		// $(ProjectName) can be auto-decorated, making it unuseable by scripts expecting a pure project name
+		// $(ProjectName) can be auto-decorated, making it unusable by scripts expecting a pure project name
 		FindOrCreateMacro( "PROJECTNAME", true, g_pVPC->GetProjectName() );
 
 		// create reserved $LOADADDRESSNAME - defaults to project name but can be aliased with $LoadAddressMacroAlias
