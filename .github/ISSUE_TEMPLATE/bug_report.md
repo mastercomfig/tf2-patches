@@ -1,6 +1,6 @@
 ---
 name: TC2 Bug report
-about: Create a report to help us improve
+about: Create a report for bugs that happen exclusively on TC2
 title: ''
 labels: 'Type: bug'
 assignees: mastercoms
