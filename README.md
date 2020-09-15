@@ -58,7 +58,7 @@ us single bullet fire weapons.
 
 **DISCLAIMER:** If you are not a developer, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. Please let us know if you get it to work!
 
-### Building
+### Building on Windows
 1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
 2. Clone this repo
 3. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcxproj`
@@ -70,15 +70,16 @@ us single bullet fire weapons.
 9. Build the VS project
 10. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
 
-### Building on Linux (To the Makefile)
-**DISCLAIMER:** Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
+### Building on Linux
+0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
 1. Run `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
-2. Cd into `thirdparty/gperftools-2.0` and run`./autogen.sh`
+2. `cd` into `thirdparty/gperftools-2.0` and run`./autogen.sh`
 3. Run `./configure --enable-frame-pointers`
 4. Run `make -j$(nproc)`
 5. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
-6. Cd back into root directory, and run  `./creategamesprojects.sh`
-7. If you are going to try to run the makefile, rename it. When it is generated, it has the name `games.sln `. Remove the space at the end to change it to `games.sln`.
+6. `cd` back into root directory, and run  `./creategamesprojects.sh`
+7. For some reason, the solution file has a space at the end of the name. Run `mv "games.sln " games.sln`
+8. Run `make -j$(nproc) -f games.sln` This doesn't work as of now.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
