@@ -76,10 +76,12 @@ us single bullet fire weapons.
 1. Compile `gperftools`
 
    A. `cd` into `thirdparty/gperftools-2.0`
+
+   B. Run `./autogen.sh`
    
-   B. Run `./configure --enable-frame-pointers`
+   C. Run `./configure --enable-frame-pointers`
    
-   C. Run `make -j$(nproc)`
+   D. Run `make -j$(nproc)`
    
 2. Compile `protobuf`
 

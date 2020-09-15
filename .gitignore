@@ -1,4 +1,4 @@
-# Visual Studio
+	# Visual Studio
 *.suo
 *.user
 *.sln.docstates
@@ -44,7 +44,9 @@ obj*/
 /thirdparty/gperftools-2.0/*_unittest
 /thirdparty/gperftools-2.0/Makefile
 /thirdparty/gperftools-2.0/config.status
+/thirdparty/gperftools-2.0/src/config.h
 /thirdparty/gperftools-2.0/libtool
+/thirdparty/gperftools-2.0/configure
 
 external/crypto++-*/a.out
 external/crypto++-*/*.o
