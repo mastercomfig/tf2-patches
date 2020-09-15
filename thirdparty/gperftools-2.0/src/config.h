@@ -184,7 +184,7 @@
 #define INSTALL_PREFIX "/usr/local"
 
 /* Define to 1 if int32_t is equivalent to intptr_t */
-/* #undef INT32_EQUALS_INTPTR */
+#define INT32_EQUALS_INTPTR 1
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -218,7 +218,7 @@
 #define PACKAGE_VERSION "2.0"
 
 /* How to access the PC from a struct ucontext */
-#define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
+#define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_EIP]
 
 /* Always the empty-string on non-windows systems. On windows, should be
    "__declspec(dllexport)". This way, when we compile the dll, we export our
@@ -228,13 +228,13 @@
 #define PERFTOOLS_DLL_DECL /**/
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIdS "ld"
+#define PRIdS "d"
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIuS "lu"
+#define PRIuS "u"
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIxS "lx"
+#define PRIxS "x"
 
 /* Mark the systems where we know it's bad if pthreads runs too
    early before main (before threads are initialized, presumably).  */

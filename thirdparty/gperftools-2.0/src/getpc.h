@@ -91,15 +91,15 @@ struct CallUnrollInfo {
   // instruction to execute. Be extra careful with negative offsets in
   // architectures of variable instruction length (like x86) - it is
   // not that easy as taking an offset to step one instruction back!
-  int pc_offset;
+  unsigned int pc_offset;
   // The actual instruction bytes. Feel free to make it larger if you
   // need a longer sequence.
-  char ins[16];
+  unsigned char ins[16];
   // How many bytes to match from ins array?
-  int ins_size;
+  unsigned int ins_size;
   // The offset from the stack pointer (e)sp where to look for the
   // call return address. Interpreted as bytes.
-  int return_sp_offset;
+  unsigned int return_sp_offset;
 };
 
 
@@ -119,7 +119,7 @@ static const CallUnrollInfo callunrollinfo[] = {
   },
   // Entry to a function, second instruction:  push %ebp;  mov  %esp,%ebp
   // Top-of-stack contains the old frame, caller IP is +4.
-  { -1,
+  { static_cast<unsigned char>(-1),
     {0x55, 0x89, 0xe5}, 3,
     4
   },
