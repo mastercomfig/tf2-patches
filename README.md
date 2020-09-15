@@ -1,25 +1,40 @@
+
 [![ko-fi](https://img.shields.io/badge/Support%20me%20on-Ko--fi-FF5E5B.svg?logo=ko-fi&style=flat-square)](https://ko-fi.com/mastercoms)
 [![Liberapay](https://img.shields.io/liberapay/receives/mastercoms.svg?logo=liberapay&style=flat-square)](https://liberapay.com/mastercoms/)
 [![Steam donate](https://img.shields.io/badge/Donate%20via-Steam-00adee.svg?style=flat-square&logo=steam)](https://steamcommunity.com/tradeoffer/new/?partner=85845165&token=M9cQHh8N)
 [![Join the Discord chat](https://img.shields.io/badge/Discord-%23comtress--client-7289da.svg?style=flat-square&logo=discord)](https://discord.gg/CuPb2zV)
 
 
-# Team Comtress 2
+# Welcome to Team Comtress 2!
+Before sharing your ideas and feedback, it's important to have a good understanding of what this project is.
+### What *is* TC2?
+Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community developer team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
-Team Fortress 2, but with a lot of fixes, quality of life improvements and performance optimizations!
+### What is TC2 *not*?
+* TC2 is *not* a "pro mod"
 
-## About
+While much of the work in TC2 will improve the competitive experience, TC2 does not touch gameplay, balance, or competitive rules.
 
-What is Team Comtress 2? It's a version of Team Fortress 2, based on the recent leak which aims to fix many bugs, performance issues, etc. Imagine it like [mastercomfig](https://mastercomfig.com/) super charged!
+* A vision for the "good old days" of TF2
 
-Obviously, as a leaked build, it's not useful for getting better performance in Casual on its own (you can't use this build to connect to any existing servers), but it can help me a lot if you all can test it, so that I am more confident in sending many of these changes to Valve for them to include in the base game! Please let me know how it works for you!
+TC2 will not feature game design changes, gameplay additions, or almost any form of new content. If you're looking for this kind of content, [Team Fortress 2 Classic](https://tf2classic.com/) is more up your alley.
 
-## Install
+* The modern game, but with new content/updates
 
-1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-2. Copy your current `Team Fortress 2` installation to a new folder.
-3. Extract the ZIP download to this new folder.
-4. Make sure you don't have any configs installed.
+You're looking for [Creators.TF](https://creators.tf/).
+
+* An alternative, more stable game experience
+
+TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and *is not compatible with* the modern game. It isn't even fully playable on its own.
+
+## Installation
+
+**Windows-only for now** (see [#2](https://github.com/mastercomfig/team-comtress-2/issues/2))
+
+1. Copy your current `Team Fortress 2` installation to a new folder.
+2. In your cloned TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg` and `tf/cfg/config.cfg`.
+3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
+4. Extract the downloaded ZIP to your cloned TF2 folder, overwriting existing files.
 5. Double click `start_tf2.bat`. Note that you must have Steam running.
 6. Enjoy!
 
@@ -27,7 +42,7 @@ Note: TC2 bundles the stock HUD with [CriticalFlaw's HUD fix](https://github.com
 
 ## New console commands and launch options
 
-Although configs are not recommended (use video options to customize), there are some new customization variables you can try that haven't been added yet!
+Although configs are *not* recommended (use video options to customize), there *are* some new variables you can try out that haven't been added to the in-game options yet!
 
 **Console commands/variables:**
 
@@ -52,7 +67,7 @@ us single bullet fire weapons.
 
 **Launch options:**
 
-* `-particle_fallback`: 2 uses DX8 particles, 1 uses lowend DX9 particles, 0 uses default.
+* `-particle_fallback`: 2 uses DX8 particles, 1 uses lowend DX9 particles, 0 uses default. `start_tf2.bat` launches with `-particle_fallback 2` by default.
 
 ## Build
 
@@ -75,9 +90,9 @@ us single bullet fire weapons.
 2. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
 3. For server, follow the same procedures but choose the `Server (TF)` project and set the `Command` to `../game/srcds.exe`. The suggested server launch options are `-game tf -console -nomaster -insecure +sv_pure 0 +maxplayers 32 +sv_lan 1 -dev -allowdebug`.
 
-NOTE: Team Comtress 2 is no longer compatible with mastercomfig. Please do not use mastercomfig or any other TF2 config.
+NOTE: Team Comtress 2 is not compatible with mastercomfig. Please do not use mastercomfig or any other TF2 config.
 
-See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
+See [the Valve Developer Wiki](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
 
 Other launch options to consider:
 - `sw` to force windowed mode
