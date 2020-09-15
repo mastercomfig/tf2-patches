@@ -139,7 +139,11 @@
 #endif
 #endif // !_XM_NO_INTRINSICS_
 
+#ifdef _MSC_VER
 #include "sal.h"
+#else
+#include "sal_posix.h"
+#endif
 #include <assert.h>
 
 #pragma warning(push)
