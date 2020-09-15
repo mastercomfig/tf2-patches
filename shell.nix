@@ -4,6 +4,8 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     gcc
     gnumake
+    automake
+    autoconf
 
     glib
     libunwind
