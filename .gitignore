@@ -147,3 +147,36 @@ UpgradeLog*.htm
 
 # ignore generated protobufs
 generated_proto*/
+
+*.lib
+*.a
+*.dylib
+*.xz
+
+!tier0/DESKey/DK2WIN32.LIB
+!lib/public/nvtc.lib
+!lib/public/ftol3.obj
+!lib/public/openvr_api.lib
+!lib/public/steam_api.lib
+!lib/public/ati_compress_mt_vc10.lib
+!lib/public/steamnetworkingsockets.lib
+!lib/public/socketlib.lib
+!lib/public/SDL2.lib
+!lib/common/win32/2015/debug/cryptlib.lib
+!lib/common/win32/2015/release/binkw32.lib
+!lib/common/win32/2015/release/cryptlib.lib
+!lib/common/win32/2015/release/d3dx9.lib
+!lib/common/win32/2015/release/libjpeg.lib
+!lib/common/win32/2015/release/libpng.lib
+!lib/common/win32/2015/release/libjpeg.lib
+!lib/common/win32/2015/release/libpng.lib
+!lib/common/win32/2015/release/d3dx9.lib
+!lib/common/win32/2015/release/binkw32.lib
+!dx9sdk/lib/d3dx9.lib
+!dx9sdk/lib/d3d9.lib
+!dx9sdk/lib/dinput8.lib
+!dx9sdk/lib/ddraw.lib
+!dx9sdk/lib/dsound.lib
+!dx9sdk/lib/dxguid.lib
+!tier0/DESKey/ALGO32.LIB
+!tier0/DESKey/DK2WIN.LIB
