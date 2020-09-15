@@ -193,7 +193,7 @@ static volatile int *sig_pids, sig_num_threads, sig_proc, sig_marker;
 /* Signal handler to help us recover from dying while we are attached to
  * other threads.
  */
-static void SignalHandler(int signum, siginfo *si, void *data) {
+static void SignalHandler(int signum, siginfo_t *si, void *data) {
   if (sig_pids != NULL) {
     if (signum == SIGABRT) {
       while (sig_num_threads-- > 0) {
@@ -314,7 +314,7 @@ static void ListerThread(struct ListerParams *args) {
     sa.sa_flags      = SA_ONSTACK|SA_SIGINFO|SA_RESETHAND;
     sys_sigaction(sync_signals[sig], &sa, (struct kernel_sigaction *)NULL);
   }
-
+  
   /* Read process directories in /proc/...                                   */
   for (;;) {
     /* Some kernels know about threads, and hide them in "/proc"
@@ -330,7 +330,7 @@ static void ListerThread(struct ListerParams *args) {
     }
     if (sys_fstat(proc, &proc_sb) < 0)
       goto failure;
-
+    
     /* Since we are suspending threads, we cannot call any libc
      * functions that might acquire locks. Most notably, we cannot
      * call malloc(). So, we have to allocate memory on the stack,
@@ -344,7 +344,7 @@ static void ListerThread(struct ListerParams *args) {
      */
     if (max_threads < proc_sb.st_nlink + 100)
       max_threads = proc_sb.st_nlink + 100;
-
+    
     /* scope */ {
       pid_t pids[max_threads];
       int   added_entries = 0;
@@ -376,11 +376,11 @@ static void ListerThread(struct ListerParams *args) {
           if (entry->d_ino != 0) {
             const char *ptr = entry->d_name;
             pid_t pid;
-
+            
             /* Some kernels hide threads by preceding the pid with a '.'     */
             if (*ptr == '.')
               ptr++;
-
+            
             /* If the directory is not numeric, it cannot be a
              * process/thread
              */
@@ -394,7 +394,7 @@ static void ListerThread(struct ListerParams *args) {
               char fname[entry->d_reclen + 48];
               strcat(strcat(strcpy(fname, "/proc/"),
                             entry->d_name), marker_path);
-
+              
               /* Check if the marker is identical to the one we created      */
               if (sys_stat(fname, &tmp_sb) >= 0 &&
                   marker_sb.st_ino == tmp_sb.st_ino) {
@@ -410,7 +410,7 @@ static void ListerThread(struct ListerParams *args) {
                     goto next_entry;
                   }
                 }
-
+                
                 /* Check whether data structure needs growing                */
                 if (num_threads >= max_threads) {
                   /* Back to square one, this time with more memory          */
@@ -442,7 +442,7 @@ static void ListerThread(struct ListerParams *args) {
                     goto next_entry;
                   }
                 }
-
+                
                 if (sys_ptrace(PTRACE_PEEKDATA, pid, &i, &j) || i++ != j ||
                     sys_ptrace(PTRACE_PEEKDATA, pid, &i, &j) || i   != j) {
                   /* Address spaces are distinct, even though both
@@ -596,7 +596,7 @@ int ListAllProcessThreads(void *parameter,
       #undef  SYS_LINUX_SYSCALL_SUPPORT_H
       #include "linux_syscall_support.h"
     #endif
-
+  
     int clone_errno;
     clone_pid = local_clone((int (*)(void *))ListerThread, &args);
     clone_errno = errno;

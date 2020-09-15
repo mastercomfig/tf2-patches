@@ -184,17 +184,13 @@
 #define INSTALL_PREFIX "/usr/local"
 
 /* Define to 1 if int32_t is equivalent to intptr_t */
-#define INT32_EQUALS_INTPTR 1
+/* #undef INT32_EQUALS_INTPTR */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Define to 'volatile' if __malloc_hook is declared volatile */
 #define MALLOC_HOOK_MAYBE_VOLATILE volatile
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-/* #undef NO_MINUS_C_MINUS_O */
 
 /* Name of package */
 #define PACKAGE "gperftools"
@@ -218,7 +214,7 @@
 #define PACKAGE_VERSION "2.0"
 
 /* How to access the PC from a struct ucontext */
-#define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_EIP]
+#define PC_FROM_UCONTEXT uc_mcontext.gregs[REG_RIP]
 
 /* Always the empty-string on non-windows systems. On windows, should be
    "__declspec(dllexport)". This way, when we compile the dll, we export our
@@ -228,13 +224,13 @@
 #define PERFTOOLS_DLL_DECL /**/
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIdS "d"
+#define PRIdS "ld"
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIuS "u"
+#define PRIuS "lu"
 
 /* printf format code for printing a size_t and ssize_t */
-#define PRIxS "x"
+#define PRIxS "lx"
 
 /* Mark the systems where we know it's bad if pthreads runs too
    early before main (before threads are initialized, presumably).  */
