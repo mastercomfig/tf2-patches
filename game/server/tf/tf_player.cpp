@@ -14540,7 +14540,6 @@ void CTFPlayer::DeathSound( const CTakeDamageInfo &info )
 		 GetTeamNumber() != TF_TEAM_PVE_INVADERS && !m_bGoingFeignDeath )
 	{
 		EmitSound( "MVM.PlayerDied" );
-		return;
 	}
 
 	if ( m_LastDamageType & DMG_FALL ) // Did we die from falling?
