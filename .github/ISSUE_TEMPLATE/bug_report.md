@@ -1,11 +1,12 @@
 ---
-name: Bug report
+name: TC2 Bug report
 about: Create a report to help us improve
 title: ''
 labels: 'Type: bug'
 assignees: mastercoms
 
 ---
+**NOTE: Make sure this is a bug that only happens on Team Contress 2 and does not happen on vanilla TF2**
 
 **Describe the bug**
 A clear and concise description of what the bug is.
