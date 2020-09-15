@@ -17030,9 +17030,7 @@ void CTFPlayer::Taunt( taunts_t iTauntIndex, int iTauntConcept )
 				if ( m_Shared.GetRageMeter() >= 100.f )
 				{
 					m_Shared.m_bRageDraining = true;
-#if GAME_DLL
 					SpeakConceptIfAllowed(MP_CONCEPT_MVM_DEPLOY_RAGE);
-#endif
 					return;
 				}
 

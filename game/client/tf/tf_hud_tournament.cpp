@@ -160,28 +160,32 @@ void CHudTournament::PlaySounds( int nTime )
 			}
 			break;
 		}
-		case 10:
-		{
-			if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
+		case 12:
+			if (TFGameRules() && TFGameRules()->IsMannVsMachineMode())
 			{
-				if ( TFObjectiveResource()->GetMannVsMachineWaveCount() >= TFObjectiveResource()->GetMannVsMachineMaxWaveCount() )
+				if (TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1)
 				{
-					pLocalPlayer->EmitSound( "Announcer.MVM_Final_Wave_Start" );
-				}
-				else if ( TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1 )
-				{
-					if ( GTFGCClientSystem()->GetLobby() && IsMannUpGroup( GTFGCClientSystem()->GetLobby()->GetMatchGroup() ) )
+					if (GTFGCClientSystem()->GetLobby() && IsMannUpGroup(GTFGCClientSystem()->GetLobby()->GetMatchGroup()))
 					{
-						pLocalPlayer->EmitSound( "Announcer.MVM_Manned_Up" );
+						pLocalPlayer->EmitSound("Announcer.MVM_Manned_Up");
 					}
 					else
 					{
-						pLocalPlayer->EmitSound( "Announcer.MVM_First_Wave_Start" );
+						pLocalPlayer->EmitSound("Announcer.MVM_First_Wave_Start");
 					}
 				}
-				else
+			}
+		case 10:
+		{
+			if (TFGameRules() && TFGameRules()->IsMannVsMachineMode())
+			{
+				if (TFObjectiveResource()->GetMannVsMachineWaveCount() >= TFObjectiveResource()->GetMannVsMachineMaxWaveCount())
 				{
-					pLocalPlayer->EmitSound( "Announcer.MVM_Wave_Start" );
+					pLocalPlayer->EmitSound("Announcer.MVM_Final_Wave_Start");
+				}
+				else if (TFObjectiveResource()->GetMannVsMachineWaveCount() > 1)
+				{
+					pLocalPlayer->EmitSound("Announcer.MVM_Wave_Start");
 				}
 			}
 			else

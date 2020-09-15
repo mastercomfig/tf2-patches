@@ -530,7 +530,8 @@ void CTFTankBoss::UpdateOnRemove( void )
 
 int CTFTankBoss::OnTakeDamage_Alive( const CTakeDamageInfo &rawInfo )
 {
-	if ( static_cast< float >( GetHealth() ) / GetMaxHealth() > 0.3f )
+	bool bLightDamage = static_cast<float>(GetHealth()) / GetMaxHealth() > 0.3f;
+	if ( bLightDamage )
 	{
 		DispatchParticleEffect( "bot_impact_light", rawInfo.GetDamagePosition(), vec3_angle );
 	}
@@ -546,6 +547,12 @@ int CTFTankBoss::OnTakeDamage_Alive( const CTakeDamageInfo &rawInfo )
 		CTFPlayer *pTFPlayer = dynamic_cast< CTFPlayer* >( rawInfo.GetAttacker() );
 		if ( pTFPlayer )
 		{
+			if ( ( bLightDamage && rawInfo.GetDamage() > 50.0f || m_isDroppingBomb ) && m_flLastPlayerDamageCallout + 5.0f < gpGlobals->curtime)
+			{
+				m_flLastPlayerDamageCallout = gpGlobals->curtime;
+				pTFPlayer->SpeakConceptIfAllowed(MP_CONCEPT_MVM_ATTACK_THE_TANK);
+			}
+
 			// is the attacker being healed by any Medic(s)?
 			CUtlVector<CTFPlayer*> pTempPlayerQueue;
 			pTFPlayer->AddConnectedPlayers( pTempPlayerQueue, pTFPlayer );
@@ -1018,6 +1025,8 @@ void CTFTankBoss::Explode( void )
 				{
 					// anyone who has damaged the tank since the deploy anim began will get the achievement
 					float flWindow = gpGlobals->curtime - m_flDroppingStart;
+
+					TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed(MP_CONCEPT_MVM_CLOSE_CALL, TF_TEAM_RED);
 
 					for ( int i = 0; i < m_vecDamagers.Count(); i++ )
 					{
