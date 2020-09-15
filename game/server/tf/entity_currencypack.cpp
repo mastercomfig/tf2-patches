@@ -18,6 +18,7 @@
 #include "player_vs_environment/tf_population_manager.h"
 #include "collisionutils.h"
 #include "tf_objective_resource.h"
+#include "func_respawnroom.h"
 
 //=============================================================================
 //
@@ -207,6 +208,21 @@ void CCurrencyPack::ComeToRest( void )
 				m_bTouched = true;
 				UTIL_Remove( this );
 			}
+		}
+	}
+	// Or a func_respawnroom
+	for ( int j = 0; j < IFuncRespawnRoomAutoList::AutoList().Count(); j++ )
+	{
+		CFuncRespawnRoom *pRespawnRoom = static_cast<CFuncRespawnRoom*>( IFuncRespawnRoomAutoList::AutoList()[j] );
+		Vector vecMins, vecMaxs;
+
+		pRespawnRoom->GetCollideable()->WorldSpaceSurroundingBounds( &vecMins, &vecMaxs );
+		if ( IsPointInBox( GetCollideable()->GetCollisionOrigin(), vecMins, vecMaxs ) )
+		{
+			TFGameRules()->DistributeCurrencyAmount( m_nAmount );
+
+			m_bTouched = true;
+			UTIL_Remove( this );
 		}
 	}
 }
