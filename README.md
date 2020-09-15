@@ -72,14 +72,13 @@ us single bullet fire weapons.
 
 ### Building on Linux (To the Makefile)
 **DISCLAIMER:** Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
-1. Clone `https://github.com/gperftools/gperftools.git`
-2. CD into `gperftools` and run`./autogen.sh`
+1. Run `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
+2. CD into `thirdparty/gperftools-2.0` and run`./autogen.sh`
 3. Run `./configure --enable-frame-pointers`
 4. Run `make -j$(nproc)`
-5. Copy the root directory, `gperftools` to `team-comtress-2/thirdparty` and rename it from `team-comtress-2/thirdparty/gperftools` to `team-comtress-2/thirdparty/gperftools-2.0` 
-6. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
-7. ` Run ./creategamesprojects`
-8. If you are going to try to run the makefile, rename it. When it is generated, it has the name `games.sln `. Remove the space at the end to change it to `games.sln`.
+5. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
+6. ` Run ./creategamesprojects`
+7. If you are going to try to run the makefile, rename it. When it is generated, it has the name `games.sln `. Remove the space at the end to change it to `games.sln`.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
