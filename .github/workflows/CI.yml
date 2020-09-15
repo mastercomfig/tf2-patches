@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '.github/*'
+      - '.github/*_TEMPLATE/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '.github/*'
+      - '.github/*_TEMPLATE/**'
+      - '*.md'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      POWERSHELL_TELEMETRY_OPTOUT: 1
+      VALVE_NO_AUTO_P4: true
+      PreferredToolArchitecture: x64
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Release, Debug]
+        include:
+          - configuration: Release
+            creategameprojects: .\creategameprojects_dev.bat
+          - configuration: Debug
+            creategameprojects: .\creategameprojects_debug.bat
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: microsoft/setup-msbuild@v1.0.1
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: |
+            lib\common\*\2015\*\cryptlib.lib
+            lib\public\dme_controls.lib
+            thirdparty\protobuf-2.5.0\vsprojects\*\*.lib
+          key: ${{ runner.os }}_${{ matrix.configuration }}
+      - name: Build libprotobuf
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: thirdparty\protobuf-2.5.0\vsprojects
+        run: |
+          msbuild libprotobuf.vcxproj /p:Configuration=Release
+          msbuild libprotobuf.vcxproj /p:Configuration=Debug
+      - name: Download libs
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: .\download_libs.bat
+      - name: Create game projects
+        run: |
+          reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}" /v DefaultProjectExtension /t REG_SZ /d vcproj /f
+          ${{ matrix.creategameprojects }}
+          Get-Content .\devtools\bin\sln_fix.txt | Add-Content .\games.sln
+          # Set C(++) standard to 17 in a hacky way
+          Get-ChildItem -r -include "*.vc*proj" |
+           % { $a = $_.fullname; ( gc $a ) |
+           % { $_ -replace "</ClCompile>","`n      <LanguageStandard>stdcpp17</LanguageStandard>`n      <LanguageStandard_C>stdc17</LanguageStandard_C>`n    </ClCompile>" }  | 
+          Set-Content $a }
+      - name: Build
+        run: msbuild games.sln /m /p:Configuration=${{ matrix.configuration }}
+      - name: Get artifact path
+        id: artifact
+        run: echo "::set-output name=path::$((Resolve-Path ..\game).Path)"
+      - name: Upload bin artifact(s)
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v2
+        with:
+          name: tc2_${{ runner.os }}_bin
+          path: |
+            ${{ steps.artifact.outputs.path }}
+            !\**\*.dat
+            !\**\*.pdb
+          if-no-files-found: error
+      - name: Upload game_clean artifact(s)
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v2
+        with:
+          name: tc2_${{ runner.os }}_game_clean
+          path: game_clean
+          if-no-files-found: error
+      - name: Upload pdb artifact(s)
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v2
+        with:
+          name: tc2_${{ runner.os }}_pdb
+          path: ${{ steps.artifact.outputs.path }}\**\*.pdb
+          if-no-files-found: error
+
+#TODO: Add Linux builds
+  #build-linux:
+  #  runs-on: ubuntu-latest
+  #  env:
+  #    VALVE_NO_AUTO_P4: true
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - name: Download libs
+  #      run: ./download_libs_linux.sh
+  #    - name: Create game projects
+  #      run: ./creategameprojects_dev.sh #maybe vpc.sh
+  #    - name: Build
+  #      run: ./build.sh #maybe build1.sh or magic.sh
+#
+#TODO: Add macOS builds
+#GitHub Actions doesn't have the last Xcode to support 32-bit (~9.4.1) so this might have to wait until x64 support is added.
+  #build-macos:
+  #  runs-on: macos-latest
+  #  env:
+  #    VALVE_NO_AUTO_P4: true
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - name: Download libs
+  #      run: ./download_libs_mac.sh
