@@ -85,7 +85,7 @@ us single bullet fire weapons.
    
 2. Compile `protobuf`
 
-   A. `cd` into `thirdparty/protobuf-2.5.1`
+   A. `cd` into `thirdparty/protobuf-2.5.0`
    
    B. Run `autoreconf`
    
