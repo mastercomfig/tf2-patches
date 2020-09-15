@@ -74,6 +74,7 @@ us single bullet fire weapons.
 **DISCLAIMER:** Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will varry from distro to distro, so I can't include everything here.
 1. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu ib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
 2. ` Run ./creategamesprojects`
+3. If you are going to try to run the make file, rename it. When it is generated, it has the name `games.sln `. Remove the space at the end to change it to `games.sln`.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
