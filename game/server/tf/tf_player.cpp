@@ -19121,7 +19121,29 @@ bool CTFPlayer::SpeakConceptIfAllowed( int iConcept, const char *modifiers, char
 			SaveMe();
 		}
 	}
-
+	
+	if (iConcept == MP_CONCEPT_MVM_MONEY_PICKUP && rc_CCurrencyPack_MyTouch > 0) {
+		switch ( GetPlayerClass()->GetClassIndex() ) {
+		case TF_CLASS_HEAVYWEAPONS:
+		case TF_CLASS_ENGINEER:
+			/* no normal response; unused response(s) exist; so 100% chance to use the unused ones */
+			iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+			break;
+		case TF_CLASS_SOLDIER:
+			/* 2 normal responses; 2 unused responses; so 50% chance to use the unused ones */
+			if (RandomInt(0, 3) < 2) {
+				iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+			}
+				break;
+		case TF_CLASS_MEDIC:
+			/* 1 normal response; 3 unused responses; so 75% chance to use the unused ones */
+			if (RandomInt(0, 3) < 3) {
+				iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+			}
+			break;
+		}
+	}
+	
 	return bReturn;
 }
 
