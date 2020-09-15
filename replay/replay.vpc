@@ -197,7 +197,7 @@ $Project "replay"
 		$Lib	$LIBCOMMON\lzma
 		$Lib	vtf
 		$Lib	"$LIBCOMMON/bzip2"
-		$Lib  	"$LIBCOMMON/libjpeg"		[!$DEDICATED]
+		$Lib  	"$LIBCOMMON/jpeglib"		[!$DEDICATED]
 
 		$Libexternal	$LIBCOMMON/libcrypto [$OSXALL]
 		$Libexternal 	"$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL]

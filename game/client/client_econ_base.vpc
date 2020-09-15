@@ -178,7 +178,7 @@ $Project
 	
 	$Folder	"Link Libraries" 
 	{
-		$Lib "$LIBCOMMON/libjpeg"
+		$Lib "$LIBCOMMON/jpeglib"
 		$Lib libpng [!$VS2015]
 		$Lib $LIBCOMMON/libpng [$VS2015]
 		$Lib libz
