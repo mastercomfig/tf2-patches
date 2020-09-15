@@ -73,8 +73,7 @@ us single bullet fire weapons.
 ### Building on Linux
 
 0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
-1. Run this from tc2 root `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
-2. Compile `gperftools`
+1. Compile `gperftools`
 
    A. `cd` into `thirdparty/gperftools-2.0`
 
@@ -84,7 +83,7 @@ us single bullet fire weapons.
    
    D. Run `make -j$(nproc)`
    
-3. Compile `protobuf`
+2. Compile `protobuf`
 
    A. `cd` into `thirdparty/protobuf-2.6.1` (TODO: remove 2.6.1, use 2.5.0)
    
@@ -94,8 +93,8 @@ us single bullet fire weapons.
    
    D. Run `make -j$(nproc)
    
-6. `cd` back into root directory, and run  `./creategamesprojects.sh`
-7. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.sln` 
+3. `cd` back into root directory, and run  `./creategamesprojects.sh`
+4. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.sln` 
 
 
 ### Running and Debugging
