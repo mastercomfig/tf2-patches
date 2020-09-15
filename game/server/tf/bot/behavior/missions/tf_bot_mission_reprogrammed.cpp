@@ -231,7 +231,10 @@ void CTFBotMissionReprogrammed::StartDetonate( CTFBot *me, bool wasSuccessful /*
 	}
 
 	m_wasSuccessful = wasSuccessful;
-
+	
+	static CSchemaAttributeDefHandle pAttrDef_AirblastVerticalVulnerability( "airblast vertical vulnerability multiplier" );
+	me->GetAttributeList()->SetRuntimeAttributeValue( pAttrDef_AirblastVerticalVulnerability, 0.0f );
+	
 	me->Taunt( TAUNT_BASE_WEAPON );
 	m_detonateTimer.Start( 2.f );
 	me->EmitSound( "MvM.SentryBusterSpin" );
