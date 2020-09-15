@@ -1987,27 +1987,6 @@ CEconItem	*CPlayerInventory::GetSOCDataForItem( itemid_t iItemID )
 	return (CEconItem *)m_pSOCache->FindSharedObject( soIndex );
 }
 
-#if defined (_DEBUG) && defined(CLIENT_DLL)
-CON_COMMAND_F( item_deleteall, "WARNING: Removes all of the items in your inventory.", FCVAR_CHEAT )
-{
-	CPlayerInventory *pInventory = InventoryManager()->GetLocalInventory();
-	if ( !pInventory )
-		return;
-
-	int iCount = pInventory->GetItemCount();
-	for ( int i = 0; i < iCount; i++ )
-	{
-		CEconItemView *pItem = pInventory->GetItem(i);
-		if ( pItem )
-		{
-			InventoryManager()->DropItem( pItem->GetItemID() );
-		}
-	}
-
-	InventoryManager()->UpdateLocalInventory();
-}
-#endif
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2206,29 +2185,6 @@ void CEconItemHandle::UnsubscribeFromSOEvents()
 
 
 #if defined( STAGING_ONLY ) || defined( _DEBUG )
-#if defined(CLIENT_DLL)
-CON_COMMAND_F( item_dumpinv, "Dumps the contents of a specified client inventory.", FCVAR_CHEAT )
-#else
-CON_COMMAND_F( item_dumpinv_sv, "Dumps the contents of a specified server inventory.", FCVAR_CHEAT )
-#endif
-{
-#if defined(CLIENT_DLL)
-	CPlayerInventory *pInventory = InventoryManager()->GetLocalInventory();
-#else
-	CSteamID steamID;
-	CBaseMultiplayerPlayer *pPlayer = ToBaseMultiplayerPlayer( UTIL_GetCommandClient() ); 
-	pPlayer->GetSteamID( &steamID );
-	CPlayerInventory *pInventory = InventoryManager()->GetInventoryForAccount( steamID.GetAccountID() );
-#endif
-	if ( !pInventory )
-	{
-		Msg("No inventory found.\n");
-		return;
-	}
-
-	pInventory->DumpInventoryToConsole( true );
-}
-
 #if defined (CLIENT_DLL)
 
 CON_COMMAND_F( item_dumpschema, "Dump the expanded schema for items to a file in sorted order suitable for diffs. Format: item_dumpschema <filename>", FCVAR_CHEAT )
@@ -2243,79 +2199,6 @@ CON_COMMAND_F( item_dumpschema, "Dump the expanded schema for items to a file in
 		Msg("Dump complete, saved in game/tf/%s\n", args[1]);
 	else
 		Msg("Dump failed (?)\n");
-}
-
-CON_COMMAND_F( item_giveitem, "Give an item to the local player. Format: item_giveitem <item definition name> or <item def index>", FCVAR_NONE )
-{
-	if ( !steamapicontext || !steamapicontext->SteamUser() )
-	{
-		Msg("Not connected to Steam.\n");
-		return;
-	}
-	CSteamID steamIDForPlayer = steamapicontext->SteamUser()->GetSteamID();
-	if ( !steamIDForPlayer.IsValid() )
-	{
-		Msg("Failed to find a valid steamID for the local player.\n");
-		return;
-	}
-
-	int iItemCount = args.ArgC();
-	for ( int i = 1; i < iItemCount; ++i )
-	{
-		// Check to see if args[1] is a number (itemdefid) and if so, translate it to actual itemname
-		const char *pszItemname = NULL;
-		if ( V_isdigit( args[i][0] ) )
-		{
-			int iDef = V_atoi( args[i] );
-			CEconItemDefinition *pItemDef = GetItemSchema()->GetItemDefinition( iDef );
-			if ( pItemDef )
-			{
-				pszItemname = pItemDef->GetItemDefinitionName();
-			}
-		}
-		else
-		{
-			pszItemname = args[i];
-		}
-
-		Msg("Sending request to generate '%s' for Local Player (%llu)\n", pszItemname, steamIDForPlayer.ConvertToUint64() );
-
-		CItemSelectionCriteria criteria;
-
-		GCSDK::CProtoBufMsg<CMsgDevNewItemRequest> msg( k_EMsgGCDev_NewItemRequest );
-		msg.Body().set_receiver( steamIDForPlayer.ConvertToUint64() );
-
-		criteria.SetIgnoreEnabledFlag( true );
-		if ( !criteria.BAddCondition( "name", k_EOperator_String_EQ, pszItemname, true ) ||
-			!criteria.BSerializeToMsg( *msg.Body().mutable_criteria() ) )
-		{
-			Msg("Failed to add condition and/or serialize item grant request. This is probably caused by having a string that's too long.\n" );
-			return;
-		}
-		GCClientSystem()->BSendMessage( msg );
-	}
-}
-
-CON_COMMAND_F( item_rolllootlist, "Force a loot list rool for the local player. Format: item_rolllootlist <loot list definition name>", FCVAR_NONE )
-{
-	if ( !steamapicontext || !steamapicontext->SteamUser() )
-	{
-		Msg("Not connected to Steam.\n");
-		return;
-	}
-	CSteamID steamIDForPlayer = steamapicontext->SteamUser()->GetSteamID();
-	if ( !steamIDForPlayer.IsValid() )
-	{
-		Msg("Failed to find a valid steamID for the local player.\n");
-		return;
-	}
-
-	Msg("Sending request to roll '%s' for Local Player (%llu)\n", args[1], steamIDForPlayer.ConvertToUint64() );
-
-	GCSDK::CProtoBufMsg<CMsgDevDebugRollLootRequest> msg( k_EMsgGCDev_DebugRollLootRequest );
-	msg.Body().set_receiver( steamIDForPlayer.ConvertToUint64() );
-	msg.Body().set_loot_list_name( args[1] );
-	GCClientSystem()->BSendMessage( msg );
 }
 
 #include "econ_item_description.h"
