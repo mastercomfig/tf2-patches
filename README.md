@@ -72,12 +72,28 @@ us single bullet fire weapons.
 
 ### Building on Linux
 
-0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
+0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
 1. Run this from tc2 root `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
-2. `cd` into `thirdparty/gperftools-2.0` and run`./autogen.sh`
-3. Run `./configure --enable-frame-pointers`
-4. Run `make -j$(nproc)`
-5. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
+2. Compile `gperftools`
+
+   A. `cd` into `thirdparty/gperftools-2.0`
+
+   B. Run `./autogen.sh`
+   
+   C. Run `./configure --enable-frame-pointers`
+   
+   D. Run `make -j$(nproc)`
+   
+3. Compile `protobuf`
+
+   A. `cd` into `thirdparty/protobuf-2.6.1` (TODO: remove 2.6.1, use 2.5.0)
+   
+   B. Run `autoreconf`
+   
+   C. Run `chmod +x configure && ./configure`
+   
+   D. Run `make -j$(nproc)
+   
 6. `cd` back into root directory, and run  `./creategamesprojects.sh`
 7. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.sln` 
 
