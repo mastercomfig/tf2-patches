@@ -27,6 +27,13 @@ obj*/
 *.project
 /devtools/bin/vpc_linux
 /thirdparty/gperftools-2.0/.libs/
+/thirdparty/gperftools-2.0/.deps/
+/thirdparty/gperftools-2.0/vsprojects/
+/thirdparty/gperftools-2.0/**.o
+/thirdparty/gperftools-2.0/**.lo
+/thirdparty/gperftools-2.0/**.la
+/thirdparty/gperftools-2.0/*_test
+/thirdparty/gperftools-2.0/*_unittest
 
 # Specific Source build products
 client.pdb
