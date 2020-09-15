@@ -170,9 +170,10 @@ void CInput::DeactivateMouse (void)
 		}
 		m_fMouseActive = false;
 		vgui::surface()->SetCursor( vgui::dc_arrow );
-#if !defined( PLATFORM_WINDOWS )
 		// now put the mouse back in the middle of the screen
 		ResetMouse();
+#ifdef PLATFORM_WINDOWS
+		::ClipCursor(NULL);
 #endif
 
 		// Clear accumulated error, too

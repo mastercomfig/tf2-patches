@@ -16,6 +16,7 @@ ipch
 *.opensdf
 *.idb
 *.sln
+*.recipe
 
 # OSX/Linux build products
 *.mak

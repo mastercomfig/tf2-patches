@@ -623,15 +623,9 @@ bool CThreadEvent::Set()
         std::unique_lock<std::mutex> lock(m_Mutex);
 		if (m_bSignaled)
 		{
-			if (!m_bAutoReset)
-			{
-				return true;
-			}
+			return true;
 		}
-		else
-		{
-			m_bSignaled = true;
-		}
+		m_bSignaled = true;
     }
 	if (m_bAutoReset)
 	{
