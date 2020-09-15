@@ -311,6 +311,9 @@ void CGame::AppActivate( bool fActive )
 			{
 				g_ClientDLL->IN_DeactivateMouse();
 			}
+
+			// Show the pause menu so the game releases our mouse correctly
+			Cbuf_AddText("gameui_activate");
 		}
 	}
 #endif // SWDS
