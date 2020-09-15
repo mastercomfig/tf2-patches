@@ -243,6 +243,11 @@ else
 endif
 VSIGN ?= true
 
+ifeq ($(OS),linux32)
+	# FIXME(maximsmol): linux can't link stripped .ar archives apparently
+	STRIP=""
+endif
+
 ifeq ($(SOURCE_SDK), 1)
 	Srv_GAMEOUTPUTFILE := $(GAMEOUTPUTFILE:.so=_srv.so)
 	COPY_DLL_TO_SRV := 1
@@ -541,7 +546,7 @@ endif
 
 $(LIB_File): $(OTHER_DEPENDENCIES) $(OBJS)
 	$(QUIET_PREFIX) -$(P4_EDIT_START) $(LIB_File) $(P4_EDIT_END);
-	$(QUIET_PREFIX) $(AR) r $(LIB_File) $(OBJS) $(LIBFILES);
+	$(QUIET_PREFIX) $(AR) rcs $(LIB_File) $(OBJS) $(LIBFILES);
 	$(SHELL) -c "$(POSTBUILDCOMMAND)"
 
 SO_GameOutputFile = $(GAMEOUTPUTFILE)
