@@ -34,6 +34,9 @@ obj*/
 /thirdparty/gperftools-2.0/**.la
 /thirdparty/gperftools-2.0/*_test
 /thirdparty/gperftools-2.0/*_unittest
+/thirdparty/gperftools-2.0/Makefile
+/thirdparty/gperftools-2.0/config.status
+/thirdparty/gperftools-2.0/libtool
 
 # Specific Source build products
 client.pdb
