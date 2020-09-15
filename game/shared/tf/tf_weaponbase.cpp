@@ -4916,13 +4916,6 @@ void CTFWeaponBase::ApplyOnHitAttributes( CBaseEntity *pVictimBaseEntity, CTFPla
 
 		if ( (RandomFloat() < flProcChance) )
 		{
-			// Stun the source
-			float flStunDuration = 2.f;
-			float flStunAmt = 1.f;
-			pVictim->m_Shared.StunPlayer( flStunDuration, flStunAmt, TF_STUN_MOVEMENT | TF_STUN_CONTROLS | TF_STUN_NO_EFFECTS, pAttacker );
-
-			pVictim->m_Shared.MakeBleed( ToTFPlayer( pAttacker ), NULL, flStunDuration, 75 );
-
 			// Generate an explosion and look for nearby bots
 			float flDmgRange = 100.f;
 
@@ -4959,9 +4952,6 @@ void CTFWeaponBase::ApplyOnHitAttributes( CBaseEntity *pVictimBaseEntity, CTFPla
 
 				if ( pVictim->m_Shared.IsInvulnerable() )
 					continue;
-
-				// Stun
-				pTFPlayer->m_Shared.StunPlayer( flStunDuration, flStunAmt, TF_STUN_MOVEMENT | TF_STUN_CONTROLS | TF_STUN_NO_EFFECTS, pAttacker );
 
 				// DoT
 				pTFPlayer->m_Shared.MakeBleed( ToTFPlayer( pAttacker ), NULL, flStunDuration, 75.f );
