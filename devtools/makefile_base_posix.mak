@@ -243,7 +243,7 @@ else
 endif
 VSIGN ?= true
 
-ifeq ($(OS),linux32)
+ifeq ($(TARGET_PLATFORM),linux32)
 	# FIXME(maximsmol): linux can't link stripped .ar archives apparently
 	STRIP=""
 endif
