@@ -287,6 +287,8 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 				pTFTouchPlayer->TakeHealth( nHealth, DMG_IGNORE_MAXHEALTH );
 			}
 
+			pTFTouchPlayer->SpeakConceptIfAllowed(MP_CONCEPT_MVM_ENCOURAGE_MONEY);
+
 			MannVsMachineStats_PlayerEvent_PickedUpCredits( pTFTouchPlayer, m_nWaveNumber, m_nAmount );
 
 			IGameEvent *event = gameeventmanager->CreateEvent( "mvm_pickup_currency" );
