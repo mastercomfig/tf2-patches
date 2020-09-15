@@ -1,6 +1,6 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose: 
+// Purpose:
 //
 // $NoKeywords: $
 //
@@ -135,6 +135,7 @@ CUtlBlockMemory<T,I>::~CUtlBlockMemory()
 template< class T, class I >
 void CUtlBlockMemory<T,I>::Swap( CUtlBlockMemory< T, I > &mem )
 {
+	using std::swap;
 	swap( m_pMemory, mem.m_pMemory );
 	swap( m_nBlocks, mem.m_nBlocks );
 	swap( m_nIndexMask, mem.m_nIndexMask );
