@@ -8804,27 +8804,7 @@ void CTFPlayerShared::RadiusCurrencyCollectionCheck( void )
 	{
 		if ( m_CurrencyPacks[i].hPack )
 		{
-			// If the timeout hits, force a touch
-			if ( m_CurrencyPacks[i].flTime <= gpGlobals->curtime )
-			{
-				m_CurrencyPacks[i].hPack->Touch( m_pOuter );
-			}
-			else
-			{
-				// Seek the player
-				const float flForce = 550.0f;
-
-				Vector vToPlayer = m_pOuter->GetAbsOrigin() - m_CurrencyPacks[i].hPack->GetAbsOrigin();
-
-				vToPlayer.z = 0.0f;
-				vToPlayer.NormalizeInPlace();
-				vToPlayer.z = 0.25f;
-
-				Vector vPush = flForce * vToPlayer;
-
-				m_CurrencyPacks[i].hPack->RemoveFlag( FL_ONGROUND );
-				m_CurrencyPacks[i].hPack->ApplyAbsVelocityImpulse( vPush );
-			}
+			m_CurrencyPacks[i].hPack->Touch( m_pOuter );
 		}
 		else
 		{
