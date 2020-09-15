@@ -94,7 +94,7 @@ us single bullet fire weapons.
    D. Run `make -j$(nproc)`
    
 3. `cd` back into root directory, and run  `./creategamesprojects.sh`
-4. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.mak` 
+4. Run `NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -f games.mak` 
 
 
 ### Running and Debugging
