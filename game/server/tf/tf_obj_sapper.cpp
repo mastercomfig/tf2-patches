@@ -801,6 +801,7 @@ void CObjectSapper::ApplyRoboSapper( CTFPlayer *pTarget, float flDuration, int n
 	if ( IsValidRoboSapperTarget( pTarget ) )
 	{
 		ApplyRoboSapperEffects( pTarget, flDuration );
+		pPlayer->SpeakConceptIfAllowed( MP_CONCEPT_MVM_SAPPED_ROBOT );
 	}
 
 	// If we have a radius, search it for valid targets
