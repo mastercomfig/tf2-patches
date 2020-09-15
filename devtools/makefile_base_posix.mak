@@ -132,13 +132,13 @@ ifdef MAKE_CHROOT
 	CRYPTOPPDIR=ubuntu12_32_gcc48
 else ifeq ($(USE_VALVE_BINDIR),1)
 	# Using /valve/bin directory.
-	export STEAM_RUNTIME_PATH ?= /valve
+	export STEAM_RUNTIME_PATH ?= /usr
 	GCC_VER = -4.6
 	P4BIN = p4
 	CRYPTOPPDIR=linux32
 else
 	# Not using chroot, use old steam-runtime. (gcc 4.6.3)
-	export STEAM_RUNTIME_PATH ?= /valve/steam-runtime
+	export STEAM_RUNTIME_PATH ?= /usr
 	GCC_VER =
 	P4BIN = p4
 	CRYPTOPPDIR=ubuntu12_32

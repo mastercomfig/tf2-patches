@@ -78,8 +78,7 @@ us single bullet fire weapons.
 4. Run `make -j$(nproc)`
 5. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
 6. `cd` back into root directory, and run  `./creategamesprojects.sh`
-7. For some reason, the solution file has a space at the end of the name. Run `mv "games.sln " games.sln`
-8. Run `make -j$(nproc) -f games.sln` This doesn't work as of now.
+7. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.sln` 
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
