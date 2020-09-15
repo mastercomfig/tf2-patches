@@ -71,15 +71,16 @@ us single bullet fire weapons.
 10. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
 
 ### Building on Linux
-1. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
-2. Run `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
-3. `cd` into `thirdparty/gperftools-2.0` and run`./autogen.sh`
-4. Run `./configure --enable-frame-pointers`
-5. Run `make -j$(nproc)`
-6. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
-7. `cd` back into root directory, and run  `./creategamesprojects.sh`
-8. For some reason, the solution file has a space at the end of the name. Run `mv "games.sln " games.sln`
-9. Run `make -j$(nproc) -f games.sln` This doesn't work as of now.
+
+0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. This will vary from distro to distro, so I can't include everything here.
+1. Run this from tc2 root `git clone https://github.com/gperftools/gperftools.git -b gperftools-2.0 thirdparty/gperftools-2.0`
+2. `cd` into `thirdparty/gperftools-2.0` and run`./autogen.sh`
+3. Run `./configure --enable-frame-pointers`
+4. Run `make -j$(nproc)`
+5. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
+6. `cd` back into root directory, and run  `./creategamesprojects.sh`
+7. Run `sudo NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -j$(nproc) -f games.sln` 
+
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
