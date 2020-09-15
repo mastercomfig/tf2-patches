@@ -75,7 +75,7 @@ us single bullet fire weapons.
 1. Clone `https://github.com/gperftools/gperftools.git`
 2. CD into `gperftools` and run`./autogen.sh`
 3. Run `./configure --enable-frame-pointers`
-4. Run make -j(cpu threads)
+4. Run `make -j(cpu threads)`
 5. Copy the root directory, `gperftools` to `team-comtress-2/thirdparty` and rename it from `team-comtress-2/thirdparty/gperftools` to `team-comtress-2/thirdparty/gperftools-2.0` 
 6. Install gcc and g++ multilibs, build essentials. On arch I used the command `sudo pacman -Syu ib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
 7. ` Run ./creategamesprojects`
