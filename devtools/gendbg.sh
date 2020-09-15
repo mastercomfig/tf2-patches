@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 OBJCOPY=$STEAM_RUNTIME_PATH/bin/objcopy
 
@@ -36,7 +36,7 @@ if [ "$OUTFILEDIR" != "$INFILEDIR" ]; then
 	OUTFILE=${OUTFILEDIR}/${OUTFILE}
 fi
 
-pushd "$INFILEDIR"	
+pushd "$INFILEDIR"
 $OBJCOPY "$INFILE" "$OUTFILE"
 $OBJCOPY --add-gnu-debuglink="$OUTFILE" "$INFILE"
 popd

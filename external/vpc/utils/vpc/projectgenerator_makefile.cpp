@@ -583,7 +583,7 @@ public:
     if ( V_strlen( rgchPostBuildCommand ) )
       fprintf( fp, "POSTBUILDCOMMAND=%s\n", UsePOSIXSlashes( rgchPostBuildCommand ) );
     else
-      fprintf( fp, "POSTBUILDCOMMAND=/bin/true\n" );
+      fprintf( fp, "POSTBUILDCOMMAND=true\n" );
 
     fprintf( fp, "\n\n" );
 

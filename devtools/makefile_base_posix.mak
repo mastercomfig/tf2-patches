@@ -2,9 +2,9 @@
 # Base makefile for Linux.
 #
 # !!!!! Note to future editors !!!!!
-# 
+#
 # before you make changes, make sure you grok:
-# 1. the difference between =, :=, +=, and ?= 
+# 1. the difference between =, :=, +=, and ?=
 # 2. how and when this base makefile gets included in the generated makefile(s)
 #  ( see http://www.gnu.org/software/make/manual/make.html#Flavors )
 #
@@ -74,7 +74,7 @@ endif
 DEFINES += -D_GLIBCXX_USE_CXX11_ABI=0
 
 # CPPFLAGS == "c/c++ *preprocessor* flags" - not "cee-plus-plus flags"
-ARCH_FLAGS = 
+ARCH_FLAGS =
 BUILDING_MULTI_ARCH = 0
 # Preserve cflags set in environment
 ENV_CFLAGS := $(CFLAGS)
@@ -110,7 +110,7 @@ CXXFLAGS = $(BASE_CFLAGS) $(BASE_CXXFLAGS) $(ENV_CXXFLAGS)
 LDFLAGS = $(CFLAGS) $(GCC_ExtraLinkerFlags) $(OptimizerLevel)
 GENDEP_CXXFLAGS = -MMD -MP -MF $(patsubst %.gch,%.P,$(@:.o=.P)) -MT $@
 MAP_FLAGS =
-Srv_GAMEOUTPUTFILE = 
+Srv_GAMEOUTPUTFILE =
 COPY_DLL_TO_SRV = 0
 
 # We should always specify -Wl,--build-id, as documented at:
@@ -118,14 +118,14 @@ COPY_DLL_TO_SRV = 0
 LDFLAGS += -Wl,--build-id
 
 #
-# If we should be running in a chroot, check to see if we are. If not, then prefix everything with the 
+# If we should be running in a chroot, check to see if we are. If not, then prefix everything with the
 # required chroot
 #
 ifdef MAKE_CHROOT
 	export STEAM_RUNTIME_PATH := /usr
 	ifneq ("$(SCHROOT_CHROOT_NAME)", "$(CHROOT_NAME)")
         $(info '$(SCHROOT_CHROOT_NAME)' is not '$(CHROOT_NAME)')
-        $(error This makefile should be run from within a chroot. 'schroot --chroot $(CHROOT_NAME) -- $(MAKE) $(MAKEFLAGS)')  
+        $(error This makefile should be run from within a chroot. 'schroot --chroot $(CHROOT_NAME) -- $(MAKE) $(MAKEFLAGS)')
 	endif
 	GCC_VER = -4.8
 	P4BIN = $(SRCROOT)/devtools/bin/linux/p4
@@ -304,8 +304,8 @@ C_TO_OBJ = $(MM_TO_OBJ:.c=.o)
 OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(C_TO_OBJ)))
 
 ifeq ($(MAKE_VERBOSE),1)
-	QUIET_PREFIX = 
-	QUIET_ECHO_POSTFIX = 
+	QUIET_PREFIX =
+	QUIET_ECHO_POSTFIX =
 else
 	QUIET_PREFIX = @
 	QUIET_ECHO_POSTFIX = > /dev/null
@@ -330,7 +330,7 @@ endif
 # we generate dependencies as a side-effect of compilation now
 GEN_DEP_FILE=
 
-PRE_COMPILE_FILE = 
+PRE_COMPILE_FILE =
 
 POST_COMPILE_FILE =
 
@@ -445,8 +445,8 @@ else
 
 	P4_EDIT_START := for f in
 	P4_EDIT_END := ; do if [ -n $$f ]; then if [ -d $$f ]; then find $$f -type f -print | $(P4BIN) -x - edit -c $(P4_EDIT_CHANGELIST); else $(P4BIN) edit -c $(P4_EDIT_CHANGELIST) $$f; fi; fi; done $(QUIET_ECHO_POSTFIX)
-	P4_REVERT_START := for f in  
-	P4_REVERT_END := ; do if [ -n $$f ]; then if [ -d $$f ]; then find $$f -type f -print | $(P4BIN) -x - revert; else $(P4BIN) revert $$f; fi; fi; done $(QUIET_ECHO_POSTFIX) 
+	P4_REVERT_START := for f in
+	P4_REVERT_END := ; do if [ -n $$f ]; then if [ -d $$f ]; then find $$f -type f -print | $(P4BIN) -x - revert; else $(P4BIN) revert $$f; fi; fi; done $(QUIET_ECHO_POSTFIX)
 endif
 
 ifneq "$(GAMEOUTPUTFILE)" ""
@@ -539,9 +539,9 @@ ifneq "$(OUTPUTFILE)" ""
 	$(QUIET_PREFIX) $(P4_REVERT_START) $(OUTPUTFILE) $(OUTPUTFILE)$(SYM_EXT) $(P4_REVERT_END)
 endif
 
-$(LIB_File): $(OTHER_DEPENDENCIES) $(OBJS) 
-	$(QUIET_PREFIX) -$(P4_EDIT_START) $(LIB_File) $(P4_EDIT_END); 
-	$(QUIET_PREFIX) $(AR) $(LIB_File) $(OBJS) $(LIBFILES);
+$(LIB_File): $(OTHER_DEPENDENCIES) $(OBJS)
+	$(QUIET_PREFIX) -$(P4_EDIT_START) $(LIB_File) $(P4_EDIT_END);
+	$(QUIET_PREFIX) $(AR) r $(LIB_File) $(OBJS) $(LIBFILES);
 	$(SHELL) -c "$(POSTBUILDCOMMAND)"
 
 SO_GameOutputFile = $(GAMEOUTPUTFILE)
@@ -559,7 +559,7 @@ $(GAMEOUTPUTFILE): $(OUTPUTFILE)
 	$(QUIET_PREFIX) rm -f $(GAMEOUTPUTFILE) $(QUIET_ECHO_POSTFIX);
 	$(QUIET_PREFIX) cp -v $(OUTPUTFILE) $(GAMEOUTPUTFILE) $(QUIET_ECHO_POSTFIX);
 	$(QUIET_PREFIX) -$(P4_EDIT_START) $(GAMEOUTPUTFILE)$(SYM_EXT) $(P4_EDIT_END);
-	$(QUIET_PREFIX) $(GEN_SYM) $(GAMEOUTPUTFILE); 
+	$(QUIET_PREFIX) $(GEN_SYM) $(GAMEOUTPUTFILE);
 	$(QUIET_PREFIX) -$(STRIP) $(GAMEOUTPUTFILE);
 	$(QUIET_PREFIX) $(VSIGN) -signvalve $(GAMEOUTPUTFILE);
 	$(QUIET_PREFIX) if [ "$(COPY_DLL_TO_SRV)" = "1" ]; then\
