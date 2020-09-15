@@ -19122,6 +19122,7 @@ bool CTFPlayer::SpeakConceptIfAllowed( int iConcept, const char *modifiers, char
 		}
 	}
 	
+	// HACK(comtress): combine the two concepts used for money
 	if (iConcept == MP_CONCEPT_MVM_MONEY_PICKUP && rc_CCurrencyPack_MyTouch > 0) {
 		switch ( GetPlayerClass()->GetClassIndex() ) {
 		case TF_CLASS_HEAVYWEAPONS:
