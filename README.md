@@ -23,6 +23,8 @@ Obviously, as a leaked build, it's not useful for getting better performance in 
 5. Double click `start_tf2.bat`. Note that you must have Steam running.
 6. Enjoy!
 
+Note: TC2 bundles the stock HUD with [CriticalFlaw's HUD fix](https://github.com/CriticalFlaw/TF2-HUD-Fix) in the custom folder
+
 ## New console commands and launch options
 
 Although configs are not recommended (use video options to customize), there are some new customization variables you can try that haven't been added yet!
