@@ -1,4 +1,4 @@
-# Visual Studio 
+# Visual Studio
 *.suo
 *.user
 *.sln.docstates
@@ -24,6 +24,9 @@ ipch
 obj*/
 !devtools/*.mak
 !utils/smdlexp/smdlexp.mak
+*.project
+/devtools/bin/vpc_linux
+/thirdparty/gperftools-2.0/.libs/
 
 # Specific Source build products
 client.pdb

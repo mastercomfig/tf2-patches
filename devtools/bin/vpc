@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 OS=`uname`
 SCRIPTPATH=`dirname $0`
@@ -18,9 +18,9 @@ case $OS in
 esac
 
 CWD=`pwd`
-cd $SCRIPTPATH/../../external/vpc/utils/vpc 
+cd $SCRIPTPATH/../../external/vpc/utils/vpc
 # ask make if we need to do any work, returns 0 if we don't,
-# non zero if we do.  
+# non zero if we do.
 make -q
 RC=$?
 if [ $RC -eq 1 ]; then
@@ -29,7 +29,7 @@ elif [ $RC -eq 2 ]; then
   FORCEARG="/f"
   make clean
 fi
-make -j4 
+make -j4
 if [ $? -ne 0 ]; then
    exit -1
 fi

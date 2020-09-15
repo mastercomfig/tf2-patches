@@ -1,0 +1,67 @@
+libtcmalloc_internal_la-common.lo: src/common.cc \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/stdc-predef.h \
+ src/config.h src/common.h \
+ /nix/store/rclksjxdjgp6y6qkxyl9m4dx4b9d45zk-gcc-9.3.0/lib/gcc/x86_64-unknown-linux-gnu/9.3.0/include/stddef.h \
+ /nix/store/rclksjxdjgp6y6qkxyl9m4dx4b9d45zk-gcc-9.3.0/lib/gcc/x86_64-unknown-linux-gnu/9.3.0/include/stdint.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/stdint.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/libc-header-start.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/features.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/sys/cdefs.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/wordsize.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/long-double.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/gnu/stubs.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/gnu/stubs-64.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/types.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/timesize.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/typesizes.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/time64.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/wchar.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/stdint-intn.h \
+ /nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/stdint-uintn.h \
+ src/internal_logging.h src/config.h src/system-alloc.h
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/stdc-predef.h:
+
+src/config.h:
+
+src/common.h:
+
+/nix/store/rclksjxdjgp6y6qkxyl9m4dx4b9d45zk-gcc-9.3.0/lib/gcc/x86_64-unknown-linux-gnu/9.3.0/include/stddef.h:
+
+/nix/store/rclksjxdjgp6y6qkxyl9m4dx4b9d45zk-gcc-9.3.0/lib/gcc/x86_64-unknown-linux-gnu/9.3.0/include/stdint.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/stdint.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/libc-header-start.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/features.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/sys/cdefs.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/wordsize.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/long-double.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/gnu/stubs.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/gnu/stubs-64.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/types.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/timesize.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/typesizes.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/time64.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/wchar.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/stdint-intn.h:
+
+/nix/store/bgvxpx97q789xc8rrginprlvk8p03p93-glibc-2.31-dev/include/bits/stdint-uintn.h:
+
+src/internal_logging.h:
+
+src/config.h:
+
+src/system-alloc.h:
