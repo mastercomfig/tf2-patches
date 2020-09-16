@@ -19,6 +19,7 @@ A clear and concise description of what the bug is.
 - [ ] This is obviously a bug, not something that people commonly disagree on.
 - [ ] This bug is in the code of the game, not in the textures, sounds, or other resources.
 - [ ] This issue occurs on the lastest vanilla TF2 update.
+- [ ] This issue occurs with DirectX level 100.
 - [ ] This issue occurs on the latest Team Comtress release, or the `master` branch.
 - [ ] This issue occurs when using no custom content.
 - [ ] This issue occurs when using `start_tf2.bat` (or `start_server.bat`) with no custom launch options.
@@ -44,7 +45,7 @@ Bugs that cannot be recreated are extremely unlikely to received a fix.
 - *Launch options:* <!-- If not using start_tf2.bat, specify a list of options -->
 <!-- For graphics-related issues: -->
 - *Graphics driver:* <!-- Specify a version. This is especially important on Linux. -->
-- *DX level:* <!-- This will be different if you set dxlevel in vanilla TF2. -->
+- *DirectX level:* <!-- This will be different if you set dxlevel in vanilla TF2. -->
 
 ### Performance Details
 <!-- Fill this out for performance-related issues. -->
