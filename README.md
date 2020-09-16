@@ -86,10 +86,12 @@ us single bullet fire weapons.
 2. Compile `protobuf`
 
    A. `cd` into `thirdparty/protobuf-2.5.0`
-      
-   B. Run `chmod +x configure && ./configure`
    
-   C. Run `make -j$(nproc)`
+   B. Run `./autogen.sh`
+   
+   C. Run `chmod +x configure && ./configure`
+   
+   D. Run `make -j$(nproc)`
    
 3. `cd` back into root directory, and run  `./creategameprojects.sh`
 4. Run `NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -f games.mak` 

@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
+set -e  # Stop on error
 
 CORES=`nproc`
 if [ ! -f ./thirdparty/gperftools-2.0/built ]; then
-	cd ./thirdparty/gperftools-2.0 && bash ./autogen.sh && ./configure --enable-frame-pointers && make -j $CORES
+	cd ./thirdparty/gperftools-2.0
+	bash ./autogen.sh
+	./configure --enable-frame-pointers
+	make -j $CORES
 	cd ../..
 	touch ./thirdparty/gperftools-2.0/built
 fi
 
 if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
-	cd ./thirdparty/protobuf-2.5.0 && bash ./configure && make -j $CORES
+	cd ./thirdparty/protobuf-2.5.0
+	bash ./autogen.sh
+	bash ./configure
+	make -j $CORES
 	cd ../..
 	touch ./thirdparty/protobuf-2.5.0/built
 fi
