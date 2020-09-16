@@ -6,7 +6,7 @@ labels: 'Type: enhancement'
 assignees: mastercoms
 
 ---
-**NOTE:Make sure the feature being requested does NOT change the gameplay balance in a significant way and is NOT purely a cosmetic choice**
+**NOTE:Features should NOT change the gameplay balance in a significant way and should NOT be purely cosmetic choices**
 This project is not interested in re-balancing the game or changing its look. Ex. "Buff the Bison", "Bring back the beta muzzle flashes" would not be accepted
 
 **Is your feature request related to a problem? Please describe.**
