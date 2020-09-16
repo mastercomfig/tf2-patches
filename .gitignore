@@ -31,7 +31,7 @@ obj*/
 !devtools/*.mak
 !utils/smdlexp/smdlexp.mak
 *.project
-/devtools/bin/vpc_linux
+/devtools/bin/vpc2_linux
 
 # Linux libs
 /thirdparty/gperftools-2.0/.libs/
