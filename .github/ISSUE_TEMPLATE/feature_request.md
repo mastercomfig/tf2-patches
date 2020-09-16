@@ -7,6 +7,8 @@ assignees: mastercoms
 
 ---
 
+**Please note, anything that changes gameplay (balance changes, etc.) is outside the scope of this project, and your issue will be closed.**
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
