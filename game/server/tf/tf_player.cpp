@@ -14882,7 +14882,36 @@ void CTFPlayer::CreateRagdollEntity( bool bGib, bool bBurning, bool bElectrocute
 		pRagdoll = NULL;
 	}
 	Assert( pRagdoll == NULL );
-
+	
+	auto player = reinterpret_cast<CTFPlayer *>(this);
+	
+	bool ClassHasDecentGibs(const CTFPlayer *pPlayer)
+	{
+		switch (pPlayer->GetPlayerClass()->GetClassIndex()) {
+		default:
+			return true;
+			
+		case TF_CLASS_ENGINEER: // no gibs
+		case TF_CLASS_MEDIC:    // head gib only
+		case TF_CLASS_SNIPER:   // head gib only
+		case TF_CLASS_SPY:      // head gib only
+			return false;
+		}
+	}
+	
+	CTFBot *bot;
+	if (TFGameRules()->IsMannVsMachineMode() && (bot = ToTFBot(player)) != nullptr) {
+		if (bot->IsMiniBoss() || bot->GetModelScale() > 1.0f) {
+			if (iDamageCustom == TF_DMG_CUSTOM_PLASMA) {
+				iDamageCustom = TF_DMG_CUSTOM_PLASMA_CHARGED;
+			}
+		} else {
+			if (iDamageCustom == TF_DMG_CUSTOM_PLASMA_CHARGED && !ClassHasDecentGibs(bot)) {
+				iDamageCustom = TF_DMG_CUSTOM_PLASMA;
+			}
+		}
+	}
+	
 	// Create a ragdoll.
 	pRagdoll = dynamic_cast<CTFRagdoll*>( CreateEntityByName( "tf_ragdoll" ) );
 	if ( pRagdoll )
