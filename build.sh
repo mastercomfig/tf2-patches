@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -e  # Stop on error
 
-CORES=`nproc`
+if [[ ! -v CORES ]]; then
+  CORES=`nproc`
+fi
+
 if [ ! -f ./thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so ]; then
 	cd ./thirdparty/gperftools-2.0
   aclocal
