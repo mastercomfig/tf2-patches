@@ -43,7 +43,7 @@ fi
 
 export VALVE_NO_AUTO_P4=1
 if [[ $1 == '-v' ]]; then
-  make games.mak NO_CHROOT=1 MAKE_JOBS=1 MAKE_VERBOSE=1 -f "${@:2}"
+  make NO_CHROOT=1 MAKE_JOBS=1 MAKE_VERBOSE=1 -f games.mak "${@:2}"
 else
-  make NO_CHROOT=1 MAKE_JOBS=$CORES -f games.mak "$@"
+  make NO_CHROOT=1 MAKE_JOBS=$CORES -f games.mak "${@:1}"
 fi
