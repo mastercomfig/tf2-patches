@@ -42,7 +42,6 @@ thirdparty/gperftools-2.0/**/*.lo
 thirdparty/gperftools-2.0/**/*.la
 thirdparty/gperftools-2.0/*_test
 thirdparty/gperftools-2.0/*_unittest
-thirdparty/gperftools-2.0/m4/
 thirdparty/gperftools-2.0/aclocal.m4
 thirdparty/gperftools-2.0/missing
 thirdparty/gperftools-2.0/mkinstalldirs
