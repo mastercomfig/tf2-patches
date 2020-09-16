@@ -50,4 +50,5 @@ Bugs that cannot be recreated are extremely unlikely to received a fix.
 - *GPU model:* <!-- Example: NVIDIA GTX 2070 Super -->
 - *CPU model:* <!-- Example: Radeon 3600X -->
 - *RAM amount:* <!-- Example: 32GB -->
-- *TC2 installed on:* <!-- HDD or SSD -->
+- *TF2 installed on:* <!-- HDD or SSD -->
+- *TC2 installed on:* <!-- HDD or SSD. Leave empty if not tested with TC2. -->
