@@ -94,6 +94,7 @@ us single bullet fire weapons.
 3. `cd` back into root directory, and run  `./creategameprojects.sh`
 4. Run `NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -f games.mak` 
 
+Alternatively, once you have downloaded the required patches you can run the `build.sh` script to automate this process.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
