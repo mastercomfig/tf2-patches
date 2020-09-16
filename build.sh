@@ -11,7 +11,6 @@ if [ ! -f ./thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so ]; then
   automake --add-missing
 	autoconf
 	./configure --enable-frame-pointers "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
-#  sed -i 's/LIBTOOL = $(SHELL) $(top_builddir)\/libtool/LIBTOOL = libtool/' Makefile
   make -j$CORES
 	cd ../..
 fi
@@ -44,7 +43,7 @@ fi
 
 export VALVE_NO_AUTO_P4=1
 if [[ $1 == '-v' ]]; then
-  make -f games.mak NO_CHROOT=1 MAKE_JOBS=1 MAKE_VERBOSE=1 "${@:2}"
+  make games.mak NO_CHROOT=1 MAKE_JOBS=1 MAKE_VERBOSE=1 -f "${@:2}"
 else
-  make -f games.mak NO_CHROOT=1 MAKE_JOBS=$CORES "$@"
+  make NO_CHROOT=1 MAKE_JOBS=$CORES -f games.mak "$@"
 fi
