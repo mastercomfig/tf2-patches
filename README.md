@@ -86,31 +86,7 @@ Dependencies (libraries must be 32-bit):
 - openal
 - libncurses
 
-0. Make sure you have your distro's build essentials, gcc and g++ multilibs installed. On arch I used the command `sudo pacman -Syu lib32-gcc-libs gcc-libs`. For Ubuntu, according to the Valve Wiki for Source SDK 2013, do `sudo apt-get install build-essential` and `sudo apt-get install gcc-multilib g++-multilib`
-1. Compile `gperftools`
-
-   A. `cd` into `thirdparty/gperftools-2.0`
-
-   B. Run `./autogen.sh`
-   
-   C. Run `./configure --enable-frame-pointers`
-   
-   D. Run `make -j$(nproc)`
-   
-2. Compile `protobuf`
-
-   A. `cd` into `thirdparty/protobuf-2.5.0`
-   
-   B. Run `./autogen.sh`
-   
-   C. Run `chmod +x configure && ./configure`
-   
-   D. Run `make -j$(nproc)`
-   
-3. `cd` back into root directory, and run  `./creategameprojects.sh`
-4. Run `NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -f games.mak` 
-
-Alternatively, once you have downloaded the required patches you can run the `build.sh` script to automate this process.
+1. Run `build.sh` repeatedly until it compiles fully.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
