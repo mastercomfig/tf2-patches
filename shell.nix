@@ -1,13 +1,17 @@
-{ pkgs ? (import <nixpkgs> {}).pkgsi686Linux }:
+{ pkgs ? (import <nixpkgs> {}).pkgsi686Linux,
+ x64pkgs ? import <nixpkgs> {} }:
 
-let ogl = pkgs.linuxPackages.nvidia_x11;
-in pkgs.mkShell {
+pkgs.mkShell {
   buildInputs = with pkgs; [
     gcc
     gnumake
     automake
     autoconf
+    glxinfo
 
+    x64pkgs.lldb
+
+    SDL2
     glib
     libunwind
     freetype
@@ -21,4 +25,14 @@ in pkgs.mkShell {
     # keep this line if you use bash
     bashInteractive
   ];
+
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+    SDL2
+    xorg.libX11
+    xorg.libXext
+    xorg.libXinerama
+    xorg.libXi
+    xorg.libXrandr
+    libGL
+  ]);
 }
