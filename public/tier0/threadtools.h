@@ -1070,19 +1070,38 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
             return TW_TIMEOUT;
         }
 		++iLoops;
-		if (iLoops > 5000)
+		if (iLoops >= 20000)
 		{
-			// If we've been waiting for a while, be a lot more idle for waiting.
+			// Wow! It's been quite a long while. Our events are probably idle.
+			ThreadSleepEx(2 * (iLoops / 20000) );
+			continue;
+		}
+		if (iLoops >= 5000)
+		{
+			// It's been quite a while. Start sleeping often.
 			ThreadSleepEx(1);
+			continue;
 		}
-		else if (iLoops % 1000 == 0)
+		if (iLoops >= 1000)
 		{
-			ThreadSleepEx();
+			if (iLoops % 100 == 0)
+			{
+				// If we've been waiting for quite a bit, sleep regularly.
+				ThreadSleepEx(1);
+				continue;
+			}
 		}
-		else if (iLoops % 20 == 0)
+		else
 		{
-			ThreadPause();
+			if (iLoops % 500 == 0)
+			{
+				// If we've been waiting for quite a bit, sleep regularly.
+				ThreadSleepEx(1);
+				continue;
+			}
 		}
+		// Never spin lock. That sort of tight timing is so rare that it's not worth it.
+		ThreadPause();
     } while (true);
 }
 

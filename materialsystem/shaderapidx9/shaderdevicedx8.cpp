@@ -1689,7 +1689,7 @@ void CShaderDeviceDx8::SetPresentParameters( void* hWnd, int nAdapter, const Sha
 	if ( IsX360() || !info.m_bWindowed )
 	{
 		bool useDefault = ( info.m_DisplayMode.m_nWidth == 0 ) || ( info.m_DisplayMode.m_nHeight == 0 );
-		m_PresentParameters.BackBufferCount = 1;
+		m_PresentParameters.BackBufferCount = 0;
 		m_PresentParameters.BackBufferWidth = useDefault ? mode.m_nWidth : info.m_DisplayMode.m_nWidth;
 		m_PresentParameters.BackBufferHeight = useDefault ? mode.m_nHeight : info.m_DisplayMode.m_nHeight;
 		m_PresentParameters.BackBufferFormat = ImageLoader::ImageFormatToD3DFormat( backBufferFormat );
@@ -1772,7 +1772,7 @@ void CShaderDeviceDx8::SetPresentParameters( void* hWnd, int nAdapter, const Sha
 			m_PresentParameters.BackBufferHeight = info.m_DisplayMode.m_nHeight;
 		}
 		m_PresentParameters.BackBufferFormat = ImageLoader::ImageFormatToD3DFormat( backBufferFormat );
-		m_PresentParameters.BackBufferCount = 1;
+		m_PresentParameters.BackBufferCount = 0;
 	}
 
 	if ( info.m_nAASamples > 1 && ( m_PresentParameters.SwapEffect == D3DSWAPEFFECT_DISCARD ) )
@@ -2257,7 +2257,7 @@ IDirect3DDevice9* CShaderDeviceDx8::InvokeCreateDevice( void* hWnd, int nAdapter
 	if ( !FAILED( hr ) && pD3DDevice )
 		return pD3DDevice;
 
-	const char *pszMoreInfo = NULL;
+	const char* pszMoreInfo;
 	switch ( hr )
 	{
 #ifdef _WIN32
@@ -2410,6 +2410,11 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	g_pHardwareConfig->SetupHardwareCaps( info, g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter ) );
 
+	if (g_ShaderDeviceUsingD3D9Ex)
+	{
+		Dx9ExDevice()->SetMaximumFrameLatency(1);
+	}
+
 	// FIXME: Bake this into hardware config
 	// What texture formats do we support?
 	if ( D3DSupportsCompressedTextures() )
@@ -2526,19 +2531,18 @@ void CShaderDeviceDx8::FreeFrameSyncObjects( void )
 			{
 				tmZone( TELEMETRY_LEVEL1, TMZF_NONE, "D3DQueryGetData %t", tmSendCallStack( TELEMETRY_LEVEL0, 0 ) );
 
-				double flStartTime = Plat_FloatTime();
+				float flStartTime = Plat_FloatTime();
 				BOOL dummyData = 0;
-				HRESULT hr = S_OK;
-
+				HRESULT hr;
 				// Make every attempt (within 2 seconds) to get the result from the query.  Doing so may prevent
 				// crashes in the driver if we try to release outstanding queries.
 				do
 				{
 					hr = m_pFrameSyncQueryObject[i]->GetData( &dummyData, sizeof( dummyData ), D3DGETDATA_FLUSH );
-					double flCurrTime = Plat_FloatTime();
+					float flCurrTime = Plat_FloatTime();
 
 					// don't wait more than 2 seconds for these
-					if ( flCurrTime - flStartTime > 2.00 )
+					if ( flCurrTime - flStartTime > 2.00f )
 						break;
 				} while ( hr == S_FALSE );
 			}
@@ -3434,7 +3438,23 @@ void CShaderDeviceDx8::Present()
 		else
 		{
 			g_pShaderAPI->OwnGPUResources( false );
-			hr = Dx9Device()->Present( 0, 0, 0, 0 );
+			if (g_ShaderDeviceUsingD3D9Ex)
+			{
+				int flags = D3DPRESENT_DONOTWAIT;
+				if (!m_PresentParameters.Windowed)
+				{
+					flags |= D3DPRESENT_DONOTFLIP;
+				}
+				if (m_PresentParameters.SwapEffect == D3DSWAPEFFECT_FLIPEX)
+				{
+					flags |= D3DPRESENT_FORCEIMMEDIATE;
+				}
+				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
+			}
+			else
+			{
+				hr = Dx9Device()->Present(0, 0, 0, 0);
+			}
 		}
 	}
 

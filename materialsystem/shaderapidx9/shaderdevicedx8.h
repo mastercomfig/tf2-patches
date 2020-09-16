@@ -152,7 +152,7 @@ inline IDirect3D9* D3D()
 
 #endif
 
-#define NUM_FRAME_SYNC_QUERIES 1
+#define NUM_FRAME_SYNC_QUERIES 2
 #define NUM_FRAME_SYNC_FRAMES_LATENCY 0
 
 //-----------------------------------------------------------------------------
@@ -359,6 +359,10 @@ extern IDirect3DDevice9 *g_pD3DDevice;
 FORCEINLINE IDirect3DDevice9 *Dx9Device()
 {
 	return g_pD3DDevice;
+}
+FORCEINLINE IDirect3DDevice9Ex* Dx9ExDevice()
+{
+	return (IDirect3DDevice9Ex*)g_pD3DDevice;
 }
 
 extern CShaderDeviceDx8* g_pShaderDeviceDx8;
