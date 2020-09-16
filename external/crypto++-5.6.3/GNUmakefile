@@ -1,4 +1,4 @@
-SHELL=/bin/bash
+SHELL=bash
 # Base CXXFLAGS used if the user did not specify them
 CXXFLAGS ?= -DNDEBUG -g2 -O2
 
@@ -74,13 +74,13 @@ else
 # Otherwise we're building for STEAM, so use the native compile tools
   BUILDVERSION="Building libcryptopp.a for Steam"
   ifeq ($(ISX64),1)
-    CXX = g++-4.8 -m64
+    CXX = g++ -m64
     BINDIR  =ubuntu12_64
   else
-    CXX = g++-4.8 -m32
+    CXX = g++ -m32
     BINDIR  =ubuntu12_32
   endif
-endif 
+endif
 
 
 ifeq ($(IS_X86),1)
@@ -315,13 +315,13 @@ LIB_PATCH := 0
 endif
 
 #VALVE: We only really need to build libcryptopp.a on Linux and Mac
-all: start_status libcryptopp.a end_status
+all: start_status libcrypto.a end_status
 
 ifneq ($(IS_DARWIN),0)
-static: libcryptopp.a
+static: libcrypto.a
 shared dynamic dylib: libcryptopp.dylib
 else
-static: libcryptopp.a
+static: libcrypto.a
 shared dynamic: libcryptopp.so
 endif
 
@@ -383,41 +383,46 @@ ifneq ($(wildcard CryptoPPRef.zip),)
 	-$(RM) CryptoPPRef.zip
 endif
 
-.PHONY: install
-install:
-	$(MKDIR) -p $(PREFIX)/include/cryptopp $(PREFIX)/lib $(PREFIX)/bin
-	-$(CP) *.h $(PREFIX)/include/cryptopp
-	-$(CHMOD) 755 $(PREFIX)/include/cryptopp
-	-$(CHMOD) 644 $(PREFIX)/include/cryptopp/*.h
-	-$(CP) libcryptopp.a $(PREFIX)/lib
-	-$(CHMOD) 644 $(PREFIX)/lib/libcryptopp.a
-	-$(CP) cryptest.exe $(PREFIX)/bin
-	-$(CHMOD) 755 $(PREFIX)/bin/cryptest.exe
-ifneq ($(IS_DARWIN),0)
-	-$(CP) libcryptopp.dylib $(PREFIX)/lib
-	-$(CHMOD) 755 $(PREFIX)/lib/libcryptopp.dylib
-else
-	-$(CP) libcryptopp.so $(PREFIX)/lib
-	-$(CHMOD) 755 $(PREFIX)/lib/libcryptopp.so
-endif
+# do not install
+# .PHONY: install
+# install:
+# 	$(MKDIR) -p $(PREFIX)/include/cryptopp $(PREFIX)/lib $(PREFIX)/bin
+# 	-$(CP) *.h $(PREFIX)/include/cryptopp
+# 	-$(CHMOD) 755 $(PREFIX)/include/cryptopp
+# 	-$(CHMOD) 644 $(PREFIX)/include/cryptopp/*.h
+# 	-$(CP) libcryptopp.a $(PREFIX)/lib
+# 	-$(CHMOD) 644 $(PREFIX)/lib/libcryptopp.a
+# 	-$(CP) cryptest.exe $(PREFIX)/bin
+# 	-$(CHMOD) 755 $(PREFIX)/bin/cryptest.exe
+# ifneq ($(IS_DARWIN),0)
+# 	-$(CP) libcryptopp.dylib $(PREFIX)/lib
+# 	-$(CHMOD) 755 $(PREFIX)/lib/libcryptopp.dylib
+# else
+# 	-$(CP) libcryptopp.so $(PREFIX)/lib
+# 	-$(CHMOD) 755 $(PREFIX)/lib/libcryptopp.so
+# endif
 
-.PHONY: remove uninstall
-remove uninstall:
-	-$(RM) -r $(PREFIX)/include/cryptopp
-	-$(RM) $(PREFIX)/lib/libcryptopp.a
-	-$(RM) $(PREFIX)/bin/cryptest.exe
-ifneq ($(IS_DARWIN),0)
-	-$(RM) $(PREFIX)/lib/libcryptopp.dylib
-else
-	-$(RM) $(PREFIX)/lib/libcryptopp.so
-endif
+# do not uninstall
+# .PHONY: remove uninstall
+# remove uninstall:
+# 	-$(RM) -r $(PREFIX)/include/cryptopp
+# 	-$(RM) $(PREFIX)/lib/libcryptopp.a
+# 	-$(RM) $(PREFIX)/bin/cryptest.exe
+# ifneq ($(IS_DARWIN),0)
+# 	-$(RM) $(PREFIX)/lib/libcryptopp.dylib
+# else
+# 	-$(RM) $(PREFIX)/lib/libcryptopp.so
+# endif
 
-libcryptopp.a: public_service | $(LIBOBJS)
+libcrypto.a: public_service | $(LIBOBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 	$(RANLIB) $@
 #VALVE: Copy the file into the right spot.
-	p4 edit ../../lib/$(BINDIR)/release/libcryptopp.a
-	$(CP) libcryptopp.a ../../lib/$(BINDIR)/release
+# TODO(maximsmol): no perforce
+# 	p4 edit ../../lib/$(BINDIR)/release/libcrypto.a
+	mkdir -p ../../lib/common/$(BINDIR)
+	$(CP) libcrypto.a ../../lib/common/$(BINDIR)
+# 	$(CP) libcrypto.a ../../lib/$(BINDIR)/release
 
 libcryptopp.so: public_service | $(LIBOBJS)
 	$(CXX) -shared -o $@ $(CXXFLAGS) $(GOLD_OPTION) $(LIBOBJS) $(LDLIBS)
@@ -425,8 +430,8 @@ libcryptopp.so: public_service | $(LIBOBJS)
 libcryptopp.dylib: $(LIBOBJS)
 	$(CXX) -dynamiclib -o $@ $(CXXFLAGS) -install_name "$@" -current_version "$(LIB_MAJOR).$(LIB_MINOR).$(LIB_PATCH)" -compatibility_version "$(LIB_MAJOR).$(LIB_MINOR)" $(LIBOBJS)
 
-cryptest.exe: public_service | libcryptopp.a $(TESTOBJS)
-	$(CXX) -o $@ $(CXXFLAGS) $(TESTOBJS) ./libcryptopp.a $(LDFLAGS) $(GOLD_OPTION) $(LDLIBS)
+cryptest.exe: public_service | libcrypto.a $(TESTOBJS)
+	$(CXX) -o $@ $(CXXFLAGS) $(TESTOBJS) ./libcrypto.a $(LDFLAGS) $(GOLD_OPTION) $(LDLIBS)
 
 nolib: $(OBJS)		# makes it faster to test changes
 	$(CXX) -o ct $(CXXFLAGS) $(OBJS) $(LDFLAGS) $(LDLIBS)
