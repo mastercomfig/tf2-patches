@@ -50,16 +50,14 @@ thirdparty/gperftools-2.0/config.guess
 thirdparty/gperftools-2.0/config.sub
 thirdparty/gperftools-2.0/depcomp
 thirdparty/gperftools-2.0/install-sh
-thirdparty/gperftools-2.0/ltmain.sh
 thirdparty/gperftools-2.0/Makefile.in
 thirdparty/gperftools-2.0/test-driver
-thirdparty/gperftools-2.0/src/config.h.in
-thirdparty/gperftools-2.0/src/config.h.in~
 thirdparty/gperftools-2.0/Makefile
 thirdparty/gperftools-2.0/config.status
 thirdparty/gperftools-2.0/src/config.h
 thirdparty/gperftools-2.0/libtool
 thirdparty/gperftools-2.0/configure
+thirdparty/gperftools-2.0/*.pc
 
 external/crypto++-*/a.out
 external/crypto++-*/*.o
@@ -74,6 +72,13 @@ thirdparty/libedit-3.1/**/.deps
 thirdparty/libedit-3.1/**/.libs
 thirdparty/libedit-3.1/config.h
 thirdparty/libedit-3.1/config.status
+thirdparty/libedit-3.1/config.guess
+thirdparty/libedit-3.1/config.sub
+thirdparty/libedit-3.1/install-sh
+thirdparty/libedit-3.1/missing
+thirdparty/libedit-3.1/depcomp
+thirdparty/libedit-3.1/compile
+thirdparty/libedit-3.1/*.pc
 thirdparty/libedit-3.1/aclocal.m4
 thirdparty/libedit-3.1/acinclude.m4
 thirdparty/libedit-3.1/autom4te.cache/
@@ -98,6 +103,8 @@ thirdparty/protobuf-*/gtest/autom4te.cache/
 thirdparty/protobuf-*/autom4te.cache/
 thirdparty/protobuf-*/config.h
 thirdparty/protobuf-*/config.status
+thirdparty/protobuf-*/test-driver
+thirdparty/protobuf-*/missing
 thirdparty/protobuf-*/**/*.o
 thirdparty/protobuf-*/**/*.la
 thirdparty/protobuf-*/**/*.lo
@@ -105,7 +112,6 @@ thirdparty/protobuf-*/**/.deps
 thirdparty/protobuf-*/**/.libs
 thirdparty/protobuf-*/src/google/protobuf/compiler/cpp/cpp_test_bad_identifiers.pb.*
 thirdparty/protobuf-*/src/google/protobuf/unittest.pb.*
-thirdparty/protobuf-*/src/google/protobuf/unittest_*
 thirdparty/protobuf-*/src/google/protobuf/.deps/
 thirdparty/protobuf-*/src/google/protobuf/.dirstamp
 thirdparty/protobuf-*/src/google/protobuf/.libs/

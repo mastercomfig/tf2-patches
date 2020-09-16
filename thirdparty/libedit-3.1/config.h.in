@@ -25,14 +25,6 @@
 /* Define to 1 if you have the `getline' function. */
 #undef HAVE_GETLINE
 
-/* Define to 1 if you have getpwnam_r and getpwuid_r that are draft POSIX.1
-   versions. */
-#undef HAVE_GETPW_R_DRAFT
-
-/* Define to 1 if you have getpwnam_r and getpwuid_r that are POSIX.1
-   compatible. */
-#undef HAVE_GETPW_R_POSIX
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
