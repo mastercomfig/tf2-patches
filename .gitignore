@@ -87,6 +87,9 @@ thirdparty/protobuf-*/src/google/protobuf/compiler/cpp/cpp_test_bad_identifiers.
 
 # Specific Source build products
 /lib/public/linux32/*.so
+/external/crypto++-*/*.o
+/external/crypto++-*/*.a
+/external/crypto++-*/a.out
 
 client.pdb
 client.dll

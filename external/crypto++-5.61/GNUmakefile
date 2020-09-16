@@ -1,4 +1,4 @@
-SHELL=/bin/bash
+SHELL=bash
 
 CXXFLAGS = -DNDEBUG -g -O2
 #CXXFLAGS = -g
@@ -46,9 +46,9 @@ ifeq ($(STEAMCMD),1)
 else
 # Otherwise we're building for STEAM, so use the native compile tools
   BUILDVERSION="Building libcryptopp.a for Steam"
-  CXX = /usr/bin/g++
-  BINDIR  =ubuntu12_32
-endif 
+  CXX = g++
+  BINDIR  =common/ubuntu12_32
+endif
 
 # on linux x86_64, use valve's compiler (and make sure not to specify -m32 in CXXFLAGS above"
 #CXX = /valve/gcc-4.5.1-glibc-2.9/x86_64-valve-linux-gnu/bin/x86_64-valve-linux-gnu-g++
@@ -176,17 +176,19 @@ test: cryptest.exe
 clean:
 	$(RM) cryptest.exe libcryptopp.a $(LIBOBJS) $(TESTOBJS) cryptopp.dll libcryptopp.dll.a libcryptopp.import.a cryptest.import.exe dlltest.exe $(DLLOBJS) $(LIBIMPORTOBJS) $(TESTIMPORTOBJS) $(DLLTESTOBJS)
 
-install:
-	$(MKDIR) -p $(PREFIX)/include/cryptopp $(PREFIX)/lib $(PREFIX)/bin
-	$(CP) *.h $(PREFIX)/include/cryptopp
-	$(CP) *.a $(PREFIX)/lib
-	$(CP) *.so $(PREFIX)/lib
-	$(CP) *.exe $(PREFIX)/bin
+# do not install ever
+# install:
+# 	$(MKDIR) -p $(PREFIX)/include/cryptopp $(PREFIX)/lib $(PREFIX)/bin
+# 	$(CP) *.h $(PREFIX)/include/cryptopp
+# 	$(CP) *.a $(PREFIX)/lib
+# 	$(CP) *.so $(PREFIX)/lib
+# 	$(CP) *.exe $(PREFIX)/bin
 
 libcryptopp.a: $(LIBOBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 	$(RANLIB) $@
 #VALVE: Copy the file into the right spot. This doesn't handle perforce, you need to do that yourself.
+	mkdir -p ../../lib/$(BINDIR)/release
 	$(CP) libcryptopp.a ../../lib/$(BINDIR)/release
 
 libcryptopp.so: $(LIBOBJS)
