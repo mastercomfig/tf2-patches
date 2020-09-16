@@ -11,10 +11,8 @@ if [ ! -f ./thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so ]; then
   automake --add-missing
 	autoconf
 	./configure --enable-frame-pointers --host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
-	# libtool breaks for some people, but not others
-	# nobody seems to know why, but this fixes it
-	fgrep 'sort | uniq' libtool export_symbols_cmds="\$NM \$libobjs \$convenience | \$global_symbol_pipe |  \$SED 's/.* //' | sort | uniq > \$export_symbols"
-	make -j$CORES
+  sed -i 's/LIBTOOL = $(SHELL) $(top_builddir)\/libtool/LIBTOOL = libtool/' Makefile
+  make -j$CORES
 	cd ../..
 fi
 
