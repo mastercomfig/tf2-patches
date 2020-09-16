@@ -1,8 +1,8 @@
 ---
 name: New feature implementation
-about: Pull request that fixes a bug in Team Comtress
+about: Implementation for a new idea
 title:
-labels: enhancement, tc2 issue, needs triage
+labels: enhancement, needs triage
 assignees:
 
 ---
@@ -10,7 +10,7 @@ assignees:
 ### Related Issue
 <!-- Number of the issue where this idea was proposed. -->
 
-### Solution
+### Implementation
 <!--
 A clear and concise description of the implemention.
 -->

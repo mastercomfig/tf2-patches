@@ -1,6 +1,6 @@
 ---
 name: TC2 bug fix
-about: Pull request that fixes a bug in Team Comtress
+about: Fix for a bug in Team Comtress
 title:
 labels: bug, tc2 issue, needs triage
 assignees:

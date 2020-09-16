@@ -24,6 +24,7 @@ A clear and concise description of what the bug is.
 - [ ] This issue occurs when using `start_tf2.bat` (or `start_server.bat`) with no custom launch options.
 - [ ] This issue occurs when using a server started with the `map` command from the game.
 - [ ] This issue occurs when using a dedicated server.
+- [ ] This bug is in the internal procedures or tooling (e.g. the build process).
 
 ### Reproduction
 <!--

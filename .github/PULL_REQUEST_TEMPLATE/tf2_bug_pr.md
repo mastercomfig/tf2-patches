@@ -1,6 +1,6 @@
 ---
 name: TF2 bug fix
-about: Pull request that fixes a bug present in live TF2
+about: Fix for a bug present in live TF2
 title:
 labels: bug, tf2 issue, needs triage
 assignees:
