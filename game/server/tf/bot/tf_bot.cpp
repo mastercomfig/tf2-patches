@@ -4438,6 +4438,12 @@ void CTFBot::AddEventChangeAttributes( const CTFBot::EventChangeAttributes_t* ne
 
 const CTFBot::EventChangeAttributes_t* CTFBot::GetEventChangeAttributes( const char* pszEventName ) const
 {
+	
+	auto player = reinterpret_cast<CBasePlayer *>(this);
+	if (ToTFBot(player) == nullptr) {
+		return nullptr;
+	}
+	
 	for ( int i=0; i<m_eventChangeAttributes.Count(); ++i )
 	{
 		if ( FStrEq( m_eventChangeAttributes[i]->m_eventName, pszEventName ) )
