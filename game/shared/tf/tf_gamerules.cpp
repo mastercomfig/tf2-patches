@@ -10625,14 +10625,14 @@ void CTFGameRules::DropHalloweenSoulPackToTeam( int nAmount, const Vector& vecPo
 //-----------------------------------------------------------------------------
 void CTFGameRules::DropHalloweenSoulPack( int nAmount, const Vector& vecSource, CBaseEntity *pTarget, int nSourceTeam )
 {
-	if (TFGameRules()->IsMannVsMachineMode()) {
+	if ( TFGameRules()->IsMannVsMachineMode() ) {
 		/* don't spawn "halloween_souls_pack" entities in MvM mode */
 		return;
 	}
 	
 	QAngle angles(0,0,0);
 	CHalloweenSoulPack *pSoulsPack = assert_cast<CHalloweenSoulPack*>( CBaseEntity::CreateNoSpawn( "halloween_souls_pack", vecSource, angles, NULL ) );
-	
+
 	if ( pSoulsPack )
 	{	
 		pSoulsPack->SetTarget( pTarget );
