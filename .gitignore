@@ -2,7 +2,6 @@
 *.suo
 *.user
 *.sln.docstates
-*.obj
 *.pch
 *.tlog
 *.log
@@ -17,6 +16,12 @@ ipch
 *.idb
 *.sln
 *.recipe
+
+*.lib
+*.a
+*.obj
+*.dylib
+*.xz
 
 # OSX/Linux build products
 *.mak
