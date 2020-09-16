@@ -65,8 +65,6 @@ external/crypto++-*/*.o
 /thirdparty/libedit-3.1/acinclude.m4
 /thirdparty/libedit-3.1/autom4te.cache/
 /thirdparty/libedit-3.1/configure
-/thirdparty/libedit-3.1/config.h
-/thirdparty/libedit-3.1/config.status
 
 /thirdparty/protobuf-*/aclocal.m4
 /thirdparty/protobuf-*/gtest/configure

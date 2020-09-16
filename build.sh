@@ -22,6 +22,7 @@ fi
 
 if [ ! -f ./thirdparty/libedit-3.1/built ]; then
 	cd ./thirdparty/libedit-3.1
+	autoconf
 	chmod u+x ./configure
 	bash ./configure --host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
