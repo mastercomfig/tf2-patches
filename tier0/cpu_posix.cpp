@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/sysctl.h>
+#ifdef OSX
+#include <sys/sysctl.h>   // TELL @melvyn2 IF THIS ERRORS
+#endif
 #include <sys/time.h>
 #include <unistd.h>
 #include <tier0/platform.h>
