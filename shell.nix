@@ -16,6 +16,7 @@ in pkgs.mkShell {
     xorg.libX11
     openal
     ncurses
+    (curl.override { gnutlsSupport = true; sslSupport = false; })
 
     # keep this line if you use bash
     bashInteractive

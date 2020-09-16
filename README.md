@@ -98,7 +98,7 @@ Dependencies (libraries must be i686):
 - libX11
 - openal
 - libncurses
-- curl
+- curl with GNUTLS support
 
 Instructions:
 1. In `thirdparty/gproftools-2.0/`, run `chmod u+x ./configure && ./configure --host=i686-unknown-linux-gnu && make`
