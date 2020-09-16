@@ -503,7 +503,7 @@ void CTFMapOverview::DrawVoiceIconForPlayer( int playerIndex )
 	// if they just sent a chat msg, or are using voice, or did a hand signal or voice command
 	// draw a chat icon
 
-	if ( cl_voicetest.GetInt() || GetClientVoiceMgr()->IsPlayerSpeaking( player->index+1 ) && !pPlayer->m_Shared.IsFullyInvisible() || InSameTeam( pPlayer ) )
+	if ( cl_voicetest.GetInt() || ( GetClientVoiceMgr()->IsPlayerSpeaking( player->index+1 ) && ( !pPlayer->m_Shared.IsFullyInvisible() || InSameTeam( pPlayer ) ) ) )
 	{
 		MapObject_t obj;
 		memset( &obj, 0, sizeof(MapObject_t) );
