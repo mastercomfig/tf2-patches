@@ -67,6 +67,7 @@ external/crypto++-*/*.o
 /thirdparty/libedit-3.1/config.status
 
 /thirdparty/protobuf-*/aclocal.m4
+/thirdparty/protobuf-*/gtest/configure
 /thirdparty/protobuf-*/configure
 /thirdparty/protobuf-*/src/protoc
 /thirdparty/protobuf-*/src/unittest_proto_middleman
@@ -79,6 +80,7 @@ external/crypto++-*/*.o
 /thirdparty/protobuf-*/gtest/scripts/gtest-config
 /thirdparty/protobuf-*/gtest/build-aux/config.h
 /thirdparty/protobuf-*/**/stamp-h1
+/thirdparty/protobuf-*/gtest/autom4te.cache/
 /thirdparty/protobuf-*/autom4te.cache/
 /thirdparty/protobuf-*/config.h
 /thirdparty/protobuf-*/config.status
