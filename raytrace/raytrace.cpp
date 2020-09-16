@@ -479,7 +479,7 @@ void RayTracingEnvironment::Trace4Rays(const FourRays &rays, fltx4 TMin, fltx4 T
 				if ( ( mailboxids[mbox_slot] != tnum ) && ( tri->m_nTriangleID != skip_id ) )
 				{
 					#if _DEBUG
-					num_intersection_calculations++;
+					n_intersection_calculations++;
 					#endif
 					
 					mailboxids[mbox_slot] = tnum;
