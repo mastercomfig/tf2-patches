@@ -5,7 +5,7 @@ CORES=`nproc`
 if [ ! -f ./thirdparty/gperftools-2.0/built ]; then
 	cd ./thirdparty/gperftools-2.0
 	bash ./autogen.sh
-	./configure --enable-frame-pointers --host=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
+	./configure --enable-frame-pointers --host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
 	cd ../..
 	touch ./thirdparty/gperftools-2.0/built
