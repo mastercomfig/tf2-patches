@@ -4,7 +4,9 @@ set -e  # Stop on error
 CORES=`nproc`
 if [ ! -f ./thirdparty/gperftools-2.0/built ]; then
 	cd ./thirdparty/gperftools-2.0
-	bash ./autogen.sh
+	aclocal
+	automake --add-missing
+	autoconf
 	./configure --enable-frame-pointers --host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
 	cd ../..
@@ -13,8 +15,14 @@ fi
 
 if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
 	cd ./thirdparty/protobuf-2.5.0
+<<<<<<< HEAD
+  aclocal
+	automake --add-missing
+	autoconf
+=======
 	chmod u+x autogen.sh
 	bash ./autogen.sh
+>>>>>>> 054dfc0bf13bb8c1224d55c12625437d7ebefbe4
 	bash ./configure --host=i686-unknown-linux-gnu "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "LDFLAGS=-m32" --enable-shared=no
 	make -j$CORES
 	cd ../..
@@ -23,9 +31,9 @@ fi
 
 if [ ! -f ./thirdparty/libedit-3.1/built ]; then
 	cd ./thirdparty/libedit-3.1
-	autoconf
 	aclocal
-	automake
+	automake --add-missing
+	autoconf
 	chmod u+x ./configure
 	bash ./configure --host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
