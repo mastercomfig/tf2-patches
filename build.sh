@@ -15,14 +15,10 @@ fi
 
 if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
 	cd ./thirdparty/protobuf-2.5.0
-<<<<<<< HEAD
   aclocal
 	automake --add-missing
 	autoconf
-=======
 	chmod u+x autogen.sh
-	bash ./autogen.sh
->>>>>>> 054dfc0bf13bb8c1224d55c12625437d7ebefbe4
 	bash ./configure --host=i686-unknown-linux-gnu "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "LDFLAGS=-m32" --enable-shared=no
 	make -j$CORES
 	cd ../..
@@ -40,6 +36,8 @@ if [ ! -f ./thirdparty/libedit-3.1/built ]; then
 	cd ../..
 	touch ./thirdparty/libedit-3.1/built
 fi
+
+exit
 
 if [ ! -f ./games.mak ]; then
 	bash ./creategameprojects.sh
