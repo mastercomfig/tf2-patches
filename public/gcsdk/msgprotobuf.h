@@ -1,6 +1,6 @@
 //====== Copyright © 1996-2004, Valve Corporation, All rights reserved. =======
 //
-// Purpose: 
+// Purpose:
 //
 //=============================================================================
 
@@ -77,7 +77,7 @@ private:
 
 	CNetPacket *m_pNetPacket;
 	CMsgProtoBufHeader *m_pHeader;
-	CSteamID  m_steamID; 
+	CSteamID  m_steamID;
 	MsgType_t m_msgType;
 	bool m_bIsValid;
 };
@@ -150,7 +150,7 @@ private:
 	static uint8* AllocateMessageMemory( MsgType_t eMsgType, const CMsgProtoBufHeader& hdr, uint32 cubBodySize, uint32* pCubTotalSizeOut );
 	//called to free the memory returned by allocate message memory
 	static void FreeMessageMemory( uint8* pMemory );
-	
+
 	// Pointer to an external net packet if we have one. If we have one then we will
 	// not have allocated m_pProtoBufHdr ourselves
 	CProtoBufNetPacket *m_pNetPacket;
@@ -195,7 +195,7 @@ protected:
 	// The actual memory management. Must be overriden by the templated class
 	virtual google::protobuf::Message *InternalAlloc() = 0;
 	virtual void InternalFree( google::protobuf::Message *pMsg ) = 0;
-	
+
 	// Called by the derived destructor to deallocate the outstanding messages
 	bool PopItem( google::protobuf::Message **ppMsg );
 
@@ -225,12 +225,12 @@ namespace GCSDK
 // We create one of these per protobuf msg type, created on first construction of
 // an object of that type.
 //-----------------------------------------------------------------------------
-template< typename PB_OBJECT_TYPE > 
+template< typename PB_OBJECT_TYPE >
 class CProtoBufMsgMemoryPool : public CProtoBufMsgMemoryPoolBase
 {
 public:
 	CProtoBufMsgMemoryPool()
-		: CProtoBufMsgMemoryPoolBase( PB_OBJECT_TYPE::descriptor()->options().GetExtension( msgpool_soft_limit ), 
+		: CProtoBufMsgMemoryPoolBase( PB_OBJECT_TYPE::descriptor()->options().GetExtension( msgpool_soft_limit ),
 									  PB_OBJECT_TYPE::descriptor()->options().GetExtension( msgpool_hard_limit ) ) {}
 	virtual ~CProtoBufMsgMemoryPool()
 	{
@@ -242,8 +242,8 @@ public:
 	}
 
 	virtual CUtlString GetName() OVERRIDE
-	{ 
-		return PB_OBJECT_TYPE::default_instance().GetTypeName().c_str(); 
+	{
+		return PB_OBJECT_TYPE::default_instance().GetTypeName().c_str();
 	}
 
 private:
@@ -270,7 +270,7 @@ private:
 
 
 //-----------------------------------------------------------------------------
-// CProtoBufMsgMemoryPoolMgr - Manages all the message pools for protobufmsgs.  
+// CProtoBufMsgMemoryPoolMgr - Manages all the message pools for protobufmsgs.
 // Should have one global singleton instance of this which tracks all the pools
 // for individual message types.
 //-----------------------------------------------------------------------------
@@ -323,7 +323,7 @@ private:
 // New style steam inter-server message class based on Google Protocol Buffers
 // Handles a message with a header of type MsgHdr_t, a body of type T, and optional variable length data
 //-----------------------------------------------------------------------------
-template< typename PB_OBJECT_TYPE > 
+template< typename PB_OBJECT_TYPE >
 class CProtoBufMsg : public CProtoBufMsgBase
 {
 private:
@@ -363,24 +363,24 @@ public:
 
 
 	// Constructor for an empty message
-	CProtoBufMsg( MsgType_t eMsg ) 
+	CProtoBufMsg( MsgType_t eMsg )
 		: CProtoBufMsgBase( eMsg )
 		, m_pProtoBufBody( NULL )
-	{ 
+	{
 		VPROF_BUDGET( "CProtoBufMsg::CProtoBufMsg( MsgType_t )", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 		m_pProtoBufBody = AllocProto();
 	}
 
 	// Constructor for an empty message responding to a client
-	CProtoBufMsg( MsgType_t eMsg, CSteamID steamIDClient, int32 nSessionIDClient ) 
+	CProtoBufMsg( MsgType_t eMsg, CSteamID steamIDClient, int32 nSessionIDClient )
 		: CProtoBufMsgBase( eMsg )
 		, m_pProtoBufBody( NULL )
-	{ 
+	{
 		VPROF_BUDGET( "CProtoBufMsg::CProtoBufMsg( MsgType_t, CSteamID, int32 )", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 
 		m_pProtoBufBody = AllocProto();
-		Hdr()->set_client_steam_id( steamIDClient.ConvertToUint64() );
-		Hdr()->set_client_session_id( nSessionIDClient );
+		Hdr().set_client_steam_id( steamIDClient.ConvertToUint64() );
+		Hdr().set_client_session_id( nSessionIDClient );
 	}
 
 	// Constructor from an incoming netpacket
