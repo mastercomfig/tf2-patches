@@ -11,30 +11,30 @@ Before sharing your ideas and feedback, it's important to have a good understand
 Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community developer team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
 ### What is TC2 *not*?
-* TC2 is *not* a "pro mod"
+* **TC2 is *not* a "pro mod"**
 
 While much of the work in TC2 will improve the competitive experience, TC2 does not touch gameplay, balance, or competitive rules.
 
-* A vision for the "good old days" of TF2
+* **TC2 is *not* a vision for the "good old days" of TF2**
 
 TC2 will not feature game design changes, gameplay additions, or almost any form of new content. If you're looking for this kind of content, [Team Fortress 2 Classic](https://tf2classic.com/) is more up your alley.
 
-* The modern game, but with new content/updates
+* **TC2 is *not* the modern game, with new content/updates**
 
 You're looking for [Creators.TF](https://creators.tf/).
 
-* An alternative, more stable game experience
+* **TC2 is *not* an alternative, more stable game experience**
 
-TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and *is not compatible with* the modern game. It isn't even fully playable on its own.
+TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and *is not compatible with* the modern game client. It isn't even fully playable on its own.
 
 ## Installation
 
 **Windows-only for now** (see [#2](https://github.com/mastercomfig/team-comtress-2/issues/2))
 
 1. Copy your current `Team Fortress 2` installation to a new folder.
-2. In your cloned TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg` and `tf/cfg/config.cfg`.
+2. In your copied TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-4. Extract the downloaded ZIP to your cloned TF2 folder, overwriting existing files.
+4. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
 5. Double click `start_tf2.bat`. Note that you must have Steam running.
 6. Enjoy!
 
