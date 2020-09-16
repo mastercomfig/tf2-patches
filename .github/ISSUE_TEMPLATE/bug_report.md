@@ -13,8 +13,11 @@ A clear and concise description of what the bug is.
 -->
 
 ### Checklist
-<!-- You do not have to answer "yes" to all of these to open an issue -->
+<!-- You do not have to answer "yes" to all of these to open an issue. -->
 - [ ] None of the *open or closed* issues document this problem.
+- [ ] This is a bug, not a new idea.
+- [ ] This is obviously a bug, not something that people commonly disagree on.
+- [ ] This bug is in the code of the game, not in the textures, sounds, or other resources.
 - [ ] This issue occurs on the lastest vanilla TF2 update.
 - [ ] This issue occurs on the latest Team Comtress release, or the `master` branch.
 - [ ] This issue occurs when using no custom content.
