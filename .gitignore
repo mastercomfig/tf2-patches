@@ -40,6 +40,9 @@ obj*/
 /thirdparty/gperftools-2.0/config.status
 /thirdparty/gperftools-2.0/libtool
 
+external/crypto++-*/a.out
+external/crypto++-*/*.o
+
 /thirdparty/libedit-3.1/**/Makefile
 /thirdparty/libedit-3.1/**/Makefile.in
 /thirdparty/libedit-3.1/**/*.o
