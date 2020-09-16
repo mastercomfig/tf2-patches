@@ -3,7 +3,7 @@ name: Team Comtress bug report
 about: A bug that only occurs in Team Comtress
 title:
 labels: bug, tc2 issue, needs triage
-assignees: 
+assignees:
 
 ---
 
@@ -48,7 +48,7 @@ Bugs that cannot be recreated are extremely unlikely to received a fix.
 ### Performance Details
 <!-- Fill this out for performance-related issues. -->
 - *GPU model:* <!-- Example: NVIDIA GTX 2070 Super -->
-- *CPU model:* <!-- Example: Radeon 3600X -->
+- *CPU model:* <!-- Example: AMD RYZEN 3600X -->
 - *RAM amount:* <!-- Example: 32GB -->
 - *TF2 installed on:* <!-- HDD or SSD. Leave empty if not yet tested with vanilla TF2. -->
 - *TC2 installed on:* <!-- HDD or SSD -->

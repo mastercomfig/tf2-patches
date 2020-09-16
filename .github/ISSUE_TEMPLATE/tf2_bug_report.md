@@ -3,7 +3,7 @@ name: TF2 bug report
 about: A bug in vanilla TF2 that could be fixed in Team Comtress
 title:
 labels: bug, tf2 issue, needs triage
-assignees: 
+assignees:
 
 ---
 
@@ -48,7 +48,7 @@ Bugs that cannot be recreated are extremely unlikely to received a fix.
 ### Performance Details
 <!-- Fill this out for performance-related issues. -->
 - *GPU model:* <!-- Example: NVIDIA GTX 2070 Super -->
-- *CPU model:* <!-- Example: Radeon 3600X -->
+- *CPU model:* <!-- Example: AMD RYZEN 3600X -->
 - *RAM amount:* <!-- Example: 32GB -->
 - *TF2 installed on:* <!-- HDD or SSD -->
 - *TC2 installed on:* <!-- HDD or SSD. Leave empty if not tested with TC2. -->
