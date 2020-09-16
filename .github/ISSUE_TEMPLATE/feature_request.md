@@ -6,8 +6,8 @@ labels: 'Type: enhancement'
 assignees: mastercoms
 
 ---
-**NOTE:Features should NOT change the gameplay balance in a significant way and should NOT be purely cosmetic choices**
-Re-balancing and changing the games looks is OUT OF SCOPE. Ex. "Buff the Bison", "Bring back the beta muzzle flashes" would not be accepted
+**NOTE: Re-balancing and changing the game's looks is beyond the scope of this project.**
+Ex. "Buff the Bison", "Bring back the beta muzzle flashes" would not be accepted!
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
