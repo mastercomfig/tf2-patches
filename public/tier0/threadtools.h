@@ -1037,6 +1037,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			return 0;
 		return TW_TIMEOUT;
 	}
+	int iLoops = 0;
     do
     {
         int WaitStatus;
@@ -1045,7 +1046,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         {
             if (bWaitAll)
             {
-                if (!pEvents[i]->Check())
+                if (!pEvents[i]->m_bSignaled)
                 {
                     bWaitedAll = false;
 					break;
@@ -1053,7 +1054,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
             }
             else
             {
-                if (pEvents[i]->Check())
+                if (pEvents[i]->m_bSignaled)
                 {
                     WaitStatus = i;
                     return WaitStatus;
@@ -1068,7 +1069,20 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         {
             return TW_TIMEOUT;
         }
-        ThreadSleepEx(1);
+		++iLoops;
+		if (iLoops > 5000)
+		{
+			// If we've been waiting for a while, be a lot more idle for waiting.
+			ThreadSleepEx(1);
+		}
+		else if (iLoops % 1000 == 0)
+		{
+			ThreadSleepEx();
+		}
+		else if (iLoops % 20 == 0)
+		{
+			ThreadPause();
+		}
     } while (true);
 }
 

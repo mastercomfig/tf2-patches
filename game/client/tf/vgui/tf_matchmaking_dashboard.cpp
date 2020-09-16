@@ -279,6 +279,8 @@ void CTFMatchmakingPopup::ApplySchemeSettings( IScheme *pScheme )
 	}
 
 	GetMMDashboardParentManager()->UpdateParenting();
+
+	SetKeyBoardInputEnabled(false); // Never
 }
 
 void CTFMatchmakingPopup::OnThink()
@@ -314,10 +316,8 @@ void CTFMatchmakingPopup::OnTick()
 			m_bActive = false;
 			OnExit();
 		}
+		SetMouseInputEnabled(ShouldBeActve());
 	}
-
-	SetMouseInputEnabled( ShouldBeActve() );
-	SetKeyBoardInputEnabled( false ); // Never
 }
 
 

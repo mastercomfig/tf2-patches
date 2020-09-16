@@ -18,6 +18,7 @@
 #include "player_vs_environment/tf_population_manager.h"
 #include "collisionutils.h"
 #include "tf_objective_resource.h"
+#include "func_respawnroom.h"
 
 //=============================================================================
 //
@@ -209,6 +210,21 @@ void CCurrencyPack::ComeToRest( void )
 			}
 		}
 	}
+	// Or a func_respawnroom
+	for ( int j = 0; j < IFuncRespawnRoomAutoList::AutoList().Count(); j++ )
+	{
+		CFuncRespawnRoom *pRespawnRoom = static_cast<CFuncRespawnRoom*>( IFuncRespawnRoomAutoList::AutoList()[j] );
+		Vector vecMins, vecMaxs;
+
+		pRespawnRoom->GetCollideable()->WorldSpaceSurroundingBounds( &vecMins, &vecMaxs );
+		if ( IsPointInBox( GetCollideable()->GetCollisionOrigin(), vecMins, vecMaxs ) )
+		{
+			TFGameRules()->DistributeCurrencyAmount( m_nAmount );
+
+			m_bTouched = true;
+			UTIL_Remove( this );
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -287,8 +303,6 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 				pTFTouchPlayer->TakeHealth( nHealth, DMG_IGNORE_MAXHEALTH );
 			}
 
-			pTFTouchPlayer->SpeakConceptIfAllowed(MP_CONCEPT_MVM_ENCOURAGE_MONEY);
-
 			MannVsMachineStats_PlayerEvent_PickedUpCredits( pTFTouchPlayer, m_nWaveNumber, m_nAmount );
 
 			IGameEvent *event = gameeventmanager->CreateEvent( "mvm_pickup_currency" );
@@ -318,7 +332,33 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 		if ( ( !pTFTouchPlayer->IsPlayerClass( TF_CLASS_SPY ) ) ||
 			 ( !pTFTouchPlayer->m_Shared.IsStealthed() && !pTFTouchPlayer->m_Shared.InCond( TF_COND_STEALTHED_BLINK ) && !pTFTouchPlayer->m_Shared.InCond( TF_COND_DISGUISED ) ) )
 		{
-			pTFTouchPlayer->SpeakConceptIfAllowed( MP_CONCEPT_MVM_MONEY_PICKUP );
+			int iConcept;
+
+			// HACK(comtress): combine the two concepts used for money
+			switch (pTFTouchPlayer->GetPlayerClass()->GetClassIndex()) {
+			case TF_CLASS_HEAVYWEAPONS:
+			case TF_CLASS_ENGINEER:
+				/* no normal response; unused response(s) exist; so 100% chance to use the unused ones */
+				iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				break;
+			case TF_CLASS_SOLDIER:
+				/* 2 normal responses; 2 unused responses; so 50% chance to use the unused ones */
+				if (RandomInt(0, 3) < 2) {
+					iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				}
+				break;
+			case TF_CLASS_MEDIC:
+				/* 1 normal response; 3 unused responses; so 75% chance to use the unused ones */
+				if (RandomInt(0, 3) < 3) {
+					iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				}
+				break;
+			default:
+				iConcept = MP_CONCEPT_MVM_MONEY_PICKUP;
+				break;
+			}
+
+			pTFTouchPlayer->SpeakConceptIfAllowed(iConcept);
 		}
 
 		pTFTouchPlayer->SetLastObjectiveTime( gpGlobals->curtime );

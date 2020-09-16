@@ -305,7 +305,7 @@ void CInputSystem::AttachToWindow( void* hWnd )
 
 	m_hAttachedHWnd = (HWND)hWnd;
 
-#if defined( PLATFORM_WINDOWS )
+#if 0 && defined( PLATFORM_WINDOWS )
 	POINT pt;
 	pt.x = 0; pt.y = 0;
 	ClientToScreen((HWND)m_hAttachedHWnd, &pt);
@@ -1210,7 +1210,12 @@ void CInputSystem::SetCursorPosition( int x, int y )
 
 #if defined( PLATFORM_WINDOWS )
 	POINT pt;
+#if 0
 	pt.x = x + m_windowOffsetX; pt.y = y + m_windowOffsetY;
+#else
+	pt.x = x; pt.y = y;
+	ClientToScreen((HWND)m_hAttachedHWnd, &pt);
+#endif
 	SetCursorPos( pt.x, pt.y );
 #elif defined( USE_SDL )
 	m_pLauncherMgr->SetCursorPosition( x, y );
