@@ -2,7 +2,7 @@
 set -e  # Stop on error
 
 CORES=`nproc`
-if [ ! -f ./thirdparty/gperftools-2.0/built ]; then
+if [ ! -f ./thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so ]; then
 	cd ./thirdparty/gperftools-2.0
   aclocal
   automake --add-missing
@@ -10,10 +10,9 @@ if [ ! -f ./thirdparty/gperftools-2.0/built ]; then
 	./configure --enable-frame-pointers #--host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
 	cd ../..
-	touch ./thirdparty/gperftools-2.0/built
 fi
 
-if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
+if [ ! -f ./thirdparty/protobuf-2.5.0/src/.libs/protoc ]; then
 	cd ./thirdparty/protobuf-2.5.0
   aclocal
   automake --add-missing
@@ -22,10 +21,9 @@ if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
 	bash ./configure #--host=i686-unknown-linux-gnu "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "LDFLAGS=-m32" --enable-shared=no
 	make -j$CORES
 	cd ../..
-	touch ./thirdparty/protobuf-2.5.0/built
 fi
 
-if [ ! -f ./thirdparty/libedit-3.1/built ]; then
+if [ ! -f ./thirdparty/libedit-3.1/src/.libs/libedit.so ]; then
 	cd ./thirdparty/libedit-3.1
   aclocal
   automake --add-missing
@@ -34,7 +32,6 @@ if [ ! -f ./thirdparty/libedit-3.1/built ]; then
 	bash ./configure #--host=i686-unknown-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CORES
 	cd ../..
-	touch ./thirdparty/libedit-3.1/built
 fi
 
 if [ ! -f ./games.mak ]; then
