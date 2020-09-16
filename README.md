@@ -91,7 +91,7 @@ us single bullet fire weapons.
    
    C. Run `make -j$(nproc)`
    
-3. `cd` back into root directory, and run  `./creategamesprojects.sh`
+3. `cd` back into root directory, and run  `./creategameprojects.sh`
 4. Run `NO_CHROOT=1 VALVE_NO_AUTO_P4=1 make -f games.mak` 
 
 
