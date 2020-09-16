@@ -53,7 +53,6 @@ New users should follow this approach.
 ### [Windows Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions)
 ### [Linux Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Linux-Build-Instructions)
 
-
 ## Legal
 
 Valve, the Valve logo, Steam, the Steam logo, Team Fortress, the Team Fortress logo, Source, the Source logo are trademarks and/or registered trademarks of Valve Corporation in the U.S. and/or other countries.
