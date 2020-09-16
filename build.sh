@@ -37,8 +37,6 @@ if [ ! -f ./thirdparty/libedit-3.1/built ]; then
 	touch ./thirdparty/libedit-3.1/built
 fi
 
-exit
-
 if [ ! -f ./games.mak ]; then
 	bash ./creategameprojects.sh
 fi
