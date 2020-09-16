@@ -13,6 +13,7 @@ fi
 
 if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
 	cd ./thirdparty/protobuf-2.5.0
+	chmod u+x autogen.sh
 	bash ./autogen.sh
 	bash ./configure --host=i686-unknown-linux-gnu "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "LDFLAGS=-m32" --enable-shared=no
 	make -j$CORES
