@@ -168,13 +168,13 @@ TESTIMPORTOBJS = $(TESTOBJS:.o=.import.o)
 DLLTESTOBJS = dlltest.dllonly.o
 
 #VALVE: We only really need to build libcryptopp.a on Linux and Mac
-all: start_status libcrypto.a end_status
+all: start_status libcryptopp.a end_status
 
 test: cryptest.exe
 	./cryptest.exe v
 
 clean:
-	$(RM) cryptest.exe libcrypto.a $(LIBOBJS) $(TESTOBJS) cryptopp.dll libcryptopp.dll.a libcryptopp.import.a cryptest.import.exe dlltest.exe $(DLLOBJS) $(LIBIMPORTOBJS) $(TESTIMPORTOBJS) $(DLLTESTOBJS)
+	$(RM) cryptest.exe libcryptopp.a $(LIBOBJS) $(TESTOBJS) cryptopp.dll libcryptopp.dll.a libcryptopp.import.a cryptest.import.exe dlltest.exe $(DLLOBJS) $(LIBIMPORTOBJS) $(TESTIMPORTOBJS) $(DLLTESTOBJS)
 
 # do not install ever
 # install:
@@ -184,12 +184,12 @@ clean:
 # 	$(CP) *.so $(PREFIX)/lib
 # 	$(CP) *.exe $(PREFIX)/bin
 
-libcrypto.a: $(LIBOBJS)
+libcryptopp.a: $(LIBOBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 	$(RANLIB) $@
 #VALVE: Copy the file into the right spot. This doesn't handle perforce, you need to do that yourself.
-	mkdir -p ../../lib/$(BINDIR)
-	$(CP) libcrypto.a ../../lib/$(BINDIR)
+	mkdir -p ../../lib/$(BINDIR)/release
+	$(CP) libcryptopp.a ../../lib/$(BINDIR)/release
 
 libcryptopp.so: $(LIBOBJS)
 	$(CXX) -shared -o $@ $(LIBOBJS)
