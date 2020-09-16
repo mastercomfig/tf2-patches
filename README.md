@@ -7,25 +7,17 @@
 
 ### What *is* TC2?
 
-Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community developer team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
+Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community development team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
 ### What is TC2 *not*?
-
 * **TC2 is *not* a "pro mod"**
-
 While much of the work in TC2 will improve the competitive experience, TC2 does not touch gameplay, balance, or competitive rules.
-
 * **TC2 is *not* a vision for the "good old days" of TF2**
-
 TC2 will not feature game design changes, gameplay additions, or almost any form of new content. If you're looking for this kind of content, [Team Fortress 2 Classic](https://tf2classic.com/) is more up your alley.
-
 * **TC2 is *not* the modern game, with new content/updates**
-
 You're looking for [Creators.TF](https://creators.tf/).
-
 * **TC2 is *not* an alternative, more stable game experience**
-
-TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and *is not compatible with* the modern game client.
+TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and ***is not compatible*** with the modern game client.
 
 ## How can I help?
 
@@ -34,106 +26,33 @@ TC2 is based on the 2017 TF2 source code leak, which contained an in-development
 2. **Suggest quality of life improvements (*not balance changes*) through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
 	* These changes should not affect gameplay, and should be unanimously desired.
 3. **Install TC2 and play the game to test stability, bugfixes, and performance.**
+	* As a separate game, you cannot play normal TF2 matchmaking. You can *only* connect to TC2 servers.
 	* Information about multiplayer playtests can be found [on our Discord server](https://discord.gg/CuPb2zV).
 
-## Installation
-
-### Basic Install Instructions
+## Basic Installation
 
 New users should follow this approach.
-
-*Note: TC2 is Windows-only (for now; see [#2](https://github.com/mastercomfig/team-comtress-2/issues/2))*
 
 1. Copy your current `Team Fortress 2` installation to a new folder.
 2. In your copied TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 	* Do *not* delete the entire `tf/cfg` folder!
-4. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-5. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
-6. Double click `start_tf2.bat`. Note that you must have Steam running.
-7. Enjoy!
+3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
+4. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
+5. Double click `start_tf2.bat`. Note that you must have Steam running.
+6. Enjoy!
 
-### Advanced Install Instructions
+*Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/team-comtress-2/wiki/Advanced-Installation-Instructions).*
 
-Contributors that want a cleaner, more 'stock' build might want to follow these instructions instead.
-*If these instructions are too confusing for you, use the basic instructions above.*
+## For players:
 
-1. Download a full TF2 install to a new folder using Steam's console or [DepotDownloader](https://github.com/SteamRE/DepotDownloader) (or [DepotDownloader-GUI](https://github.com/Jack-Myth/SteamDepotDownloader-GUI)).
-	* TF2 is AppID `440`, and you'll need depots `440`, `441`, and `232251` (for Windows; [for other platforms look here](https://steamdb.info/app/440/depots/)); in DD-GUI these are the `TF2 Client`, `TF2 Client server shared`, and `TF2 Windows client` depots
-2. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-3. Extract the files from `game_clean.zip` into the TC2 folder, overwriting existing files.
-4. Launch with `start_tf2.bat`. Note that Steam *must* be running in order to connect to servers - ***even local servers***. Demos *will* load without Steam running, however, for benchmarking purposes.
+### [Things to keep in mind with TC2](https://github.com/mastercomfig/team-comtress-2/wiki/Things-to-keep-in-mind-with-TC2)
+### [New console commands and launch options](https://github.com/mastercomfig/team-comtress-2/wiki/New-console-commands-and-launch-options)
 
-## Things to keep in mind with TC2
+## For developers:
 
-1. **TC2 is not a fully featured game; many things do not work.**
-	* While the item schema loads properly, the GC will not matchmake you because of your old client version, so you can only connect to special TC2 servers. [See our Discord]((https://discord.gg/CuPb2zV)) for playtests on these.
+### [Windows Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions)
+### [Linux Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Linux-Build-Instructions)
 
-2. Because TC2 is based on a source code leak from mid-2017, **it predates many of the changes added in Jungle Inferno.**
-	* For instance, while the item schema loads correctly, so you can edit your loadout freely with modern items, **newer items may not actually work in-game**, and Jungle Inferno (and later) **balance changes are not implemented**, despite what the item descriptions (from the modern schema) might say.
-
-3. **Modern HUDs will not work with TC2**. This is because HUDs are simply a list of changes to the base game HUD; the HUD was dramatically reworked during Jungle Inferno, but those changes (mostly) do not exist in the leaked build, so modern HUDs that expect those changes will usually crash the game.
-	* TC2 overwrites the modern stock HUD with a special version of [CriticalFlaw's HUD fix](https://github.com/CriticalFlaw/TF2-HUD-Fix) in the custom folder. This special version is designed to work with this unique build of the game.
-
-4. Due to the substantial number of rendering and engine changes, **most graphics configs will not work with TC2**. Do not use them; you **will** crash.
-	* Graphics configs are designed to lower your game settings in a fine-tuned way to improve performance, beyond the normal in-game options. TC2 is trying to do the same thing, with a different approach: modifying the game itself. *As a result, many of the settings that graphics configs try to apply will actually completely break the game, thanks to the modified codebase.*
-
-## New console commands and launch options
-
-Although configs are *not* recommended (use video options to customize), there *are* some new variables you can try out that haven't been added to the in-game options yet!
-
-**Console commands/variables:**
-
-* `tf_taunt_first_person_enable`: Forces first person taunts
-* `tf_viewmodels_offset_override`: Unlocked from base TF2, format is `x` `y` `z`
-* `tf_disable_weapon_skins`: Disables skins
-* `tf_skip_halloween_bomb_hat_translucency`: Halloween bomb hat will disappear if spy cloaks, instead of turning translucent along with cloak
-* `r_skybox_lowend`: Use low quality skybox textures only meant for DX8
-* `tf_hud_target_id_disable`: Disable searching for a player to show the target ID for
-* `tf_viewmodel_alpha`: Controls how translucent viewmodels are (`1 - 255`, 255 = opaque)
-* `dsp_off`: Unlocked from base TF2, disables sound positional effects
-* `cl_ragdoll_disable`: Disables all corpse effects (gibs, disintegration, ragdolls)
-* `tf_fx_blood`: Controls blood splatter effects
-* `fx_drawimpactdebris`, `fx_drawimpactdust`, `fx_drawmetalspark`: Unlocked from base TF2, controls bullet impact dust
-* `cl_hud_playerclass_playermodel_lod`: Controls LOD for the player model preview in the HUD
-* `g_ragdoll_fadespeed`, `g_ragdoll_lvfadespeed`: Controls how fast ragdolls fade (lv is for low violence mode)
-* `cl_particle_retire_cost`: Unlocked from base TF2, set to `0.0001` to force lower quality particles
-* `r_force_fastpath 1`: Forces shader fast paths for higher GPU performance.
-* `tf_weaponspread_continuous_seed`: If set above `-1`, sets the base seed for fixed recoil spread for continuous single bullet fire weapons
-* `tf_weaponspread_continuous_seed_multishot`: If set above `-1`, sets the base seed for fixed recoil spread for continuous multi-bullet fire weapons (Minigun)
-
-**Launch options:**
-
-* `-particle_fallback`: 2 uses DX8 particles, 1 uses lowend DX9 particles, 0 uses default
-	* `start_tf2.bat` launches with `-particle_fallback 2` by default
-
-## Build
-
-**DISCLAIMER:** If you are not a developer, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. Please let us know if you get it to work!
-
-### Building
-1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
-2. Clone this repo
-3. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcxproj`
-4. Run both the Debug and the Release builds
-5. Run `regedit` and [add an association for the latest VS](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
-6. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true` and `PreferredToolArchitecture` to `x64`.
-7. Run `/creategameprojects_dev.bat`
-8. Open `/games.sln`
-9. Build the VS project
-10. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
-
-### Running and Debugging
-
-1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
-2. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
-3. For server, follow the same procedures but choose the `Server (TF)` project and set the `Command` to `../game/srcds.exe`. The suggested server launch options are `-game tf -console -nomaster -insecure +sv_pure 0 +maxplayers 32 +sv_lan 1 -dev -allowdebug`.
-
-See [the Valve Developer Wiki](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
-
-Other launch options to consider:
-- `sw` to force windowed mode
-- `-w WIDTH -h HEIGHT` to set the resolution
-- `+map MAPNAME` to automatically launch a map on startup
 
 ## Legal
 
