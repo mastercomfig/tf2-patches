@@ -14,7 +14,7 @@ fi
 if [ ! -f ./thirdparty/protobuf-2.5.0/built ]; then
 	cd ./thirdparty/protobuf-2.5.0
 	bash ./autogen.sh
-	bash ./configure --host=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
+	bash ./configure --host=i686-pc-linux-gnu "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0" "LDFLAGS=-m32" --enable-shared=no
 	make -j $CORES
 	cd ../..
 	touch ./thirdparty/protobuf-2.5.0/built
