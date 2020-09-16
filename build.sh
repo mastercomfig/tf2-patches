@@ -15,7 +15,7 @@ if [ ! -f ./thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so ]; then
 	cd ../..
 fi
 
-if [ ! -f ./thirdparty/protobuf-2.5.0/src/.libs/protoc ]; then
+if [ ! -f ./thirdparty/protobuf-2.5.0/src/.libs/libprotobuf.a ]; then
 	cd ./thirdparty/protobuf-2.5.0
   aclocal
   automake --add-missing
