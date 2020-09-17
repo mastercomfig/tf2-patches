@@ -234,10 +234,7 @@ void ThreadSleepEx(unsigned nMilliseconds)
 		timeBeginPeriod(1);
 	}
 #endif // IS_WINDOWS_PC
-	if (nMilliseconds > 0 || !SwitchToThread())
-	{
-		SleepEx(nMilliseconds, true);
-	}
+	SleepEx(nMilliseconds, true);
 #elif defined(POSIX)
 	usleep(nMilliseconds * 1000);
 #endif

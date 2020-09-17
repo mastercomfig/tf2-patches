@@ -17,7 +17,6 @@
 #include <mutex>
 #include <condition_variable>
 
-
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
 #include "tier0/vcrmode.h"
@@ -1026,11 +1025,11 @@ public:
 
 inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE)
 {
-    unsigned StartTime = 0;
-    if (timeout != 0 && timeout != TT_INFINITE)
-    {
-        StartTime = Plat_MSTime();
-    }
+	unsigned StartTime = 0;
+	if (timeout != 0 && timeout != TT_INFINITE)
+	{
+		StartTime = Plat_MSTime();
+	}
 	if (nEvents == 1)
 	{
 		if (pEvents[0]->Wait(timeout))
@@ -1038,71 +1037,58 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 		return TW_TIMEOUT;
 	}
 	int iLoops = 0;
-    do
-    {
-        int WaitStatus;
-        bool bWaitedAll = true;
-        for (int i = 0; i < nEvents; i++)
-        {
-            if (bWaitAll)
-            {
-                if (!pEvents[i]->m_bSignaled)
-                {
-                    bWaitedAll = false;
-					break;
-                }
-            }
-            else
-            {
-                if (pEvents[i]->m_bSignaled)
-                {
-                    WaitStatus = i;
-                    return WaitStatus;
-                }
-            }
-        }
-        if (bWaitAll && bWaitedAll)
-        {
-            return 0;
-        }
-        if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
-        {
-            return TW_TIMEOUT;
-        }
-		++iLoops;
-		if (iLoops >= 20000)
+	do
+	{
+		int WaitStatus;
+		bool bWaitedAll = true;
+		for (int i = 0; i < nEvents; i++)
 		{
-			// Wow! It's been quite a long while. Our events are probably idle.
-			ThreadSleepEx(2 * (iLoops / 20000) );
-			continue;
-		}
-		if (iLoops >= 5000)
-		{
-			// It's been quite a while. Start sleeping often.
-			ThreadSleepEx(1);
-			continue;
-		}
-		if (iLoops >= 1000)
-		{
-			if (iLoops % 100 == 0)
+			if (bWaitAll)
 			{
-				// If we've been waiting for quite a bit, sleep regularly.
-				ThreadSleepEx(1);
-				continue;
+				if (!pEvents[i]->m_bSignaled)
+				{
+					bWaitedAll = false;
+					break;
+				}
 			}
+			else
+			{
+				if (pEvents[i]->m_bSignaled)
+				{
+					WaitStatus = i;
+					DevMsg("Loops: %d\n", iLoops);
+					return WaitStatus;
+				}
+			}
+		}
+		if (bWaitAll && bWaitedAll)
+		{
+			DevMsg("Loops: %d\n", iLoops);
+			return 0;
+		}
+		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
+		{
+			DevMsg("Loops: %d\n", iLoops);
+			return TW_TIMEOUT;
+		}
+		if (iLoops > 90000 || iLoops % 1000 == 0)
+		{
+			// If we've been busy waiting for quite a while, we are probably idle, so sleep for 1ms constantly.
+			// Otherwise, do a full sleep once in a while to throttle the busy wait.
+			ThreadSleepEx(1);
+		}
+		else if (iLoops % 20 == 0)
+		{
+			// Yield to OS more frequently, so we can get some throttling to the busy wait without increasing latency too much.
+			ThreadSleepEx();
 		}
 		else
 		{
-			if (iLoops % 500 == 0)
-			{
-				// If we've been waiting for quite a bit, sleep regularly.
-				ThreadSleepEx(1);
-				continue;
-			}
+			// Pause on any other loop, so we don't inefficiently busy wait.
+			ThreadPause();
 		}
-		// Never spin lock. That sort of tight timing is so rare that it's not worth it.
-		ThreadPause();
-    } while (true);
+		++iLoops;
+	} while (true);
 }
 
 //-----------------------------------------------------------------------------
