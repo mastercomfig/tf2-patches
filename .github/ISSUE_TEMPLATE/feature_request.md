@@ -14,9 +14,9 @@ A clear and concise description of what the idea is
 
 ### Checklist
 <!-- You do not have to answer "yes" to all of these to suggest an idea -->
-- [ ] None of the *open or closed* issues document this idea.
+- [ ] None of the open *or* closed issues document this idea.
 - [ ] This is a new idea, not a bug.
-- [ ] This is not a rebalancing idea.
+- [ ] This idea does not seriously affect game balance.
 - [ ] This idea is for the code of the game, not for textures, sounds, or other resources.
 - [ ] This is not an idea for new game content (e.g. new weapons, maps, sounds).
 - [ ] This is obviously an improvement, not something that people commonly disagree on.

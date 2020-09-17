@@ -14,9 +14,9 @@ A clear and concise description of what the bug is
 
 ### Checklist
 <!-- You do not have to answer "yes" to all of these to open an issue -->
-- [ ] None of the *open or closed* issues document this problem.
+- [ ] None of the open *or* closed issues document this problem.
 - [ ] This is a bug, not a new idea.
-- [ ] This is obviously a bug, not something that people commonly disagree on.
+- [ ] This is objectively a bug, and not something that people commonly disagree on.
 - [ ] This bug is in the code of the game, not in the textures, sounds, or other resources.
 - [ ] This issue occurs on the lastest vanilla TF2 update.
 - [ ] This issue is listed on the [Source 1 official bugtracker](https://github.com/ValveSoftware/Source-1-Games/issues).
@@ -24,7 +24,7 @@ A clear and concise description of what the bug is
 - [ ] This issue occurs on the latest Team Comtress release, or the `master` branch.
 - [ ] This issue occurs when using no custom content.
 - [ ] This issue occurs when using `start_tf2.bat` (or `start_server.bat`) with no custom launch options.
-- [ ] This issue occurs when using a server started with the `map` command from the game.
+- [ ] This issue occurs when using a listen server (using the `map` command ingame).
 - [ ] This issue occurs when using a dedicated server.
 - [ ] This bug is in the internal procedures or tooling (e.g. the build process).
 
@@ -55,3 +55,4 @@ Bugs that cannot be recreated are extremely unlikely to receive a fix
 - *RAM amount:* <!-- Example: 32GB -->
 - *TF2 installed on:* <!-- HDD or SSD. Leave empty if not yet tested with vanilla TF2 -->
 - *TC2 installed on:* <!-- HDD or SSD -->
+- *TC2 installation method:* <!-- Basic or Advanced (if you do not know what this means, put Basic) -->
