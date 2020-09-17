@@ -2,7 +2,7 @@
 name: Documentation issue
 about: Issues with things other than code
 title:
-labels: documentation, needs triage
+labels: documentation, tc2, needs triage
 assignees:
 
 ---

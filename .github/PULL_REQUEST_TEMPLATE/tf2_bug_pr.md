@@ -2,7 +2,7 @@
 name: TF2 bug fix
 about: Fix for a bug present in live TF2
 title:
-labels: bug, tf2 issue, needs triage
+labels: bug, tf2, needs triage
 assignees:
 
 ---

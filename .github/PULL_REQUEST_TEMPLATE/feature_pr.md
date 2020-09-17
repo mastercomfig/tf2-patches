@@ -2,7 +2,7 @@
 name: New feature implementation
 about: Implementation for a new idea
 title:
-labels: enhancement, needs triage
+labels: enhancement, tc2, needs triage
 assignees:
 
 ---

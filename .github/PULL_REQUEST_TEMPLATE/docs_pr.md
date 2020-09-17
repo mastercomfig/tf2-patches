@@ -2,7 +2,7 @@
 name: Documentation improvement
 about: Changes to things other than code
 title:
-labels: documentation, needs triage
+labels: documentation, tc2, needs triage
 assignees:
 
 ---

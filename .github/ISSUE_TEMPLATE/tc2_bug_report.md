@@ -2,7 +2,7 @@
 name: Team Comtress bug report
 about: A bug that occurs in Team Comtress
 title:
-labels: bug, tc2 issue, needs triage
+labels: bug, tc2, needs triage
 assignees:
 
 ---

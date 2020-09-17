@@ -2,7 +2,7 @@
 name: TC2 bug fix
 about: Fix for a bug in Team Comtress
 title:
-labels: bug, tc2 issue, needs triage
+labels: bug, tc2, needs triage
 assignees:
 
 ---

@@ -2,7 +2,7 @@
 name: TF2 bug report
 about: A bug in vanilla TF2 that could be fixed in Team Comtress
 title:
-labels: bug, tf2 issue, needs triage
+labels: bug, tf2, needs triage
 assignees:
 
 ---
