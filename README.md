@@ -87,11 +87,12 @@ Other launch options to consider:
 ## Linux Build
 Dependencies (libraries must be i686):
 - `make`
-- `libunwind`
 - GCC
-- glibc
 - automake
 - autoconf
+
+- `libunwind`
+- glibc
 - freetype
 - fontconfig
 - libGL
@@ -101,13 +102,8 @@ Dependencies (libraries must be i686):
 - curl with GNUTLS support
 
 Instructions:
-1. In `thirdparty/gproftools-2.0/`, run `chmod u+x ./configure && ./configure --host=i686-unknown-linux-gnu && make`
-1. In `thirdparty/protobuf-2.5.0/`, run `aclocal && autoconf && ./configure --host=i686-unknown-linux-gnu CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" --enable-shared=no CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" --enable-shared=no && make`
-1. In `thirdparty/libedit-3.1/`, run `chmod u+x ./configure && ./configure --host=i686-unknown-linux-gnu && make`
-1. Run `creategameprojects_dev.sh`
-1. If `/bin/bash` is not available, in `games.mak` change `SHELL := /bin/bas` to `SHELL := bash`
-1. Make `devtools/gendbg.sh` executable
-1. Run `build.sh`
+1. Prepare for unforseen consequences
+1. Run `./magic.sh -f`
 
 ## Legal
 
