@@ -437,7 +437,7 @@ CON_COMMAND_F( tf_bot_add, "Add a bot.", FCVAR_GAMEDLL )
 			if ( TFGameRules()->IsInTraining() )
 			{
 				CreateBotName( pBot->GetTeamNumber(), pBot->GetPlayerClass()->GetClassIndex(), skill, name, sizeof(name) );
-				engine->SetFakeClientConVarValue( pBot->edict(), "name", name );
+				pBot->SetPlayerName(name);
 			}
 
 			++iNumAdded;
