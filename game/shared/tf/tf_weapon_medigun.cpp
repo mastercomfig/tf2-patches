@@ -203,8 +203,8 @@ ConVar hud_medichealtargetmarker ( "hud_medichealtargetmarker", "0", FCVAR_ARCHI
 
 const char *g_pszMedigunHealSounds[MEDIGUN_NUM_CHARGE_TYPES] =
 {
-	"WeaponMedigun.Healing",			// MEDIGUN_CHARGE_INVULN = 0,
-	"WeaponMedigun.Healing",			// MEDIGUN_CHARGE_CRITICALBOOST,
+	"WeaponMedigun.HealingHealer",			// MEDIGUN_CHARGE_INVULN = 0,
+	"WeaponMedigun.HealingHealer",			// MEDIGUN_CHARGE_CRITICALBOOST,
 	"Weapon_Quick_Fix.Healing",			// MEDIGUN_CHARGE_MEGAHEAL,
 	"WeaponMedigun_Vaccinator.Healing",	// MEDIGUN_CHARGE_RESIST,
 };
