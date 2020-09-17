@@ -16,7 +16,7 @@
 //  .Element( row, col )  - return the element at a given matrox position
 //  .SetElement( row, col, val ) - modify an element
 //  .Width(), .Height() - get dimensions
-//  .SetDimensions( nrows, ncols) - set a matrix to be un-inited and the appropriate size
+//  .SetDimensions( nrows, ncols) - set a matrix to be un-initted and the appropriate size
 //
 // Generally, vectors can be used with these functions by using N x 1 matrices to represent them.
 //  Matrices are addressed as row, column, and indices are 0-based
