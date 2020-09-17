@@ -35,11 +35,12 @@ if [ $? -ne 0 ]; then
 fi
 
 cd $CWD
+RUN=`$SCRIPTPATH/$BINNAME`
 
 if [ $OS == "Darwin" ]; then
 	$SCRIPTPATH/$BINNAME $FORCEARG $@
 elif [ $OS == "Linux" ]; then
-	$SCRIPTPATH/$BINNAME $FORCEARG $@
+	$RUN $FORCEARG $@
 else
 	echo "Couldn't find appropriate VPC binary, fix the script."
 	exit -1

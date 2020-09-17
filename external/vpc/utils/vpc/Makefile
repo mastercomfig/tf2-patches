@@ -232,10 +232,11 @@ endif
 
 
 # Build rules
-all: $(OUTFILE) ../../../../devtools/bin/vpc$(EXE_POSTFIX)
+BINARY:=../../../../devtools/bin/vpc$(EXE_POSTFIX)
+all: $(OUTFILE) $(BINARY)
 
-../../../../devtools/bin/vpc$(EXE_POSTFIX) : $(OUTFILE)
-	cp "$(OUTFILE)" ../../../../devtools/bin/vpc$(EXE_POSTFIX)
+$(BINARY) : $(OUTFILE)
+	cp -T "$(OUTFILE)" "$(BINARY)"
 
 $(OUTFILE): Makefile $(OBJS)
 	$(LINK)
@@ -249,7 +250,7 @@ clean:
 	$(RM) -f $(OUTFILE)
 	$(RM) -f $(OBJS)
 	$(RM) -f $(OBJS:.o=.d)
-	$(RM) -f ../../../../devtools/bin/vpc$(EXE_POSTFIX)
+	$(RM) -f $(BINARY)
 
 # Clean this project and all dependencies
 cleanall: clean
