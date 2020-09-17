@@ -1,0 +1,314 @@
+.TH EDITRC 5 "May 22, 2016" ""
+.SH NAME
+\fBeditrc\fP
+\- configuration file for editline library
+.SH SYNOPSIS
+.br
+\fBeditrc\fP
+.SH DESCRIPTION
+The
+\fBeditrc\fP
+file defines various settings to be used by the
+\fBeditline\fP(3)
+library.
+
+The format of each line is:
+
+[prog:]command [arg ...]
+
+\fIcommand\fP
+is one of the
+\fBeditline\fP(3)
+builtin commands.
+Refer to
+.B BUILTIN COMMANDS
+for more information.
+
+\fIprog\fP
+is the program name string that a program defines when it calls
+\fBel_init\fP(3)
+to set up
+\fBeditline\fP(3),
+which is usually
+\fIargv[0]\fP.
+\fIcommand\fP
+will be executed for any program which matches
+\fIprog\fP.
+
+\fIprog\fP
+may also be a
+\fBregex\fP(3)
+style
+regular expression, in which case
+\fIcommand\fP
+will be executed for any program that matches the regular expression.
+
+If
+\fIprog\fP
+is absent,
+\fIcommand\fP
+is executed for all programs.
+.SH BUILTIN COMMANDS
+The
+\fBeditline\fP
+library has some builtin commands, which affect the way
+that the line editing and history functions operate.
+These are based on similar named builtins present in the
+\fBtcsh\fP(1)
+shell.
+
+The following builtin commands are available:
+.TP
+\fBbind Oo Fl aeklrsv Oc [\fIkey\fP [\fIcommand]]\fP\fP
+Without options and arguments, list all bound keys and macros, and
+the editor command or input string to which each one is bound.
+If only
+\fIkey\fP
+is supplied, show the binding for that key or macro.
+If
+\fIkey\fP command
+is supplied, bind the editor
+\fIcommand\fP
+to that key or macro.
+
+The options are as follows:
+.RS
+.TP
+\fB\-a\fP
+List or change key bindings in the
+\fBvi\fP(1)
+mode alternate (command mode) key map.
+.TP
+\fB\-e\fP
+Bind all keys to the standard GNU Emacs-like bindings.
+.TP
+\fB\-k\fP
+\fIkey\fP
+is interpreted as a symbolic arrow key name, which may be one of
+`up',
+`down',
+`left'
+or
+`right'.
+.TP
+\fB\-l\fP
+List all editor commands and a short description of each.
+.TP
+\fB\-r\fP
+Remove the binding of the key or macro
+\fIkey\fP.
+.TP
+\fB\-s\fP
+Define a keyboard macro rather than a key binding or command macro:
+\fIcommand\fP
+is taken as a literal string and appended to the input queue whenever
+\fIkey\fP
+is typed.
+Bound keys and macros in
+\fIcommand\fP
+are themselves reinterpreted, and this continues for ten levels of
+interpretation.
+.TP
+\fB\-v\fP
+Bind all keys to the standard
+\fBvi\fP(1) -like
+bindings.
+.RE
+
+The
+\fBeditline\fP(7)
+manual documents all editor commands and contains more information
+about macros and the input queue.
+
+\fIkey\fP
+and
+\fIcommand\fP
+can contain control characters of the form
+`No'^\fIcharacter\fP
+(
+e.g.\&
+`^A'
+),
+and the following backslashed escape sequences:
+
+.RS
+.TP
+\fB\ea\fP
+Bell
+.TP
+\fB\eb\fP
+Backspace
+.TP
+\fB\ee\fP
+Escape
+.TP
+\fB\ef\fP
+Formfeed
+.TP
+\fB\en\fP
+Newline
+.TP
+\fB\er\fP
+Carriage return
+.TP
+\fB\et\fP
+Horizontal tab
+.TP
+\fB\ev\fP
+Vertical tab
+.TP
+.B \e Ar nnn
+The ASCII character corresponding to the octal number
+\fInnn\fP.
+.RE
+
+`\e'
+nullifies the special meaning of the following character,
+if it has any, notably
+`\e'
+and
+`^'.
+.TP
+\fBechotc Oo Fl sv Oc \fIarg\fP \fI...\fP\fP
+Exercise terminal capabilities given in
+\fIarg\fP... .
+If
+\fIarg\fP
+is
+`baud',
+`cols',
+`lines',
+`rows',
+`meta',
+or
+`tabs',
+the value of that capability is printed, with
+``yes''
+or
+``no''
+indicating that the terminal does or does not have that capability.
+
+\fB\-s\fP
+returns an empty string for non-existent capabilities, rather than
+causing an error.
+\fB\-v\fP
+causes messages to be verbose.
+.TP
+\fBedit [Li on | Li off]\fP
+Enable or disable the
+\fBeditline\fP
+functionality in a program.
+.TP
+\fBhistory \fIlist\fP | \fIsize\fP Dv n | \fIunique\fP Dv n\fP
+The
+\fIlist\fP
+command lists all entries in the history.
+The
+\fIsize\fP
+command sets the history size to
+n
+entries.
+The
+\fIunique\fP
+command controls if history should keep duplicate entries.
+If
+n
+is non zero, only keep unique history entries.
+If
+n
+is zero, then keep all entries (the default).
+.TP
+\fBsettc \fIcap\fP \fIval\fP\fP
+Set the terminal capability
+\fIcap\fP
+to
+\fIval\fP,
+as defined in
+\fBtermcap\fP(5).
+No sanity checking is done.
+.TP
+\fBsetty Oo Fl a Oc Oo Fl d Oc Oo Fl q Oc Oo Fl x Oc Oo \fI+mode\fP Oc \\fP
+Oo Ar -mode Oc Oo Ar mode Oc Oo Ar char=c Oc
+Control which tty modes that
+\fBeditrc\fP
+won't allow the user to change.
+\fB\-d\fP,
+\fB\-q\fP
+or
+\fB\-x\fP
+tells
+\fBsetty\fP
+to act on the
+`edit',
+`quote'
+or
+`execute'
+set of tty modes respectively; defaulting to
+\fB\-x\fP.
+
+Without other arguments,
+\fBsetty\fP
+lists the modes in the chosen set which are fixed on
+(
+`+mode'
+)
+or off
+(
+`-mode'
+).
+\fB\-a\fP
+lists all tty modes in the chosen set regardless of the setting.
+With
+\fI+mode\fP,
+\fI-mode\fP
+or
+\fImode\fP,
+fixes
+\fImode\fP
+on or off or removes control of
+\fImode\fP
+in the chosen set.
+
+\fBSetty\fP
+can also be used to set tty characters to particular values using
+\fIchar=value\fP.
+If
+\fIvalue\fP
+is empty
+then the character is set to
+_POSIX_VDISABLE .
+.TP
+\fBtelltc\fP
+List the values of all the terminal capabilities (see
+\fBtermcap\fP(5)) .
+.SH ENVIRONMENT
+.TP
+.B EDITRC
+Names the default configuration file for the
+\fBeditline\fP(3)
+library.
+.SH FILES
+.TP
+.B ~/.editrc
+Last resort, if no other file is specified,
+user configuration file for the
+\fBeditline\fP(3)
+library.
+.SH SEE ALSO
+\fBeditline\fP(3),
+\fBregex\fP(3),
+\fBtermcap\fP(5),
+\fBeditline\fP(7)
+.SH AUTHORS
+
+-nosplit
+The
+\fBeditline\fP
+library was written by
+
+Christos Zoulas ,
+and this manual was written by
+
+Luke Mewburn ,
+with some sections inspired by
+\fBtcsh\fP(1).

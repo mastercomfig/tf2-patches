@@ -835,6 +835,9 @@ bool V_IsMeanSpaceW( wchar_t wch );
 // and we simply don't accept
 bool V_IsDeprecatedW( wchar_t wch );
 
+// disruptive characters
+int V_IsEvilCharacterW( wchar_t wch );
+
 //-----------------------------------------------------------------------------
 // generic unique name helper functions
 //-----------------------------------------------------------------------------

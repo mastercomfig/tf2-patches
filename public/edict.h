@@ -174,7 +174,7 @@ public:
 	IServerNetworkable*		GetNetworkable();
 	IServerUnknown*			GetUnknown();
 
-	// Set when initting an entity. If it's only a networkable, this is false.
+	// Set when initing an entity. If it's only a networkable, this is false.
 	void				SetEdict( IServerUnknown *pUnk, bool bFullEdict );
 	
 	int					AreaNum() const;

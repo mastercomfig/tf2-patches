@@ -54,7 +54,7 @@ us single bullet fire weapons.
 
 * `-particle_fallback`: 2 uses DX8 particles, 1 uses lowend DX9 particles, 0 uses default.
 
-## Build
+## Windows Build
 
 **DISCLAIMER:** If you are not a developer, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. Please let us know if you get it to work!
 
@@ -83,6 +83,31 @@ Other launch options to consider:
 - `sw` to force windowed mode
 - `-w WIDTH -h HEIGHT` to set the resolution
 - `+map MAPNAME` to automatically launch a map on startup
+
+## Linux Build
+Dependencies (libraries must be i686):
+- `make`
+- `libunwind`
+- GCC
+- glibc
+- automake
+- autoconf
+- freetype
+- fontconfig
+- libGL
+- libX11
+- openal
+- libncurses
+- curl with GNUTLS support
+
+Instructions:
+1. In `thirdparty/gproftools-2.0/`, run `chmod u+x ./configure && ./configure --host=i686-unknown-linux-gnu && make`
+1. In `thirdparty/protobuf-2.5.0/`, run `aclocal && autoconf && ./configure --host=i686-unknown-linux-gnu CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" --enable-shared=no CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" --enable-shared=no && make`
+1. In `thirdparty/libedit-3.1/`, run `chmod u+x ./configure && ./configure --host=i686-unknown-linux-gnu && make`
+1. Run `creategameprojects_dev.sh`
+1. If `/bin/bash` is not available, in `games.mak` change `SHELL := /bin/bas` to `SHELL := bash`
+1. Make `devtools/gendbg.sh` executable
+1. Run `build.sh`
 
 ## Legal
 

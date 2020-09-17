@@ -161,7 +161,7 @@ public:
 		Init();
 	}
 
-	void Purge( void );										// set back to un-initted state, freeing memory
+	void Purge( void );										// set back to un-inited state, freeing memory
 
 	~CSOAContainer( void );
 

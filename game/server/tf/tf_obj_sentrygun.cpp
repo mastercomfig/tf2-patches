@@ -1627,7 +1627,7 @@ bool CObjectSentrygun::Fire()
 		m_flNextAttack = gpGlobals->curtime + 0.2f;
 	}
 
-	// note when we last fired at en enemy (or tried to)
+	// note when we last fired at an enemy (or tried to)
 	m_timeSinceLastFired.Start();
 
 	return true;
