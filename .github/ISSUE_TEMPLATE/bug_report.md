@@ -2,7 +2,7 @@
 name: TC2 Bug report
 about: Create a report for bugs that happen exclusively on TC2
 title: ''
-labels: 'Type: bug'
+labels: bug, tc2 issue
 assignees: mastercoms
 
 ---
