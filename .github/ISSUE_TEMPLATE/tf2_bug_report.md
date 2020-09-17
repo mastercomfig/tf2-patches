@@ -9,11 +9,11 @@ assignees:
 
 ### Description
 <!--
-A clear and concise description of what the bug is.
+A clear and concise description of what the bug is
 -->
 
 ### Checklist
-<!-- You do not have to answer "yes" to all of these to open an issue. -->
+<!-- You do not have to answer "yes" to all of these to open an issue -->
 - [ ] None of the *open or closed* issues document this problem.
 - [ ] This is a bug, not a new idea.
 - [ ] This is obviously a bug, not something that people commonly disagree on.
@@ -31,27 +31,27 @@ A clear and concise description of what the bug is.
 ### Reproduction
 <!--
 The steps to recreate the bug.
-Bugs that cannot be recreated are extremely unlikely to receive a fix.
+Bugs that cannot be recreated are extremely unlikely to receive a fix
 -->
 1.
 
 ### Screenshots
-<!-- Add screenshots to help explain your problem. -->
+<!-- Add screenshots to help explain your problem -->
 
 ### Setup Details
 - *Server or client:* <!-- Did you observe this issue from the game client, or by running a dedicated server? -->
-- *Operating system:* <!-- Specify a version e.g. Windows 10, Mac OS X Catalina, or `uname -rv` output. -->
+- *Operating system:* <!-- Specify a version e.g. Windows 10, Mac OS X Catalina, or `uname -rv` output -->
 - *Team Comtress version:* <!-- Release version number or commit id -->
 - *Custom content:* <!-- Any 3rd-party content, including config files -->
 - *Launch options:* <!-- If not using start_tf2.bat, specify a list of options -->
 <!-- For graphics-related issues: -->
-- *Graphics driver:* <!-- Specify a version. This is especially important on Linux. -->
-- *DirectX level:* <!-- This will be different if you set dxlevel in vanilla TF2. -->
+- *Graphics driver:* <!-- Specify a version. This is especially important on Linux -->
+- *DirectX level:* <!-- This will be different if you set dxlevel in vanilla TF2 -->
 
 ### Performance Details
-<!-- Fill this out for performance-related issues. -->
+<!-- Fill this out for performance-related issues -->
 - *GPU model:* <!-- Example: NVIDIA GTX 2070 Super -->
 - *CPU model:* <!-- Example: AMD RYZEN 3600X -->
 - *RAM amount:* <!-- Example: 32GB -->
 - *TF2 installed on:* <!-- HDD or SSD -->
-- *TC2 installed on:* <!-- HDD or SSD. Leave empty if not tested with TC2. -->
+- *TC2 installed on:* <!-- HDD or SSD. Leave empty if not tested with TC2 -->

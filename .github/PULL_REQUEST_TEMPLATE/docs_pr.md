@@ -8,15 +8,15 @@ assignees:
 ---
 
 ### Related Issue
-<!-- Number of the issue where this idea was proposed. -->
+<!-- Number of the issue where this idea was proposed -->
 
 ### Changes
 <!--
-A clear and concise description of the changes.
+A clear and concise description of the changes
 -->
 
 ### Checklist
-<!-- You do not have to answer "yes" to all of these to open a pull request. -->
+<!-- You do not have to answer "yes" to all of these to open a pull request -->
 - [ ] This PR targets the `master` branch.
 - [ ] This idea has been filed as an issue.
 - [ ] No other PRs implement this idea.

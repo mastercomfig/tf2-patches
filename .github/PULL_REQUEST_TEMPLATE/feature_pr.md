@@ -8,18 +8,18 @@ assignees:
 ---
 
 ### Related Issue
-<!-- Number of the issue where this idea was proposed. -->
+<!-- Number of the issue where this idea was proposed -->
 
 ### Implementation
 <!--
-A clear and concise description of the implemention.
+A clear and concise description of the implemention
 -->
 
 ### Screenshots
-<!-- Add screenshots of the implemented feature if applicable. -->
+<!-- Add screenshots of the implemented feature if applicable -->
 
 ### Checklist
-<!-- You do not have to answer "yes" to all of these to open a pull request. -->
+<!-- You do not have to answer "yes" to all of these to open a pull request -->
 - [ ] This PR targets the `master` branch.
 - [ ] This idea has been filed as an issue.
 - [ ] No other PRs implement this idea.
@@ -27,7 +27,7 @@ A clear and concise description of the implemention.
 - [ ] This PR has been tested on all platforms, on both a dedicated server and on a listen server.
 
 ### Testing Checklist
-<!-- You do not have to answer "yes" to all of these to open a pull request. -->
+<!-- You do not have to answer "yes" to all of these to open a pull request -->
 |         |            Client             |            Server             | Version                     |
 |---------|:-----------------------------:|:-----------------------------:|-----------------------------|
 | Windows | <!-- Built, Tested or N/A --> | <!-- Built, Tested or N/A --> | <!-- e.g. Windows 10 -->    |
