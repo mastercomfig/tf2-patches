@@ -4032,7 +4032,8 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
             // On L4D2/TF2 in GL mode this spinning was causing slowdowns.
 			ThreadSleepEx(1);
 #else
-			ThreadSleepEx();
+			ThreadPause();
+			ThreadSleep();
 #endif
 		}
 	    while (hr == S_FALSE);

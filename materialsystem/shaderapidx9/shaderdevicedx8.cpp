@@ -3401,6 +3401,10 @@ void CShaderDeviceDx8::Present()
 		{
 			bValidPresent = false;
 		}
+		if (bValidPresent && g_ShaderDeviceUsingD3D9Ex)
+		{
+			Dx9ExDevice()->SetGPUThreadPriority(7);
+		}
 	}
 	// Copy the back buffer into the non-interactive temp buffer
 	if ( m_NonInteractiveRefresh.m_Mode == MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD )
@@ -3441,14 +3445,6 @@ void CShaderDeviceDx8::Present()
 			if (g_ShaderDeviceUsingD3D9Ex)
 			{
 				int flags = D3DPRESENT_DONOTWAIT;
-				if (!m_PresentParameters.Windowed)
-				{
-					flags |= D3DPRESENT_DONOTFLIP;
-				}
-				if (m_PresentParameters.SwapEffect == D3DSWAPEFFECT_FLIPEX)
-				{
-					flags |= D3DPRESENT_FORCEIMMEDIATE;
-				}
 				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
 			}
 			else
