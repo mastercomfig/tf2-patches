@@ -80,7 +80,9 @@ BUILDING_MULTI_ARCH = 0
 ENV_CFLAGS := $(CFLAGS)
 ENV_CXXFLAGS := $(CXXFLAGS)
 CPPFLAGS = $(DEFINES) $(addprefix -I, $(abspath $(INCLUDEDIRS) ))
-BASE_CFLAGS = $(ARCH_FLAGS) $(CPPFLAGS) $(WARN_FLAGS) -fvisibility=$(SymbolVisibility) $(OptimizerLevel) -pipe $(GCC_ExtraCompilerFlags) -Usprintf -Ustrncpy -UPROTECTED_THINGS_ENABLE
+# TODO(maximsmol): Linux cannot build using -fvisibility=$(SymbolVisibility)
+# Upstream TF2 comes with all symbols exported too however
+BASE_CFLAGS = $(ARCH_FLAGS) $(CPPFLAGS) $(WARN_FLAGS) $(OptimizerLevel) -pipe $(GCC_ExtraCompilerFlags) -Usprintf -Ustrncpy -UPROTECTED_THINGS_ENABLE
 BASE_CXXFLAGS = -std=c++11
 # Additional CXXFLAGS when compiling PCH files
 PCH_CXXFLAGS =
