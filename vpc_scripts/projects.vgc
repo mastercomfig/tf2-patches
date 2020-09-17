@@ -325,7 +325,7 @@ $Project "GameUI"
 //}
 
 //$Project "gc"
-/{
+//{
 //	"game\gc\gc_tf.vpc"			[$WINDOWS && $TF]
 //}
 
