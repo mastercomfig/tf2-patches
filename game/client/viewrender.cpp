@@ -5938,8 +5938,7 @@ void CAboveWaterView::CRefractionView::Setup()
 {
 	BaseClass::Setup( *GetOuter() );
 
-	//m_ClearFlags = VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH;
-	m_ClearFlags = VIEW_CLEAR_DEPTH;
+	m_ClearFlags = VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH;
 
 	m_DrawFlags = DF_RENDER_REFRACTION | DF_CLIP_Z | 
 		DF_RENDER_UNDERWATER | DF_FUDGE_UP | 

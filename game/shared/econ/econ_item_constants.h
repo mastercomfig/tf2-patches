@@ -413,7 +413,7 @@ const war_side_t PYRO_VS_HEAVY_WAR_SIDE_PYRO = ((war_side_t)1);
 // Standard/default backpack size
 #define DEFAULT_NUM_BACKPACK_SLOTS						300
 #define DEFAULT_NUM_BACKPACK_SLOTS_FREE_TRIAL_ACCOUNT	50
-#define MAX_NUM_BACKPACK_SLOTS							2500
+#define MAX_NUM_BACKPACK_SLOTS							3000
 
 // Current item level range
 #define MIN_ITEM_LEVEL					0

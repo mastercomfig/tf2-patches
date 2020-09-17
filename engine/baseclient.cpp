@@ -362,6 +362,88 @@ void CBaseClient::Inactivate( void )
 }
 
 //---------------------------------------------------------------------------
+// Purpose: remove disruptive characters from player name
+//---------------------------------------------------------------------------
+bool CleanPlayerName( char *pch )
+{
+	// convert to unicode
+	int cch = Q_strlen( pch );
+	int cubDest = (cch + 1 ) * sizeof( wchar_t );
+	wchar_t *pwch = (wchar_t *)stackalloc( cubDest );
+	int cwch = Q_UTF8ToUnicode( pch, pwch, cubDest ) / sizeof( wchar_t );
+
+	bool bCleansed = false;
+	int spaces = 0;
+
+	int nWalk = 0;
+	for( int i=0; i<cwch; ++i )
+	{
+		wchar_t wch = pwch[i];
+		wchar_t newwch = 0;
+
+		switch ( wch )
+		{
+		case L'#':	// remove '#' if at first position
+			if ( i == 0 )
+				newwch = L'?';
+			break;
+		case L'%':
+		case L'~':
+			newwch = L'?';
+			break;
+		default:
+			int evil = V_IsEvilCharacterW( wch );
+
+			if ( evil == 1 )
+			{
+				newwch = L'?';
+			}
+			else if ( evil == 2 )
+			{
+				newwch = L' ';
+			}
+			break;
+		}
+
+		if ( newwch )
+		{
+			wch = newwch;
+
+			bCleansed = true;
+		}
+
+		if ( wch == L' ' )
+		{
+			if ( ++spaces > 4 ) // allow up to only 4 consecutive spaces
+			{
+				bCleansed = true;
+
+				continue;
+			}
+		}
+		else
+		{
+			spaces = 0;
+		}
+
+		pwch[nWalk] = wch;
+
+		++nWalk;
+	}
+
+	// Null terminate
+	pwch[nWalk-1] = L'\0';
+
+	// copy back, if necessary
+	if ( Q_StripPrecedingAndTrailingWhitespaceW( pwch ) || bCleansed )
+	{
+		Q_UnicodeToUTF8( pwch, pch, cch );
+	}
+
+	return bCleansed;
+}
+
+//---------------------------------------------------------------------------
 // Purpose: Determine whether or not a character should be ignored in a player's name.
 //---------------------------------------------------------------------------
 inline bool BIgnoreCharInName ( unsigned char cChar, bool bIsFirstCharacter )
@@ -384,18 +466,10 @@ void ValidateName( char *pszName, int nBuffSize )
 	}
 	else
 	{
-		Q_RemoveAllEvilCharacters( pszName );
-
-		const unsigned char *pChar = (unsigned char *)pszName;
-
-		// also skip characters we're going to ignore
-		while ( *pChar && ( isspace(*pChar) || BIgnoreCharInName( *pChar, true ) ) )
-		{
-			++pChar;
-		}
+		CleanPlayerName( pszName );
 
 		// did we get all the way to the end of the name without a non-whitespace character?
-		if ( *pChar == '\0' )
+		if ( Q_strlen( pszName ) <= 0 )
 		{
 			Q_snprintf( pszName, nBuffSize, "unnamed" );
 		}
@@ -429,14 +503,7 @@ void CBaseClient::SetName(const char * playerName)
 
 	while ( *pFrom && pTo < pLimit )
 	{
-		// Don't copy '%' or '~' chars across
-		// Don't copy '#' chars across if they would go into the first position in the name
-		// Don't allow color codes ( less than COLOR_MAX )
-		if ( !BIgnoreCharInName( *pFrom, pTo == &m_Name[0] ) )
-		{
-			*pTo++ = *pFrom;
-		}
-
+		*pTo++ = *pFrom;
 		pFrom++;
 	}
 	*pTo = 0;

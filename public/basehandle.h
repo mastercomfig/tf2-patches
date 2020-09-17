@@ -37,7 +37,7 @@ public:
 	void Term();
 
 	// Even if this returns true, Get() still can return return a non-null value.
-	// This just tells if the handle has been initted with any values.
+	// This just tells if the handle has been inited with any values.
 	bool IsValid() const;
 
 	int GetEntryIndex() const;

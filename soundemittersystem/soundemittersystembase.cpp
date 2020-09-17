@@ -941,7 +941,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 					MEM_ALLOC_CREDIT();
 
 					InitSoundInternalParameters( pKeys->GetName(), pKeys, pEntry->m_SoundParams );
-					pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initting.
+					pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initing.
 				}
 			}
 			pKeys = pKeys->GetNextKey();

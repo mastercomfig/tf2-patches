@@ -1,20 +1,36 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: 'Type: enhancement'
-assignees: mastercoms
+title:
+labels: enhancement, tc2, needs triage
+assignees:
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+### Description
+<!--
+A clear and concise description of what the idea is
+-->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+### Checklist
+<!-- You do not have to answer "yes" to all of these to suggest an idea -->
+- [ ] None of the open *or* closed issues document this idea.
+- [ ] This is a new idea, not a bug.
+- [ ] This idea does not seriously affect game balance.
+- [ ] This idea is for the code of the game, not for textures, sounds, or other resources.
+- [ ] This is not an idea for new game content (e.g. new weapons, maps, sounds).
+- [ ] This is obviously an improvement, not something that people commonly disagree on.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+<!-- You do not have to answer "yes" to any of these, this is just additional context -->
+- [ ] This idea has been implemented in vanilla TF2.
+- [ ] There is proof that this idea is well liked (e.g. a history of use of a similar mod in a competitive league).
+- [ ] This idea has been implemented in a mod. <!-- Insert link -->
+- [ ] This feature has existed in the vanilla game but was removed.
+- [ ] This idea is for internal procedures or tooling (e.g. improving the build process, supporting new systems).
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+### Screenshots
+<!-- Add screenshots to help explain your idea -->
+
+### Alternatives
+<!-- Alternative implementations of this idea -->
+1.

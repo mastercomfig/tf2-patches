@@ -9719,7 +9719,7 @@ float CTFGameRules::FlItemRespawnTime( CItem *pItem )
 
 
 //-----------------------------------------------------------------------------
-// Purpose: remove newlines and "mean" spaces from chat
+// Purpose: remove disruptive characters from chat
 //-----------------------------------------------------------------------------
 int CleanChatText( char *pch )
 {
@@ -9729,30 +9729,48 @@ int CleanChatText( char *pch )
 	wchar_t *pwch = (wchar_t *)stackalloc( cubDest );
 	int cwch = Q_UTF8ToUnicode( pch, pwch, cubDest ) / sizeof( wchar_t );
 
-	int iResult = 0;
+	bool bCleansed = false;
+	int spaces = 0;
 
-	// Walk through and skip over evil characters
 	int nWalk = 0;
 	for( int i=0; i<cwch; ++i )
 	{
 		wchar_t wch = pwch[i];
+		wchar_t newwch = 0;
 
-		if ( wch == L'\n' || wch == L'\r' )
+		int evil = V_IsEvilCharacterW( wch );
+
+		if ( evil == 1 )
 		{
-			pwch[nWalk] = L'?';
-
-			iResult |= 2;
+			newwch = L'?';
 		}
-		else if ( V_IsMeanSpaceW( wch ) )
+		else if ( evil == 2 )
 		{
-			pwch[nWalk] = L' ';
+			newwch = L' ';
+		}
 
-			iResult |= 1;
+		if ( newwch )
+		{
+			wch = newwch;
+
+			bCleansed = true;
+		}
+
+		if ( wch == L' ' )
+		{
+			if ( ++spaces > 4 ) // allow up to only 4 consecutive spaces
+			{
+				bCleansed = true;
+
+				continue;
+			}
 		}
 		else
 		{
-			pwch[nWalk] = wch;
+			spaces = 0;
 		}
+
+		pwch[nWalk] = wch;
 
 		++nWalk;
 	}
@@ -9761,17 +9779,15 @@ int CleanChatText( char *pch )
 	pwch[nWalk-1] = L'\0';
 
 	// copy back, if necessary
-	if ( iResult )
+	if ( Q_StripPrecedingAndTrailingWhitespaceW( pwch ) || bCleansed )
 	{
 		Q_UnicodeToUTF8( pwch, pch, cch );
 	}
 
-	// 1 = has "mean" spaces, 2 = has newline characters, 3 = has both
-	// maybe add an option to auto-punish users for sending newline characters
-	return iResult;
+	return bCleansed;
 }
 
-ConVar sv_chat_clean_text ( "mp_chat_clean_text", "1", FCVAR_NONE, "Prevent clients from sending invisible and newline characters in chat" );
+ConVar sv_chat_clean_text ( "mp_chat_clean_text", "1", FCVAR_NONE, "Prevent clients from sending disruptive characters in chat" );
 
 void CTFGameRules::CheckChatText( CBasePlayer *pPlayer, char *pText )
 {
@@ -9780,7 +9796,6 @@ void CTFGameRules::CheckChatText( CBasePlayer *pPlayer, char *pText )
 		CleanChatText( pText );
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 

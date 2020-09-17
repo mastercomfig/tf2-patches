@@ -633,6 +633,8 @@ void CTFMinigun::AttackEnemyProjectiles( void )
 
 					EmitSound( "Halloween.HeadlessBossAxeHitWorld" );
 
+					GetTFPlayerOwner()->SpeakConceptIfAllowed(MP_CONCEPT_ROCKET_DESTOYED);
+
 					CTF_GameStats.Event_PlayerAwardBonusPoints( pPlayer, NULL, 2 );
 
 					// Weaker version has a longer cooldown
