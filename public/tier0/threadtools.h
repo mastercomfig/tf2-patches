@@ -14,6 +14,7 @@
 #include "tier0/type_traits.h"
 
 #include <limits.h>
+#include <queue>
 #include <mutex>
 #include <condition_variable>
 
@@ -988,6 +989,51 @@ private:
 };
 
 
+template <class T>
+class CThreadSafeQueue
+{
+public:
+	CThreadSafeQueue()
+		: q()
+		, m()
+	{}
+
+	~CThreadSafeQueue()
+	{}
+
+	void PushItem(T* t)
+	{
+		std::lock_guard<std::mutex> lock(m);
+		q.push(t);
+	}
+
+	T* Pop()
+	{
+		std::unique_lock<std::mutex> lock(m);
+		if (q.empty())
+		{
+			return NULL;
+		}
+		T* val = q.front();
+		q.pop();
+		return val;
+	}
+
+	bool PopItem(T*& pResult)
+	{
+		if (!q.empty())
+			return false;
+		T* pItem = Pop();
+		pResult = pItem;
+		return true;
+	}
+
+private:
+	std::queue<T*> q;
+	mutable std::mutex m;
+};
+
+
 class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
 {
 public:
@@ -1014,7 +1060,7 @@ public:
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
 	CThreadEvent &operator=( const CThreadEvent & ) = delete;
-	std::condition_variable_any* m_listeningConditionAny;
+	CThreadSafeQueue<std::condition_variable_any> m_listeningConditions;
 };
 
 // Hard-wired manual event for use in array declarations
@@ -1097,112 +1143,96 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 		return TW_TIMEOUT;
 	}
 	bool bRet;
+	std::condition_variable_any* condition = new std::condition_variable_any();
+	for (int i = 0; i < nEvents; i++)
+	{
+		pEvents[i]->SetListener(condition);
+	}
 	if (bWaitAll)
 	{
 		// FIXME(mastercoms): god there HAS to be a better way to do this, right C++?
-		std::condition_variable_any condition;
         switch (nEvents)
         {
 		case 2:
 		{
 			CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);;
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->SetListener(&condition);
-			}
 			if (timeout == TT_INFINITE)
 			{
-				condition.wait(lock);
+				condition->wait(lock);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition.wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 			}
 			break;
 		}
 		case 3:
 		{
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->SetListener(&condition);
-			}
 			if (timeout == TT_INFINITE)
 			{
-				condition.wait(lock);
+				condition->wait(lock);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition.wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 			}
 			break;
 		}
 		case 4:
 		{
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->SetListener(&condition);
-			}
 			if (timeout == TT_INFINITE)
 			{
-				condition.wait(lock);
+				condition->wait(lock);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition.wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 			}
 			break;
 		}
 		case 5:
 		{
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->SetListener(&condition);
-			}
 			if (timeout == TT_INFINITE)
 			{
-				condition.wait(lock);
+				condition->wait(lock);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition.wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 			}
 			break;
 		}
 		default:
-			Assert(0);
-			bRet = false;
+		{
+		    Assert(0);
+		    bRet = false;
+		    break;
+		}
         }
 	}
 	else
 	{
 	    std::mutex mutex;
-	    std::condition_variable_any condition;
 	    std::unique_lock<std::mutex> lock(mutex);
-	    for (int i = 0; i < nEvents; i++)
-	    {
-		    pEvents[i]->SetListener(&condition);
-	    }
 	    if (timeout == TT_INFINITE)
 	    {
-		    condition.wait(lock);
+		    condition->wait(lock);
 		    bRet = true;
 	    }
 	    else
 	    {
-		    bRet = condition.wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+		    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 	    }
 	}
-	for (int i = 0; i < nEvents; i++)
-	{
-		pEvents[i]->SetListener(NULL);
-	}
+	delete condition;
+	condition = NULL;
 	if (bRet)
 	{
 		return 0;
