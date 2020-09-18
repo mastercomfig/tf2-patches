@@ -602,7 +602,6 @@ CThreadEvent::CThreadEvent( bool bManualReset )
 	m_bAutoReset = !bManualReset;
 	m_bSignaled = false;
 	m_bInitialized = true;
-	m_listeningConditionAny = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -624,9 +623,13 @@ bool CThreadEvent::Set()
 			return true;
 		}
 		m_bSignaled = true;
-		if (m_listeningConditionAny)
+		std::condition_variable_any* condition;
+		while (m_listeningConditions.PopItem(condition))
 		{
-			m_listeningConditionAny->notify_one();
+			if (condition)
+			{
+				condition->notify_one();
+			}
 		}
     }
 	if (m_bAutoReset)
@@ -671,8 +674,7 @@ bool CThreadEvent::Wait( uint32 dwTimeout )
 
 void CThreadEvent::SetListener(std::condition_variable_any* condition)
 {
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_listeningConditionAny = condition;
+	m_listeningConditions.PushItem(condition);
 }
 
 //-----------------------------------------------------------------------------
