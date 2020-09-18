@@ -332,7 +332,7 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 		if ( ( !pTFTouchPlayer->IsPlayerClass( TF_CLASS_SPY ) ) ||
 			 ( !pTFTouchPlayer->m_Shared.IsStealthed() && !pTFTouchPlayer->m_Shared.InCond( TF_COND_STEALTHED_BLINK ) && !pTFTouchPlayer->m_Shared.InCond( TF_COND_DISGUISED ) ) )
 		{
-			int iConcept;
+			int iConcept = MP_CONCEPT_MVM_MONEY_PICKUP;
 
 			// HACK(comtress): combine the two concepts used for money
 			switch (pTFTouchPlayer->GetPlayerClass()->GetClassIndex()) {
@@ -354,7 +354,6 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 				}
 				break;
 			default:
-				iConcept = MP_CONCEPT_MVM_MONEY_PICKUP;
 				break;
 			}
 
