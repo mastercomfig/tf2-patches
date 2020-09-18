@@ -10986,17 +10986,6 @@ void CTFPlayer::Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CTFPlayer::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, int pvssize )
-{
-	BaseClass::SetupVisibility( pViewEntity, pvs, pvssize );
-
-	int area = pViewEntity ? pViewEntity->NetworkProp()->AreaNum() : NetworkProp()->AreaNum();
-	PointCameraSetupVisibility( this, area, pvs, pvssize );
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Called on kill for primary and second-highest damage dealer
 //-----------------------------------------------------------------------------
 void CTFPlayer::OnKilledOther_Effects( CBaseEntity *pVictim, const CTakeDamageInfo &info )
