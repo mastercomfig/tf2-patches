@@ -4234,7 +4234,11 @@ Action< CTFBot > *CTFBot::OpportunisticallyUseWeaponAbilities( void )
 			CTFBuffItem *buff = (CTFBuffItem *)weapon;
 			if ( buff->IsFull() )
 			{
-				return new CTFBotUseItem( buff );
+				if (CTFBotUseBuffItem::IsPossible( reinterpret_cast<CTFBot *>( this ) ) ) {
+					return new CTFBotUseItem( buff );
+				} else {
+					return nullptr;
+				}
 			}
 		}
 		else if ( weapon->GetWeaponID() == TF_WEAPON_LUNCHBOX )
@@ -4246,7 +4250,11 @@ Action< CTFBot > *CTFBot::OpportunisticallyUseWeaponAbilities( void )
 				// scout lunchboxes are also gated by their energy drink meter
 				if ( !IsPlayerClass( TF_CLASS_SCOUT ) || m_Shared.GetScoutEnergyDrinkMeter() >= 100 )
 				{
-					return new CTFBotUseItem( lunchbox );
+					if (CTFBotUseLunchBoxItem::IsPossible( reinterpret_cast<CTFBot *>( this ) ) ) {
+						return new CTFBotUseItem( lunchbox );
+					} else {
+						return nullptr;
+					}
 				}
 			}
 		}
