@@ -68,8 +68,9 @@ us single bullet fire weapons.
 7. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true` and `PreferredToolArchitecture` to `x64`.
 8. Run `/creategameprojects_dev.bat`
 9. Open `/games.sln`
-10. Build the VS project
-11. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
+10. Select all projects. Go to Properties > C/C++ > Language > C++ Language Standard. Set language standered to C++17.
+11. Build the VS project
+12. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
 
 ### Running and Debugging
 1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
