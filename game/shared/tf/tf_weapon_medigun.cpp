@@ -323,7 +323,7 @@ void CWeaponMedigun::Precache()
 	BaseClass::Precache();
 	PrecacheModel( "models/weapons/c_models/c_proto_backpack/c_proto_backpack.mdl" );
 	PrecacheScriptSound( "WeaponMedigun.NoTarget" );
-	PrecacheScriptSound( "WeaponMedigun.Healing" );
+	PrecacheScriptSound( "WeaponMedigun.HealingHealer" );
 	PrecacheScriptSound( "Weapon_Quick_Fix.Healing" );
 	PrecacheScriptSound( "WeaponMedigun.Charged" );
 	PrecacheParticleSystem( "medicgun_invulnstatus_fullcharge_blue" );
