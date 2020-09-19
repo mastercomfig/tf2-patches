@@ -1021,7 +1021,7 @@ public:
 
 	bool PopItem(T*& pResult)
 	{
-		if (!q.empty())
+		if (q.empty())
 			return false;
 		T* pItem = Pop();
 		pResult = pItem;
