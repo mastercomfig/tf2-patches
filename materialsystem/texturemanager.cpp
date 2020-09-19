@@ -1016,7 +1016,7 @@ public:
 
 		// TODO: This could be made faster by keeping a pool of these things.
 		m_pendingJobs.PushItem( new AsyncLoadJob_t( job ) );
-		condition_job.notify_all();
+		condition_job.notify_one();
 	}
 
 	void Shutdown()
@@ -1024,8 +1024,8 @@ public:
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 		m_bQuit = true;
-		condition_job.notify_all();
-		condition_vtf.notify_all();
+		condition_job.notify_one();
+		condition_vtf.notify_one();
 		ThreadJoin( m_LoaderThread );		
 	}
 
@@ -1051,7 +1051,7 @@ public:
 	{
 		Assert( pScratchVTF != NULL );
 		m_asyncScratchVTFs.PushItem( pScratchVTF  );
-		condition_vtf.notify_all();
+		condition_vtf.notify_one();
 	}
 
 private:
@@ -1075,7 +1075,7 @@ private:
 				return;
 			m_pendingJobs.PopItem(&pJob);
 			job_lock.unlock();
-			condition_job.notify_all();
+			condition_job.notify_one();
 
 			Assert( pJob != NULL );
 
@@ -1085,7 +1085,7 @@ private:
 				return;
 			m_asyncScratchVTFs.PopItem(&pScratchVTF);
 			vtf_lock.unlock();
-			condition_vtf.notify_all();
+			condition_vtf.notify_one();
 
 			Assert( pScratchVTF != NULL );
 
@@ -1153,7 +1153,7 @@ public:
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 		m_bQuit = true;
-		condition.notify_all();
+		condition.notify_one();
 		ThreadJoin( m_HelperThread );
 	}
 
@@ -1182,7 +1182,7 @@ public:
 					{
 						// Stick it in the queue for the other thread to work on it.
 						m_pendingJobs.PushItem( pMapped );
-						condition.notify_all();
+						condition.notify_one();
 					}
 					else
 					{
@@ -1296,7 +1296,7 @@ private:
 			m_pendingJobs.PopItem(&pJob);
 			Assert(pJob != NULL);
 			job_lock.unlock();
-			condition.notify_all();
+			condition.notify_one();
 			ThreadReader_ProcessRead(pJob);
 		}
 	}
