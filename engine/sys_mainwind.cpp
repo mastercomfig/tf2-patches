@@ -301,6 +301,9 @@ void CGame::AppActivate( bool fActive )
 			ClearIOStates();
 			
 			UpdateMaterialSystemConfig();
+
+			// Once we return, let VGUI know it needs to relock.
+			vgui::surface()->UnlockCursor();
 		}
 		else
 		{

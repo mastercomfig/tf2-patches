@@ -1037,6 +1037,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			return 0;
 		return TW_TIMEOUT;
 	}
+	int iLoops = 0;
     do
     {
         int WaitStatus;
@@ -1045,7 +1046,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         {
             if (bWaitAll)
             {
-                if (!pEvents[i]->Check())
+                if (!pEvents[i]->m_bSignaled)
                 {
                     bWaitedAll = false;
 					break;
@@ -1053,7 +1054,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
             }
             else
             {
-                if (pEvents[i]->Check())
+                if (pEvents[i]->m_bSignaled)
                 {
                     WaitStatus = i;
                     return WaitStatus;
@@ -1068,7 +1069,39 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
         {
             return TW_TIMEOUT;
         }
-        ThreadSleepEx(1);
+		++iLoops;
+		if (iLoops >= 20000)
+		{
+			// Wow! It's been quite a long while. Our events are probably idle.
+			ThreadSleepEx(2 * (iLoops / 20000) );
+			continue;
+		}
+		if (iLoops >= 5000)
+		{
+			// It's been quite a while. Start sleeping often.
+			ThreadSleepEx(1);
+			continue;
+		}
+		if (iLoops >= 1000)
+		{
+			if (iLoops % 100 == 0)
+			{
+				// If we've been waiting for quite a bit, sleep regularly.
+				ThreadSleepEx(1);
+				continue;
+			}
+		}
+		else
+		{
+			if (iLoops % 500 == 0)
+			{
+				// If we've been waiting for quite a bit, sleep regularly.
+				ThreadSleepEx(1);
+				continue;
+			}
+		}
+		// Never spin lock. That sort of tight timing is so rare that it's not worth it.
+		ThreadPause();
     } while (true);
 }
 

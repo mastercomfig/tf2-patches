@@ -4005,23 +4005,37 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 	{
 		tmZone( TELEMETRY_LEVEL1, TMZF_NONE, "%s", __FUNCTION__ );
 
-		double flStartTime = Plat_FloatTime();
-		BOOL dummyData = 0;
+		float flStartTime = Plat_FloatTime();
+		BOOL bFinished = false;
 		HRESULT hr;
 		// NOTE: This fix helps out motherboards that are a little freaky.
 		// On such boards, sometimes the driver has to reset itself (an event which takes several seconds)
 		// and when that happens, the frame sync query object gets lost
-		for (;;)
+		do
 		{
-			hr = m_pFrameSyncQueryObject[queryIndex]->GetData( &dummyData, sizeof( dummyData ), D3DGETDATA_FLUSH );
-			if ( hr != S_FALSE )
+			hr = m_pFrameSyncQueryObject[queryIndex]->GetData(&bFinished, sizeof(bFinished), D3DGETDATA_FLUSH);
+			// If we lost the device, just bail immediately.
+			if (hr != S_FALSE)
+			{
 				break;
-			double flCurrTime = Plat_FloatTime();
-			// don't wait more than 100ms for these
-			if ( flCurrTime - flStartTime > 0.100f )
+			}
+			float dt = Plat_FloatTime() - flStartTime;
+			// don't wait more than 200ms for these
+			if (dt > 0.200f)
 				break;
+			// Avoid burning a full core while waiting for the query. Spinning can actually harm performance
+			// because there might be driver threads that are trying to do work that end up starved, and the
+			// power drawn by the CPU may take away from the power available to the integrated graphics chip.
+#ifdef DX_TO_GL_ABSTRACTION
+            // A sleep of one millisecond should never be long enough to affect performance, especially since
+            // this should only trigger when the CPU is already ahead of the GPU.
+            // On L4D2/TF2 in GL mode this spinning was causing slowdowns.
+			ThreadSleepEx(1);
+#else
 			ThreadSleepEx();
+#endif
 		}
+	    while (hr == S_FALSE);
 		m_bQueryIssued[queryIndex] = false;
 		Assert(hr == S_OK || hr == D3DERR_DEVICELOST);
 
@@ -4037,6 +4051,8 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 		m_bQueryIssued[queryIndex] = true;
 	}
 }
+
+ConVar r_reduce_frame_latency("r_reduce_frame_latency", "0", 0, "Reduces frame latency at the cost of rendering performance.");
 
 void CShaderAPIDx8::ForceHardwareSync( void )
 {
@@ -4076,15 +4092,22 @@ void CShaderAPIDx8::ForceHardwareSync( void )
 		
 		// Disable VCR mode here or else it'll screw up (and we don't really care if this part plays back in exactly the same amount of time).
 		VCRSetEnabled( false );
-
-		m_currentSyncQuery ++;
-		if ( m_currentSyncQuery >= ARRAYSIZE(m_pFrameSyncQueryObject) )
+		m_currentSyncQuery++;
+		if (m_currentSyncQuery >= ARRAYSIZE(m_pFrameSyncQueryObject))
 		{
 			m_currentSyncQuery = 0;
 		}
-		int waitIndex = ((m_currentSyncQuery + NUM_FRAME_SYNC_QUERIES) - (NUM_FRAME_SYNC_FRAMES_LATENCY+1)) % NUM_FRAME_SYNC_QUERIES;
-		UpdateFrameSyncQuery( waitIndex, false );
-		UpdateFrameSyncQuery( m_currentSyncQuery, true );
+		if (r_reduce_frame_latency.GetBool())
+		{
+			UpdateFrameSyncQuery(m_currentSyncQuery, true);
+			UpdateFrameSyncQuery(m_currentSyncQuery, false);
+		}
+		else
+		{
+			int waitIndex = ((m_currentSyncQuery + NUM_FRAME_SYNC_QUERIES) - (NUM_FRAME_SYNC_FRAMES_LATENCY + 1)) % NUM_FRAME_SYNC_QUERIES;
+			UpdateFrameSyncQuery(waitIndex, false);
+			UpdateFrameSyncQuery(m_currentSyncQuery, true);
+		}
 		VCRSetEnabled( true );
 	} 
 #else

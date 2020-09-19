@@ -53,7 +53,7 @@ static	CAutoGameSystem *s_pSystemList = NULL;
 CAutoGameSystem::CAutoGameSystem( char const *name ) :
 	m_pszName( name )
 {
-	// If s_GameSystems hasn't been initted yet, then add ourselves to the global list
+	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
 	if ( s_bSystemsInitted )
@@ -75,7 +75,7 @@ static	CAutoGameSystemPerFrame *s_pPerFrameSystemList = NULL;
 CAutoGameSystemPerFrame::CAutoGameSystemPerFrame( char const *name ) :
 	m_pszName( name )
 {
-	// If s_GameSystems hasn't been initted yet, then add ourselves to the global list
+	// If s_GameSystems hasn't been inited yet, then add ourselves to the global list
 	// because we don't know if the constructor for s_GameSystems has happened yet.
 	// Otherwise, we can add ourselves right into that list.
 	if ( s_bSystemsInitted )
@@ -203,7 +203,7 @@ bool IGameSystem::InitAllSystems()
 		}
 		s_pSystemList = NULL;
 	}
-	// Now remember that we are initted so new CAutoGameSystems will add themselves automatically.
+	// Now remember that we are inited so new CAutoGameSystems will add themselves automatically.
 	s_bSystemsInitted = true;
 
 	for ( i = 0; i < s_GameSystems.Count(); ++i )

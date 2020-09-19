@@ -4160,9 +4160,6 @@ void CMatSystemSurface::CalculateMouseVisible()
 		// NOTE: We must unlock the cursor *before* the set call here.
 		// Failing to do this causes s_bCursorVisible to not be set correctly
 		// (UnlockCursor fails to set it correctly)
-#ifdef PLATFORM_WINDOWS
-		::ClipCursor(NULL);
-#endif
 		UnlockCursor();
 		if ( _currentCursor == vgui::dc_none )
 		{
@@ -4172,7 +4169,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 	else
 	{
 #ifdef PLATFORM_WINDOWS
-		if (p)
+		if (!IsCursorLocked() && p)
 		{
 			VPanel* contextPanel = p;
 			while (contextPanel->GetParent() && !contextPanel->Plat())

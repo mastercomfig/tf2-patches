@@ -2663,7 +2663,7 @@ ZRESULT TZip::ideflate(TZipFileInfo *zfi)
   // the following line will make ct_init realise it has to perform the init
   state.ts.static_dtree[0].dl.len = 0;
   // It would be nicer if I could figure out precisely which data had to
-  // be initted each time, and which didn't, but that's kind of difficult.
+  // be inited each time, and which didn't, but that's kind of difficult.
   // Maybe for the next version...
   //
   bi_init(state,buf, sizeof(buf), TRUE); // it used to be just 1024-size, not 16384 as here
