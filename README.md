@@ -21,7 +21,7 @@ TC2 is based on the 2017 TF2 source code leak, which contained an in-development
 
 ## How can I help?
 
-1. **Report bugs that exist in *both* TF2 *and* TC2 through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
+1. **Report bugs that exist in live TF2 *or* TC2 through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
 	* Bugs that are present in modern TF2 but are not present in TC2 cannot be fixed in this project.
 2. **Suggest quality of life improvements (*not balance changes*) through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
 	* These changes should not affect gameplay, and should be unanimously desired.
