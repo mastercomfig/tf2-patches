@@ -1001,38 +1001,37 @@ public:
 	~CThreadSafeQueue()
 	{}
 
-	void PushItem(T* t)
+	void PushItem(T t)
 	{
-		std::lock_guard<std::mutex> lock(m);
+		std::scoped_lock<std::mutex> lock(m);
 		q.push(t);
 	}
 
-	T* Pop()
+	T Pop()
 	{
 		std::unique_lock<std::mutex> lock(m);
 		if (q.empty())
 		{
 			return NULL;
 		}
-		T* val = q.front();
+		T val = q.front();
 		q.pop();
 		return val;
 	}
 
-	bool PopItem(T*& pResult)
+	bool PopItem(T& pResult)
 	{
 		if (q.empty())
 			return false;
-		T* pItem = Pop();
+		T pItem = Pop();
 		pResult = pItem;
 		return true;
 	}
 
 private:
-	std::queue<T*> q;
+	std::queue<T> q;
 	mutable std::mutex m;
 };
-
 
 class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
 {
@@ -1055,12 +1054,12 @@ public:
 
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
-	void SetListener(std::condition_variable_any* condition);
+	void AddListener(std::shared_ptr<std::condition_variable_any> condition);
 
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
 	CThreadEvent &operator=( const CThreadEvent & ) = delete;
-	CThreadSafeQueue<std::condition_variable_any> m_listeningConditions;
+	CThreadSafeQueue<std::shared_ptr<std::condition_variable_any>> m_listeningConditions;
 };
 
 // Hard-wired manual event for use in array declarations
@@ -1113,40 +1112,11 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			return 0;
 		return TW_TIMEOUT;
 	}
-	int WaitStatus;
-	bool bWaitedAll = true;
-	for (int i = 0; i < nEvents; i++)
-	{
-		if (bWaitAll)
-		{
-			if (!pEvents[i]->Check())
-			{
-				bWaitedAll = false;
-				break;
-			}
-		}
-		else
-		{
-			if (pEvents[i]->Check())
-			{
-				WaitStatus = i;
-				return WaitStatus;
-			}
-		}
-	}
-	if (bWaitAll && bWaitedAll)
-	{
-		return 0;
-	}
-	if (timeout == 0)
-	{
-		return TW_TIMEOUT;
-	}
 	bool bRet;
-	std::condition_variable_any* condition = new std::condition_variable_any();
+	std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
 	for (int i = 0; i < nEvents; i++)
 	{
-		pEvents[i]->SetListener(condition);
+		pEvents[i]->AddListener(condition);
 	}
 	if (bWaitAll)
 	{
@@ -1223,7 +1193,17 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 	    std::unique_lock<std::mutex> lock(mutex);
 	    if (timeout == TT_INFINITE)
 	    {
-		    condition->wait(lock);
+		    condition->wait(lock, [nEvents, &pEvents]
+		    {
+				for (int i = 0; i < nEvents; i++)
+				{
+					if (pEvents[i]->m_bSignaled)
+					{
+						return true;
+					}
+				}
+				return false;
+		    });
 		    bRet = true;
 	    }
 	    else
@@ -1231,8 +1211,7 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 		    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
 	    }
 	}
-	delete condition;
-	condition = NULL;
+	condition.reset();
 	if (bRet)
 	{
 		return 0;
