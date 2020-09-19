@@ -5322,10 +5322,7 @@ IMesh* CMeshMgr::GetDynamicMesh( IMaterial* pMaterial, VertexFormat_t vertexForm
 
 	Assert((pMaterial == NULL) || ((IMaterialInternal*)pMaterial)->IsRealTimeVersion());
 
-	if (IsX360())
-	{
-		buffered = false;
-	}
+	buffered = false;
 
 	// Can't be buffered if we're overriding the buffers
 	if (pVertexOverride || pIndexOverride)
