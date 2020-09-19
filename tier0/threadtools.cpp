@@ -623,13 +623,14 @@ bool CThreadEvent::Set()
 			return true;
 		}
 		m_bSignaled = true;
-		std::condition_variable_any* condition;
+		std::shared_ptr<std::condition_variable_any> condition;
 		while (m_listeningConditions.PopItem(condition))
 		{
 			if (condition)
 			{
 				condition->notify_one();
 			}
+			condition.reset();
 		}
     }
 	if (m_bAutoReset)
@@ -672,7 +673,7 @@ bool CThreadEvent::Wait( uint32 dwTimeout )
 	return CThreadSyncObject::Wait( dwTimeout );
 }
 
-void CThreadEvent::SetListener(std::condition_variable_any* condition)
+void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any> condition)
 {
 	m_listeningConditions.PushItem(condition);
 }
