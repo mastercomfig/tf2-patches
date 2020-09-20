@@ -10,9 +10,6 @@
 #include <xboxmath.h>
 #else
 #include <xmmintrin.h>
-#include "../thirdparty/DirectXMath-apr2020/Inc/DirectXMath.h"
-#define VectorLoad( Ptr ) DirectX::XMLoadFloat4( (const DirectX::XMFLOAT4*)(Ptr) )
-#define VectorStore( Vec, Ptr )	DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)(Ptr), Vec )
 #endif
 
 #include <mathlib/vector.h>

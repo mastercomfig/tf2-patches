@@ -18,7 +18,7 @@ A clear and concise description of what the bug is
 - [ ] This is a bug, not a new idea.
 - [ ] This is objectively a bug, and not something that people commonly disagree on.
 - [ ] This bug is in the code of the game, not in the textures, sounds, or other resources.
-- [ ] This issue occurs on the lastest vanilla TF2 update.
+- [ ] This issue occurs on the latest vanilla TF2 update.
 - [ ] This issue is listed on the [Source 1 official bugtracker](https://github.com/ValveSoftware/Source-1-Games/issues).
 - [ ] This issue occurs with DirectX level 100.
 - [ ] This issue occurs on the latest Team Comtress release, or the `master` branch.
