@@ -1,10 +1,3 @@
----
-title:
-labels: needs triage
-assignees:
-
----
-
 ### Related Issue
 <!-- Number of the issue where this bug was filed -->
 
