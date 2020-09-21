@@ -564,7 +564,7 @@ EventDesiredResult< CTFBot > CTFBotMainAction::OnOtherKilled( CTFBot *me, CBaseC
 			m_nextDisguise = playerVictim->GetPlayerClass()->GetClassIndex();
 		}
 
-		if ( !ToTFPlayer( victim )->IsBot() && me->IsEnemy( victim ) && ( me->IsSelf( info.GetAttacker() || ToTFPlayer( victim )->m_Shared.InCond( TF_COND_FEIGN_DEATH ) ) ) )
+		if ( !ToTFPlayer( victim )->IsBot() && me->IsEnemy( victim ) && ( me->IsSelf( info.GetAttacker() || ( me->IsSelf( info.GetAttacker() && ToTFPlayer( victim )->m_Shared.InCond( TF_COND_FEIGN_DEATH ) ) ) ) )
 		{
 			bool isTaunting = !me->HasTheFlag() && RandomFloat( 0.0f, 100.0f ) <= tf_bot_taunt_victim_chance.GetFloat();
 
