@@ -263,7 +263,7 @@ void CTFPowerupBottle::ReapplyProvision( void )
 				}
 				else
 				{
-					if ( (!pTFPlayer->m_Shared.IsRageDraining() && !pTFPlayer->m_Shared.InCond( TF_COND_TAUNTING ) && !pTFPlayer->IsPlayerClass( TF_CLASS_PYRO ) ) )
+					if ( !(pTFPlayer->m_Shared.IsRageDraining() && pTFPlayer->m_Shared.InCond( TF_COND_TAUNTING ) && pTFPlayer->IsPlayerClass( TF_CLASS_PYRO ) ) )
 					{
 						pTFPlayer->m_Shared.RemoveCond( TF_COND_INVULNERABLE_USER_BUFF, true );
 					}
