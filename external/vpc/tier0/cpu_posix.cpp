@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifdef PLATFORM_OSX
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 #include <unistd.h>
 #include <tier0/platform.h>
