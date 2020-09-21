@@ -179,20 +179,9 @@ void CHudTournament::PlaySounds( int nTime )
 			}
 		case 10:
 		{
-			if (TFGameRules() && TFGameRules()->IsMannVsMachineMode())
+			if (!TFGameRules() || !TFGameRules()->IsMannVsMachineMode())
 			{
-				if (TFObjectiveResource()->GetMannVsMachineWaveCount() >= TFObjectiveResource()->GetMannVsMachineMaxWaveCount())
-				{
-					pLocalPlayer->EmitSound("Announcer.MVM_Final_Wave_Start");
-				}
-				else if (TFObjectiveResource()->GetMannVsMachineWaveCount() > 1)
-				{
-					pLocalPlayer->EmitSound("Announcer.MVM_Wave_Start");
-				}
-			}
-			else
-			{
-				pLocalPlayer->EmitSound( bCompetitiveMode ? "Announcer.CompGame1Begins10Seconds" : "Announcer.RoundBegins10Seconds" );
+				pLocalPlayer->EmitSound(bCompetitiveMode ? "Announcer.CompGame1Begins10Seconds" : "Announcer.RoundBegins10Seconds");
 			}
 			break;
 		}
