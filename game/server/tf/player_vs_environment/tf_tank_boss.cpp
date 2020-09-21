@@ -244,6 +244,7 @@ CTFTankBoss::CTFTankBoss()
 	m_szDeathPostfix[ 0 ] = '\0';
 	m_flDroppingStart = 0.0f;
 	m_flSpawnTime = 0.0f;
+	m_flLastPlayerDamageCallout = 0.0f;
 }
 
 
@@ -1007,7 +1008,7 @@ void CTFTankBoss::Explode( void )
 	if ( m_bIsPlayerKilled )
 	{
 		TFGameRules()->BroadcastSound( 255, "Announcer.MVM_General_Destruction" );
-		TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed( MP_CONCEPT_MVM_TANK_DEAD, TF_TEAM_PVE_DEFENDERS );
+		int iConcept = MP_CONCEPT_MVM_TANK_DEAD;
 
 		IGameEvent *event = gameeventmanager->CreateEvent( "mvm_tank_destroyed_by_players" );
 		if ( event )
@@ -1026,7 +1027,7 @@ void CTFTankBoss::Explode( void )
 					// anyone who has damaged the tank since the deploy anim began will get the achievement
 					float flWindow = gpGlobals->curtime - m_flDroppingStart;
 
-					TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed(MP_CONCEPT_MVM_CLOSE_CALL, TF_TEAM_RED);
+					iConcept = MP_CONCEPT_MVM_CLOSE_CALL;
 
 					for ( int i = 0; i < m_vecDamagers.Count(); i++ )
 					{
@@ -1072,6 +1073,8 @@ void CTFTankBoss::Explode( void )
 				EconEntity_OnOwnerKillEaterEventNoPartner( pTFPlayer->GetActiveTFWeapon(), pTFPlayer, kKillEaterEvent_TanksDestroyed );
 			}
 		}
+
+		TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed(iConcept, TF_TEAM_PVE_DEFENDERS);
 	}
 }
 #define TANK_PING_TIME 5.0

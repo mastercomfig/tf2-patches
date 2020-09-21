@@ -360,10 +360,17 @@ FORCEINLINE IDirect3DDevice9 *Dx9Device()
 {
 	return g_pD3DDevice;
 }
+#ifdef DX_TO_GL_ABSTRACTION
+FORCEINLINE IDirect3DDevice9Ex* Dx9ExDevice()
+{
+	return NULL;
+}
+#else
 FORCEINLINE IDirect3DDevice9Ex* Dx9ExDevice()
 {
 	return (IDirect3DDevice9Ex*)g_pD3DDevice;
 }
+#endif
 
 extern CShaderDeviceDx8* g_pShaderDeviceDx8;
 

@@ -617,7 +617,7 @@ bool CThreadEvent::Set()
 	AssertUseable();
 #endif
     {
-        std::unique_lock<std::mutex> lock(m_Mutex);
+        std::scoped_lock<std::mutex> lock(m_Mutex);
 		if (m_bSignaled)
 		{
 			return true;
@@ -651,7 +651,7 @@ bool CThreadEvent::Reset()
 #ifdef THREADS_DEBUG
     AssertUseable();
 #endif
-    std::unique_lock<std::mutex> lock(m_Mutex);
+    std::scoped_lock<std::mutex> lock(m_Mutex);
     m_bSignaled = false;
     return true;
 }

@@ -9994,6 +9994,13 @@ void C_TFPlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, f
 	BaseClass::CalcView( eyeOrigin, eyeAngles, zNear, zFar, fov );
 }
 
+static void cc_tf_player_helpme(const CCommand& args)
+{
+	engine->ServerCmd("voicemenu 0 0");
+}
+
+static ConCommand helpme("+helpme", cc_tf_player_helpme);
+
 void SelectDisguise( int iClass, int iTeam );
 
 static void cc_tf_player_lastdisguise( const CCommand &args )

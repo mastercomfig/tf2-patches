@@ -1120,6 +1120,17 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 	}
 	if (bWaitAll)
 	{
+		auto lPredSignalled = [nEvents, &pEvents]
+		{
+			for (int i = 0; i < nEvents; i++)
+			{
+				if (!pEvents[i]->m_bSignaled)
+				{
+					return false;
+				}
+			}
+			return true;
+		};
 		// FIXME(mastercoms): god there HAS to be a better way to do this, right C++?
         switch (nEvents)
         {
@@ -1128,12 +1139,12 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);;
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock);
+				condition->wait(lock, lPredSignalled);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
 			}
 			break;
 		}
@@ -1142,12 +1153,12 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock);
+				condition->wait(lock, lPredSignalled);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
 			}
 			break;
 		}
@@ -1156,12 +1167,12 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock);
+				condition->wait(lock, lPredSignalled);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
 			}
 			break;
 		}
@@ -1170,12 +1181,12 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock);
+				condition->wait(lock, lPredSignalled);
 				bRet = true;
 			}
 			else
 			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
 			}
 			break;
 		}
@@ -1189,27 +1200,34 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 	}
 	else
 	{
-	    std::mutex mutex;
-	    std::unique_lock<std::mutex> lock(mutex);
-	    if (timeout == TT_INFINITE)
-	    {
-		    condition->wait(lock, [nEvents, &pEvents]
-		    {
+		bool bInitialCheck = true;
+		auto lPredSignalled = [nEvents, &pEvents, &bInitialCheck]
+		{
+			if (bInitialCheck)
+			{
+				bInitialCheck = false;
 				for (int i = 0; i < nEvents; i++)
 				{
-					if (pEvents[i]->m_bSignaled)
+					if (pEvents[i]->Check())
 					{
 						return true;
 					}
 				}
 				return false;
-		    });
-		    bRet = true;
-	    }
-	    else
-	    {
-		    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
-	    }
+			}
+			return true;
+		};
+	    std::mutex mutex;
+	    std::unique_lock<std::mutex> lock(mutex);
+		if (timeout == TT_INFINITE)
+		{
+			condition->wait(lock, lPredSignalled);
+			bRet = true;
+		}
+		else
+		{
+			bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+		}
 	}
 	condition.reset();
 	if (bRet)
@@ -1239,19 +1257,16 @@ inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool b
 				if (pEvents[i]->m_bSignaled)
 				{
 					WaitStatus = i;
-					DevMsg("Loops: %d\n", iLoops);
 					return WaitStatus;
 				}
 			}
 		}
 		if (bWaitAll && bWaitedAll)
 		{
-			DevMsg("Loops: %d\n", iLoops);
 			return 0;
 		}
 		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
 		{
-			DevMsg("Loops: %d\n", iLoops);
 			return TW_TIMEOUT;
 		}
 		if (iLoops > 90000 || iLoops % 1000 == 0)

@@ -130,6 +130,8 @@ void CHudTournament::Init( void )
 	m_flNextUpdate = gpGlobals->curtime;
 }
 
+ConVar tf_force_mannup_sound("tf_force_mannup_sound", "0", FCVAR_DEVELOPMENTONLY);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -165,7 +167,7 @@ void CHudTournament::PlaySounds( int nTime )
 			{
 				if (TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1)
 				{
-					if (GTFGCClientSystem()->GetLobby() && IsMannUpGroup(GTFGCClientSystem()->GetLobby()->GetMatchGroup()))
+					if (GTFGCClientSystem()->GetLobby() && IsMannUpGroup(GTFGCClientSystem()->GetLobby()->GetMatchGroup()) || tf_force_mannup_sound.GetBool())
 					{
 						pLocalPlayer->EmitSound("Announcer.MVM_Manned_Up");
 					}

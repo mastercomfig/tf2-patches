@@ -722,7 +722,7 @@ private:
 	template <typename FUNCTION_CLASS, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N FUNC_TEMPLATE_ARG_PARAMS_##N, typename ITERTYPE1, typename ITERTYPE2> \
 	void IterRangeParallel(FUNCTION_RETTYPE ( FUNCTION_CLASS::*pfnProxied )( ITERTYPE1, ITERTYPE2 FUNC_ADDL_TEMPLATE_FUNC_PARAMS_##N ), ITERTYPE1 from, ITERTYPE2 to FUNC_ARG_FORMAL_PARAMS_##N ) \
 	{ \
-		const int MAX_THREADS = 16; \
+		const int MAX_THREADS = 64; \
 		int nIdle = g_pThreadPool->NumIdleThreads(); \
 		ITERTYPE1 range = to - from; \
 		int nThreads = MIN( nIdle + 1, range ); \
@@ -757,7 +757,7 @@ FUNC_GENERATE_ALL( DEFINE_NON_MEMBER_ITER_RANGE_PARALLEL );
 	template <typename OBJECT_TYPE, typename FUNCTION_CLASS, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N FUNC_TEMPLATE_ARG_PARAMS_##N, typename ITERTYPE1, typename ITERTYPE2> \
 	void IterRangeParallel(OBJECT_TYPE *pObject, FUNCTION_RETTYPE ( FUNCTION_CLASS::*pfnProxied )( ITERTYPE1, ITERTYPE2 FUNC_ADDL_TEMPLATE_FUNC_PARAMS_##N ), ITERTYPE1 from, ITERTYPE2 to FUNC_ARG_FORMAL_PARAMS_##N ) \
 	{ \
-		const int MAX_THREADS = 16; \
+		const int MAX_THREADS = 64; \
 		int nIdle = g_pThreadPool->NumIdleThreads(); \
 		ITERTYPE1 range = to - from; \
 		int nThreads = MIN( nIdle + 1, range ); \
