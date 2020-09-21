@@ -1274,14 +1274,10 @@ void CTFBot::ChangeTeam( int iTeamNum, bool bAutoTeam, bool bSilent, bool bAutoB
 //-----------------------------------------------------------------------------------------------------
 bool CTFBot::ShouldGib( const CTakeDamageInfo &info )
 {
-	if (CTFGameRules_IsPVEModeActive(*g_pGameRules) && CBaseEntity_GetTeamNumber(this) == TFTEAM_BLUE) {
-		
-		bool is_miniboss = CTFPlayer_IsMiniBoss(this);
-		float *m_flModelScale = (float *)((uintptr_t)this + off_CTFPlayer_m_flModelScale);
-		
+	if (TFGameRules()->IsMannVsMachineMode() && GetTeamNumber(this) == TF_TEAM_PVE_INVADERS ) {
 		/* for giants, always gib, because their ragdolls don't scale up and
 		 * they just look silly */
-		if (is_miniboss || *m_flModelScale > 1.0f) {
+		if (IsMiniBoss(this)) {
 			return true;
 		}
 		
@@ -1292,11 +1288,11 @@ bool CTFBot::ShouldGib( const CTakeDamageInfo &info )
 		
 		/* engineer bots have 0 gibs, and medic/sniper/spy have only 1 gib
 		 * (head only); so don't let these classes gib at all */
-		if (is_engie || is_medic || is_sniper || is_spy) {
+		if (this->IsPlayerClass( TF_CLASS_ENGINEER ) || this->IsPlayerClass( TF_CLASS_MEDIC ) || this->IsPlayerClass( TF_CLASS_SNIPER ) || this->IsPlayerClass( TF_CLASS_SPY )) {
 			return false;
 		}
 	}
-	
+
 	return BaseClass::ShouldGib( info );
 }
 
