@@ -185,7 +185,7 @@ endif
 
 # If not specified by environment, use steam runtime compilers + in-tree ccache
 ifneq ($(filter default undefined,$(origin AR)),)
-	AR = $(STEAM_RUNTIME_PATH)/bin/ar crs
+	AR = $(STEAM_RUNTIME_PATH)/bin/ar rcs
 endif
 ifneq ($(filter default undefined,$(origin CC)),)
 	CC = $(CCACHE) $(STEAM_RUNTIME_PATH)/bin/gcc$(GCC_VER)
@@ -247,7 +247,7 @@ VSIGN ?= true
 
 ifeq ($(TARGET_PLATFORM),linux32)
 	# FIXME(maximsmol): linux can't link stripped .ar archives apparently
-	STRIP=""
+	STRIP="true"
 endif
 
 ifeq ($(SOURCE_SDK), 1)
@@ -548,7 +548,7 @@ endif
 
 $(LIB_File): $(OTHER_DEPENDENCIES) $(OBJS)
 	$(QUIET_PREFIX) -$(P4_EDIT_START) $(LIB_File) $(P4_EDIT_END);
-	$(QUIET_PREFIX) $(AR) rcs $(LIB_File) $(OBJS) $(LIBFILES);
+	$(QUIET_PREFIX) $(AR) $(LIB_File) $(OBJS) $(LIBFILES);
 	$(SHELL) -c "$(POSTBUILDCOMMAND)"
 
 SO_GameOutputFile = $(GAMEOUTPUTFILE)
