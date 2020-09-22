@@ -784,6 +784,15 @@ void CPopulationManager::GameRulesThink( void )
 //-------------------------------------------------------------------------
 void CPopulationManager::UpdateObjectiveResource( void )
 {
+	ConVarRef tf_forced_holiday( "tf_forced_holiday" );
+	if ( TFObjectiveResource()->m_nMvMEventPopfileType != 0u ) 
+	{
+		tf_forced_holiday.SetValue( kHoliday_Halloween );
+	} 
+	else 
+	{
+		tf_forced_holiday.SetValue( kHoliday_None );
+	}
 	if ( m_waveVector.Count() == 0 || !TFObjectiveResource() )
 	{
 		return;
