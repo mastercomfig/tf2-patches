@@ -4439,8 +4439,7 @@ void CTFBot::AddEventChangeAttributes( const CTFBot::EventChangeAttributes_t* ne
 const CTFBot::EventChangeAttributes_t* CTFBot::GetEventChangeAttributes( const char* pszEventName ) const
 {
 	
-	auto player = reinterpret_cast<CBasePlayer *>(this);
-	if (ToTFBot(player) == nullptr) {
+	if (ToTFBot(this) == nullptr) {
 		return nullptr;
 	}
 	
