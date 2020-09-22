@@ -47,7 +47,7 @@ New users should follow this approach.
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
 4. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
 	* This will create a folder named `tc2` in `tf/custom`, do **not** delete it!
-5. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2'
+5. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
 6. Double click `start_tf2.bat`. Note that you must have Steam running.
 7. Enjoy!
 
