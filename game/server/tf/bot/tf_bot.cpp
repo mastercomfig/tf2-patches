@@ -4553,6 +4553,14 @@ void CTFBot::AddItem( const char* pszItemName )
 	criteria.SetQuality( AE_USE_SCRIPT_VALUE );
 	criteria.BAddCondition( "name", k_EOperator_String_EQ, pszItemName, true );
 
+	if ( strncmp( pszItemName, "Zombie ", strlen("Zombie ")) == 0 ) )
+	{
+		if ( this->m_Objective == CTFBot::MISSION_DESTROY_SENTRIES ) 
+		{
+			return;
+		}
+	}
+		
 	CBaseEntity *pItem = ItemGeneration()->GenerateRandomItem( &criteria, WorldSpaceCenter(), vec3_angle );
 	if ( pItem )
 	{
