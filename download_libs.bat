@@ -4,4 +4,4 @@
 (for %%l in (%libs%) do (
    curl %server%%%l -Lo %%l --create-dirs
 ))
-@PAUSE
+@IF NOT DEFINED CI PAUSE
