@@ -97,19 +97,7 @@ static ButtonCode_t s_pXKeyTrans[XK_MAX_KEYS];
 	"SC_F9",\
 	"SC_F10",\
 	"SC_F11",\
-	"SC_F12",\
-	"SC_F13",\
-	"SC_F14",\
-	"SC_F15",\
-	"SC_F16",\
-	"SC_F17",\
-	"SC_F18",\
-	"SC_F19",\
-	"SC_F20",\
-	"SC_F21",\
-	"SC_F22",\
-	"SC_F23",\
-	"SC_F24"
+	"SC_F12"
 
 static int s_pButtonCodeToVirtual[BUTTON_CODE_LAST];
 
@@ -230,7 +218,7 @@ static const char *s_pButtonCodeName[ ] =
 	"F21",			// KEY_F21,
 	"F22",			// KEY_F22,
 	"F23",			// KEY_F23,
-	"F24",			// KEY_F25
+	"F24",			// KEY_F24
 
 	// FIXME: CAPSLOCK/NUMLOCK/SCROLLLOCK all appear above. What are these for?!
 	// They only appear in CInputWin32::UpdateToggleButtonState in vgui2
