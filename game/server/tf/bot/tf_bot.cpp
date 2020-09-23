@@ -1281,11 +1281,6 @@ bool CTFBot::ShouldGib( const CTakeDamageInfo &info )
 			return true;
 		}
 		
-		bool is_engie  = CTFPlayer_IsPlayerClass(this, TFCLASS_ENGINEER);
-		bool is_medic  = CTFPlayer_IsPlayerClass(this, TFCLASS_MEDIC);
-		bool is_sniper = CTFPlayer_IsPlayerClass(this, TFCLASS_SNIPER);
-		bool is_spy    = CTFPlayer_IsPlayerClass(this, TFCLASS_SPY);
-		
 		/* engineer bots have 0 gibs, and medic/sniper/spy have only 1 gib
 		 * (head only); so don't let these classes gib at all */
 		if (this->IsPlayerClass( TF_CLASS_ENGINEER ) || this->IsPlayerClass( TF_CLASS_MEDIC ) || this->IsPlayerClass( TF_CLASS_SNIPER ) || this->IsPlayerClass( TF_CLASS_SPY )) {
