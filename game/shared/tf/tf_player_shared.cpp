@@ -12734,7 +12734,15 @@ int CTFPlayerShared::GetSequenceForDeath( CBaseAnimating* pRagdoll, bool bBurnin
 {
 	if ( !pRagdoll )
 		return -1;
-
+	
+#ifdef VALVE_PURE
+	if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
+	{
+		if ( m_pOuter && ( m_pOuter->GetTeamNumber() == TF_TEAM_PVE_INVADERS ) )
+			return -1;
+	}
+#endif
+	
 	int iDeathSeq = -1;
 // 	if ( bBurning )
 // 	{
