@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 set -e	# Stop on error
 cd "$(dirname "$0")"
 
