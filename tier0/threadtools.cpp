@@ -1349,7 +1349,7 @@ void CThreadSpinRWLock::LockForRead()
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.m_nReaders;
 	oldValue.m_writerId = 0;
 	newValue.m_nReaders = oldValue.m_nReaders + 1;
 	newValue.m_writerId = 0;
@@ -1357,7 +1357,7 @@ void CThreadSpinRWLock::LockForRead()
 	if( m_nWriters == 0 && AssignIf( newValue, oldValue ) )
 		return;
 	ThreadPause();
-	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.m_nReaders;
 	newValue.m_nReaders = oldValue.m_nReaders + 1;
 
 	for ( i = 1000; i != 0; --i )
@@ -1365,7 +1365,7 @@ void CThreadSpinRWLock::LockForRead()
 		if( m_nWriters == 0 && AssignIf( newValue, oldValue ) )
 			return;
 		ThreadPause();
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 
@@ -1375,7 +1375,7 @@ void CThreadSpinRWLock::LockForRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 0 );
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 
@@ -1385,7 +1385,7 @@ void CThreadSpinRWLock::LockForRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 1 );
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 }
@@ -1394,11 +1394,11 @@ void CThreadSpinRWLock::UnlockRead()
 {
 	int i;
 
-	Assert( m_lockInfo.load().m_nReaders > 0 && m_lockInfo.load().m_writerId == 0 );
+	Assert( m_lockInfo.m_nReaders > 0 && m_lockInfo.m_writerId == 0 );
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.m_nReaders;
 	oldValue.m_writerId = 0;
 	newValue.m_nReaders = oldValue.m_nReaders - 1;
 	newValue.m_writerId = 0;
@@ -1406,7 +1406,7 @@ void CThreadSpinRWLock::UnlockRead()
 	if( AssignIf( newValue, oldValue ) )
 		return;
 	ThreadPause();
-	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.m_nReaders;
 	newValue.m_nReaders = oldValue.m_nReaders - 1;
 
 	for ( i = 500; i != 0; --i )
@@ -1414,7 +1414,7 @@ void CThreadSpinRWLock::UnlockRead()
 		if( AssignIf( newValue, oldValue ) )
 			return;
 		ThreadPause();
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 
@@ -1424,7 +1424,7 @@ void CThreadSpinRWLock::UnlockRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 0 );
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 
@@ -1434,14 +1434,14 @@ void CThreadSpinRWLock::UnlockRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 1 );
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 }
 
 void CThreadSpinRWLock::UnlockWrite()
 {
-	Assert( m_lockInfo.load().m_writerId == ThreadGetCurrentId()  && m_lockInfo.load().m_nReaders == 0 );
+	Assert( m_lockInfo.m_writerId == ThreadGetCurrentId()  && m_lockInfo.m_nReaders == 0 );
 	static const LockInfo_t newValue = { 0, 0 };
 #if defined(_X360)
 	// X360TBD: Serious Perf implications, not yet. __sync();
