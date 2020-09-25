@@ -14,6 +14,8 @@ What is Team Comtress 2? It's a version of Team Fortress 2, based on the recent 
 
 Obviously, as a leaked build, it's not useful for getting better performance in Casual on its own (you can't use this build to connect to any existing servers), but it can help me a lot if you all can test it, so that I am more confident in sending many of these changes to Valve for them to include in the base game! Please let me know how it works for you!
 
+NOTE: Team Comtress 2 is no longer compatible with mastercomfig. Please do not use mastercomfig or any other TF2 config.
+
 ## Install
 
 1. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
@@ -54,56 +56,9 @@ us single bullet fire weapons.
 
 * `-particle_fallback`: 2 uses DX8 particles, 1 uses lowend DX9 particles, 0 uses default.
 
-## Windows Build
+## Building from source
 
-**DISCLAIMER:** If you are not a developer, building the game from source is not what you want. Use the pre-built [Releases](https://github.com/mastercomfig/team-comtress-2/releases). Also, building this on Mac/Linux, while possible, is not covered here. Please let us know if you get it to work!
-
-### Building
-1. Get [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/) for building TF2. The required installation components are: "Desktop development with C++" and the "C++ MFC for latest v142 build tools (x86 & x64)".
-2. Clone this repo
-3. Open `/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcxproj`
-4. Run both the Debug and the Release builds
-5. Run `regedit` and [add an association for the latest VS](https://github.com/ValveSoftware/source-sdk-2013/issues/72#issuecomment-326633328) (add a key at `HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}`, add a `String` property named `DefaultProjectExtension`, set the value to `vcproj`)
-6. Set the [environment variable](https://superuser.com/a/985947) `VALVE_NO_AUTO_P4` to `true` and `PreferredToolArchitecture` to `x64`.
-7. Run `/creategameprojects_dev.bat`
-8. Open `/games.sln`
-9. Build the VS project
-10. The executables are placed at `../game/hl2.exe` for the client and at `../game/srcds.exe` for the server. Note: this path is outside the repository.
-
-### Running and Debugging
-1. For the compiled binaries to run, you will need to copy your current TF2 installation to `../game` (relative to your repostiory, outside of it).
-2. To setup debugging, in Visual Studio, select `Client (TF)` as the startup project, then go to its `Properties->Configuration Properties->Debugging`. Set `Command` to your `../game/hl2.exe` binary, the `Command Arguments` to `-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -allowdebug` and `Working Directory` to your game installation folder i.e. `../game/bin`. Note: all the paths here are relative to your copy of the repository (same place where `games.sln` is located), do **not** set these values verbatim.
-3. For server, follow the same procedures but choose the `Server (TF)` project and set the `Command` to `../game/srcds.exe`. The suggested server launch options are `-game tf -console -nomaster -insecure +sv_pure 0 +maxplayers 32 +sv_lan 1 -dev -allowdebug`.
-
-NOTE: Team Comtress 2 is no longer compatible with mastercomfig. Please do not use mastercomfig or any other TF2 config.
-
-See [the Valve dev wiki page](https://developer.valvesoftware.com/wiki/Installing_and_Debugging_the_Source_Code) for another explanation of the last two steps.
-
-Other launch options to consider:
-- `sw` to force windowed mode
-- `-w WIDTH -h HEIGHT` to set the resolution
-- `+map MAPNAME` to automatically launch a map on startup
-
-## Linux Build
-Dependencies (libraries must be i686):
-- `make`
-- GCC
-- automake
-- autoconf
-- m4
-- `libunwind`
-- glibc
-- freetype
-- fontconfig
-- libGL
-- libX11
-- openal
-- libncurses
-- curl with GNUTLS support
-
-Instructions:
-1. Prepare for unforseen consequences
-1. Run `./magic.sh -f`
+Instructions are on the [wiki](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions).
 
 ## Legal
 
