@@ -1005,7 +1005,7 @@ public:
 	void PushItem(T& t)
 	{
 		std::scoped_lock<std::mutex> lock(m);
-		q.push_front(t);
+		q.push_back(t);
 	}
 
 	bool PopItem(T& pResult)
