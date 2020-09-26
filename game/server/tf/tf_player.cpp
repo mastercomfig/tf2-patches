@@ -286,12 +286,12 @@ void CC_tf_debug_ballistic_targeting_mark_target( const CCommand &args )
 }
 static ConCommand tf_debug_ballistic_targeting_mark_target( "tf_debug_ballistic_targeting_mark_target", CC_tf_debug_ballistic_targeting_mark_target, "Mark a spot for testing ballistic targeting.", FCVAR_CHEAT );
 
-ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_CHEAT );
-
 extern ConVar tf_bountymode_currency_starting;
 extern ConVar tf_bountymode_upgrades_wipeondeath;
 extern ConVar tf_bountymode_currency_penalty_ondeath;
 #endif // STAGING_ONLY
+
+ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_CHEAT );
 
 ConVar tf_halloween_unlimited_spells( "tf_halloween_unlimited_spells", "0", FCVAR_CHEAT );
 extern ConVar tf_halloween_kart_boost_recharge;
