@@ -296,7 +296,7 @@ void CTFLaserPointer::UpdateLaserDot( void )
 	Vector vecMuzzlePos = pPlayer->Weapon_ShootPosition();
 	Vector forward;
 	pPlayer->EyeVectors( &forward );
-	Vector vecEndPos = vecMuzzlePos + ( forward * MAX_TRACE_LENGTH );
+	Vector vecEndPos = vecMuzzlePos + ( forward * 8192.0f );
 
 	trace_t	trace;
 	CTraceFilterIgnoreTeammatesAndTeamObjects filter( pPlayer, COLLISION_GROUP_NONE, pPlayer->GetTeamNumber() );
