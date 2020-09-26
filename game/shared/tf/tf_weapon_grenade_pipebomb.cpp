@@ -769,7 +769,7 @@ void CTFGrenadePipebombProjectile::PipebombTouch( CBaseEntity *pOther )
 			}
 		}
 		
-		if ( m_iType == TF_GL_MODE_CANNONBALL )
+		if ( m_iType == TF_GL_MODE_CANNONBALL && !( TFGameRules() && TFGameRules()->IsTruceActive() ) )
 		{
 			// Damage the player to push them back
 			CBaseEntity *pAttacker = GetThrower();
