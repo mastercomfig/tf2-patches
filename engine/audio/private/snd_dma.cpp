@@ -69,7 +69,7 @@ extern IVideoServices *g_pVideo;
 #define SNDLVL_TO_DIST_MULT( sndlvl ) ( sndlvl ? ((pow( 10.0f, snd_refdb.GetFloat() / 20 ) / pow( 10.0f, (float)sndlvl / 20 )) / snd_refdist.GetFloat()) : 0 )
 #define DIST_MULT_TO_SNDLVL( dist_mult ) (soundlevel_t)(int)( dist_mult ? ( 20 * log10( pow( 10.0f, snd_refdb.GetFloat() / 20 ) / (dist_mult * snd_refdist.GetFloat()) ) ) : 0 )
 
-#define THREADED_SOUND_UPDATE
+//#define THREADED_SOUND_UPDATE
 
 extern ConVar dsp_spatial;
 extern IPhysicsSurfaceProps	*physprop;
@@ -6789,7 +6789,6 @@ void S_Update_Thread()
 	while ( !g_bMixThreadExit )
 	{
 		const double t0 = Plat_FloatTime();
-		S_Update_New();
 		S_Update_Guts(frameTime + snd_mixahead.GetFloat());
 		const double tf = Plat_FloatTime();
 
