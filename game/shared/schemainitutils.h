@@ -23,10 +23,6 @@
 		{																\
 			AssertMsg( expr, "%s", msg.String() );						\
 		}																\
-		else															\
-		{																\
-			pVecErrors->AddToTail( msg );								\
-		}																\
 		return false;													\
 	}																	
 #else

@@ -396,14 +396,12 @@ void CNetChan::Shutdown(const char *pReason)
 	}
 
 	// free new messages
+
 	int numtypes = m_NetMessages.Count();
-	for( int i = 0; i < numtypes; i++ )
+	for (int i = 0; i < numtypes; i++)
 	{
-		if (m_NetMessages[i])
-		{
-			m_NetMessages[i]->SetNetChannel(NULL);
-		}
-		m_NetMessages.Remove( i );
+		Assert(m_NetMessages[i]);
+		delete m_NetMessages[i];
 	}
 
 	m_NetMessages.Purge();

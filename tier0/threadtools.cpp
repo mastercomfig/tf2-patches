@@ -1267,6 +1267,208 @@ void CThreadRWLock::WaitForRead()
 }
 
 
+int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll, unsigned timeout)
+{
+	Assert(nEvents > 0);
+	if (nEvents == 1)
+	{
+		if (pEvents[0]->Wait(timeout))
+			return 0;
+		return TW_TIMEOUT;
+	}
+	bool bRet;
+	if (bWaitAll)
+	{
+		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+		for (int i = 0; i < nEvents; i++)
+		{
+			pEvents[i]->AddListener(condition);
+		}
+		// We use the raw boolean because we have a lock on all events.
+		auto lPredSignalled = [nEvents, &pEvents]
+		{
+			for (int i = 0; i < nEvents; i++)
+			{
+				if (!pEvents[i]->m_bSignaled)
+				{
+					return false;
+				}
+			}
+			return true;
+		};
+		// FIXME(mastercoms): god there HAS to be a better way to do this, right C++?
+		switch (nEvents)
+		{
+		case 2:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);;
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock, lPredSignalled);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+			}
+			break;
+		}
+		case 3:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock, lPredSignalled);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+			}
+			break;
+		}
+		case 4:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock, lPredSignalled);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+			}
+			break;
+		}
+		case 5:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock, lPredSignalled);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+			}
+			break;
+		}
+		default:
+		{
+			Assert(0);
+			bRet = false;
+			break;
+		}
+		}
+		condition.reset();
+	}
+	else
+	{
+		bool bInitialCheck = true;
+		// We use check here because we don't actually have a lock on the events.
+		auto lPredSignalled = [nEvents, &pEvents, &bInitialCheck]
+		{
+			if (bInitialCheck)
+			{
+				bInitialCheck = false;
+				for (int i = 0; i < nEvents; i++)
+				{
+					if (pEvents[i]->Check())
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			return true;
+		};
+		if (lPredSignalled())
+		{
+			bRet = true;
+		}
+		else
+		{
+			std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+			for (int i = 0; i < nEvents; i++)
+			{
+				pEvents[i]->AddListener(condition);
+			}
+			std::mutex mutex;
+			std::unique_lock<std::mutex> lock(mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock, lPredSignalled);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+			}
+			condition.reset();
+		}
+	}
+	if (bRet)
+	{
+		return 0;
+	}
+	return TW_TIMEOUT;
+
+#if 0
+	int iLoops = 0;
+	do
+	{
+		int WaitStatus;
+		bool bWaitedAll = true;
+		for (int i = 0; i < nEvents; i++)
+		{
+			if (bWaitAll)
+			{
+				if (!pEvents[i]->m_bSignaled)
+				{
+					bWaitedAll = false;
+					break;
+				}
+			}
+			else
+			{
+				if (pEvents[i]->m_bSignaled)
+				{
+					WaitStatus = i;
+					return WaitStatus;
+				}
+			}
+		}
+		if (bWaitAll && bWaitedAll)
+		{
+			return 0;
+		}
+		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
+		{
+			return TW_TIMEOUT;
+		}
+		if (iLoops > 90000 || iLoops % 1000 == 0)
+		{
+			// If we've been busy waiting for quite a while, we are probably idle, so sleep for 1ms constantly.
+			// Otherwise, do a full sleep once in a while to throttle the busy wait.
+			ThreadSleepEx(1);
+		}
+		else if (iLoops % 20 == 0)
+		{
+			// Yield to OS more frequently, so we can get some throttling to the busy wait without increasing latency too much.
+			ThreadSleepEx();
+		}
+		else
+		{
+			// Pause on any other loop, so we don't inefficiently busy wait.
+			ThreadPause();
+		}
+		++iLoops;
+	} while (true);
+#endif
+}
+
 void CThreadRWLock::LockForWrite()
 {
 	m_mutex.Lock();
