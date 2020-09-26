@@ -9999,7 +9999,12 @@ static void cc_tf_player_helpme(const CCommand& args)
 	engine->ServerCmd("voicemenu 0 0");
 }
 
+static void cc_tf_player_helpme_release(const CCommand& args)
+{
+}
+
 static ConCommand helpme("+helpme", cc_tf_player_helpme);
+static ConCommand helpme_release("-helpme", cc_tf_player_helpme_release);
 
 void SelectDisguise( int iClass, int iTeam );
 

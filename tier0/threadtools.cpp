@@ -1367,7 +1367,6 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			break;
 		}
 		}
-		condition.reset();
 	}
 	else
 	{

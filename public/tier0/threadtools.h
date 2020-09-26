@@ -14,7 +14,6 @@
 #include "tier0/type_traits.h"
 
 #include <limits.h>
-#include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <list>
