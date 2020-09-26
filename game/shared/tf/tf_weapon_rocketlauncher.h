@@ -21,7 +21,6 @@
 #ifdef CLIENT_DLL
 #define CTFRocketLauncher C_TFRocketLauncher
 #define CTFRocketLauncher_DirectHit C_TFRocketLauncher_DirectHit
-#define CTFWeaponFlameBall C_TFWeaponFlameBall
 #define CTFRocketLauncher_AirStrike C_TFRocketLauncher_AirStrike
 #define CTFRocketLauncher_Mortar C_TFRocketLauncher_Mortar
 #define CTFCrossbow C_TFCrossbow
@@ -192,21 +191,6 @@ public:
 
 private:
 	bool m_bMilkNextAttack;
-};
-
-class CTFWeaponFlameBall : public CTFRocketLauncher
-{
-public:
-	DECLARE_CLASS(CTFWeaponFlameBall, CTFRocketLauncher);
-	DECLARE_NETWORKCLASS();
-	DECLARE_PREDICTABLE();
-
-	// Server specific.
-#ifdef GAME_DLL
-	DECLARE_DATADESC();
-#endif
-
-	virtual int		GetWeaponID(void) const { return TF_WEAPON_FLAMETHROWER_ROCKET; }
 };
 
 #endif // TF_WEAPON_ROCKETLAUNCHER_H

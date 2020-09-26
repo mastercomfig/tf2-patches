@@ -956,8 +956,6 @@ const char *g_szProjectileNames[] =
 	"projectile_sentry_rocket",
 	"projectile_bread_monster",
 
-	"projectile_balloffire"
-
 #ifdef STAGING_ONLY	
 	// Staging
 	"projectile_tranq",
@@ -1003,8 +1001,6 @@ int g_iProjectileWeapons[] =
 	TF_PROJECTILE_GRAPPLINGHOOK,
 	TF_WEAPON_SENTRY_ROCKET,
 	TF_WEAPON_THROWABLE,
-
-	TF_WEAPON_FLAMETHROWER_ROCKET,
 
 #ifdef STAGING_ONLY
 	// Staging

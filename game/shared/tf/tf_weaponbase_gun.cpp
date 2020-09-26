@@ -338,11 +338,6 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 		pPlayer->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_SECONDARY );
 		break;
 
-	case TF_PROJECTILE_BALLOFFIRE:
-		pProjectile = FireBallOfFire(pPlayer);
-		pPlayer->DoAnimationEvent(PLAYERANIMEVENT_ATTACK_PRIMARY);
-		break;
-
 	case TF_PROJECTILE_ENERGY_BALL:
 		pProjectile = FireEnergyBall( pPlayer );
 		if ( ShouldPlayFireAnim() )
