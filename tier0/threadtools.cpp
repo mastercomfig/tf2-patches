@@ -673,9 +673,14 @@ bool CThreadEvent::Wait( uint32 dwTimeout )
 	return CThreadSyncObject::Wait( dwTimeout );
 }
 
-void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any> condition)
+void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any>& condition)
 {
 	m_listeningConditions.PushItem(condition);
+}
+
+void CThreadEvent::RemoveListener(std::shared_ptr<std::condition_variable_any>& condition)
+{
+	m_listeningConditions.RemoveItem(condition);
 }
 
 //-----------------------------------------------------------------------------
@@ -1277,13 +1282,13 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		return TW_TIMEOUT;
 	}
 	bool bRet;
+	std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+	for (int i = 0; i < nEvents; i++)
+	{
+		pEvents[i]->AddListener(condition);
+	}
 	if (bWaitAll)
 	{
-		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-		for (int i = 0; i < nEvents; i++)
-		{
-			pEvents[i]->AddListener(condition);
-		}
 		// We use the raw boolean because we have a lock on all events.
 		auto lPredSignalled = [nEvents, &pEvents]
 		{
@@ -1384,31 +1389,24 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			}
 			return true;
 		};
-		if (lPredSignalled())
+		std::mutex mutex;
+		std::unique_lock<std::mutex> lock(mutex);
+		if (timeout == TT_INFINITE)
 		{
+			condition->wait(lock, lPredSignalled);
 			bRet = true;
 		}
 		else
 		{
-			std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-			for (int i = 0; i < nEvents; i++)
-			{
-				pEvents[i]->AddListener(condition);
-			}
-			std::mutex mutex;
-			std::unique_lock<std::mutex> lock(mutex);
-			if (timeout == TT_INFINITE)
-			{
-				condition->wait(lock, lPredSignalled);
-				bRet = true;
-			}
-			else
-			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
-			}
-			condition.reset();
+			bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignalled);
+		}
+		// Clear out listeners for the others
+		for (int i = 0; i < nEvents; i++)
+		{
+			pEvents[i]->RemoveListener(condition);
 		}
 	}
+	condition.reset();
 	if (bRet)
 	{
 		return 0;

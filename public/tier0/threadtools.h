@@ -17,6 +17,8 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <list>
+
 
 
 #include "tier0/platform.h"
@@ -995,42 +997,37 @@ class CThreadSafeQueue
 public:
 	CThreadSafeQueue()
 		: q()
-		, m()
 	{}
 
 	~CThreadSafeQueue()
 	{}
 
-	void PushItem(T t)
+	void PushItem(T& t)
 	{
 		std::scoped_lock<std::mutex> lock(m);
-		q.push(t);
-	}
-
-	T Pop()
-	{
-		std::unique_lock<std::mutex> lock(m);
-		if (q.empty())
-		{
-			return NULL;
-		}
-		T val = q.front();
-		q.pop();
-		return val;
+		q.push_front(t);
 	}
 
 	bool PopItem(T& pResult)
 	{
+		std::scoped_lock<std::mutex> lock(m);
 		if (q.empty())
 			return false;
-		T pItem = Pop();
-		pResult = pItem;
+		T val = q.front();
+		q.pop_front();
+		pResult = val;
 		return true;
 	}
 
+	void RemoveItem(T& pItem)
+	{
+		std::scoped_lock<std::mutex> lock(m);
+		q.remove(pItem);
+	}
+
 private:
-	std::queue<T> q;
-	mutable std::mutex m;
+	std::list<T> q;
+	std::mutex m;
 };
 
 class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
@@ -1054,7 +1051,9 @@ public:
 
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
-	void AddListener(std::shared_ptr<std::condition_variable_any> condition);
+	void AddListener(std::shared_ptr<std::condition_variable_any>& condition);
+
+	void RemoveListener(std::shared_ptr<std::condition_variable_any>& condition);
 
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
