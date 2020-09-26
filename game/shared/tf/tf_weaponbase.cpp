@@ -2345,14 +2345,7 @@ int CTFWeaponBase::GetInspectActivity( TFWeaponInspectStage inspectStage )
 //-----------------------------------------------------------------------------
 bool CTFWeaponBase::CanInspect() const
 {
-#ifdef STAGING_ONLY
-	if ( tf_weapon_force_allow_inspect.GetBool() )
-		return true;
-#endif
-
-	float flInspect = 0.f;
-	CALL_ATTRIB_HOOK_FLOAT( flInspect, weapon_allow_inspect );
-	return flInspect != 0.f;
+	return true;
 }
 
 
