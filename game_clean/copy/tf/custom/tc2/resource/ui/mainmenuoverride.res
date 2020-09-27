@@ -268,7 +268,7 @@
 		"enabled"		"0"
 		
 		"render_texture"	"0"
-		"fov"			"20"
+		"fov"			"30"
 		"allow_rot"		"1"
 		
 		"model"
@@ -280,7 +280,7 @@
 			"angles_z" "0"
 			"origin_x" "190"
 			"origin_y" "0"
-			"origin_z" "-65"
+			"origin_z" "-48"
 			"frame_origin_x"	"0"
 			"frame_origin_y"	"0"
 			"frame_origin_z"	"0"
