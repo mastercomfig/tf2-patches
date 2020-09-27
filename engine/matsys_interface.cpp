@@ -2176,7 +2176,6 @@ void WorldStaticMeshCreate( void )
 		// NOTE: Index count is zero because this will be a static vertex buffer!!!
 		CMeshBuilder meshBuilder;
 		meshBuilder.Begin( g_Meshes[i].pMesh, MATERIAL_TRIANGLES, g_Meshes[i].vertCount, 0 );
-		Msg("Start world mesh draw: %d\n", g_Meshes[i].vertCount);
 		for ( int j = 0; j < g_WorldStaticMeshes.Count(); j++ )
 		{
 			int meshId = sortIndex[j];
