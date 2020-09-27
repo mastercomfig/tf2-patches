@@ -280,7 +280,7 @@
 			"angles_z" "0"
 			"origin_x" "190"
 			"origin_y" "0"
-			"origin_z" "-48"
+			"origin_z" "-55"
 			"frame_origin_x"	"0"
 			"frame_origin_y"	"0"
 			"frame_origin_z"	"0"
