@@ -860,8 +860,8 @@ bool CEngineTrace::ClipRayToVPhysics( const Ray_t &ray, unsigned int fMask, ICol
 				fMask,
 				&studioConvex,
 				pCollide->solids[0], // UNDONE: Support other solid indices?!?!?!? (forced zero)
-				pEntity->GetCollisionOrigin(), 
-				pEntity->GetCollisionAngles(), 
+				pEntity->GetCollisionOrigin(),
+				pEntity->GetCollisionAngles(),
 				pTrace );
 			bTraced = true;
 		}

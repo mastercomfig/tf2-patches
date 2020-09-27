@@ -2801,14 +2801,17 @@ bool FASTCALL IsBoxIntersectingRayNoLowest( fltx4 boxMin, fltx4  boxMax,
 								   const fltx4 & vTolerance ///< eg from ReplicateX4(flTolerance)
 								   )
 {
-	/*
-	Assert( boxMin[0] <= boxMax[0] );
-	Assert( boxMin[1] <= boxMax[1] );
-	Assert( boxMin[2] <= boxMax[2] );
-	*/
 #if defined(DBGFLAG_ASSERT)
 	unsigned int r;
-	AssertMsg( (DirectX::XMVectorGreaterOrEqualR(&r, SetWToZeroSIMD(boxMax),SetWToZeroSIMD(boxMin)), DirectX::XMComparisonAllTrue(r)), "IsBoxIntersectingRay : boxmax < boxmin" );
+#if defined(_X360)
+	AssertMsg((XMVectorGreaterOrEqualR(&r, SetWToZeroSIMD(boxMax), SetWToZeroSIMD(boxMin)), XMComparisonAllTrue(r)), "IsBoxIntersectingRay : boxmax < boxmin");
+#elif defined(USE_DIRECTX_MATH)
+	AssertMsg((DirectX::XMVectorGreaterOrEqualR(&r, SetWToZeroSIMD(boxMax), SetWToZeroSIMD(boxMin)), DirectX::XMComparisonAllTrue(r)), "IsBoxIntersectingRay : boxmax < boxmin");
+#else
+	Assert(boxMin[0] <= boxMax[0]);
+	Assert(boxMin[1] <= boxMax[1]);
+	Assert(boxMin[2] <= boxMax[2]);
+#endif
 #endif
 
 	// test if delta is tiny along any dimension
