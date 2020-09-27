@@ -1870,7 +1870,7 @@ void CShaderDeviceDx8::ShutdownDevice()
 //-----------------------------------------------------------------------------
 bool CShaderDeviceDx8::IsUsingGraphics() const
 {
-	//*****LOCK_SHADERAPI();
+	//!!!!!LOCK_SHADERAPI();
 	return IsActive();
 }
 
@@ -2410,10 +2410,12 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	g_pHardwareConfig->SetupHardwareCaps( info, g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter ) );
 
+#ifndef DX_TO_GL_ABSTRACTION
 	if (g_ShaderDeviceUsingD3D9Ex)
 	{
 		Dx9ExDevice()->SetMaximumFrameLatency(1);
 	}
+#endif
 
 	// FIXME: Bake this into hardware config
 	// What texture formats do we support?
@@ -3401,10 +3403,12 @@ void CShaderDeviceDx8::Present()
 		{
 			bValidPresent = false;
 		}
+#ifndef DX_TO_GL_ABSTRACTION
 		if (bValidPresent && g_ShaderDeviceUsingD3D9Ex)
 		{
 			Dx9ExDevice()->SetGPUThreadPriority(7);
 		}
+#endif
 	}
 	// Copy the back buffer into the non-interactive temp buffer
 	if ( m_NonInteractiveRefresh.m_Mode == MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD )
@@ -3442,12 +3446,14 @@ void CShaderDeviceDx8::Present()
 		else
 		{
 			g_pShaderAPI->OwnGPUResources( false );
+#ifndef DX_TO_GL_ABSTRACTION
 			if (g_ShaderDeviceUsingD3D9Ex)
 			{
 				int flags = D3DPRESENT_DONOTWAIT;
 				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
 			}
 			else
+#endif
 			{
 				hr = Dx9Device()->Present(0, 0, 0, 0);
 			}
