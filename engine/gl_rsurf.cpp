@@ -5164,6 +5164,7 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 	}
 }
 #endif
+
 static int ListLeafsInBox(mnode_t* RESTRICT node, const Vector& center, const Vector& extents, unsigned short* RESTRICT pList, int listMax)
 {
 	int leafCount = 0;

@@ -280,7 +280,7 @@ bool inline FASTCALL IsBoxIntersectingRay( const fltx4& boxMin, const fltx4& box
 
 
 bool FASTCALL IsBoxIntersectingRay( const fltx4& boxMin, const fltx4& boxMax, 
-								   const Ray_t& ray, float flTolerance );
+								   const Ray_t& ray, float flTolerance = 0.0f );
 
 
 
