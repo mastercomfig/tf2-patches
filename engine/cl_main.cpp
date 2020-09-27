@@ -1055,7 +1055,10 @@ void CL_FullyConnected( void )
 	// Purge the preload stores, oreder is critical
 	g_pMDLCache->ShutdownPreloadData();
 
-	// NOTE: purposely disabling for singleplayer, memory spike causing issues, preload's stay in
+	// NOTE: purposely disabling...
+	// THIS IS A BAD THING, so purposely disabled... it saves a few MB that otherwise prevents a bunch of hitchy sync i/o during gameplay.
+	// Also, memory spike causing issues, so preload's stay in
+	// This may show up on the memory users, and the preloads can be made smaller, or maybe accidentally too large, but ditching them is not the right thing to do.
 	// UNDONE: discard preload for TF to save memory
 	// g_pFileSystem->DiscardPreloadData();
 
