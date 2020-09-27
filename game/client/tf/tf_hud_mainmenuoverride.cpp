@@ -64,6 +64,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern const char* g_pszLegacyClassSelectVCDWeapons[TF_LAST_NORMAL_CLASS];
 extern int g_iLegacyClassSelectWeaponSlots[TF_LAST_NORMAL_CLASS];
 
 void AddSubKeyNamed( KeyValues *pKeys, const char *pszName );
@@ -1215,8 +1216,17 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		m_pCharacterModelPanel->SetToPlayerClass(iClass, false);
 		m_pCharacterModelPanel->SetTeam(RandomInt(0, 1) ? TF_TEAM_BLUE : TF_TEAM_RED);
 
+		bool bCanUseFancyClassSelectAnimation = true;
+		const char* pszVCD = "class_select";
+
 		if (TFInventoryManager()->GetLocalTFInventory()->RetrievedInventoryFromSteam())
 		{
+			static CSchemaAttributeDefHandle pAttrDef_DisableFancyLoadoutAnim("disable fancy class select anim");
+			
+
+			static CSchemaAttributeDefHandle pAttrDef_ClassSelectOverrideVCD("class select override vcd");
+			CAttribute_String attrClassSelectOverrideVCD;
+
 			for (int i = 0; i < CLASS_LOADOUT_POSITION_COUNT; i++)
 			{
 				CEconItemView* pItemData = TFInventoryManager()->GetItemInLoadoutForClass(iClass, i);
@@ -1224,6 +1234,20 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 				if (pItemData && pItemData->IsValid())
 				{
 					m_pCharacterModelPanel->AddCarriedItem(pItemData);
+
+					// Certain items have different shapes and would interfere with our class select animations.
+					bCanUseFancyClassSelectAnimation = bCanUseFancyClassSelectAnimation
+						&& !pItemData->FindAttribute(pAttrDef_DisableFancyLoadoutAnim);
+
+					// Some items want to override the class select VCD
+					if (pItemData->FindAttribute(pAttrDef_ClassSelectOverrideVCD, &attrClassSelectOverrideVCD))
+					{
+						const char* pszClassSelectOverrideVCD = attrClassSelectOverrideVCD.value().c_str();
+						if (pszClassSelectOverrideVCD && *pszClassSelectOverrideVCD)
+						{
+							pszVCD = pszClassSelectOverrideVCD;
+						}
+					}
 				}
 			}
 		}
@@ -1232,9 +1256,7 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 			m_bRequestingInventoryRefresh = true;
 		}
 
-		const char* pszVCD = "class_select";
-
-		m_pCharacterModelPanel->PlayVCD(pszVCD, NULL, false);
+		m_pCharacterModelPanel->PlayVCD(bCanUseFancyClassSelectAnimation ? pszVCD : NULL, g_pszLegacyClassSelectVCDWeapons[iClass]);
 		m_pCharacterModelPanel->HoldItemInSlot(g_iLegacyClassSelectWeaponSlots[iClass]);
 	}
 }
