@@ -46,6 +46,8 @@ private:
 	// ------------------------------
 	void InputLightOn( inputdata_t &inputdata );
 	void InputLightOff( inputdata_t &inputdata );
+    void InputSetColor( inputdata_t &inputdata );
+    void InputForceUpdate( inputdata_t &inputdata ); 
 
 	// Creates the efficient spotlight 
 	void CreateEfficientSpotlight();
@@ -98,6 +100,9 @@ BEGIN_DATADESC( CPointSpotlight )
 	// Inputs
 	DEFINE_INPUTFUNC( FIELD_VOID,		"LightOn",		InputLightOn ),
 	DEFINE_INPUTFUNC( FIELD_VOID,		"LightOff",		InputLightOff ),
+    DEFINE_INPUTFUNC( FIELD_COLOR32,    "SetColor",     InputSetColor ),
+    DEFINE_INPUTFUNC( FIELD_VOID,       "ForceUpdate",  InputForceUpdate ),
+
 	DEFINE_OUTPUT( m_OnOn, "OnLightOn" ),
 	DEFINE_OUTPUT( m_OnOff, "OnLightOff" ),
 
@@ -528,4 +533,24 @@ void CPointSpotlight::InputLightOff( inputdata_t &inputdata )
 			SpotlightDestroy();
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Set the beam's color
+//-----------------------------------------------------------------------------
+void CPointSpotlight::InputSetColor( inputdata_t &inputdata )
+{
+    if ( m_hSpotlight )
+    {
+        color32 clr = inputdata.value.Color32();
+        m_hSpotlight->SetColor( clr.r, clr.g, clr.b );
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Force update the spotlight
+//-----------------------------------------------------------------------------
+void CPointSpotlight::InputForceUpdate( inputdata_t &inputdata )
+{
+    SpotlightUpdate();
 }
