@@ -207,6 +207,18 @@ static const char *s_pButtonCodeName[ ] =
 	"F10",			// KEY_F10,
 	"F11",			// KEY_F11,
 	"F12",			// KEY_F12,
+	"F13",			// KEY_F13,
+	"F14",			// KEY_F14,
+	"F15",			// KEY_F15,
+	"F16",			// KEY_F16,
+	"F17",			// KEY_F17,
+	"F18",			// KEY_F18,
+	"F19",			// KEY_F19,
+	"F20",			// KEY_F20,
+	"F21",			// KEY_F21,
+	"F22",			// KEY_F22,
+	"F23",			// KEY_F23,
+	"F24",			// KEY_F24
 
 	// FIXME: CAPSLOCK/NUMLOCK/SCROLLLOCK all appear above. What are these for?!
 	// They only appear in CInputWin32::UpdateToggleButtonState in vgui2
@@ -441,10 +453,10 @@ static ButtonCode_t s_pScanToButtonCode_QWERTY[128] =
 	KEY_DOWN,		KEY_PAGEDOWN,	KEY_INSERT,		KEY_DELETE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_F11,		// 5
 	KEY_F12,		KEY_BREAK,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		// 5
 
-	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		// 6
-	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		// 6 
+	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_F13,		KEY_F14,		KEY_F15,		KEY_F16,		// 6
+	KEY_F17,		KEY_F18,		KEY_F19,		KEY_F20,		KEY_F21,		KEY_F22,		KEY_F23,		KEY_NONE,		// 6 
 
-	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		// 7
+	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_F24,		KEY_NONE,		// 7
 	KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE,		KEY_NONE		// 7 
 };
 
@@ -565,6 +577,18 @@ void ButtonCode_InitKeyTranslationTable()
 	s_pVirtualKeyToButtonCode[VK_F10]		=KEY_F10;
 	s_pVirtualKeyToButtonCode[VK_F11]		=KEY_F11;
 	s_pVirtualKeyToButtonCode[VK_F12]		=KEY_F12;
+	s_pVirtualKeyToButtonCode[VK_F13]		=KEY_F13;
+	s_pVirtualKeyToButtonCode[VK_F14]		=KEY_F14;
+	s_pVirtualKeyToButtonCode[VK_F15]		=KEY_F15;
+	s_pVirtualKeyToButtonCode[VK_F16]		=KEY_F16;
+	s_pVirtualKeyToButtonCode[VK_F17]		=KEY_F17;
+	s_pVirtualKeyToButtonCode[VK_F18]		=KEY_F18;
+	s_pVirtualKeyToButtonCode[VK_F19]		=KEY_F19;
+	s_pVirtualKeyToButtonCode[VK_F20]		=KEY_F20;
+	s_pVirtualKeyToButtonCode[VK_F21]		=KEY_F21;
+	s_pVirtualKeyToButtonCode[VK_F22]		=KEY_F22;
+	s_pVirtualKeyToButtonCode[VK_F23]		=KEY_F23;
+	s_pVirtualKeyToButtonCode[VK_F24]		=KEY_F24;
 #endif
 
 	// init the xkey translation table
