@@ -149,6 +149,7 @@ private:
 		CEconItemView					*pEconItem
 	);
 
+	void    UpdateSpotlight(IMatRenderContext* pRenderContext);
 	void	UpdateEyeGlows( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix, bool bIsRightEye );
 	void	UpdateActionSlotEffects( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix );
 	void	UpdateTauntEffects( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix );

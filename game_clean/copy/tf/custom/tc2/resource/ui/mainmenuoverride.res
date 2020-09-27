@@ -248,9 +248,46 @@
 		"zpos"			"-99"
 		"wide"			"600"
 		"tall"			"600"
-		"visible"		"1"
-		"enabled"		"1"
+		"visible"		"0"
+		"enabled"		"0"
 		"scaleImage"	"1"
+	}
+	
+	"TFCharacterModel"
+	{
+		"ControlName"	"CTFPlayerModelPanel"
+		"fieldName"		"TFCharacterModel"
+		"xpos"			"c-100"
+		"ypos"			"-80"
+		"zpos"			"-99"
+		"wide"			"600"
+		"tall"			"600"
+		"autoResize"	"0"
+		"pinCorner"		"0"
+		"visible"		"0"
+		"enabled"		"0"
+		
+		"render_texture"	"0"
+		"fov"			"30"
+		"allow_rot"		"1"
+		
+		"model"
+		{
+			"force_pos"	"1"
+
+			"angles_x" "0"
+			"angles_y" "170"
+			"angles_z" "0"
+			"origin_x" "190"
+			"origin_y" "0"
+			"origin_z" "-48"
+			"frame_origin_x"	"0"
+			"frame_origin_y"	"0"
+			"frame_origin_z"	"0"
+			"spotlight" "1"
+		
+			"modelname"		""
+		}
 	}
 	
 	"MainMenuBGPanel"

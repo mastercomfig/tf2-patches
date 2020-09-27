@@ -222,6 +222,9 @@ private:
 	vgui::ImagePanel		*m_pCharacterImagePanel;
 	int						 m_iCharacterImageIdx;
 
+	class CTFPlayerModelPanel* m_pCharacterModelPanel;
+	bool  m_bRequestingInventoryRefresh;
+
 	CExButton				*m_pQuitButton;
 	CExButton				*m_pDisconnectButton;
 	bool					m_bIsDisconnectText;
