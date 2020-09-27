@@ -4,5 +4,5 @@ server="https://libs.mastercomfig.com/"
 
 for lib in "${libs[@]}"
 do
-  curl "${server}${lib}" -o "${lib}"
+  curl "${server}${lib}" -Lo "${lib}" --create-dirs
 done
