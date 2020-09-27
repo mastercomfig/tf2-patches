@@ -1106,12 +1106,17 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 
 	if ( IsFreeTrialAccount() )
 	{
+		bool bWasNull = m_pCharacterImagePanel == NULL;
+
 		m_pCharacterImagePanel = dynamic_cast<vgui::ImagePanel*>(FindChildByName("TFCharacterImage"));
 
 		if (m_pCharacterImagePanel)
 		{
-		    m_pCharacterImagePanel->SetVisible(true);
-		    m_pCharacterImagePanel->SetEnabled(true);
+			if (bWasNull)
+			{
+				m_pCharacterImagePanel->SetVisible(true);
+				m_pCharacterImagePanel->SetEnabled(true);
+			}
 
 		    KeyValues *pCharacterFile = new KeyValues( "CharacterBackgrounds" );
 
@@ -1188,6 +1193,9 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		    return;
 		}
 	}
+
+	bool bWasNull = m_pCharacterModelPanel == NULL;
+
 	m_pCharacterModelPanel = dynamic_cast<CTFPlayerModelPanel*>(FindChildByName("TFCharacterModel"));
 	if (m_pCharacterModelPanel)
 	{
@@ -1197,8 +1205,11 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 			m_pCharacterImagePanel->SetEnabled(false);
 		}
 
-		m_pCharacterModelPanel->SetVisible(true);
-		m_pCharacterModelPanel->SetEnabled(true);
+		if (bWasNull)
+		{
+			m_pCharacterModelPanel->SetVisible(true);
+			m_pCharacterModelPanel->SetEnabled(true);
+		}
 		m_pCharacterModelPanel->ClearCarriedItems();
 		int iClass = RandomInt(TF_FIRST_NORMAL_CLASS, TF_LAST_NORMAL_CLASS - 1);
 		m_pCharacterModelPanel->SetToPlayerClass(iClass, false);
@@ -1452,12 +1463,21 @@ void CHudMainMenuOverride::OnUpdateMenu( void )
 		{
 			m_pCharacterImagePanel->SetVisible( false );
 		}
+		if (m_pCharacterModelPanel && m_pCharacterModelPanel->IsVisible())
+		{
+			m_pCharacterModelPanel->SetVisible(false);
+		}
 	}
 	else if ( !bInGame && !bInReplay )
 	{
 		if ( m_pCharacterImagePanel && !m_pCharacterImagePanel->IsVisible() )
 		{
 			m_pCharacterImagePanel->SetVisible( true );
+		}
+		if (m_pCharacterModelPanel && !m_pCharacterModelPanel->IsVisible())
+		{
+			LoadCharacterImageFile();
+			m_pCharacterModelPanel->SetVisible(true);
 		}
 	}
 
