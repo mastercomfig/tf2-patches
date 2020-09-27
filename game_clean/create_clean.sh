@@ -18,7 +18,7 @@ for F in "${files[@]}"; do
   cp -f $dev_folder/$F $clean_folder/$F
 done
 
-declare -a files=("../LICENSE_SDK" "../README.md" "../thirdpartylegalnotices.txt")
+declare -a files=("../LICENSE_SDK" "../.github/README.md" "../thirdpartylegalnotices.txt")
 for F in "${files[@]}"; do
   orig=$(basename $F)
   cp -f $F $clean_folder/$orig
