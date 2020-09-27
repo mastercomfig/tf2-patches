@@ -18,7 +18,6 @@
 #include <float.h>
 #if !defined( _X360 )
 #include <xmmintrin.h>	// For SSE
-#include "ssemath.h"
 #endif
 #include "basetypes.h"	// For vec_t, put this somewhere else?
 #include "tier0/dbg.h"
@@ -640,11 +639,7 @@ inline void Vector4DWeightMADSSE(vec_t w, Vector4DAligned const& vInA, Vector4DA
 {
 	Assert(vInA.IsValid() && vInB.IsValid() && IsFinite(w));
 
-#if 1
-	DirectX::XMVECTOR wV = DirectX::XMVectorReplicate(w);
-	DirectX::XMVectorMultiplyAdd(wV, vInA.AsM128(), vOutA.AsM128());
-	DirectX::XMVectorMultiplyAdd(wV, vInB.AsM128(), vOutB.AsM128());
-#elif !defined( _X360 )
+#if !defined( _X360 )
 	// Replicate scalar float out to 4 components
 	__m128 packed = _mm_set1_ps(w);
 
