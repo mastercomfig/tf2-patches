@@ -472,6 +472,7 @@ void CTFPlayerModelPanel::PlayVCD( const char *pszVCD, const char *pszWeaponEnti
 	m_pszWeaponEntityRequired = pszWeaponEntityRequired;
 	m_bLoopVCD = bLoopVCD;
 	m_bVCDFileNameOnly = bFileNameOnly;
+	m_bDisableSpeakEvent = false;
 }
 
 //-----------------------------------------------------------------------------

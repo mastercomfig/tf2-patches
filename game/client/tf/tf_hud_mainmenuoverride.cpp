@@ -1213,51 +1213,168 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		}
 		m_pCharacterModelPanel->ClearCarriedItems();
 		int iClass = RandomInt(TF_FIRST_NORMAL_CLASS, TF_LAST_NORMAL_CLASS - 1);
-		m_pCharacterModelPanel->SetToPlayerClass(iClass, false);
-		m_pCharacterModelPanel->SetTeam(RandomInt(0, 1) ? TF_TEAM_BLUE : TF_TEAM_RED);
 
 		bool bCanUseFancyClassSelectAnimation = true;
 		const char* pszVCD = "class_select";
 
-		if (TFInventoryManager()->GetLocalTFInventory()->RetrievedInventoryFromSteam())
+		bool bIsRobot = RandomInt(1, 100) <= 5;
+
+		if (!bIsRobot)
 		{
-			static CSchemaAttributeDefHandle pAttrDef_DisableFancyLoadoutAnim("disable fancy class select anim");
-			
-
-			static CSchemaAttributeDefHandle pAttrDef_ClassSelectOverrideVCD("class select override vcd");
-			CAttribute_String attrClassSelectOverrideVCD;
-
-			for (int i = 0; i < CLASS_LOADOUT_POSITION_COUNT; i++)
+			if (TFInventoryManager()->GetLocalTFInventory()->RetrievedInventoryFromSteam())
 			{
-				CEconItemView* pItemData = TFInventoryManager()->GetItemInLoadoutForClass(iClass, i);
+				static CSchemaAttributeDefHandle pAttrDef_PlayerRobot("appear as mvm robot");
 
-				if (pItemData && pItemData->IsValid())
+				static CSchemaAttributeDefHandle pAttrDef_DisableFancyLoadoutAnim("disable fancy class select anim");
+
+
+				static CSchemaAttributeDefHandle pAttrDef_ClassSelectOverrideVCD("class select override vcd");
+				CAttribute_String attrClassSelectOverrideVCD;
+
+				for (int i = 0; i < CLASS_LOADOUT_POSITION_COUNT; i++)
 				{
-					m_pCharacterModelPanel->AddCarriedItem(pItemData);
+					CEconItemView* pItemData = TFInventoryManager()->GetItemInLoadoutForClass(iClass, i);
 
-					// Certain items have different shapes and would interfere with our class select animations.
-					bCanUseFancyClassSelectAnimation = bCanUseFancyClassSelectAnimation
-						&& !pItemData->FindAttribute(pAttrDef_DisableFancyLoadoutAnim);
-
-					// Some items want to override the class select VCD
-					if (pItemData->FindAttribute(pAttrDef_ClassSelectOverrideVCD, &attrClassSelectOverrideVCD))
+					if (pItemData && pItemData->IsValid())
 					{
-						const char* pszClassSelectOverrideVCD = attrClassSelectOverrideVCD.value().c_str();
-						if (pszClassSelectOverrideVCD && *pszClassSelectOverrideVCD)
+						m_pCharacterModelPanel->AddCarriedItem(pItemData);
+
+						// Certain items have different shapes and would interfere with our class select animations.
+						bCanUseFancyClassSelectAnimation = bCanUseFancyClassSelectAnimation
+							&& !pItemData->FindAttribute(pAttrDef_DisableFancyLoadoutAnim);
+
+						// Some items want to override the class select VCD
+						if (pItemData->FindAttribute(pAttrDef_ClassSelectOverrideVCD, &attrClassSelectOverrideVCD))
 						{
-							pszVCD = pszClassSelectOverrideVCD;
+							const char* pszClassSelectOverrideVCD = attrClassSelectOverrideVCD.value().c_str();
+							if (pszClassSelectOverrideVCD && *pszClassSelectOverrideVCD)
+							{
+								pszVCD = pszClassSelectOverrideVCD;
+							}
+							else
+							{
+								pszVCD = NULL;
+							}
+						}
+						else
+						{
+							pszVCD = NULL;
+						}
+
+						if (FindAttribute(pItemData, pAttrDef_PlayerRobot))
+						{
+							bIsRobot = true;
+							break;
 						}
 					}
 				}
 			}
+			else
+			{
+				m_bRequestingInventoryRefresh = true;
+			}
+		}
+
+		m_pCharacterModelPanel->SetToPlayerClass(iClass, bIsRobot);
+		m_pCharacterModelPanel->SetTeam(bIsRobot || RandomInt(0, 1) ? TF_TEAM_BLUE : TF_TEAM_RED);
+
+		bool bPlayBaseVCD = !bIsRobot && bCanUseFancyClassSelectAnimation && pszVCD;
+
+		char pszDynamicVCD[128];
+
+		int iSlot = g_iLegacyClassSelectWeaponSlots[iClass];
+
+		if (bPlayBaseVCD)
+		{
+			m_pCharacterModelPanel->PlayVCD( pszVCD, g_pszLegacyClassSelectVCDWeapons[iClass]);
 		}
 		else
 		{
-			m_bRequestingInventoryRefresh = true;
-		}
+			int iMin = 1;
+			int iMax = 1;
+			
+			bool bPad = false;
+			bool bHasAdditional = false;
+			char* pszAdditional = "";
+			switch (iClass)
+			{
+			case TF_CLASS_SCOUT:
+				pszAdditional = "_vocal";
+				bPad = true;
+				bHasAdditional = true;
+				iMax = 3;
+				break;
+			case TF_CLASS_SOLDIER:
+				pszAdditional = "_v";
+				bHasAdditional = true;
+				iMax = 3;
+				break;
+			case TF_CLASS_PYRO:
+				pszAdditional = "_v";
+				bHasAdditional = true;
+				iMax = 3;
+				break;
+			case TF_CLASS_DEMOMAN:
+				break;
+			case TF_CLASS_HEAVYWEAPONS:
+				pszAdditional = "_v";
+				bHasAdditional = true;
+				iMin = 2;
+				iMax = 3;
+				break;
+			case TF_CLASS_ENGINEER:
+				if (bIsRobot)
+				{
+					pszAdditional = "_vocal";
+					bPad = true;
+					iMax = 4;
+				}
+				break;
+			case TF_CLASS_MEDIC:
+				if (bIsRobot)
+				{
+					pszAdditional = "_vocal";
+					bPad = true;
+					iMax = 5;
+				}
+				break;
+			case TF_CLASS_SNIPER:
+				pszAdditional = "_v";
+				bHasAdditional = true;
+				iMax = 5;
+				break;
+			case TF_CLASS_SPY:
+				pszAdditional = "_v";
+				bHasAdditional = true;
+				if (bIsRobot)
+				{
+					iMax = 5;
+				}
+				else
+				{
+					iMax = 2;
+				}
+				break;
+			}
 
-		m_pCharacterModelPanel->PlayVCD(bCanUseFancyClassSelectAnimation ? pszVCD : NULL, g_pszLegacyClassSelectVCDWeapons[iClass]);
-		m_pCharacterModelPanel->HoldItemInSlot(g_iLegacyClassSelectWeaponSlots[iClass]);
+			int iRandomIndex = RandomInt(iMin, iMax);
+
+			char pszSuffix[128];
+			if (bHasAdditional)
+			{
+				V_snprintf(pszSuffix, sizeof(pszSuffix), bPad ? "%s%02d" : "%s%d", pszAdditional, iRandomIndex);
+			}
+			else
+			{
+				V_snprintf(pszSuffix, sizeof(pszSuffix), "");
+			}
+
+			V_snprintf(pszDynamicVCD, sizeof(pszDynamicVCD), "%s%02d%s", "taunt", bIsRobot ? 1 : iSlot + 1, pszSuffix);
+			m_pCharacterModelPanel->PlayVCD(pszDynamicVCD, NULL, true);
+			m_pCharacterModelPanel->m_bDisableSpeakEvent = true;
+		}
+		
+		m_pCharacterModelPanel->HoldItemInSlot(iSlot);
 	}
 }
 

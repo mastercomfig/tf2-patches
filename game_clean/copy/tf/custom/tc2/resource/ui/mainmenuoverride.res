@@ -268,7 +268,7 @@
 		"enabled"		"0"
 		
 		"render_texture"	"0"
-		"fov"			"30"
+		"fov"			"20"
 		"allow_rot"		"1"
 		
 		"model"

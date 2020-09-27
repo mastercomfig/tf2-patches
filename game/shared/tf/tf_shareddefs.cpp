@@ -122,15 +122,15 @@ const char g_szPlayerRobotModels[][MAX_PATH] =
 {
 	"", //TF_CLASS_UNDEFINED
 
-	"models/bots/scout/bot_scout_human_anim.mdl",
-	"models/bots/sniper/bot_sniper_human_anim.mdl",
-	"models/bots/soldier/bot_soldier_human_anim.mdl",
-	"models/bots/demo/bot_demo_human_anim.mdl",
-	"models/bots/medic/bot_medic_human_anims.mdl",
-	"models/bots/heavy/bot_heavy_human_anims.mdl",
-	"models/bots/pyro/bot_pyro_human_anim.mdl",
-	"models/bots/spy/bot_spy_human_anims.mdl",
-	"models/bots/engineer/bot_engineer_human_anim.mdl",
+	"models/bots/scout/bot_scout.mdl",
+	"models/bots/sniper/bot_sniper.mdl",
+	"models/bots/soldier/bot_soldier.mdl",
+	"models/bots/demo/bot_demo.mdl",
+	"models/bots/medic/bot_medic.mdl",
+	"models/bots/heavy/bot_heavy.mdl",
+	"models/bots/pyro/bot_pyro.mdl",
+	"models/bots/spy/bot_spy.mdl",
+	"models/bots/engineer/bot_engineer.mdl",
 };
 
 const char g_szBotBossModels[][ MAX_PATH ] = 
