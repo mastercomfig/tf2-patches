@@ -1213,6 +1213,8 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		}
 		m_pCharacterModelPanel->ClearCarriedItems();
 		int iClass = RandomInt(TF_FIRST_NORMAL_CLASS, TF_LAST_NORMAL_CLASS - 1);
+		int iSlot = g_iLegacyClassSelectWeaponSlots[iClass];
+		int iSlotOrig = iSlot;
 
 		bool bCanUseFancyClassSelectAnimation = true;
 		const char* pszVCD = "class_select";
@@ -1256,9 +1258,10 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 								pszVCD = NULL;
 							}
 						}
-						else
+
+						if (i <= LOADOUT_POSITION_PDA2 && pItemData->GetStaticData()->IsAWearable())
 						{
-							pszVCD = NULL;
+							iSlot = i + 1;
 						}
 
 						if (FindAttribute(pItemData, pAttrDef_PlayerRobot))
@@ -1266,6 +1269,12 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 							bIsRobot = true;
 							break;
 						}
+					}
+
+					if (iSlot >= LOADOUT_POSITION_PDA2)
+					{
+						iSlotOrig = -1;
+						iSlot = 0;
 					}
 				}
 			}
@@ -1278,11 +1287,9 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		m_pCharacterModelPanel->SetToPlayerClass(iClass, bIsRobot);
 		m_pCharacterModelPanel->SetTeam(bIsRobot || RandomInt(0, 1) ? TF_TEAM_BLUE : TF_TEAM_RED);
 
-		bool bPlayBaseVCD = !bIsRobot && bCanUseFancyClassSelectAnimation && pszVCD;
+		bool bPlayBaseVCD = !bIsRobot && bCanUseFancyClassSelectAnimation && pszVCD && iSlot == iSlotOrig;
 
 		char pszDynamicVCD[128];
-
-		int iSlot = g_iLegacyClassSelectWeaponSlots[iClass];
 
 		if (bPlayBaseVCD)
 		{
