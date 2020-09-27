@@ -1273,8 +1273,8 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 
 					if (iSlot >= LOADOUT_POSITION_PDA2)
 					{
+						iSlot = iSlotOrig;
 						iSlotOrig = -1;
-						iSlot = 0;
 					}
 				}
 			}
