@@ -20805,7 +20805,7 @@ void CTFGameRules::MatchSummaryEnd( void )
 	tf_bot_quota_mode.SetValue( tf_bot_quota_mode.GetDefault() );
 }
 
-ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "0", FCVAR_REPLICATED);
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "12", FCVAR_REPLICATED);
 
 //-----------------------------------------------------------------------------
 // Purpose: 

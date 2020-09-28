@@ -130,7 +130,7 @@ void CHudTournament::Init( void )
 	m_flNextUpdate = gpGlobals->curtime;
 }
 
-ConVar tf_force_mannup_sound("tf_force_mannup_sound", "0", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED);
+ConVar tf_force_mannup_sound("tf_force_mannup_sound", "1", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
