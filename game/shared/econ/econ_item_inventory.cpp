@@ -1114,7 +1114,7 @@ void CInventoryManager::SaveAckFile( void )
 	if ( pRemoteStorage )
 	{
 		CUtlBuffer buf;
-		m_pkvItemClientAckFile->WriteAsBinary( buf );
+//		m_pkvItemClientAckFile->WriteAsBinary( buf );
 		pRemoteStorage->FileWrite( ITEM_CLIENTACK_FILE, buf.Base(), buf.TellPut() );
 
 #ifdef _DEBUG
