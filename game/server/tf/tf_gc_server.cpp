@@ -1593,6 +1593,8 @@ void CTFGCServerSystem::ClientDisconnected( CSteamID steamIDClient )
 	}
 }
 
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "0", FCVAR_REPLICATED);
+
 //-----------------------------------------------------------------------------
 void CTFGCServerSystem::PreClientUpdate( )
 {
@@ -1698,6 +1700,10 @@ void CTFGCServerSystem::PreClientUpdate( )
 		}
 
 		int playerCount = kMVM_DefendersTeamSize + spectatorCount;
+		if (tf_sv_mvm_forced_players.GetInt() > playerCount)
+		{
+			playerCount = tf_sv_mvm_forced_players.GetInt();
+		}
 		if ( sv_visiblemaxplayers.GetInt() <= 0 || sv_visiblemaxplayers.GetInt() != playerCount )
 		{
 			MMLog( "Setting sv_visiblemaxplayers to %d for MvM\n", playerCount );

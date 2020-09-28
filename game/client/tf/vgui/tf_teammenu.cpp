@@ -752,6 +752,8 @@ void CTFTeamMenu::SetHighlanderTeamsFullPanels( bool bTeamsFull, bool bForce /* 
 	}
 }
 
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "0", FCVAR_REPLICATED);
+
 //-----------------------------------------------------------------------------
 // Frame-based update
 //-----------------------------------------------------------------------------
@@ -810,11 +812,18 @@ void CTFTeamMenu::OnTick()
 	bool bUnbalanced = pRules->AreTeamsUnbalanced( iHeavyTeam, iLightTeam );
 	
 	int iCurrentTeam = pLocalPlayer->GetTeamNumber();
+	
+	int iTeamSize = kMVM_DefendersTeamSize;
+
+	if (tf_sv_mvm_forced_players.GetInt() > iTeamSize)
+	{
+		iTeamSize = tf_sv_mvm_forced_players.GetInt();
+	}
 
 	if ( ( bUnbalanced && iHeavyTeam == TF_TEAM_RED ) || 
 		 ( pRules->WouldChangeUnbalanceTeams( TF_TEAM_RED, iCurrentTeam ) ) ||
 		 ( bHighlander && GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= TF_LAST_NORMAL_CLASS - 1 ) ||
-		 ( pRules->IsMannVsMachineMode() && ( GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= kMVM_DefendersTeamSize ) )	 )
+		 ( pRules->IsMannVsMachineMode() && ( GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= iTeamSize ) )	 )
 	{
 		m_bRedDisabled = true;
 	}
