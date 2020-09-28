@@ -1114,6 +1114,7 @@ void CInventoryManager::SaveAckFile( void )
 	if ( pRemoteStorage )
 	{
 		CUtlBuffer buf;
+		// fixme(melvyn2) WriteAsBinary segfaults, fix + renable inventory saving
 //		m_pkvItemClientAckFile->WriteAsBinary( buf );
 		pRemoteStorage->FileWrite( ITEM_CLIENTACK_FILE, buf.Base(), buf.TellPut() );
 
