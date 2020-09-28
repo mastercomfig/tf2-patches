@@ -4726,7 +4726,22 @@ void CGameMovement::PerformFlyCollisionResolution( trace_t &pm, Vector &move )
 
 	// stop if on ground
 	if (pm.plane.normal[2] > 0.7)
-	{		
+	{	
+		/*Prevent bug where player could stop dead while surfing upon colliding with a new slope
+		  This is a port of the groundfix sourcemod plugin by jayessZA & pancakelarry (steamid)
+		  https://github.com/laurirasanen/groundfix/blob/master/scripting/groundfix.sp#L246 */
+		if (pm.plane.normal[2] < 1.0 && DotProduct(mv->m_vecVelocity, pm.plane.normal) > 0.0) // not flat ground, is a slope (but not a surf ramp), moving up
+		{
+			Vector vPredictedVel;
+			ClipVelocity(mv->m_vecVelocity, pm.plane.normal, vPredictedVel, 1);
+
+			if (vPredictedVel[2] > 250.0)
+			{
+				DevMsg(1, "Prevented slope bug!\n");
+				return;
+			}
+		}
+
 		base.Init();
 		if (mv->m_vecVelocity[2] < GetCurrentGravity() * gpGlobals->frametime)
 		{
