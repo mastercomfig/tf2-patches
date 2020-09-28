@@ -1281,7 +1281,7 @@ bool CTFBotSpawner::Spawn( const Vector &rawHere, EntityHandleVector_t *result )
 
 		if ( TFGameRules()->IsMannVsMachineMode() )
 		{
-			if ( newBot->IsMiniBoss() )
+			if ( newBot->IsMiniBoss() && !newBot->HasMission( CTFBot::MISSION_DESTROY_SENTRIES )
 			{
 				TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed( MP_CONCEPT_MVM_GIANT_CALLOUT, TF_TEAM_PVE_DEFENDERS );
 			}
