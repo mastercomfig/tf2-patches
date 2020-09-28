@@ -2119,7 +2119,7 @@ void CWave::ActiveWaveUpdate( void )
 	}
 }
 
-ConVar tf_force_mannup_sound("tf_force_mannup_sound", "0", FCVAR_DEVELOPMENTONLY);
+ConVar tf_force_mannup_sound("tf_force_mannup_sound", "0", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED);
 
 //-------------------------------------------------------------------------
 void CWave::WaveCompleteUpdate( void )

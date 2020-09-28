@@ -20805,6 +20805,8 @@ void CTFGameRules::MatchSummaryEnd( void )
 	tf_bot_quota_mode.SetValue( tf_bot_quota_mode.GetDefault() );
 }
 
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "0", FCVAR_REPLICATED);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -20848,7 +20850,12 @@ int CTFGameRules::GetTeamAssignmentOverride( CTFPlayer *pTFPlayer, int iDesiredT
 			}
 
 			// Bootcamp mode can mix a lobby with ad-hoc joins
-			int nSlotsLeft = kMVM_DefendersTeamSize - nMatchPlayers - nAdHocDefenders;
+			int iTeamSize = kMVM_DefendersTeamSize;
+			if (tf_sv_mvm_forced_players.GetInt() > iTeamSize)
+			{
+				iTeamSize = tf_sv_mvm_forced_players.GetInt();
+			}
+			int nSlotsLeft = iTeamSize - nMatchPlayers - nAdHocDefenders;
 			if ( nSlotsLeft >= 1 )
 			{
 				Log( "MVM assigned %s to defending team (%d more slots remaining after us)\n", pTFPlayer->GetPlayerName(), nSlotsLeft-1 );

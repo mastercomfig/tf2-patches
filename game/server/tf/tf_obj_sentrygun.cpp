@@ -1281,11 +1281,11 @@ void CObjectSentrygun::Attack()
 		if ( m_iUpgradeLevel == 1 )
 		{
 			// Level 1 sentries fire slower
-			m_flNextAttack = gpGlobals->curtime + (0.2f*m_flFireRate);
+			m_flNextAttack += (0.2f*m_flFireRate);
 		}
 		else
 		{
-			m_flNextAttack = gpGlobals->curtime + (0.1f*m_flFireRate);
+			m_flNextAttack += (0.1f*m_flFireRate);
 		}
 	}
 	else

@@ -1593,7 +1593,7 @@ void CTFGCServerSystem::ClientDisconnected( CSteamID steamIDClient )
 	}
 }
 
-ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "0", FCVAR_REPLICATED);
+extern ConVar tf_sv_mvm_forced_players;
 
 //-----------------------------------------------------------------------------
 void CTFGCServerSystem::PreClientUpdate( )
