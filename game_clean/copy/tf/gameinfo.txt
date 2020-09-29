@@ -46,7 +46,7 @@
 			// Note that this folder is scanned only when the game is booted.
 			game+mod+custom_mod	tf/custom/*
 			// Adding custom folder for tc2 specifically
-			game+mod            tf/tc2/*
+			game+mod+custom_mod tf/tc2
 
 			// We search VPK files before ordinary folders, because most files will be found in
 			// VPK and we can avoid making thousands of file system calls to attempt to open files
