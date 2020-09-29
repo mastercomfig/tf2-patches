@@ -162,7 +162,7 @@ void CHudTournament::PlaySounds( int nTime )
 			}
 			break;
 		}
-		case 12:
+		case 15:
 			if (TFGameRules() && TFGameRules()->IsMannVsMachineMode())
 			{
 				if (TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1)

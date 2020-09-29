@@ -503,9 +503,19 @@ bool CHudUpgradePanel::ShouldDraw( void )
 
 void CHudUpgradePanel::SetVisible( bool bVisible )
 {
-	if ( !bVisible && IsActive() )
+	
+
+	if (IsActive())
 	{
-		engine->ClientCmd_Unrestricted( "gameui_allowescapetoshow\n" );
+		if (bVisible)
+		{
+			m_hPlayer->EmitSound("music.mvm_upgrade_machine");
+		}
+		else
+		{
+			engine->ClientCmd_Unrestricted("gameui_allowescapetoshow\n");
+			m_hPlayer->StopSound("music.mvm_upgrade_machine");
+		}
 	}
 
 	BaseClass::SetVisible( bVisible );
