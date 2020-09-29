@@ -1,0 +1,20 @@
+"VertexLitGeneric"
+//"Modulate"
+{
+	"$basetexture" "models/player/sniper/sniper_lens"
+	"$envmap" "env_cubemap"
+	"$envmapcontrast" ".5"
+	"$envmaptint" " [1 .8 .4]"
+//	"$envmapmask" "models/player/sniper/sniper_lens_specular"
+	"$translucent" 1
+//	"$additive" 1
+	"$model" "1"
+
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+	}
+}

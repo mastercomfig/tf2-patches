@@ -1219,7 +1219,7 @@ void CHudMainMenuOverride::LoadCharacterImageFile( void )
 		bool bCanUseFancyClassSelectAnimation = true;
 		const char* pszVCD = "class_select";
 
-		bool bIsRobot = RandomInt(1, 100) <= 5;
+		bool bIsRobot = RandomInt(1, 100) <= 1;
 
 		if (!bIsRobot)
 		{

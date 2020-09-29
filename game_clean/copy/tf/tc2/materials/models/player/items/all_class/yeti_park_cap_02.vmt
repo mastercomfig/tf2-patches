@@ -1,0 +1,46 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/player/items/all_class/yeti_park_cap_02"
+	"$bumpmap" "models/effects/flat_normal" 
+	"$lightwarptexture"		"models/player/pyro/pyro_lightwarp"
+	"$phong"		"1"
+	"$phongexponent"		"25"
+	"$phongboost"		"0"
+	"$phongfresnelranges"	"[.25 1 4]"
+	"$rimlight"		"1"
+	"$rimlightexponent"		"4"
+	"$rimlightboost"		"2"
+	"$bumpmapalphaphongmask"		"1"
+	"$basemapalphaphongmask"		"0"
+	"$cloakPassEnabled"		"1"
+	"$detail"		"effects/tiledfire/fireLayeredSlowTiled512"
+	"$detailscale"		"5"
+	"$detailblendfactor"		"0"
+	"$detailblendmode"		"6"
+	"$yellow"		"0"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

@@ -1,0 +1,28 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/player/engineer/engineer_handR_red"
+	"$basemapalphaphongmask" "1"
+
+	"$phong" "1"
+	"$phongexponent" "80"
+	"$phongboost" "1"	
+	"$lightwarptexture" "models/player/engineer/engineer_hands_lightwarp"
+	"$phongfresnelranges"	"[1 5 10]"
+	"$halflambert" "1"
+	
+	// Rim lighting parameters
+	"$rimlight" "1"												// To enable rim lighting (requires phong)
+	"$rimlightexponent" "4"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" "2"										// Boost for ambient cube component of rim lighting
+	
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+	}
+}
+
+
+

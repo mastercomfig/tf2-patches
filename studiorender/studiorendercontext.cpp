@@ -2364,7 +2364,8 @@ void CStudioRenderContext::DrawModel( DrawModelResults_t *pResults, const DrawMo
 		}
 
 		// FIXME(mastercoms): crashes
-		pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags));
+		//pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags));
+		pCallQueue->QueueCall( g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags );
 	}
 
 	if( flags & STUDIORENDER_DRAW_ACCURATETIME )

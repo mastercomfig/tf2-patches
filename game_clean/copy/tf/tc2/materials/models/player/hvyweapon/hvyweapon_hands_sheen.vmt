@@ -1,0 +1,42 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/player/hvyweapon/hvyweapon_hands"
+	"$basemapalphaphongmask" "1"
+
+	"$phong" "1"
+	"$phongexponent" "5"
+	"$phongboost" "1"	
+	"$lightwarptexture" "models/lightwarps/hand_lightwarp"
+	"$phongfresnelranges"	"[.5 3 5]"
+	"$halflambert" "1"
+	
+	// Rim lighting parameters
+	"$rimlight" "1"												// To enable rim lighting (requires phong)
+	"$rimlightexponent" "8"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" ".8"										// Boost for ambient cube component of rim lighting
+
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+	}
+}
+
+
+
