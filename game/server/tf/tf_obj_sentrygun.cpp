@@ -283,9 +283,11 @@ void CObjectSentrygun::SentryThink( void )
 	{
 	case SENTRY_STATE_INACTIVE:
 	case SENTRY_STATE_UPGRADING:		// Base class handles this
+		m_flNextAttack = gpGlobals->curtime - gpGlobals->interval_per_tick;
 		break;
 
 	case SENTRY_STATE_SEARCHING:
+		m_flNextAttack = gpGlobals->curtime - gpGlobals->interval_per_tick;
 		SentryRotate();
 		break;
 
@@ -1259,31 +1261,54 @@ void CObjectSentrygun::Attack()
 	if ( m_flNextAttack <= gpGlobals->curtime && (m_vecGoalAngles - m_vecCurAngles).LengthSqr() <= 100 )
 	{
 		m_flFireRate = 1.f;
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOwner(), m_flFireRate, mult_sentry_firerate );
 
-		if ( m_bPlayerControlled )
-		{
-			m_flFireRate *= 0.5f;
-		}
-			
-		if ( IsMiniBuilding() && !IsDisposableBuilding() )
-		{
-			m_flFireRate *= 0.75f;
-		}
-
-		if ( GetBuilder() && GetBuilder()->m_Shared.InCond( TF_COND_CRITBOOSTED_USER_BUFF ) )
-		{
-			m_flFireRate *= 0.4f;
-		}
-
-		if ( m_iUpgradeLevel == 1 )
+		// ==== BASE FIRE INTERVAL ====
+		if (m_iUpgradeLevel == 1)
 		{
 			// Level 1 sentries fire slower
-			m_flFireRate *= 0.2f;
+			m_flFireRate = 0.225f;
 		}
 		else
 		{
-			m_flFireRate *= 0.1f;
+			m_flFireRate = 0.135f;
+		}
+
+		if (IsMiniBuilding() && !IsDisposableBuilding())
+		{
+			m_flFireRate *= 0.8f;
+		}
+		// === END BASE FIRE INTERVAL ====
+
+		CUtlVector<int> vFireRateBoosts;
+
+		// Firing speed upgrade
+		float flFireSpeedUpgrade = 1.0f;
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(GetOwner(), flFireSpeedUpgrade, mult_sentry_firerate);
+
+		if (flFireSpeedUpgrade < 1.0f)
+		{
+			vFireRateBoosts.AddToTail(flFireSpeedUpgrade);
+		}
+	    else
+		{
+			m_flFireRate *= flFireSpeedUpgrade;
+		}
+
+		// Firing speed boosts
+		if ( m_bPlayerControlled )
+		{
+			vFireRateBoosts.AddToTail(IsMiniBuilding() ? 0.5f : 0.6f);
+		}
+
+		const bool bCritBoosted = GetBuilder() && GetBuilder()->m_Shared.InCond(TF_COND_CRITBOOSTED_USER_BUFF);
+		if ( bCritBoosted )
+		{
+			vFireRateBoosts.AddToTail(0.5f);
+		}
+
+		for (int i = 0; i < vFireRateBoosts.Count(); i++)
+		{
+			m_flFireRate *= 1.0f / powf(0.9f, i) * vFireRateBoosts[i];
 		}
 
 		if (!m_bPlayerControlled || m_bFireNextFrame)

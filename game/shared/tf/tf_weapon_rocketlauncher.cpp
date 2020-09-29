@@ -747,6 +747,7 @@ void CTFCrossbow::SecondaryAttack( void )
 		{
 			// Call Primary Attack and modify the projectile
 			m_bMilkNextAttack = true;
+			m_flNextPrimaryAttack = gpGlobals->curtime;
 			PrimaryAttack();
 			m_flRegenerateDuration = iMilkBolt;
 			m_flLastUsedTimestamp = gpGlobals->curtime;
