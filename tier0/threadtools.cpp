@@ -1371,23 +1371,17 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 	}
 	else
 	{
-		bool bInitialCheck = true;
 		// We use check here because we don't actually have a lock on the events.
-		auto lPredSignalled = [nEvents, &pEvents, &bInitialCheck]
+		auto lPredSignalled = [nEvents, &pEvents]
 		{
-			if (bInitialCheck)
+			for (int i = 0; i < nEvents; i++)
 			{
-				bInitialCheck = false;
-				for (int i = 0; i < nEvents; i++)
+				if (pEvents[i]->Check())
 				{
-					if (pEvents[i]->Check())
-					{
-						return true;
-					}
+					return true;
 				}
-				return false;
 			}
-			return true;
+			return false;
 		};
 		std::mutex mutex;
 		std::unique_lock<std::mutex> lock(mutex);

@@ -162,7 +162,6 @@ void CTFWeaponBaseGun::PrimaryAttack( void )
 
 	int32 fireTimes = flFireDelay > 0.0f ? (int)((gpGlobals->curtime - m_flNextPrimaryAttack) / flFireDelay) + 1 : 1;
 	const int32 iFireTimes = fireTimes;
-	// FIXME(mastercoms): next primary attack is used as a fire rate, and a cooldown
 	if (fireTimes == 1)
 	{
 		CBaseEntity* pProj = FireProjectile(pPlayer);

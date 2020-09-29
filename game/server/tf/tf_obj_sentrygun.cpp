@@ -70,6 +70,8 @@ extern ConVar tf_nav_in_combat_range;
 
 #define WRANGLER_DISABLE_TIME		3.0f
 
+#define SENTRYGUN_FIRE_BOOST_DECAY 0.9135f
+
 enum
 {	
 	SENTRYGUN_ATTACHMENT_MUZZLE = 0,
@@ -1277,14 +1279,17 @@ void CObjectSentrygun::Attack()
 		{
 			m_flFireRate *= 0.8f;
 		}
-		// === END BASE FIRE INTERVAL ====
+		// ==== END BASE FIRE INTERVAL ====
 
 		CUtlVector<int> vFireRateBoosts;
+
+		// ==== FIRING SPEED BOOSTS ====
 
 		// Firing speed upgrade
 		float flFireSpeedUpgrade = 1.0f;
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(GetOwner(), flFireSpeedUpgrade, mult_sentry_firerate);
 
+		// Only calculate it within our firing speed boost stack if it boosts.
 		if (flFireSpeedUpgrade < 1.0f)
 		{
 			vFireRateBoosts.AddToTail(flFireSpeedUpgrade);
@@ -1294,21 +1299,25 @@ void CObjectSentrygun::Attack()
 			m_flFireRate *= flFireSpeedUpgrade;
 		}
 
-		// Firing speed boosts
+		// Wrangler "double" firing speed
+		// This is different for minis vs regular because of how the boost worked before the firing speed fix.
+		// Technically, level 2s and 3s had a slightly lower boost, but for simplicity, the level 1 boost is used. (66% vs 60%)
 		if ( m_bPlayerControlled )
 		{
 			vFireRateBoosts.AddToTail(IsMiniBuilding() ? 0.5f : 0.6f);
 		}
 
-		const bool bCritBoosted = GetBuilder() && GetBuilder()->m_Shared.InCond(TF_COND_CRITBOOSTED_USER_BUFF);
-		if ( bCritBoosted )
+		// Crit canteen 2x boost
+		if (GetBuilder() && GetBuilder()->m_Shared.InCond(TF_COND_CRITBOOSTED_USER_BUFF))
 		{
 			vFireRateBoosts.AddToTail(0.5f);
 		}
+		// ==== END FIRING SPEED BOOSTS ====
 
+		// Diminishing returns on firing speed boost
 		for (int i = 0; i < vFireRateBoosts.Count(); i++)
 		{
-			m_flFireRate *= 1.0f / powf(0.9f, i) * vFireRateBoosts[i];
+			m_flFireRate *= 1.0f / powf(SENTRYGUN_FIRE_BOOST_DECAY, i) * vFireRateBoosts[i];
 		}
 
 		if (!m_bPlayerControlled || m_bFireNextFrame)
