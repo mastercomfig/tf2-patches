@@ -1702,7 +1702,9 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 	
 	float flCumulativeDamage = 0.0f;
 
-	for (int iShot = 0; iShot < info.m_iShots; iShot++)
+	int iShots = info.m_iShots;
+
+	for (int iShot = 0; iShot < iShots; iShot++)
 	{
 		bool bHitWater = false;
 		bool bHitGlass = false;
@@ -1899,6 +1901,15 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			{
 				// Damage specified by function parameter
 				CTakeDamageInfo dmgInfo( this, pAttacker, flActualDamage, nActualDamageType );
+
+#ifdef TF_DLL
+				// Sentry fire rate can kill engie-boosters. Reduce it back to the old fire rate for self damage.
+				if ( iShots > 1 && tr.m_pEnt->IsPlayer() && ClassMatches("obj_sentrygun") && tr.m_pEnt == pAttacker )
+				{
+					iShots = 1;
+				}
+#endif
+
 				ModifyFireBulletsDamage( &dmgInfo );
 				CalculateBulletDamageForce( &dmgInfo, info.m_iAmmoType, vecDir, tr.endpos );
 				dmgInfo.ScaleDamageForce( info.m_flDamageForceScale );

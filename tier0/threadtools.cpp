@@ -348,6 +348,7 @@ bool ThreadSetPriority( ThreadHandle_t hThread, int priority )
 
 void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask )
 {
+#if _X360
 	if ( !hThread )
 	{
 		hThread = ThreadGetCurrentHandle();
@@ -363,7 +364,7 @@ void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask )
 // 	    CPU_SET( cpuSet, i );
 // 	sched_setaffinity( hThread, sizeof( cpuSet ), &cpuSet );
 #endif
-
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -20218,7 +20218,7 @@ void CTFGameRules::BetweenRounds_Think( void )
 		bool bStartFinalCountdown = ( PlayerReadyStatus_ShouldStartCountdown() || ( m_flRestartRoundTime > 0 && (int)( m_flRestartRoundTime - gpGlobals->curtime ) == mp_tournament_readymode_countdown.GetInt() ) );
 
 		// It's the FINAL COUNTDOOOWWWNNnnnnnnnnn
-		float flDelay = IsMannVsMachineMode() ? 12.f : mp_tournament_readymode_countdown.GetFloat();
+		float flDelay = IsMannVsMachineMode() ? 15.f : mp_tournament_readymode_countdown.GetFloat();
 		float flDropDeadTime = gpGlobals->curtime + flDelay + 0.1f;
 		if ( bStartFinalCountdown && ( m_flRestartRoundTime < 0 || m_flRestartRoundTime >= flDropDeadTime ) )
 		{

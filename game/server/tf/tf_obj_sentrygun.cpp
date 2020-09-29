@@ -160,6 +160,7 @@ CObjectSentrygun::CObjectSentrygun()
 	m_bPlayerControlled = false;
 	m_iLifetimeShieldedDamage = 0;
 	m_flFireRate = 1.f;
+	m_flNextAttack = -1.0f;
 	m_flSentryRange = SENTRY_MAX_RANGE;
 	m_nShieldLevel.Set( SHIELD_NONE );
 
@@ -184,6 +185,9 @@ void CObjectSentrygun::Spawn()
 	m_iLeftBound = 315;
 	m_iBaseTurnRate = 6;
 	m_flFieldOfView = VIEW_FIELD_NARROW;
+
+	// Simulate the first bullet with our tick rate accommodation shenanigans
+	m_flNextAttack = gpGlobals->curtime - gpGlobals->interval_per_tick;
 
 	// Give the Gun some ammo
 	m_iAmmoShells = 0;
@@ -1254,12 +1258,6 @@ void CObjectSentrygun::Attack()
 	// Fire on the target if it's within 10 units of being aimed right at it
 	if ( m_flNextAttack <= gpGlobals->curtime && (m_vecGoalAngles - m_vecCurAngles).LengthSqr() <= 100 )
 	{
-		if ( !m_bPlayerControlled || m_bFireNextFrame )
-		{
-			m_bFireNextFrame = false;
-			Fire();
-		}
-
 		m_flFireRate = 1.f;
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOwner(), m_flFireRate, mult_sentry_firerate );
 
@@ -1281,11 +1279,17 @@ void CObjectSentrygun::Attack()
 		if ( m_iUpgradeLevel == 1 )
 		{
 			// Level 1 sentries fire slower
-			m_flNextAttack += (0.2f*m_flFireRate);
+			m_flFireRate *= 0.2f;
 		}
 		else
 		{
-			m_flNextAttack += (0.1f*m_flFireRate);
+			m_flFireRate *= 0.1f;
+		}
+
+		if (!m_bPlayerControlled || m_bFireNextFrame)
+		{
+			m_bFireNextFrame = false;
+			Fire();
 		}
 	}
 	else
@@ -1504,13 +1508,8 @@ bool CObjectSentrygun::Fire()
 		info.m_vecSrc = vecSrc;
 		info.m_vecDirShooting = vecAimDir;
 		info.m_iTracerFreq = 1;
-		info.m_iShots = 0;
-		float fireRate = m_iUpgradeLevel == 1 ? (0.2f * m_flFireRate) : (0.1 * m_flFireRate);
-		int32 fireTimes = fireRate > 0.0f ? truncf((gpGlobals->curtime - m_flNextAttack) / fireRate) + 1 : 1;
-		for (int32 times = 0; times < fireTimes; ++times)
-		{
-			info.m_iShots++;
-		}
+		info.m_iShots = m_flFireRate > 0.0f ? (int)((gpGlobals->curtime - m_flNextAttack) / m_flFireRate) + 1 : 1;
+		m_flNextAttack += info.m_iShots * m_flFireRate;
 		info.m_pAttacker = GetBuilder();
 		if ( info.m_pAttacker == NULL )
 		{
@@ -1543,7 +1542,6 @@ bool CObjectSentrygun::Fire()
 
 		// sentry gun fire 'heats up' the nav mesh around it
 		UpdateNavMeshCombatStatus();
-
 
 		//NDebugOverlay::Line( vecSrc, vecSrc + vecAimDir * 1000, 255, 0, 0, false, 0.1 );
 

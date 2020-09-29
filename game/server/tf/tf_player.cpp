@@ -13674,12 +13674,10 @@ int CTFPlayer::GiveAmmo( int iCount, int iAmmoIndex, bool bSuppressSound, EAmmoS
 //-----------------------------------------------------------------------------
 void CTFPlayer::RemoveAmmo( int iCount, int iAmmoIndex )
 {
-#ifdef STAGING_ONLY
 	if ( tf_infinite_ammo.GetBool() )
 	{
 		return;
 	}
-#endif // STAGING_ONLY
 
 #if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetInt() > 1 && !IsBot() )

@@ -466,7 +466,7 @@ void OnChangeThreadAffinity( IConVar *var, const char *pOldValue, float flOldVal
 	}
 }
 
-ConVar threadpool_affinity( "threadpool_affinity", "1", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
+ConVar threadpool_affinity( "threadpool_affinity", ( IsX360() ) ? "1" : "0", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
 
 #if 0
 extern ConVar threadpool_reserve;

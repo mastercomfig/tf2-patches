@@ -998,7 +998,9 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 #endif
 	}
 
+#ifdef _X360
 	Distribute( bDistribute, startParams.bUseAffinityTable ? (int *)startParams.iAffinityTable : NULL, startParams.bFullCore );
+#endif
 
 	return true;
 }
