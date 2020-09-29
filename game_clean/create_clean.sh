@@ -7,6 +7,7 @@ set -e
 
 clean_folder=../../game_clean
 dev_folder=../../game
+rm -rf $clean_folder
 mkdir -p $clean_folder
 mkdir -p $clean_folder/bin
 mkdir -p $clean_folder/tf/bin
