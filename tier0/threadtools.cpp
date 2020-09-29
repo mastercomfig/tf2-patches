@@ -1371,12 +1371,14 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 	}
 	else
 	{
+		bool bInitialCheck = true;
 		// We use check here because we don't actually have a lock on the events.
-		auto lPredSignalled = [nEvents, &pEvents]
+		auto lPredSignalled = [nEvents, &pEvents, &bInitialCheck]
 		{
+			bInitialCheck = false;
 			for (int i = 0; i < nEvents; i++)
 			{
-				if (pEvents[i]->Check())
+				if (bInitialCheck ? pEvents[i]->Check() : pEvents[i]->m_bSignaled)
 				{
 					return true;
 				}
