@@ -1127,11 +1127,7 @@ public:
 private:
 	void WaitForRead();
 
-#ifdef WIN32
-	CThreadFastMutex m_mutex;
-#else
-	CThreadMutex m_mutex;	
-#endif
+	CThreadMutex m_mutex;
 	CThreadEvent m_CanWrite;
 	CThreadEvent m_CanRead;
 

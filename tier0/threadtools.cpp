@@ -630,8 +630,8 @@ bool CThreadEvent::Set()
 			if (condition)
 			{
 				condition->notify_one();
+				condition.reset();
 			}
-			condition.reset();
 		}
     }
 	if (m_bAutoReset)
