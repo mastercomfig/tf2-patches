@@ -1281,7 +1281,7 @@ void CObjectSentrygun::Attack()
 		}
 		// ==== END BASE FIRE INTERVAL ====
 
-		std::vector<float> vecFireRateBoosts = {};
+		std::list<float> vecFireRateBoosts;
 
 		// ==== FIRING SPEED BOOSTS ====
 
@@ -1325,9 +1325,12 @@ void CObjectSentrygun::Attack()
 		// ==== END FIRING SPEED BOOSTS ====
 
 		// Diminishing returns on firing speed boost
-		for (size_t i = 0; i < vecFireRateBoosts.size(); i++)
+		int iStacks = 0;
+		while (!vecFireRateBoosts.empty())
 		{
-			m_flFireRate *= (1.0f / powf(SENTRYGUN_FIRE_BOOST_DECAY, i)) * vecFireRateBoosts[i];
+			m_flFireRate *= (1.0f / powf(SENTRYGUN_FIRE_BOOST_DECAY, iStacks)) * vecFireRateBoosts.front();
+			iStacks++;
+			vecFireRateBoosts.pop_front();
 		}
 
 		if (!m_bPlayerControlled || m_bFireNextFrame)
@@ -1335,9 +1338,14 @@ void CObjectSentrygun::Attack()
 			m_bFireNextFrame = false;
 			Fire();
 		}
+		else
+		{
+			m_flNextAttack = MAX(m_flNextAttack, gpGlobals->curtime);
+		}
 	}
 	else
 	{
+		m_flNextAttack = MAX(m_flNextAttack, gpGlobals->curtime);
 		// SetSentryAnim( TFTURRET_ANIM_SPIN );
 	}
 
