@@ -70,7 +70,7 @@ extern ConVar tf_nav_in_combat_range;
 
 #define WRANGLER_DISABLE_TIME		3.0f
 
-#define SENTRYGUN_FIRE_BOOST_DECAY 0.9135f
+#define SENTRYGUN_FIRE_BOOST_DECAY 0.945f
 
 enum
 {	
