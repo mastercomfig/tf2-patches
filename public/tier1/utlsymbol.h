@@ -204,11 +204,7 @@ public:
 	}
 	
 private:
-#if defined(WIN32) || defined(_WIN32)
-	mutable CThreadSpinRWLock m_lock;
-#else
 	mutable CThreadRWLock m_lock;
-#endif
 };
 
 

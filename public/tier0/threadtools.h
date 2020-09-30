@@ -995,7 +995,6 @@ class CThreadSafeQueue
 {
 public:
 	CThreadSafeQueue()
-		: q()
 	{}
 
 	~CThreadSafeQueue()
@@ -1012,9 +1011,8 @@ public:
 		std::scoped_lock<std::mutex> lock(m);
 		if (q.empty())
 			return false;
-		T val = q.front();
+		pResult = q.front();
 		q.pop_front();
-		pResult = val;
 		return true;
 	}
 
