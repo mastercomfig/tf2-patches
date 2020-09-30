@@ -1,0 +1,98 @@
+"VertexlitGeneric"
+{
+	"$basetexture"	"models/workshop/weapons/c_models/c_drg_cowmangler/c_drg_cowmangler"
+	"$bumpmap" "models/workshop/weapons/c_models/c_drg_cowmangler/c_drg_cowmangler_normal"
+	
+	"$phong" "1"
+	"$phongexponent" "15"
+	"$phongboost" "10"	
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+	"$phongfresnelranges"	"[.3 .5 3]"
+	
+	"$glowcolor" "1"
+
+	"$tempvar" "{256 256 256}"
+
+	"$basephongexponent" "15"
+	"$basephongboost" "3"
+
+	"$commadd_phongexponent" "30"
+	"$commadd_phongboost" 	"22.5"
+	"$commweapon"		"0"
+
+ 	"$blendtintbybasealpha" "1" 
+ 	"$blendtintcoloroverbase" "0"  
+
+	"$colortint_base" "{89 89 159}"  
+	"$colortint_tmp" "[0 0 0]" 
+
+	"$colortint" "[0 0 0]"
+
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" ".25"
+
+	"360?$color2" "[ 0.7 0.7 0.7 ]"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+  		"ItemTintColor"
+  		{
+   			"resultVar" "$colortint_tmp"
+  		}
+		 "ModelGlowColor"
+        	{
+         	   	"resultVar" "$glowcolor"
+        	}
+       	 	"Equals"
+        	{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+        	}
+  		"SelectFirstIfNonZero"
+  		{
+   			"srcVar1" "$colortint_tmp"
+   			"srcVar2" "$colortint_base"
+   			"resultVar" "$colortint"
+  		}
+		"LessOrEqual"
+        	{
+               		"LessEqualVar" "$glowcolor"
+               		"greaterVar" "$colortint"
+        	        "srcVar1" "$tempvar"
+       		     	"srcVar2" "$glowcolor"
+       		     	"resultVar" "$color2"
+        	}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}		
+	}
+}

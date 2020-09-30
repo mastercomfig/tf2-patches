@@ -1,0 +1,48 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/workshop_partner/weapons/c_models/c_tw_eagle/c_tw_eagle"
+	"$yellow" "0"
+	"$envmap" "effects/saxxy/saxxy_gold"
+	"$envmaptint" "[.5 .45 .15]"
+	
+	"$basemapalphaphongmask"	"1"
+	
+	"$phongtint" "[1 .75 .3]"
+	"$phong" "1"
+	"$phongexponent" "15"
+	"$phongboost" "5"
+	"$phongfresnelranges"	"[.2 1 4]"
+		
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"
+	"$rimlightboost" ".2"
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

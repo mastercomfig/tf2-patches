@@ -1,0 +1,81 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/weapons/c_items/c_lollichop"
+
+	"$yellow" "0"
+
+	"$phong" "1"
+	"$phongexponent" "20"
+	"$phongboost" ".05"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.3 1 8]"
+
+	"$glowcolor" "1"
+
+ 	"$blendtintbybasealpha" "1" 
+	"$blendtintcoloroverbase" "1"  
+
+	"$color2" "{108 177 231}"
+
+	"$tempvar" "{256 256 256}"
+
+	"$rimlight" "1"											// To enable rim lighting (requires phong)
+	"$rimlightexponent" "4"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" "2"										// Boost for ambient cube component of rim lighting
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps\cubemap_sheen001"
+	"$sheenmapmask" 		"Effects\AnimatedSheen\animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"ModelGlowColor"
+        	{
+         	   	"resultVar" "$glowcolor"
+        	}
+       	 	"Equals"
+        	{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+        	}
+		"LessOrEqual"
+        	{
+               		"LessEqualVar" "$glowcolor"
+               		"greaterVar" "$color2"
+        	        "srcVar1" "$tempvar"
+       		     	"srcVar2" "$glowcolor"
+       		     	"resultVar" "$color2"
+        	}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}		
+	}
+}

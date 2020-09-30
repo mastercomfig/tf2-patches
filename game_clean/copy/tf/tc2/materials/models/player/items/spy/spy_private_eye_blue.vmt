@@ -1,0 +1,49 @@
+"VertexlitGeneric"
+{
+	$baseTexture "models/player/items/spy/spy_private_eye_blue.vtf"
+	"$bumpmap" "models/effects/flat_normal" 
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+	"$yellow" "0"
+//	"$envmap" "env_cubemap"
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "0"
+//	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"	
+	"$lightwarptexture" "models/player/pyro/pyro_lightwarp"
+	"$phongfresnelranges"	"[.25 1 4]"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"
+	"$rimlightboost" "2"
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

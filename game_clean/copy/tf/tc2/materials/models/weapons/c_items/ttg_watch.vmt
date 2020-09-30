@@ -1,0 +1,42 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/weapons/c_items/ttg_watch"
+
+	"$basemapalphaphongmask" "1"
+	"$invertphongmask" "1"
+	"$phong" "1"
+	"$phongexponent" "45"
+	"$phongboost" "25"	
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+	"$phongfresnelranges"	"[.25 .5 1]"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "20"	
+	"$rimlightboost" "4"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

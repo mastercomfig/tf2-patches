@@ -1,0 +1,55 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models\player\items\heavy\heavy_pocket_bot_blue"
+	
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "1"	
+	"$phongfresnelranges"	"[1 2 1]"
+	
+
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "1"				
+	"$rimlightboost" "2"
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
+	"$yellow" "0"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
+	"Proxies"
+	{
+		"spy_invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+
+	}
+}

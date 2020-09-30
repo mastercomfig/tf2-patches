@@ -1,0 +1,48 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/weapons/c_items/festivizer_battery"
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"
+
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+	"$yellow" "0"
+	
+	"$phong" "1"
+	"$phongexponent" "3"
+	"$phongboost" ".1"	
+	"$phongfresnelranges"	"[1 1 1]"
+	"$lightwarptexture" "models/lightwarps/softened_weapon_lightwarp"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "10"
+	"$rimlightboost" "5"
+	
+	"$cloakPassEnabled" "1"
+	
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

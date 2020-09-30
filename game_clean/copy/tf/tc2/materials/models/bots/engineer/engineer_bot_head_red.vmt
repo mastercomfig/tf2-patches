@@ -1,0 +1,65 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/bots/engineer/engineer_bot_head_red"
+	
+	"$phong" "1"
+	"$phongboost" "2"	
+	"$phongfresnelranges"	"[.6 .9 1]"
+	"$halflambert" "0"
+	"$phongexponenttexture" "models/bots/heavy/heavy_bot_head_exp"
+		
+	">=DX90"
+   	 {
+		"$selfillum" "1"
+		"$selfillummask" "models/bots/engineer/engineer_bot_head_illum"
+	 }
+
+	"$lightwarptexture" "models/lightwarps/robot_lightwarp"
+
+	"$basemapalphaphongmask" "1"
+
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "1"				
+	"$rimlightboost" "2"
+	"$rimmask" "1"
+
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
+	"$yellow" "0"
+	"$one" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
+	"Proxies"
+	{
+		"spy_invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+
+	}
+}

@@ -1,0 +1,59 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop/weapons/c_models/c_picket/c_picket_paper"
+	"$bumpmap" "models/effects/flat_normal" 
+
+	"$phong" "1"
+	"$lightwarptexture" "models/lightwarps/softened_weapon_lightwarp" 
+
+	"$glowcolor" "1" 
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+		"CustomSteamImageOnModel"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar"			"$basetexture"
+			"animatedtextureframenumvar"	"$frame"
+			"animatedtextureframerate"		5
+		}
+	}
+
+} 

@@ -1,0 +1,84 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/weapons/c_models/c_sniperrifle/c_sniperrifle"
+	"$basemapalphaphongmask" "1"
+
+	"$phong" "1"
+	"$phongexponenttexture" "models/weapons/c_models/c_sniperrifle/c_sniperrifle_exp"
+	"$phongexponent" "255"
+	"$phongboost" "4"
+	"$phongalbedotint" "1"
+	
+	//scales up the exponent texture which usually only has about 120 levels of exponent
+//	"$phongexponentfactor"  "100"
+	
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+	
+	"$phongfresnelranges"	"[.3 .5 3]"
+	
+	"$glowcolor" "1"
+	
+	"$selfillum" 1
+	"$selfillumtint" "[5.0 3.0 0.7]"
+	"$selfIllumFresnel" "1"
+	"$selfIllumFresnelMinMaxExp" "[0 10 20]"
+	"$phongtint" "[0.5 0.4 0.3]"
+
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" "2"
+	"$rimmask" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	
+	
+		"WeaponSkin" {
+			
+		}
+	}
+}

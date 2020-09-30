@@ -1,0 +1,56 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/workshop/player/items/sniper/xms_sniper_commandobackpack/xms_sniper_commandobackpack"
+	"$bumpmap"	"models/workshop/player/items/sniper/xms_sniper_commandobackpack/xms_sniper_commandobackpack_phongmask"
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "1.5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+	"$yellow" "0"
+
+	"$phong" "1"
+	"$basemapalphaphonmask" "0"
+	"$phongexponent" "10"
+	"$phongboost" "10"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.3 1 8]"
+	"$halflambert" "1"
+
+	"$tempvar" "0"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"	
+	"$rimlightboost" "2"
+
+	"$glowcolor" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

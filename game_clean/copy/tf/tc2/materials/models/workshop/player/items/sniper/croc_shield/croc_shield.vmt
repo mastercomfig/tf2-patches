@@ -1,0 +1,48 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop/player/items/sniper/croc_shield/croc_shield"
+	"$bumpmap" "models/workshop/player/items/sniper/croc_shield/croc_shield_normal"
+	
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+	"$yellow" "0"
+
+	"$phong" "1"
+	"$phongexponent" "45"
+	"$phongboost" "5"
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.25 10 4]"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "35"
+	"$rimlightboost" "2"
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

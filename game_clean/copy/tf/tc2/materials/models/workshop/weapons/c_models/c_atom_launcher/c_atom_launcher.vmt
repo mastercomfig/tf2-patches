@@ -1,0 +1,67 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\workshop\weapons\c_models\c_atom_launcher/c_atom_launcher"
+	
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongtint" "[0.77 0.95 0.76]"
+	"$phongboost" "5"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.3 .5 3]"
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"					
+	"$rimlightexponent" "20"		
+	"$rimlightboost" "0.25"
+	"$glowcolor" "1"
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps\cubemap_sheen001"
+	"$sheenmapmask" 		"Effects\AnimatedSheen\animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+		"WeaponSkin"
+		{
+		}
+	}
+}

@@ -1,0 +1,70 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop/weapons/c_models/c_scotland_shard/c_scotland_shard"
+
+	"$basemapalphaphongmask" 1
+
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[.01 .01 .01]"
+
+	"$phong" "1"
+	"$phongexponent" "60"
+	"$phongboost" "20"	
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+	"$phongfresnelranges" "[0.25 0.5 1]"
+
+	// Rim lighting parameters
+	"$rimlight" "1"												// To enable rim lighting (requires phong)
+	"$rimlightexponent" "4"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" "2"	
+
+	"$glowcolor" "1"
+	"$cloakPassEnabled" "1"
+
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

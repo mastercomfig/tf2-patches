@@ -1,23 +1,26 @@
-"VertexLitGeneric"
+"VertexlitGeneric"
 {
 	"$baseTexture" "models/player/items/all_class/yeti_park_cap_02"
-	"$bumpmap" "models/effects/flat_normal" 
-	"$lightwarptexture"		"models/player/pyro/pyro_lightwarp"
-	"$phong"		"1"
-	"$phongexponent"		"25"
-	"$phongboost"		"0"
-	"$phongfresnelranges"	"[.25 1 4]"
-	"$rimlight"		"1"
-	"$rimlightexponent"		"4"
-	"$rimlightboost"		"2"
-	"$bumpmapalphaphongmask"		"1"
-	"$basemapalphaphongmask"		"0"
-	"$cloakPassEnabled"		"1"
-	"$detail"		"effects/tiledfire/fireLayeredSlowTiled512"
-	"$detailscale"		"5"
-	"$detailblendfactor"		"0"
-	"$detailblendmode"		"6"
-	"$yellow"		"0"
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
+	"$yellow" "0"
+
+	"$phong" "1"
+	"$lightwarptexture" "models/player/pyro/pyro_lightwarp"
+	
+
+	// Rim lighting parameters
+	"$rimlight" "1"												// To enable rim lighting (requires phong)
+	"$rimlightexponent" "4"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" "2"										// Boost for ambient cube component of rim lighting
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
 	"Proxies"
 	{
 		"invis"

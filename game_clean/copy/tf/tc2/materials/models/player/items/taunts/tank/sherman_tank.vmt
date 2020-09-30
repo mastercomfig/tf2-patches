@@ -1,0 +1,17 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\player\items\taunts\tank\sherman_tank"
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+
+	//phong properties
+	"$basemapalphaphongmask" "1"
+	"$phong"	"1"
+	"$phongboost"	"1.3"
+	"$phongexponent" "5"
+	"$phongfresnelranges"	"[.25 .5 1]"
+
+	// Rim lighting parameters
+	"$rimlight" "1"
+	"$rimlightexponent" "6"					
+	"$rimlightboost" "0.5"	
+}

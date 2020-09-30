@@ -1,0 +1,6 @@
+"SpriteCard"
+{
+	"$baseTexture" "Effects/animatedlargeshell/animated_large_shell"
+	$translucent 1
+	$depthblend 0
+}

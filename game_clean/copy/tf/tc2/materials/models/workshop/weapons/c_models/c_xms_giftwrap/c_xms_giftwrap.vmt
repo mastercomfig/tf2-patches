@@ -1,0 +1,62 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/workshop/weapons/c_models/c_xms_giftwrap/c_xms_giftwrap"
+	"$bumpmap" "models/effects/flat_normal" 
+
+	"$basemapalphaphongmask" 1
+
+	"$phong" "1"
+	"$phongexponent" "200"
+	"$phongboost" "7.5"
+	"$phongfresnelranges"	"[.2 .4 .8]"
+
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+
+	"$rimlight" "1"						
+	"$rimlightexponent" "2"				
+	"$rimlightboost" "0.2"
+
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+	"$glowcolor" "1"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

@@ -1,0 +1,60 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/weapons/c_items/c_rocketboots_demo"
+
+	"$basemapalphaphongmask" "1"
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+
+	//backpack icon style brighter texture for consistency and better visibility
+	"$detail" 	"models/weapons/c_items/c_rocketboots_demo"
+	"$detailscale" "1"
+	"$detailblendfactor" "0.8"
+	"$detailblendmode" "1"
+	//
+
+	"$phong" "1"
+	"$phongboost" "1.5"
+	"$phongexponent" "4"
+	"$phongfresnelranges" "[1 2 5]"
+
+	"$rimlight" "1"		
+	"$rimlightexponent" "10"				
+	"$rimlightboost" "2"
+
+	"$color" "[2 2 2]"
+
+	"$yellow" "0"
+
+	"$cloakPassEnabled" "1"
+
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps\cubemap_sheen001"
+	"$sheenmapmask" 		"Effects\AnimatedSheen\animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+
+	}
+}

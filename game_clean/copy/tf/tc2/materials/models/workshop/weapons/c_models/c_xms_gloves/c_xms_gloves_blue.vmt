@@ -1,0 +1,85 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop/weapons/c_models/c_xms_gloves/c_xms_gloves_blue"
+	"$bumpmap" "models/workshop/weapons/c_models/c_xms_gloves/c_xms_gloves_normal"
+	"$yellow" "0"
+
+	"$glowcolor" "1"
+
+	"$phong" "1"
+	"$phongexponent" "5"
+	"$phongboost" ".5"	
+	"$lightwarptexture" "models/lightwarps/softened_weapon_lightwarp"
+	"$phongfresnelranges"	"[.25 .5 2]"
+	"$normalmapalphaphongmask" "1"
+
+	"$rimlight" "1"											// To enable rim lighting (requires phong)
+	"$rimlightexponent" "3"										// Exponent for phong component of rim lighting	
+	"$rimlightboost" ".2"										// Boost for ambient cube component of rim lighting
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

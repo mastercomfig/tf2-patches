@@ -1,0 +1,48 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "Models/props_farm/diary_book"
+
+	"$phong" "1"
+	"$phongexponent" "5"
+	"$phongboost" ".5"
+
+	"$basephongexponent" "10"
+	"$basephongboost" "20"
+	"$lightwarptexture" "models/player/pyro/pyro_lightwarp"
+	"$phongfresnelranges"	"[.25 1 4]"
+	"$basemapalphaphongmask" "1"
+	
+
+	"$rimlight" "1"
+	"$rimlightexponent" "10"
+	"$rimlightboost" "2"
+
+	"$cloakPassEnabled"		"1"
+
+	"$detail"		"effects/tiledfire/fireLayeredSlowTiled512"
+	"$detailscale"		"5"
+	"$detailblendfactor"		"0"
+	"$detailblendmode"		"6"
+
+	"$yellow"		"0"
+
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

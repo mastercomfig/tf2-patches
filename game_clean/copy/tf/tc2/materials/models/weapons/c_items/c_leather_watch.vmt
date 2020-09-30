@@ -1,0 +1,61 @@
+// ### This basic VMT was written based on the game/sdktools/python/site-packages/templateStrings.py script ###
+"VertexLitGeneric"
+{
+	$baseTexture "models/weapons/c_items/c_leather_watch.vtf"
+	$bumpmap "models\weapons\c_items/c_leather_watch_normal"
+
+	"$phong" "1"
+	"$phongexponent" "30"
+	"$phongboost" "4"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.25 .55 3]"
+	
+//	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "20"	
+	"$rimlightboost" "2"
+	"$rimmask" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$yellow" "0"
+	"$glowcolor" "1"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

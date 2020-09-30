@@ -1,0 +1,56 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/player/items/all_class/xms_allclass_giftbadge_screen"
+	"$surfaceprop"	"default"
+	"$color" "[1 1 1]"
+
+	"$translucent" 1
+
+	"$beat" 0.0
+	"$gifter" 1000
+	"$finalBeat" 0.0
+	"$txScale" "[0 0]"
+	
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"HeartbeatScale"
+		{
+			"resultVar"	"$beat"
+		}
+
+		"BenefactorLevel"
+		{
+			"resultVar" "$gifter"
+		}
+
+		"Multiply"
+		{
+			"srcVar1"	"$beat"
+			"srcVar2"	"$gifter"
+			"resultVar"	"$finalBeat"
+		}
+	
+		"Equals"
+		{
+			"srcVar1"	"$finalBeat"
+			"resultVar" "$txScale[0]"		
+		}
+
+		"Equals"
+		{
+			"srcVar1"	"$finalBeat"
+			"resultVar" "$txScale[1]"		
+		}
+
+		"TextureTransform"
+		{
+			"scaleVar"	"$txScale"
+			"resultVar" "$basetexturetransform"
+		}
+	}
+}

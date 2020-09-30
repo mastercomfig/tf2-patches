@@ -1,0 +1,66 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/player/items/spy/spy_winterjacket_blue"
+	"$bumpmap" "models/player/items/spy/spy_winterjacket_normal"
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
+	"$lightWarpTexture" "models/player/pyro/pyro_lightwarp"
+	
+	$phong 1
+	$phongFresnelRanges "[0.3 1 8]"
+	
+	$rimLight 1
+	$rimLightExponent 4
+	$rimLightBoost 2
+	
+ 	"$blendtintbybasealpha" "1" 
+ 	"$blendtintcoloroverbase" "1"
+	
+	$colortint_base "{24 35 45}"
+	$colortint_tmp 0
+	
+	$cloakPassEnabled 1
+	
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"ItemTintColor"
+		{
+			"resultVar" "$colortint_tmp"
+		}
+		"SelectFirstIfNonZero"
+		{
+			"srcVar1"	"$colortint_tmp"
+			"srcVar2"	"$colortint_base"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

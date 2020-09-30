@@ -1,0 +1,47 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop_partner/player/items/all_class/scarf_soccer/scarf_soccer"
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+	"$yellow" "0"
+
+	"$phong" "1"	
+
+	"$lightwarptexture" "models/player/pyro/pyro_lightwarp"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "20"
+	"$rimlightboost" "4"
+	$nocull "1"
+	
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

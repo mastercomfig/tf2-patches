@@ -1,0 +1,28 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/player/items/all_class/anim/bubbles_green_anim"
+	"$surfaceprop"	"default"
+	"$selfillum" 1
+	"$selfillummask" "models/effects/flat_normal"
+	"$color" "[1 .3 0]"
+	
+	"$phong"	"1"
+	"$phongboost"	"1"
+	"$phongexponent"	"20"
+	"$phongfresnelranges"	"[.5 1 2]"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+		{
+			"invis"
+		{
+		}
+			"AnimatedTexture"
+			{
+				"animatedtexturevar" "$basetexture"
+				"animatedtextureframenumvar" "$frame"
+				"animatedtextureframerate" 30
+			}
+		}
+}

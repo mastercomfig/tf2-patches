@@ -1,0 +1,83 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/weapons/c_items/c_breadmonster"
+	"$bumpmap" "models/weapons/c_items/c_breadmonster_normal"
+	"$envmap" "cubemaps\cubemap_sheen001"
+	"$envmaptint" "[.2 .8 .3]"
+	
+	"$selfillum" 1
+	"$basemapalphaphongmask" "0"
+	
+	//phong properties
+	"$phong"	"1"
+	"$phongboost"	".05"
+	"$phongexponent" "30"
+	"$lightwarptexture" "models\lightwarps\hand_lightwarp"
+	"$phongexponenttexture"	"models/weapons/c_items/c_breadmonster_exp"
+	"$phongfresnelranges"	"[2 1 4]"
+	
+	"$rimlight" "1"
+	"$rimlightexponent" "20"
+	"$rimlightboost" "2"
+	"$rimmask" "1"
+	
+	//"$ambientocclusion" 1
+	
+	"$glowcolor" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps\cubemap_sheen001"
+	"$sheenmapmask" 		"Effects\AnimatedSheen\animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+		Sine
+		{
+			"resultVar"	"$selfillumtint" 
+		          	"sineperiod"	2
+			"sinemin"       	0.3
+			"sinemax"	1
+		}
+	}
+}

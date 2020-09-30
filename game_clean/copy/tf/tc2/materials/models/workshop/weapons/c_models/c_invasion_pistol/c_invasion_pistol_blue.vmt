@@ -1,0 +1,72 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/workshop/weapons/c_models/c_invasion_pistol/c_invasion_pistol_blue"
+	"$bumpmap" "models/workshop/weapons/c_models/c_invasion_pistol/c_invasion_pistol_spec"
+	"$normalmapalphaphongmask" "1"
+	
+	"$lightwarptexture" "models/lightwarps/weapon_lightwarp"
+
+	"$selfillum" "1"
+	
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "4"	
+	"$phongfresnelranges"	"[.25 .5 1]"
+
+	"$basephongexponent" "25"
+	"$basephongboost" "5"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "20"
+	"$rimlightboost" "0.5"
+
+	"$glowcolor" "1"
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 			"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 			"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 			"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

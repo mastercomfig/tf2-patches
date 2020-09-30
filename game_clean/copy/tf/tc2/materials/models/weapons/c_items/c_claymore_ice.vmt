@@ -1,0 +1,66 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models\weapons\c_items/c_claymore_ice"
+	"$alpha" .5
+	"$translucent" 1
+
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[.3 .3 .2]"
+		
+	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost" "5"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[.25 .5 1]"
+	              
+	
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" "100"
+
+
+	"$glowcolor" "0"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"AnimatedWeaponSheen"
+		{
+			"animatedtexturevar" 		"$sheenmapmask"
+			"animatedtextureframenumvar" 	"$sheenmapmaskframe"
+			"animatedtextureframerate" 		"40"
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

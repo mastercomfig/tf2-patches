@@ -1,0 +1,66 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"models/workshop/player/items/soldier/mantreads/mantreads"
+
+	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost" "0.2"	
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[1 2.5 5]"	
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512.vtf"	
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
+	"$speccolor" "1"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$basephongexponent" "15"
+	"$basephongboost" "3"
+	
+	"$rimlight" "1"					
+	"$rimlightexponent" "6"		
+	"$rimlightboost" "0.3"
+
+	"360?$color2" "[ 0.8 0.8 0.8 ]"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"$sheenPassEnabled" "1"
+
+	"$sheenmap" 		"cubemaps/cubemap_sheen001"
+	"$sheenmapmask" 		"Effects/AnimatedSheen/animatedsheen0"
+	"$sheenmaptint" 		"[ 1 1 1 ]"
+	"$sheenmapmaskframe" 	"0"
+	"$sheenindex" 		"0"
+
+	"$yellow" "0"
+
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

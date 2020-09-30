@@ -1,23 +1,29 @@
-"VertexLitGeneric"
+"VertexlitGeneric"
 {
 	"$baseTexture" "models/workshop/player/items/pyro/threea_nabler/threea_nabler"
-	"$bumpmap" "models/effects/flat_normal" 
-	"$lightwarptexture"		"models/player/pyro/pyro_lightwarp"
-	"$phong"		"1"
-	"$phongexponent"		"25"
-	"$phongboost"		"2"
-	"$phongfresnelranges"	"[.3 1 8]"
-	"$rimlight"		"1"
-	"$rimlightexponent"		"4"
-	"$rimlightboost"		"2"
-	"$bumpmapalphaphongmask"		"0"
+
+	"$detail" "effects/tiledfire/fireLayeredSlowTiled512"
+	"$detailscale" "5"
+	"$detailblendfactor" .01
+	"$detailblendmode" 6
+
 	"$basemapalphaphongmask" 1
-	"$cloakPassEnabled"		"1"
-	"$detail"		"effects/tiledfire/fireLayeredSlowTiled512"
-	"$detailscale"		"5"
-	"$detailblendfactor"		"0"
-	"$detailblendmode"		"6"
-	"$yellow"		"0"
+
+	"$yellow" "0"
+
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "2"
+	"$lightwarptexture" "models/player/pyro/pyro_lightwarp"
+	"$phongfresnelranges"	"[.3 1 8]"
+
+	"$rimlight" "1"												// To enable rim lighting (requires phong)
+	"$rimlightexponent" "4"										// Exponent for phong component of rim lighting
+	"$rimlightboost" "2"										// Boost for ambient cube component of rim lighting
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
 	"Proxies"
 	{
 		"invis"

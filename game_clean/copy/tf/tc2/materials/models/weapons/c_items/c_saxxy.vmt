@@ -1,0 +1,63 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "models/weapons/c_items/c_saxxy"	
+	"$yellow" "0"
+
+	"$envmap" "cubemaps/cubemap_gold001"
+	"$envmaptint" "[1 .95 .3]"
+	
+	"$basemapalphaphongmask"	"1"
+
+	"$phong" "1"
+	"$phongexponent" "50"
+	"$phongboost" "2"
+	"$phongfresnelranges"	"[.2 1 4]"
+		
+	"$lightwarptexture" "models\lightwarps\weapon_lightwarp"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"
+	"$rimlightboost" "2"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+
+	"$glowcolor" "1"
+
+	"Proxies"
+	{
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"invis"
+		{
+		}
+		"ModelGlowColor"
+		{
+			"resultVar" "$glowcolor"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$selfillumtint"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$glowcolor"
+			"resultVar" "$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1" "$color2"
+			"srcVar2" "$yellow"
+			"resultVar" "$color2"
+		}
+	}
+}

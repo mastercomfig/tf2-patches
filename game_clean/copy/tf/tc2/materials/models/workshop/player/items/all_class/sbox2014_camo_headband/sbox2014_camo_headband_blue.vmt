@@ -1,0 +1,65 @@
+"VertexLitGeneric"
+{
+	"$basetexture"		"models/workshop/player/items/all_class/sbox2014_camo_headband/sbox2014_camo_headband_color"
+	"$bumpmap"		"models/workshop/player/items/all_class/sbox2014_camo_headband/sbox2014_camo_headband_normal"
+	"$lightwarptexture"		"models/player/pyro/pyro_lightwarp"
+	"$phong"		"1"
+	"$phongexponent"		"2.000000"
+	"$phongboost"		"0.700000"
+	"$phongfresnelranges"		"[.25 .5 1]"
+	"$rimlight"		"1"
+	"$rimlightexponent"		"0.500000"
+	"$rimlightboost"		"0.200000"
+	"$blendtintbybasealpha"		"1"
+	"$blendtintcoloroverbase"		"0"
+	"$colortint_base"		"{ 100 130 140 }"
+	"$color2"		"{ 100 130 140 }"
+	"$colortint_tmp"		"[0 0 0]"
+	"$bumpmapalphaphongmask"		"1"
+	"$cloakPassEnabled"		"1"
+	"$detail"		"effects/tiledfire/fireLayeredSlowTiled512"
+	"$detailscale"		"5"
+	"$detailblendfactor"		"0"
+	"$detailblendmode"		"6"
+	"$yellow"		"0"
+	">=DX90"
+	{
+		"$selfillum"		"0"
+	}
+	"proxies"
+	{
+		"invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar"		"$detail"
+			"animatedtextureframenumvar"		"$detailframe"
+			"animatedtextureframerate"		"30"
+		}
+		"BurnLevel"
+		{
+			"resultVar"		"$detailblendfactor"
+		}
+		"ItemTintColor"
+		{
+			"resultVar"		"$colortint_tmp"
+		}
+		"SelectFirstIfNonZero"
+		{
+			"srcVar1"		"$colortint_tmp"
+			"srcVar2"		"$colortint_base"
+			"resultVar"		"$color2"
+		}
+		"YellowLevel"
+		{
+			"resultVar"		"$yellow"
+		}
+		"Multiply"
+		{
+			"srcVar1"		"$color2"
+			"srcVar2"		"$yellow"
+			"resultVar"		"$color2"
+		}
+	}
+}

@@ -1,0 +1,19 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models\player\items\crafting\coin_invasion"
+	"$PhongExponentTexture" "models\player\items\crafting\coin_invasion_exponent"
+	
+	"$envmap" "cubemaps/cubemap_sheen001"
+	"$envmaptint" "[ 0 .8 .7]"
+	
+	"$basealphaenvmapmask" "1"
+
+	"$phong" "1"
+	"$phongboost" "5"	
+	"$phongfresnelranges"	"[.25 .5 1]"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "0.5"
+	"$rimlightexponent" "2"	
+	"$rimlightboost" "0.25"
+}
