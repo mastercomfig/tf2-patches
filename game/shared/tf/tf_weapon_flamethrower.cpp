@@ -24,7 +24,6 @@
 	#include "explode.h"
 	#include "tf_player.h"
 	#include "tf_gamestats.h"
-	#include "ilagcompensationmanager.h"
 	#include "collisionutils.h"
 	#include "tf_team.h"
 	#include "tf_obj.h"
@@ -597,28 +596,11 @@ void CTFFlameThrower::PrimaryAttack()
 			RestartParticleEffect();
 		}
 	}
-#endif
 
-#if !defined (CLIENT_DLL)
-	// Let the player remember the usercmd he fired a weapon on. Assists in making decisions about lag compensation.
-	pOwner->NoteWeaponFired();
-
+	C_CTF_GameStats.Event_PlayerFiredWeapon( pOwner, IsCurrentAttackACrit() );
+#else
 	pOwner->SpeakWeaponFire();
 	CTF_GameStats.Event_PlayerFiredWeapon( pOwner, m_bCritFire );
-
-	// Move other players back to history positions based on local player's lag
-	lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
-
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
-	}
-
-#endif
-#ifdef CLIENT_DLL
-	C_CTF_GameStats.Event_PlayerFiredWeapon( pOwner, IsCurrentAttackACrit() );
 #endif
 
 	float flFiringInterval = m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay;
@@ -713,17 +695,6 @@ void CTFFlameThrower::PrimaryAttack()
 
 	m_flNextPrimaryAttack = gpGlobals->curtime + flFiringInterval;
 	m_flTimeWeaponIdle = gpGlobals->curtime + flFiringInterval;
-
-#if !defined (CLIENT_DLL)
-	lagcompensation->FinishLagCompensation( pOwner );
-
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->FinishLagCompensation( pOwner );
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
