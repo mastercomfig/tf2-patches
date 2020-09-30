@@ -1320,7 +1320,7 @@ void CObjectSentrygun::Attack()
 		// Crit canteen 2x boost
 		if (GetBuilder() && GetBuilder()->m_Shared.InCond(TF_COND_CRITBOOSTED_USER_BUFF))
 		{
-			vecFireRateBoosts.push_back(0.5f);
+			vecFireRateBoosts.push_back(0.4f);
 		}
 		// ==== END FIRING SPEED BOOSTS ====
 
