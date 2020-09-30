@@ -1281,7 +1281,7 @@ void CObjectSentrygun::Attack()
 		}
 		// ==== END BASE FIRE INTERVAL ====
 
-		std::vector<int> vecFireRateBoosts;
+		std::vector<float> vecFireRateBoosts = {};
 
 		// ==== FIRING SPEED BOOSTS ====
 
@@ -1301,10 +1301,20 @@ void CObjectSentrygun::Attack()
 
 		// Wrangler "double" firing speed
 		// This is different for minis vs regular because of how the boost worked before the firing speed fix.
-		// Technically, level 2s and 3s had a slightly lower boost, but for simplicity, the level 1 boost is used. (66% vs 60%)
 		if ( m_bPlayerControlled )
 		{
-			vecFireRateBoosts.push_back(IsMiniBuilding() ? 0.5f : 0.6f);
+			if (IsMiniBuilding())
+			{
+				vecFireRateBoosts.push_back(0.5f);
+			}
+			else if (m_iUpgradeLevel == 1)
+			{
+				vecFireRateBoosts.push_back(0.6f);
+			}
+			else
+			{
+				vecFireRateBoosts.push_back(2.0f / 3.0f);
+			}
 		}
 
 		// Crit canteen 2x boost
