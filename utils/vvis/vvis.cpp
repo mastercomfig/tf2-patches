@@ -916,6 +916,23 @@ int ParseCommandLine( int argc, char **argv )
 			numthreads = atoi (argv[i+1]);
 			i++;
 		}
+		else if (!Q_stricmp(argv[i], "-showprogress"))
+		{
+			if (++i < argc)
+			{
+				showprogress = (float)atof(argv[i]);
+				if (showprogress < 0)
+				{
+					Warning("Error: expected positive value after '-showprogress'\n");
+					return -1;
+				}
+			}
+			else
+			{
+				Warning("Error: expected a value after '-showprogress'\n");
+				return -1;
+			}
+		}
 		else if (!Q_stricmp(argv[i], "-fast"))
 		{
 			Msg ("fastvis = true\n");
@@ -1024,6 +1041,7 @@ void PrintUsage( int argc, char **argv )
 		"  -game <directory>     : Same as -vproject.\n"
 		"\n"
 		"Other options:\n"
+		"  -showprogress   : Show progress bar, showprogress 2-5 show more detailed progress. showprogress 1 is default\n"
 		"  -novconfig      : Don't bring up graphical UI on vproject errors.\n"
 		"  -radius_override: Force a vis radius, regardless of whether an\n"
 		"  -mpi_pw <pw>    : Use a password to choose a specific set of VMPI workers.\n"

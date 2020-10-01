@@ -19,6 +19,7 @@
 #include "loadcmdline.h"
 #include "byteswap.h"
 #include "worldvertextransitionfixup.h"
+#include "pacifier.h"
 
 extern float		g_maxLightmapDimension;
 
@@ -915,6 +916,23 @@ int RunVBSP( int argc, char **argv )
 			numthreads = atoi (argv[i+1]);
 			i++;
 		}
+		else if (!Q_stricmp(argv[i], "-showprogress"))
+		{
+			if (++i < argc)
+			{
+				showprogress = (float)atof(argv[i]);
+				if (showprogress < 0)
+				{
+					Warning("Error: expected positive value after '-showprogress'\n");
+					return -1;
+				}
+			}
+			else
+			{
+				Warning("Error: expected a value after '-showprogress'\n");
+				return -1;
+			}
+		}
 		else if (!Q_stricmp(argv[i],"-glview"))
 		{
 			glview = true;
@@ -1195,6 +1213,7 @@ int RunVBSP( int argc, char **argv )
 		{
 			Warning(
 				"Other options  :\n"
+				"  -showprogress   : Show progress bar, showprogress 2-5 show more detailed progress. showprogress 1 is default\n"
 				"  -novconfig   : Don't bring up graphical UI on vproject errors.\n"
 				"  -threads     : Control the number of threads vbsp uses (defaults to the # of\n"
 				"                 processors on your machine).\n"

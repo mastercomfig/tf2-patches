@@ -19,6 +19,7 @@
 #include "tools_minidump.h"
 #include "loadcmdline.h"
 #include "byteswap.h"
+#include "pacifier.h"
 
 #define ALLOWDEBUGOPTIONS (0 || _DEBUG)
 
@@ -2463,6 +2464,23 @@ int ParseCommandLine( int argc, char **argv, bool *onlydetail )
 				return -1;
 			}
 		}
+		else if (!Q_stricmp(argv[i], "-showprogress"))
+		{
+			if (++i < argc)
+			{
+				showprogress = (float)atof(argv[i]);
+				if (showprogress < 0)
+				{
+					Warning("Error: expected positive value after '-showprogress'\n");
+					return -1;
+				}
+			}
+			else
+			{
+				Warning("Error: expected a value after '-showprogress'\n");
+				return -1;
+			}
+		}
 		else if ( !Q_stricmp(argv[i], "-lights" ) )
 		{
 			if ( ++i < argc && *argv[i] )
@@ -2812,6 +2830,7 @@ void PrintUsage( int argc, char **argv )
 		"  -game <directory>     : Same as -vproject.\n"
 		"\n"
 		"Other options:\n"
+		"  -showprogress   : Show progress bar, showprogress 2-5 show more detailed progress. showprogress 1 is default\n"
 		"  -novconfig      : Don't bring up graphical UI on vproject errors.\n"
 		"  -dump           : Write debugging .txt files.\n"
 		"  -dumpnormals    : Write normals to debug files.\n"
