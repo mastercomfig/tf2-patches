@@ -9,8 +9,6 @@
 #include "basetypes.h"
 #include "pacifier.h"
 #include "tier0/dbg.h"
-#include "threadtools.h"
-
 
 static int g_LastPacifierDrawn = -1;
 static bool g_bPacifierSuppressed = false;
@@ -39,13 +37,13 @@ void UpdatePacifier( float flPercent )
 		{
 			for (int i = g_LastPacifierDrawn + 1; i <= iCur; i++)
 			{
-				if (!(i % 10))
+				if (!(i % 10) )
 				{
 					Msg("%d", i / 10);
 				}
 				else
 				{
-					if (i != 100)
+					if (i != 100 && i % 10 == 2 || i % 10 == 5 || i % 10 == 7)
 					{
 						Msg(".");
 					}
@@ -103,7 +101,10 @@ void UpdatePacifier( float flPercent )
 void EndPacifier( bool bCarriageReturn )
 {
 	UpdatePacifier(1);
-	
+	if (showprogress > 1)
+	{
+		Msg("00%%");
+	}
 	if( bCarriageReturn && !g_bPacifierSuppressed )
 		Msg("\n");
 }
