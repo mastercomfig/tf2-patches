@@ -3591,23 +3591,6 @@ bool CGameMovement::CheckWater( void )
 void CGameMovement::SetGroundEntity( trace_t *pm )
 {
 	CBaseEntity *newGround = pm ? pm->m_pEnt : NULL;
-
-	/*Prevent bug where player could stop dead while surfing upon colliding with a new slope
-	This is a port of the groundfix sourcemod plugin by jayessZA & pancakelarry (steamid)
-	https://github.com/laurirasanen/groundfix/blob/master/scripting/groundfix.sp#L246 */
-	if (newGround && pm->plane.normal[2] > 0.7 && pm->plane.normal[2] < 1.0 && DotProduct(mv->m_vecVelocity, pm->plane.normal) < 0.0) // not flat ground, is a slope (but not a surf ramp), moving up
-	{
-		Vector vPredictedVel = mv->m_vecVelocity;
-		vPredictedVel[2] -= (0.5f * GetCurrentGravity() * gpGlobals->frametime);
-		ClipVelocity(vPredictedVel, pm->plane.normal, vPredictedVel, 1);
-
-		if (vPredictedVel[2] > 250.0)
-		{
-			DevMsg(1, "Prevented slope bug!\n");
-			return;
-		}
-	}
-
 	CBaseEntity *oldGround = player->GetGroundEntity();
 	Vector vecBaseVelocity = player->GetBaseVelocity();
 
