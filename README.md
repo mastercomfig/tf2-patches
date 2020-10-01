@@ -90,7 +90,7 @@ Dependencies (libraries must be i686):
 - GCC
 - automake
 - autoconf
-- m4
+
 - `libunwind`
 - glibc
 - freetype
