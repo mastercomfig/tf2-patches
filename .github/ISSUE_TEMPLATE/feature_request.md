@@ -8,20 +8,20 @@ assignees:
 ---
 
 ### Description
-<!--
-A clear and concise description of what the idea is
--->
+<!-- A clear and concise description of what the idea is -->
 
 ### Checklist
-<!-- You do not have to answer "yes" to all of these to suggest an idea -->
+<!-- You MUST answer "yes" to the following to suggest an idea -->
+<!-- To tick a checkbox, place an 'x' in it, like so: [x] -->
 - [ ] None of the open *or* closed issues document this idea.
 - [ ] This is a new idea, not a bug.
 - [ ] This idea does not seriously affect game balance.
-- [ ] This idea is for the code of the game, not for textures, sounds, or other resources.
-- [ ] This is not an idea for new game content (e.g. new weapons, maps, sounds).
 - [ ] This is obviously an improvement, not something that people commonly disagree on.
+- [ ] This is not an idea for new game content (e.g. new weapons, maps, sounds).
 
-<!-- You do not have to answer "yes" to any of these, this is just additional context -->
+<!-- You do NOT have to answer "yes" to the following, but please mark them if relevant -->
+<!-- To tick a checkbox, place an 'x' in it, like so: [x] -->
+- [ ] This idea is for the code of the game, not for textures, sounds, or other resources.
 - [ ] This idea has been implemented in vanilla TF2.
 - [ ] There is proof that this idea is well liked (e.g. a history of use of a similar mod in a competitive league).
 - [ ] This idea has been implemented in a mod. <!-- Insert link -->
@@ -29,8 +29,10 @@ A clear and concise description of what the idea is
 - [ ] This idea is for internal procedures or tooling (e.g. improving the build process, supporting new systems).
 
 ### Screenshots
-<!-- Add screenshots to help explain your idea -->
+<!-- Add screenshots or videos to help explain your idea -->
 
 ### Alternatives
 <!-- Alternative implementations of this idea -->
-1.
+1. 
+2. 
+3. 
