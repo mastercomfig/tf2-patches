@@ -1,0 +1,120 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models\bots\demo\demo_buster_red"
+	"$bumpmap" "models\bots\demo\demo_buster_normal"
+	"$selfillum" "1"
+	
+	"$phong" "1"
+	"$phongexponent" "200"
+	"$phongboost" "4"	
+	"$phongfresnelranges"	"[.5 .7 1]"
+	"$halflambert" "0"
+//	"$phongexponenttexture" "models\bots\classes\demo_bot\demo_bot_exp"
+
+	"$lightwarptexture" "models\lightwarps\robot_lightwarp"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "1"				
+	"$rimlightboost" "2"
+	"$rimmask" "1"
+	
+	$glowcolor "[0 0 0]"
+	
+	"$commweapon"	"0"
+	
+	"$tempvar" "0"
+	
+	"$commadd_phongexponent" "30"
+	"$commadd_phongboost" 	"22.5"
+	
+	"$basephongexponent" "15"
+	"$basephongboost" "5"
+
+//	"$blendtintbybasealpha" 1
+
+//	"$envmap" "env_cubemap"
+//	"$envmaptint""[.2 .2 .2]" 
+//	"$EnvmapMask" "models\props_vehicles\train_box_spec"
+//	"$envmapfresnel" "1"
+//	"$envmapFresnelMinMaxExp" "[1 1 1]"
+
+	"$yellow" "0"
+	"$one" "1"
+
+	// Cloaking
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"spy_invis"
+		{
+		}
+		"AnimatedTexture"
+		{
+			"animatedtexturevar" "$detail"
+			"animatedtextureframenumvar" "$detailframe"
+			"animatedtextureframerate" 30
+		}
+		"BurnLevel"
+		{
+			"resultVar" "$detailblendfactor"
+		}
+		"YellowLevel"
+		{
+			"resultVar" "$yellow"
+		}
+		"Equals"
+		{
+			"srcVar1"  "$yellow"
+			"resultVar" "$color2"
+		}
+
+//		"weapon_invis"
+//		{
+//		}
+//		"ModelGlowColor"
+//		{
+//			"resultVar" "$glowcolor"
+//		}
+//		"Equals"
+//		{
+//			"srcVar1"  "$glowcolor"
+//			"resultVar" "$selfillumtint"
+//		}
+//		"Equals"
+//		{
+//			"srcVar1"  "$glowcolor"
+//			"resultVar" "$color2"
+//		}
+//		"CommunityWeapon"
+//		{
+//			"resultVar" "$commweapon"
+//		}
+//		"Multiply"
+//		{
+//			"srcVar1"  "$commweapon"
+//			"srcVar2"  "$commadd_phongexponent" 
+//			"resultVar" "$tempvar" 
+//		}
+//		"Add"
+//		{
+//			"srcVar1"  "$tempvar" 
+//			"srcVar2"  "$basephongexponent" 
+//			"resultVar" "$phongexponent" 
+//		}
+//		"Multiply"
+//		{
+//			"srcVar1"  "$commweapon"
+//			"srcVar2"  "$commadd_phongboost" 
+//			"resultVar" "$tempvar" 
+//		}
+//		"Add"
+//		{
+//			"srcVar1"  "$tempvar" 
+//			"srcVar2"  "$basephongboost"
+//			"resultVar" "$phongboost" 
+//		}
+
+	}
+}
