@@ -55,7 +55,7 @@ enum
 // Internal maximums for sizes. Don't use directly, use IMaterialSystem::GetMaxToRender()
 enum
 {
-	INDEX_BUFFER_SIZE = 32768,
+	INDEX_BUFFER_SIZE = 65504,
 	DYNAMIC_VERTEX_BUFFER_MEMORY = (1024 + 512) * 1024,
 	DYNAMIC_VERTEX_BUFFER_MEMORY_SMALL = 384 * 1024, // Only allocate this much during map transitions
 };

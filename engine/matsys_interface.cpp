@@ -2113,7 +2113,7 @@ void WorldStaticMeshCreate( void )
 //			|| SurfaceHasDispInfo( surfID ) )
 		if( SurfaceHasDispInfo( surfID ) )
 		{
-			MSurf_VertBufferIndex( surfID ) = INT_MAX;
+			MSurf_VertBufferIndex(surfID) = 0xFFFF;
 			continue;
 		}
 

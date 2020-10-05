@@ -5528,6 +5528,14 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 		pMesh = pBaseMesh;
 	}
 
+	// Static mesh? Max you can use is 65535
+	if (!IsDynamicMesh(pMesh))
+	{
+		*pMaxVerts = 65535;
+		*pMaxIndices = 65535;
+		return;
+	}
+
 	CVertexBuffer *pVertexBuffer = pBaseMesh->GetVertexBuffer();
 	CIndexBuffer *pIndexBuffer = pBaseMesh->GetIndexBuffer();
 
@@ -5541,6 +5549,10 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 	if ( !bMaxUntilFlush )
 	{
 		*pMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / pVertexBuffer->VertexSize();
+		if (*pMaxVerts > 65535)
+		{
+			*pMaxVerts = 65535;
+		}
 		*pMaxIndices = pIndexBuffer ? pIndexBuffer->IndexCount() : 0;
 		return;
 	}
@@ -5550,6 +5562,10 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 	if ( *pMaxVerts == 0 )
 	{
 		*pMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / pVertexBuffer->VertexSize();
+	}
+	if (*pMaxVerts > 65535)
+	{
+		*pMaxVerts = 65535;
 	}
 	if ( *pMaxIndices == 0 )
 	{
@@ -5574,7 +5590,7 @@ int CMeshMgr::GetMaxVerticesToRender( IMaterial *pMaterial )
 	}
 
 	int nMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / nVertexSize;
-	return nMaxVerts;
+	return MIN(nMaxVerts, 65535);
 }
 
 int CMeshMgr::GetMaxIndicesToRender( )
