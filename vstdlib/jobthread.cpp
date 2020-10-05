@@ -384,8 +384,6 @@ private:
 
 	int Run()
 	{
-
-
 		// Wait for either a call from the master thread, or an item in the queue...
 		unsigned waitResult;
 		bool	 bExit = false;
@@ -631,11 +629,7 @@ int CThreadPool::YieldWait( CThreadEvent **pEvents, int nEvents, bool bWaitAll, 
 
 int CThreadPool::YieldWait( CJob **ppJobs, int nJobs, bool bWaitAll, unsigned timeout )
 {
-	CUtlVectorFixed<CThreadEvent *, 64> handles;
-	if ( nJobs > handles.NumAllocated() - 2 )
-	{
-		return TW_FAILED;
-	}
+	CUtlVector<CThreadEvent*> handles(0, nJobs);
 
 	for ( int i = 0; i < nJobs; i++ )
 	{

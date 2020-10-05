@@ -173,6 +173,11 @@ void CL_ReloadFilesInList( IFileList *pFilesToReload )
 
 	ResourceLocker crashPreventer;
 
+	// Handle KeyValues
+	// TODO: only reload paths we need to reload
+	// this is still better than completely disabling the KV cache...
+	KeyValuesSystem()->InvalidateCache();
+
 	// Handle materials..
 	materials->ReloadFilesInList( pFilesToReload );
 
@@ -2775,6 +2780,7 @@ void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOl
 
 void CL_InitCloudSettingsCvar()
 {
+#ifdef VALVE_PURE
 	if ( IsPC()	&& Steam3Client().SteamRemoteStorage() )
 	{
 		int iCloudSettings = STEAMREMOTESTORAGE_CLOUD_OFF;
@@ -2784,6 +2790,7 @@ void CL_InitCloudSettingsCvar()
 		cl_cloud_settings.SetValue( iCloudSettings );
 	}
 	else
+#endif
 	{
 		// If not on PC or steam not available, set to 0 to make sure no replication occurs or is attempted
 		cl_cloud_settings.SetValue( STEAMREMOTESTORAGE_CLOUD_OFF );

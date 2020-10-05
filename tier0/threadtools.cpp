@@ -676,7 +676,6 @@ bool CThreadEvent::Set()
 			    if (condition)
 			    {
 				    // TODO: unfortunately, we have to take the pessimistic case here, since we will be notifying multiple listeners within this queue
-				    // HOWEVER, this is only a problem for the wait all case in wait for events, since that's the only listener which will get a lock on our event
 				    condition->notify_one();
 				    condition.reset();
 			    }
@@ -1530,7 +1529,16 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			CStdNullLock lock;
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock, lPredSignaled);
+				//condition->wait(lock, lPredSignaled)
+				// !! BUG BUG: workaround an deadlock in material system. once fixed, use above code.
+				// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
+				while (true)
+				{
+				    if (condition->wait_for(lock, std::chrono::milliseconds(5), lPredSignaled))
+				    {
+						break;
+				    }
+				}
 				bRet = true;
 			}
 			else
@@ -1552,59 +1560,6 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		return 0;
 	}
 	return TW_TIMEOUT;
-
-#if 0
-	int iLoops = 0;
-	do
-	{
-		int WaitStatus;
-		bool bWaitedAll = true;
-		for (int i = 0; i < nEvents; i++)
-		{
-			if (bWaitAll)
-			{
-				if (!pEvents[i]->m_bSignaled)
-				{
-					bWaitedAll = false;
-					break;
-				}
-			}
-			else
-			{
-				if (pEvents[i]->m_bSignaled)
-				{
-					WaitStatus = i;
-					return WaitStatus;
-				}
-			}
-		}
-		if (bWaitAll && bWaitedAll)
-		{
-			return 0;
-		}
-		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
-		{
-			return TW_TIMEOUT;
-		}
-		if (iLoops > 90000 || iLoops % 1000 == 0)
-		{
-			// If we've been busy waiting for quite a while, we are probably idle, so sleep for 1ms constantly.
-			// Otherwise, do a full sleep once in a while to throttle the busy wait.
-			ThreadSleepEx(1);
-		}
-		else if (iLoops % 20 == 0)
-		{
-			// Yield to OS more frequently, so we can get some throttling to the busy wait without increasing latency too much.
-			ThreadSleepEx();
-		}
-		else
-		{
-			// Pause on any other loop, so we don't inefficiently busy wait.
-			ThreadPause();
-		}
-		++iLoops;
-	} while (true);
-#endif
 }
 
 void CThreadRWLock::LockForWrite()

@@ -18,11 +18,6 @@
 	#include "crypto.h"
 #endif
 
-
-#ifdef IS_WINDOWS_PC
-#include <windows.h>
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -282,9 +277,6 @@ CPackedStore::CPackedStore( char const *pFileBasename, char *pszFName, IBaseFile
 		StripTrailingString( m_pszFileBaseName, ".vpk" );
 		StripTrailingString( m_pszFileBaseName, "_dir" );
 		sprintf( pszFName, "%s_dir.vpk", m_pszFileBaseName );
-#ifdef _WIN32
-		Q_strlower( pszFName );
-#endif
 		CInputFile dirFile( pszFName );
 
 		// Try to load the VPK as a standalone (probably an addon) even if the standard _dir name is not present
@@ -460,11 +452,7 @@ CPackedStore::~CPackedStore( void )
 	{
 		if ( m_FileHandles[i].m_nFileNumber != -1 )
 		{
-#ifdef IS_WINDOWS_PC
-			CloseHandle( m_FileHandles[i].m_hFileHandle );
-#else
 			m_pFileSystem->Close( m_FileHandles[i].m_hFileHandle );
-#endif
 
 		}
 	}
@@ -867,17 +855,9 @@ bool CPackedStoreReadCache::BCanSatisfyFromReadCache( uint8 *pOutData, CPackedSt
 // read a single line into the cache
 bool CPackedStoreReadCache::ReadCacheLine( FileHandleTracker_t &fHandle, CachedVPKRead_t &cachedVPKRead )
 {
-	cachedVPKRead.m_cubBuffer = 0;
-#ifdef IS_WINDOWS_PC
-	if ( cachedVPKRead.m_nFileFraction != fHandle.m_nCurOfs )
-		SetFilePointer ( fHandle.m_hFileHandle, cachedVPKRead.m_nFileFraction, NULL,  FILE_BEGIN); 
-	ReadFile( fHandle.m_hFileHandle, cachedVPKRead.m_pubBuffer, k_cubCacheBufferSize, (LPDWORD) &cachedVPKRead.m_cubBuffer, NULL );
-	SetFilePointer ( fHandle.m_hFileHandle, fHandle.m_nCurOfs, NULL,  FILE_BEGIN); 
-#else
 	m_pFileSystem->Seek( fHandle.m_hFileHandle, cachedVPKRead.m_nFileFraction, FILESYSTEM_SEEK_HEAD );
 	cachedVPKRead.m_cubBuffer = m_pFileSystem->Read( cachedVPKRead.m_pubBuffer, k_cubCacheBufferSize, fHandle.m_hFileHandle );
 	m_pFileSystem->Seek( fHandle.m_hFileHandle, fHandle.m_nCurOfs, FILESYSTEM_SEEK_HEAD );
-#endif
 	Assert( cachedVPKRead.m_hMD5RequestHandle == 0 );
 	if ( m_pFileTracker ) // file tracker doesn't exist in the VPK command line tool
 	{
@@ -1190,14 +1170,8 @@ int CPackedStore::ReadData( CPackedStoreFileHandle &handle, void *pOutData, int 
 			}
 			else
 			{
-#ifdef IS_WINDOWS_PC
-				if ( nDesiredPos != fHandle.m_nCurOfs )
-					SetFilePointer ( fHandle.m_hFileHandle, nDesiredPos, NULL,  FILE_BEGIN); 
-				ReadFile( fHandle.m_hFileHandle, pOutData, nNumBytes, (LPDWORD) &nRead, NULL );
-#else
 				m_pFileSystem->Seek( fHandle.m_hFileHandle, nDesiredPos, FILESYSTEM_SEEK_HEAD );
 				nRead = m_pFileSystem->Read( pOutData, nNumBytes, fHandle.m_hFileHandle );
-#endif
 				handle.m_nCurrentFileOffset += nRead;
 				fHandle.m_nCurOfs = nRead + nDesiredPos;
 			}
@@ -1222,25 +1196,15 @@ bool CPackedStore::HashEntirePackFile( CPackedStoreFileHandle &handle, int64 &nF
 
 	FileHandleTracker_t &fHandle = GetFileHandle( handle.m_nFileNumber );
 	fHandle.m_Mutex.Lock();
-	
-#ifdef IS_WINDOWS_PC
-	unsigned int fileSizeHigh;
-	unsigned int fileLength = GetFileSize( fHandle.m_hFileHandle, (LPDWORD) &fileSizeHigh );
-#else
+
 	unsigned int fileLength = m_pFileSystem->Size( fHandle.m_hFileHandle );
-#endif
 	nFileSize = fileLength;
 	MD5Context_t ctx;
 	memset(&ctx, 0, sizeof(MD5Context_t));
 	MD5Init(&ctx);
 
 	int nDesiredPos = nFileFraction;
-#ifdef IS_WINDOWS_PC
-	if ( nDesiredPos != fHandle.m_nCurOfs )
-		SetFilePointer ( fHandle.m_hFileHandle, nDesiredPos, NULL,  FILE_BEGIN); 
-#else
 	m_pFileSystem->Seek( fHandle.m_hFileHandle, nDesiredPos, FILESYSTEM_SEEK_HEAD );
-#endif
 
 	int nFractionLength = ( fileLength - nFileFraction );
 	if ( nFractionLength > nFractionSize )
@@ -1255,11 +1219,7 @@ bool CPackedStore::HashEntirePackFile( CPackedStoreFileHandle &handle, int64 &nF
 			break;
 
 		int nRead;
-#ifdef IS_WINDOWS_PC
-		ReadFile( fHandle.m_hFileHandle, tempBuf, chunkLen, (LPDWORD) &nRead, NULL );
-#else
 		nRead = m_pFileSystem->Read( tempBuf, chunkLen, fHandle.m_hFileHandle );
-#endif
 		MD5Update(&ctx, tempBuf, nRead);
 
 		curStartByte += CRC_CHUNK_SIZE;
@@ -1272,11 +1232,7 @@ bool CPackedStore::HashEntirePackFile( CPackedStoreFileHandle &handle, int64 &nF
 	fileHash.m_PackFileID = handle.m_pOwner->m_PackFileID;
 
 	// seek back to where it was
-#ifdef IS_WINDOWS_PC
-	SetFilePointer ( fHandle.m_hFileHandle, fHandle.m_nCurOfs, NULL,  FILE_BEGIN); 
-#else
 	m_pFileSystem->Seek( fHandle.m_hFileHandle, fHandle.m_nCurOfs, FILESYSTEM_SEEK_HEAD );
-#endif
 	fHandle.m_Mutex.Unlock();
 
 #ifdef COMPUTE_HASH_TIMES
@@ -1438,36 +1394,16 @@ FileHandleTracker_t & CPackedStore::GetFileHandle( int nFileNumber )
 		char pszDataFileName[MAX_PATH];
 		GetDataFileName( pszDataFileName, sizeof(pszDataFileName), nFileNumber );
 		m_FileHandles[nFileHandleIdx].m_nCurOfs = 0;
-#ifdef IS_WINDOWS_PC
-		m_FileHandles[nFileHandleIdx].m_hFileHandle = 
-			CreateFile( pszDataFileName,               // file to open
-						GENERIC_READ,          // open for reading
-						FILE_SHARE_READ,       // share for reading
-						NULL,                  // default security
-						OPEN_EXISTING,         // existing file only
-						FILE_ATTRIBUTE_NORMAL, // normal file
-						NULL);                 // no attr. template
-			
-		if ( m_FileHandles[nFileHandleIdx].m_hFileHandle != INVALID_HANDLE_VALUE )
-		{
-			m_FileHandles[nFileHandleIdx].m_nFileNumber = nFileNumber;
-		}
-#else
 		m_FileHandles[nFileHandleIdx].m_hFileHandle = m_pFileSystem->Open( pszDataFileName, "rb" );
 		if ( m_FileHandles[nFileHandleIdx].m_hFileHandle != FILESYSTEM_INVALID_HANDLE )
 		{
 			m_FileHandles[nFileHandleIdx].m_nFileNumber = nFileNumber;
 		}
-#endif
 		return m_FileHandles[nFileHandleIdx];
 	}
 	Error( "Exceeded limit of number of vpk files supported (%d)!\n", MAX_ARCHIVE_FILES_TO_KEEP_OPEN_AT_ONCE );
 	static FileHandleTracker_t invalid;
-#ifdef IS_WINDOWS_PC
-	invalid.m_hFileHandle = INVALID_HANDLE_VALUE;
-#else
 	invalid.m_hFileHandle = FILESYSTEM_INVALID_HANDLE;
-#endif
 	return invalid;
 }
 

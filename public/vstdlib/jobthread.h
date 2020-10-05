@@ -1225,7 +1225,8 @@ inline bool IThreadPool::YieldWait( CThreadEvent &event, unsigned timeout )
 
 inline bool IThreadPool::YieldWait( CJob *pJob, unsigned timeout )
 {
-	return ( YieldWait( &pJob, 1, true, timeout ) != TW_TIMEOUT );
+	CThreadEvent* pEvents[]{pJob->AccessEvent()};
+	return ( YieldWait( pEvents, 1, true, timeout ) != TW_TIMEOUT );
 }
 
 //-----------------------------------------------------------------------------
