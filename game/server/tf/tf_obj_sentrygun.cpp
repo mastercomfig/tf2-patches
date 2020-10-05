@@ -1300,7 +1300,7 @@ void CObjectSentrygun::Attack()
 		}
 
 		// Wrangler "double" firing speed
-		// This is different for minis vs regular because of how the boost worked before the firing speed fix.
+		// This is different for each type because of how the boost worked before the firing speed fix.
 		if ( m_bPlayerControlled )
 		{
 			if (IsMiniBuilding())
