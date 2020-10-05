@@ -3474,12 +3474,6 @@ void CMaterialSystem::BeginFrame( float frameTime )
 	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
 
 	IMatRenderContextInternal *pRenderContext = GetRenderContextInternal();
-	if ( g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED) )
-	{
-		tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync" );
-		pRenderContext->ForceHardwareSync();
-	}
-
 	pRenderContext->MarkRenderDataUnused( true );
 	pRenderContext->BeginFrame();
 	pRenderContext->SetFrameTime( frameTime );
@@ -3524,7 +3518,7 @@ void CMaterialSystem::ThreadExecuteQueuedContext( CMatQueuedRenderContext *pCont
 
 	Assert( m_bThreadHasOwnership );
 
-	m_nRenderThreadID = ThreadGetCurrentId(); 
+	m_nRenderThreadID = ThreadGetCurrentId();
 	IMatRenderContextInternal* pSavedRenderContext = m_pRenderContext.Get();
 	m_pRenderContext.Set( &m_HardwareRenderContext );
 	pContext->EndQueue( true );
@@ -3688,10 +3682,14 @@ void CMaterialSystem::EndFrame( void )
 				ThreadAcquire( true );
 			}
 
-			if ( m_pActiveAsyncJob && !m_pActiveAsyncJob->IsFinished() )
+			if ( m_pActiveAsyncJob )
 			{
-				m_pActiveAsyncJob->WaitForFinish();
-				if ( !IsPC() && g_config.ForceHWSync() )
+				if ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish();
+				}
+				// Sync with GPU if we had a job for it, even if it finished early on CPU!
+				if ( g_config.ForceHWSync() )
 				{
 					g_pShaderAPI->ForceHardwareSync();
 				}

@@ -3449,7 +3449,11 @@ void CShaderDeviceDx8::Present()
 #ifndef DX_TO_GL_ABSTRACTION
 			if (g_ShaderDeviceUsingD3D9Ex)
 			{
-				int flags = D3DPRESENT_DONOTWAIT;
+				int flags = 0;
+				if (m_PresentParameters.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE)
+				{
+					flags |= D3DPRESENT_DONOTWAIT;
+				}
 				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
 			}
 			else

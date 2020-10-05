@@ -1009,7 +1009,7 @@ public:
 	bool PopItem(T& pResult)
 	{
 		std::scoped_lock<std::mutex> lock(m);
-		if (q.empty())
+		if (Empty())
 			return false;
 		pResult = q.front();
 		q.pop_front();
@@ -1020,6 +1020,11 @@ public:
 	{
 		std::scoped_lock<std::mutex> lock(m);
 		q.remove(pItem);
+	}
+
+	bool Empty()
+	{
+		return q.empty();
 	}
 
 private:
@@ -1097,6 +1102,17 @@ public:
 
 private:
 	std::tuple<_Mutexes&...> m_Mutexes;
+};
+
+class CStdNullLock
+{
+public:
+	explicit CStdNullLock() noexcept {};
+	~CStdNullLock() noexcept {};
+	CStdNullLock(const CStdNullLock&) = delete;
+	CStdNullLock& operator=(const CStdNullLock&) = delete;
+	void lock() {};
+	void unlock() {};
 };
 
 PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
