@@ -31,7 +31,6 @@
 #include "tf_gamerules.h"
 #include "tf_gamestats.h"
 #include "ilagcompensationmanager.h"
-#include "tf_passtime_logic.h"
 #include "collisionutils.h"
 #include "tf_team.h"
 #include "tf_obj.h"
@@ -5465,13 +5464,6 @@ bool CTFWeaponBase::DeflectProjectiles()
 
 	lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
 
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
-	}
-
 	Vector vecEye = pOwner->EyePosition();
 	Vector vecForward, vecRight, vecUp;
 	AngleVectors( pOwner->EyeAngles(), &vecForward, &vecRight, &vecUp );
@@ -5537,13 +5529,6 @@ bool CTFWeaponBase::DeflectProjectiles()
 	}
 
 	lagcompensation->FinishLagCompensation( pOwner );
-
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->FinishLagCompensation( pOwner );
-	}
 
 	return true;
 }
