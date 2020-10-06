@@ -229,7 +229,7 @@ ConVar  sv_client_min_interp_ratio( "sv_client_min_interp_ratio", "1", FCVAR_REP
 ConVar  sv_client_max_interp_ratio( "sv_client_max_interp_ratio", "5", FCVAR_REPLICATED, 
 								   "This can be used to limit the value of cl_interp_ratio for connected clients "
 								   "(only while they are connected). If sv_client_min_interp_ratio is -1, "
-									"then this cvar has no effect. This cvar cannot be set to less than 2.",
+									"then this cvar has no effect.",
 									true, 2, false, 5);
 ConVar  sv_client_predict( "sv_client_predict", "-1", FCVAR_REPLICATED, 
 	"This can be used to force the value of cl_predict for connected clients "
