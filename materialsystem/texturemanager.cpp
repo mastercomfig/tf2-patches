@@ -1103,9 +1103,6 @@ private:
 		if (!pJob->m_pResultData->AsyncReadTextureFromFile(pScratchVTF, pJob->m_nAdditionalCreationFlags))
 			ReleaseAsyncReadBuffer(pScratchVTF);
 
-		if (!IsJobCancelled(pJob))
-		    pJob->m_pResultData->Download(NULL, pJob->m_nAdditionalCreationFlags);
-
 		m_completedJobs.PushItem( pJob );
 	}
 
@@ -2563,7 +2560,8 @@ void CTextureManager::CompleteAsyncLoad( AsyncLoadJob_t* pJob )
 
 	if ( !IsJobCancelled( pJob ) )
 	{
-		// We did the read and download already.
+		// Perform the download. We did the read already.
+		pJob->m_pResultData->Download(NULL, pJob->m_nAdditionalCreationFlags);
 		bDownloaded = true;
 	}
 	
