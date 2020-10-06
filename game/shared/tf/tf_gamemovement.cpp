@@ -2426,6 +2426,18 @@ void CTFGameMovement::CategorizePosition( void )
 				mv->SetAbsOrigin( org );
 			}
 		}
+		if (trace.plane.normal.z < 1.0f && DotProduct(mv->m_vecVelocity, trace.plane.normal) < 0.0f) // not flat ground, is a slope (but not a surf ramp), moving up)
+		{
+			Vector vPredictedVel = mv->m_vecVelocity;
+			vPredictedVel[2] -= (0.5f * GetCurrentGravity() * gpGlobals->frametime);
+			ClipVelocity(vPredictedVel, trace.plane.normal, vPredictedVel, 1);
+
+			if (vPredictedVel[2] > 250.0)
+			{
+				DevMsg(1, "Prevented slope bug!\n");
+				trace.m_pEnt = NULL; // We're going too fast to actually land on the ground, so nullify the ground ent
+			}
+		}
 		SetGroundEntity( &trace );
 	}
 }
