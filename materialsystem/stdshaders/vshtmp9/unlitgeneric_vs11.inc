@@ -156,6 +156,7 @@ public:
 		return ( 4 * m_nDETAIL ) + ( 8 * m_nENVMAP ) + ( 16 * m_nENVMAPCAMERASPACE ) + ( 16 * m_nENVMAPSPHERE ) + ( 32 * m_nVERTEXCOLOR ) + ( 64 * m_nSEPARATEDETAILUVS ) + 0;
 	}
 };
+#define shaderStaticTest_unlitgeneric_vs11 vsh_forgot_to_set_static_DETAIL + vsh_forgot_to_set_static_ENVMAP + vsh_forgot_to_set_static_ENVMAPCAMERASPACE + vsh_forgot_to_set_static_ENVMAPSPHERE + vsh_forgot_to_set_static_SEPARATEDETAILUVS +  vsh_forgot_to_set_static_VERTEXCOLOR + 0
 class unlitgeneric_vs11_Dynamic_Index
 {
 private:
@@ -223,3 +224,4 @@ public:
 		return ( 1 * m_nDOWATERFOG ) + ( 2 * m_nSKINNING ) + 0;
 	}
 };
+#define shaderDynamicTest_unlitgeneric_vs11 vsh_forgot_to_set_dynamic_DOWATERFOG + vsh_forgot_to_set_dynamic_SKINNING + 0
