@@ -68,9 +68,7 @@ typedef void *LPVOID;
 // Must be last header...
 #include "tier0/memdbgon.h"
 
-#ifdef _DEBUG
-#define THREADS_DEBUG
-#endif
+//#define THREADS_DEBUG
 
 // Need to ensure initialized before other clients call in for main thread ID
 #ifdef _WIN32
@@ -620,18 +618,29 @@ bool CThreadEvent::Set()
 #endif
 	// Lock because we want to sync m_bSignaled and m_listeningConditions
     std::unique_lock<std::mutex> lock(m_Mutex);
+
+
 	if (m_bSignaled)
 	{
+#ifdef THREADS_DEBUG
 		// We could let Set fallthrough here if the event is signaled, but it would mask race conditions.
 		return true;
 	}
 	m_bSignaled = true;
+#else
+    }
+	else
+	{
+		m_bSignaled = true;
+	}
+#endif
 
 	// If we are not going to notify a listener, then we can be less pessimistic and unlock now
 	// By pessimism, as we say above and in the below sections, we mean keeping the lock until the end of scope
 	// when we have already notified a condition variable which will be trying to get ahold of the lock before
 	// we reach the end of scope. Therefore, it's important that we unlock BEFORE we notify.
-	const bool bNoListeners = m_listeningConditions.Empty();
+	const size_t iListeners = m_listeningConditions.Size();
+	const bool bNoListeners = iListeners < 1;
 	if (bNoListeners)
 	{
 		lock.unlock();
@@ -670,19 +679,41 @@ bool CThreadEvent::Set()
 		// so, if we get to this point, it's because WaitForEvents got a lock and should be next in line
 		if (!bNoListeners)
 		{
+			bool bOneListener = iListeners == 1;
 	        std::shared_ptr<std::condition_variable_any> condition;
-		    while (m_listeningConditions.PopItem(condition))
-		    {
-			    if (condition)
-			    {
-				    // TODO: unfortunately, we have to take the pessimistic case here, since we will be notifying multiple listeners within this queue
-				    condition->notify_one();
-				    condition.reset();
-			    }
-		    }
+			if (bOneListener)
+			{
+				m_listeningConditions.PopItem(condition);
+				if (condition)
+				{
+					lock.unlock();
+					condition->notify_one();
+					condition.reset();
+				}
+				else
+				{
+					bOneListener = false;
+				}
+			}
+			else
+			{
+				while (m_listeningConditions.PopItem(condition))
+				{
+					if (condition)
+					{
+						// TODO: unfortunately, with multiple, we have to take the pessimistic case here, since we will be notifying multiple listeners within this queue
+						condition->notify_one();
+						condition.reset();
+					}
+				}
+			}
+		    
 
 		    // At least be non-pessimistic after we loop through
-			lock.unlock();
+			if (!bOneListener)
+			{
+				lock.unlock();
+			}
 		}
 
 		m_Condition.notify_all();
@@ -1529,16 +1560,7 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			CStdNullLock lock;
 			if (timeout == TT_INFINITE)
 			{
-				//condition->wait(lock, lPredSignaled)
-				// !! BUG BUG: workaround an deadlock in material system. once fixed, use above code.
-				// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
-				while (true)
-				{
-				    if (condition->wait_for(lock, std::chrono::milliseconds(5), lPredSignaled))
-				    {
-						break;
-				    }
-				}
+				condition->wait(lock, lPredSignaled);
 				bRet = true;
 			}
 			else

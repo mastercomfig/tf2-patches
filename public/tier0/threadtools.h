@@ -1009,7 +1009,7 @@ public:
 	bool PopItem(T& pResult)
 	{
 		std::scoped_lock<std::mutex> lock(m);
-		if (Empty())
+		if (q.empty())
 			return false;
 		pResult = q.front();
 		q.pop_front();
@@ -1022,9 +1022,9 @@ public:
 		q.remove(pItem);
 	}
 
-	bool Empty()
+	size_t Size()
 	{
-		return q.empty();
+		return q.size();
 	}
 
 private:
