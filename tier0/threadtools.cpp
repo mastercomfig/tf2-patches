@@ -1363,6 +1363,7 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		return TW_TIMEOUT;
 	}
 	bool bRet;
+	int iEventIndex = 0;
 	if (bWaitAll)
 	{
 		// We use the raw boolean because we have a lock on all events.
@@ -1413,6 +1414,18 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 						pEvents[i]->RemoveListener(condition);
 					}
 					condition.reset();
+
+				    // Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						for (int i = 0; i < nEvents; i++)
+						{
+							if (pEvents[i]->m_bAutoReset)
+							{
+								pEvents[i]->m_bSignaled = false;
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -1448,6 +1461,18 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 						pEvents[i]->RemoveListener(condition);
 					}
 					condition.reset();
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						for (int i = 0; i < nEvents; i++)
+						{
+							if (pEvents[i]->m_bAutoReset)
+							{
+								pEvents[i]->m_bSignaled = false;
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -1483,6 +1508,18 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 						pEvents[i]->RemoveListener(condition);
 					}
 					condition.reset();
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						for (int i = 0; i < nEvents; i++)
+						{
+							if (pEvents[i]->m_bAutoReset)
+							{
+								pEvents[i]->m_bSignaled = false;
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -1518,6 +1555,18 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 						pEvents[i]->RemoveListener(condition);
 					}
 					condition.reset();
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						for (int i = 0; i < nEvents; i++)
+						{
+							if (pEvents[i]->m_bAutoReset)
+							{
+								pEvents[i]->m_bSignaled = false;
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -1528,16 +1577,18 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 				break;
 			}
 		}
+		
 	}
 	else
 	{
 		// We use check here because we don't actually have a lock on the events.
-		auto lPredSignaled = [nEvents, &pEvents]
+		auto lPredSignaled = [nEvents, &pEvents, &iEventIndex]
 		{
 			for (int i = 0; i < nEvents; i++)
 			{
 				if (pEvents[i]->Check())
 				{
+					iEventIndex = i;
 					return true;
 				}
 			}
@@ -1559,16 +1610,16 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			CStdNullLock lock;
 			if (timeout == TT_INFINITE)
 			{
-				condition->wait(lock, lPredSignaled);
+				//condition->wait(lock, lPredSignaled);
 				// !! BUG BUG: workaround a deadlock in material system. once fixed, use above code.
 				// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
-                //while (true)
-                //{
-                //    if (condition->wait_for(lock, std::chrono::milliseconds(4), lPredSignaled))
-                //    {
-                //        break;
-                //    }
-                //}
+                while (true)
+                {
+                    if (condition->wait_for(lock, std::chrono::milliseconds(4), lPredSignaled))
+                    {
+                        break;
+                    }
+                }
 				bRet = true;
 			}
 			else
@@ -1582,12 +1633,11 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			}
 			condition.reset();
 		}
+		// Calling Check will auto reset, so no need to do it manually like we do for Wait All.
 	}
 	if (bRet)
 	{
-		// TODO: have fun trying to return the index of the event in a wait any
-		// we really don't use that functionality, but Win32 WaitForObjects does do it
-		return 0;
+		return iEventIndex;
 	}
 	return TW_TIMEOUT;
 }

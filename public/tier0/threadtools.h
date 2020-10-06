@@ -974,6 +974,7 @@ public:
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
 	bool m_bSignaled = false;
+	bool m_bAutoReset = false;
 	std::mutex m_Mutex;
 
 protected:
@@ -981,7 +982,6 @@ protected:
 	void AssertUseable();
 
 	std::condition_variable m_Condition;
-	bool m_bAutoReset = false;
 	bool m_bInitialized = false;
 
 private:
