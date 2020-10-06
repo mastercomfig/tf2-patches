@@ -891,7 +891,7 @@ static void GenerateLocalizedFullItemName
 				if ( pQualityLocalizedString )
 				{
 					loc_scpy_safe( szQuality, pQualityLocalizedString );
-					loc_scat_safe( szQuality, LOCCHAR(" ") );
+					loc_scat_safe( szQuality, LOCCHAR("") );
 				}
 			}
 		}
@@ -3579,7 +3579,7 @@ void CEconItemDescription::Generate_DirectX8Warning( const CLocalizationProvider
 #ifdef CLIENT_DLL
 	static ConVarRef mat_dxlevel( "mat_dxlevel" );
 	const CEconItemDefinition *pEconItemDefinition = pEconItem->GetItemDefinition();
-	// If less than 90, we’re in DX8 mode. 
+	// If less than 90, weÂ’re in DX8 mode. 
 	// Display warning if you are looking at a painthit item or case
 	if ( mat_dxlevel.GetInt() < 90 && pEconItemDefinition && ( pEconItemDefinition->GetItemCollectionDefinition() || pEconItemDefinition->GetCollectionReference() ) )
 	{
