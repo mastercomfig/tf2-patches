@@ -3474,6 +3474,13 @@ void CMaterialSystem::BeginFrame( float frameTime )
 	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
 
 	IMatRenderContextInternal *pRenderContext = GetRenderContextInternal();
+
+	if (g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED))
+	{
+		tmZoneFiltered(TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync");
+		pRenderContext->ForceHardwareSync();
+	}
+
 	pRenderContext->MarkRenderDataUnused( true );
 	pRenderContext->BeginFrame();
 	pRenderContext->SetFrameTime( frameTime );
@@ -3689,7 +3696,7 @@ void CMaterialSystem::EndFrame( void )
 					m_pActiveAsyncJob->WaitForFinish();
 				}
 				// Sync with GPU if we had a job for it, even if it finished early on CPU!
-				if ( g_config.ForceHWSync() )
+				if ( !IsPC() && g_config.ForceHWSync() )
 				{
 					g_pShaderAPI->ForceHardwareSync();
 				}
