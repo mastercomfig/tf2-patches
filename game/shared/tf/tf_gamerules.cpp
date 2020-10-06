@@ -893,12 +893,6 @@ extern ConVar tf_flag_caps_per_round;
 
 void cc_competitive_mode( IConVar *pConVar, const char *pOldString, float flOldValue )
 {
-	IGameEvent *event = gameeventmanager->CreateEvent( "competitive_state_changed" );
-	if ( event )
-	{
-		// Server-side here.  Client-side down below in the RecvProxy
-		gameeventmanager->FireEvent( event, true );
-	}
 }
 ConVar tf_competitive_preround_duration( "tf_competitive_preround_duration", "3", FCVAR_REPLICATED, "How long we stay in pre-round when in competitive games." );
 ConVar tf_competitive_preround_countdown_duration( "tf_competitive_preround_countdown_duration", "10.5", FCVAR_HIDDEN, "How long we stay in countdown when in competitive games." );
@@ -1131,13 +1125,6 @@ void RecvProxy_MatchSummary( const CRecvProxyData *pData, void *pStruct, void *p
 void RecvProxy_CompetitiveMode( const CRecvProxyData *pData, void *pStruct, void *pOut )
 {
 	*(bool*)(pOut) = ( pData->m_Value.m_Int > 0 );
-
-	IGameEvent *event = gameeventmanager->CreateEvent( "competitive_state_changed" );
-	if ( event )
-	{
-		// Client-side once it's actually happened
-		gameeventmanager->FireEventClientSide( event );
-	}
 }
 
 void RecvProxy_PlayerVotedForMap( const CRecvProxyData *pData, void *pStruct, void *pOut )
@@ -16632,6 +16619,8 @@ void CTFGameRules::SetUpVisionFilterKeyValues( void )
 	//pKVFlag = new KeyValues( "2" );	//TF_VISION_FILTER_HALLOWEEN
 	//pKVBlock->AddSubKey( pKVFlag );
 
+	m_pkvVisionFilterTranslationsParticle = m_pkvVisionFilterTranslations->FindKey("particles");
+
 	// **************************************************************************************************
 	// SOUNDS
 	pKVBlock = new KeyValues( "sounds" );
@@ -16931,14 +16920,28 @@ const char* CTFGameRules::TranslateEffectForVisionFilter( const char *pchEffectT
 		return pchEffectName;
 	}
 
-	CUtlVector<const char *> vecNames;
-	vecNames.AddToTail( pchEffectName );
-
 	// Swap the effect if the local player has an item that allows them to see it (Pyro Goggles)
 	bool bWeaponsOnly = FStrEq( pchEffectType, "weapons" );
 	int nVisionOptInFlags = GetLocalPlayerVisionFilterFlags( bWeaponsOnly );
 
-	KeyValues *pkvParticles = m_pkvVisionFilterTranslations->FindKey( pchEffectType );
+	// TODO(mastercoms): make sure effects use normal by DEFAULT instead of adding a replacement
+	// if (nVisionOptInFlags == 0)
+	// {
+	//	return pchEffectName;
+	// }
+	// the madness below adds a cost to EVERY effect otherwise
+	CUtlVector<const char*> vecNames;
+	vecNames.AddToTail(pchEffectName);
+
+	KeyValues* pkvParticles;
+	if (V_stricmp("particles", pchEffectType))
+	{
+		pkvParticles = m_pkvVisionFilterTranslationsParticle;
+	}
+	else
+	{
+		pkvParticles = m_pkvVisionFilterTranslations->FindKey(pchEffectType);
+	}
 	if ( pkvParticles )
 	{
 		for ( KeyValues *pkvFlag = pkvParticles->GetFirstTrueSubKey(); pkvFlag != NULL; pkvFlag = pkvFlag->GetNextTrueSubKey() )
@@ -17980,6 +17983,12 @@ CTFGameRules::~CTFGameRules()
 	{
 		m_pkvVisionFilterTranslations->deleteThis();
 		m_pkvVisionFilterTranslations = NULL;
+	}
+
+	if (m_pkvVisionFilterTranslationsParticle)
+	{
+		m_pkvVisionFilterTranslationsParticle->deleteThis();
+		m_pkvVisionFilterTranslationsParticle = NULL;
 	}
 
 	if ( m_pkvVisionFilterShadersMapWhitelist )

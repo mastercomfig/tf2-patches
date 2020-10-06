@@ -1120,6 +1120,7 @@ private:
 #else
 
 	KeyValues *m_pkvVisionFilterTranslations;
+	KeyValues *m_pkvVisionFilterTranslationsParticle;
 	KeyValues *m_pkvVisionFilterShadersMapWhitelist;
 
 	bool	m_bSillyGibs;

@@ -1298,8 +1298,6 @@ CHudStopWatch::CHudStopWatch( const char *pElementName ) : CHudElement( pElement
 	m_pStopWatchPointsLabel = new CExLabel( this, "StopWatchPointsLabel", "" );
 	m_pStopWatchImage = new ImagePanel( this, "StopWatchImageCaptureTime" );
 	m_pStopWatchDescriptionLabel = new CExLabel( this, "StopWatchDescriptionLabel", "" );
-
-	ListenForGameEvent( "competitive_state_changed" );
 }
 
 //-----------------------------------------------------------------------------
@@ -1531,17 +1529,6 @@ void CHudStopWatch::OnTick( void )
 			SetDialogVariable( "stopwatchlabel", wzScoreVal );	
 		}
 	}
-}
-
-void CHudStopWatch::FireGameEvent( IGameEvent * event )
-{
-	if ( FStrEq( event->GetName(), "competitive_state_changed" ) )
-	{
-		InvalidateLayout( false, true );
-		return;
-	}
-
-	CHudElement::FireGameEvent( event );
 }
 
 //-----------------------------------------------------------------------------

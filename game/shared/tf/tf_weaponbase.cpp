@@ -515,7 +515,7 @@ void CTFWeaponBase::Precache()
 const CTFWeaponInfo &CTFWeaponBase::GetTFWpnData() const
 {
 	const FileWeaponInfo_t *pWeaponInfo = &GetWpnData();
-	const CTFWeaponInfo *pTFInfo = dynamic_cast< const CTFWeaponInfo* >( pWeaponInfo );
+	const CTFWeaponInfo *pTFInfo = static_cast< const CTFWeaponInfo* >( pWeaponInfo );
 	Assert( pTFInfo );
 	return *pTFInfo;
 }

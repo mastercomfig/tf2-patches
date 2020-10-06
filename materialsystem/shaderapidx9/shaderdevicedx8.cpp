@@ -2210,7 +2210,7 @@ IDirect3DDevice9* CShaderDeviceDx8::InvokeCreateDevice( void* hWnd, int nAdapter
 	deviceCreationFlags = D3DCREATE_FPU_PRESERVE | D3DCREATE_HARDWARE_VERTEXPROCESSING;
 #endif
 
-#if 0	// with the changes for opengl to enable threading, we no longer need the d3d device to have threading guards
+#if 1	// with the changes for opengl to enable threading, we no longer need the d3d device to have threading guards
 #ifndef _X360
 	// Create the device with multi-threaded safeguards if we're using mat_queue_mode 2.
 	// The logic to enable multithreaded rendering happens well after the device has been created, 
