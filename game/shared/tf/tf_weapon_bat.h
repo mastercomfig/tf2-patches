@@ -160,7 +160,11 @@ public:
 
 	virtual float		GetShakeAmplitude( void )			{ return 0.0; }
 	virtual float		GetShakeRadius( void )				{ return 0.0; }
+
+	void				CreateBallTrail( void );
 	void				RemoveBallTrail( void );
+	
+	virtual void		IncrementDeflected( void );
 	
 	virtual bool		IsDestroyable( void ) OVERRIDE { return false; }
 
