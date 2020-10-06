@@ -12152,26 +12152,18 @@ bool CTFPlayer::CanAirDash( void ) const
 	if ( m_Shared.InCond( TF_COND_HALLOWEEN_SPEED_BOOST ) )
 		return true;
 
-	bool bScout = GetPlayerClass()->IsClass( TF_CLASS_SCOUT );
-	if ( !bScout )
-		return false;
+	int iNoAirDash = 0;
+	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
+
+	int iDashCount = ( !iNoAirDash && GetPlayerClass()->IsClass( TF_CLASS_SCOUT ) ) ? tf_scout_air_dash_count.GetInt() : 0;
 
 	if ( m_Shared.InCond( TF_COND_SODAPOPPER_HYPE ) )
 	{
-		if ( m_Shared.GetAirDash() < 5 )
-			return true;
-		else
- 			return false;
+		iDashCount += 4;
 	}
 
-	int iDashCount = tf_scout_air_dash_count.GetInt();
 	CALL_ATTRIB_HOOK_INT( iDashCount, air_dash_count );
 	if ( m_Shared.GetAirDash() >= iDashCount ) 
-		return false;
-
-	int iNoAirDash = 0;
-	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
-	if ( 1 == iNoAirDash )
 		return false;
 
 	return true;
