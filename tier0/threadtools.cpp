@@ -1559,16 +1559,16 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			CStdNullLock lock;
 			if (timeout == TT_INFINITE)
 			{
-				//condition->wait(lock, lPredSignaled);
+				condition->wait(lock, lPredSignaled);
 				// !! BUG BUG: workaround a deadlock in material system. once fixed, use above code.
 				// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
-                while (true)
-                {
-                    if (condition->wait_for(lock, std::chrono::milliseconds(4), lPredSignaled))
-                    {
-                        break;
-                    }
-                }
+                //while (true)
+                //{
+                //    if (condition->wait_for(lock, std::chrono::milliseconds(4), lPredSignaled))
+                //    {
+                //        break;
+                //    }
+                //}
 				bRet = true;
 			}
 			else

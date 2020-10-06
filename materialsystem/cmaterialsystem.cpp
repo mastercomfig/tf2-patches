@@ -38,7 +38,7 @@
 #endif
 
 // this is hooked into the engines convar
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 ConVar mat_forcemanagedtextureintohardware( "mat_forcemanagedtextureintohardware", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 

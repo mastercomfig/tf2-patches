@@ -98,7 +98,7 @@ static ConVar mat_supports_d3d9ex( "mat_supports_d3d9ex", "0", FCVAR_HIDDEN );
 static ConVar mat_forcedynamic( "mat_forcedynamic", "0", FCVAR_CHEAT );
 
 // this is hooked into the engines convar
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 
 //-----------------------------------------------------------------------------
