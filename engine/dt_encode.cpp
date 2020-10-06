@@ -222,52 +222,47 @@ void DecodeInfo::CopyVars( const DecodeInfo *pOther )
 
 void Int_Encode( const unsigned char *pStruct, DVariant *pVar, const SendProp *pProp, bf_write *pOut, int objectID )
 {
-	int nValue = pVar->m_Int;
-	
 	if ( pProp->GetFlags() & SPROP_VARINT)
 	{
 		if ( pProp->GetFlags() & SPROP_UNSIGNED )
 		{
-			pOut->WriteVarInt32( nValue );
+			pOut->WriteVarInt32( pVar->m_Int );
 		}
 		else
 		{
-			pOut->WriteSignedVarInt32( nValue );
+			pOut->WriteSignedVarInt32( pVar->m_Int );
 		}
 	}
 	else
 	{
-		// If signed, preserve lower bits and then re-extend sign if nValue < 0;
-		// if unsigned, preserve all 32 bits no matter what. Bonus: branchless.
-		int nPreserveBits = ( 0x7FFFFFFF >> ( 32 - pProp->m_nBits ) );
-		nPreserveBits |= ( pProp->GetFlags() & SPROP_UNSIGNED ) ? 0xFFFFFFFF : 0;
-		int nSignExtension = ( nValue >> 31 ) & ~nPreserveBits;
-
-		nValue &= nPreserveBits;
-		nValue |= nSignExtension;
-
 #ifdef DBGFLAG_ASSERT
 		// Assert that either the property is unsigned and in valid range,
 		// or signed with a consistent sign extension in the high bits
-		if ( pProp->m_nBits < 32 )
+		if (pProp->m_nBits < 32)
 		{
-			if ( pProp->GetFlags() & SPROP_UNSIGNED )
+			if (pProp->GetFlags() & SPROP_UNSIGNED)
 			{
-				AssertMsg3( nValue == pVar->m_Int, "Unsigned prop %s needs more bits? Expected %i == %i", pProp->GetName(), nValue, pVar->m_Int );
+				int32 nMaskedValue = pVar->m_Int;
+				nMaskedValue &= (1u << pProp->m_nBits) - 1;
+				Assert(nMaskedValue == pVar->m_Int);
 			}
-			else 
+			else
 			{
-				AssertMsg3( nValue == pVar->m_Int, "Signed prop %s needs more bits? Expected %i == %i", pProp->GetName(), nValue, pVar->m_Int );
+				int32 nSignExtendedValue = pVar->m_Int;
+				nSignExtendedValue <<= 32 - pProp->m_nBits;
+				nSignExtendedValue >>= 32 - pProp->m_nBits;
+				Assert(nSignExtendedValue == pVar->m_Int);
 			}
+		}
+#endif
+		if (pProp->IsSigned())
+		{
+			pOut->WriteSBitLong(pVar->m_Int, pProp->m_nBits);
 		}
 		else
 		{
-			// This should never trigger, but I'm leaving it in for old-time's sake.
-			Assert( nValue == pVar->m_Int );
+			pOut->WriteUBitLong((unsigned int)pVar->m_Int, pProp->m_nBits);
 		}
-#endif
-
-		pOut->WriteUBitLong( nValue, pProp->m_nBits, false );
 	}
 }
 
@@ -322,7 +317,7 @@ int Int_CompareDeltas( const SendProp *pProp, bf_read *p1, bf_read *p2 )
 		return p1->ReadSignedVarInt32() != p2->ReadSignedVarInt32();
 	}
 
-	return p1->CompareBits(p2, pProp->m_nBits);
+	return p1->ReadUBitLong(pProp->m_nBits) != p2->ReadUBitLong(pProp->m_nBits);
 }
 
 const char* Int_GetTypeNameString()

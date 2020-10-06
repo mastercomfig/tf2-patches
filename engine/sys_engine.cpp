@@ -341,14 +341,14 @@ void CEngine::Frame( void )
 
 		const bool bCustomBusyWait = host_timer_spin_ms.GetFloat() != 0;
 
-		if ( IsPC() && ( !sv.IsDedicated() || bCustomBusyWait) )
+		if ( IsPC() && ( !sv.IsDedicated() || bCustomBusyWait ) )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last two milliseconds to ensure very tight timing.
-			double fBusyWaitMS = 2.0f;
+			double fBusyWaitMS = 2.0;
 			double fWaitTime = m_flMinFrameTime - m_flFrameTime;
 			double fWaitEnd = m_flCurrentTime + fWaitTime;
-			if ( sv.IsDedicated() || bCustomBusyWait)
+			if ( sv.IsDedicated() || bCustomBusyWait )
 			{
 				fBusyWaitMS = host_timer_spin_ms.GetFloat();
 				fBusyWaitMS = MAX( fBusyWaitMS, 0.5 );
@@ -360,7 +360,7 @@ void CEngine::Frame( void )
 			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
 			if ( nSleepMS > 3 )
 			{
-				ThreadSleepEx(nSleepMS);
+				ThreadSleep(nSleepMS);
 			}
 
 			while (Plat_FloatTime() < fWaitEnd)
