@@ -460,6 +460,7 @@ void C_ObjectTeleporter::OnGoInactive( void )
 	if ( m_pSpinSound )
 	{
 		CSoundEnvelopeController::GetController().SoundDestroy( m_pSpinSound );
+		m_pSpinSound = NULL;
 	}
 
 	BaseClass::OnGoInactive();
