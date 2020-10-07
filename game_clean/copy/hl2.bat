@@ -1,2 +1,2 @@
-@echo off
-@start hl2.exe -steam -game tf -insecure %*
+@echo OFF
+START hl2.exe -steam -game tf -insecure %*
