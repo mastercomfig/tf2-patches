@@ -1694,50 +1694,57 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		else if (timeout != 0) // If we didn't succeed, and we need to wait some time, then do so now
 		{
 			// We use check here because we don't actually have a lock on the events at this point.
-			auto lPredSignaledCheck = [nEvents, &pEvents, &iEventIndex]
-			{
-				// This probably isn't correct, but we need to check if we got notified just after Set took the lock from us the first time.
-				for (int i = 0; i < 2; i++)
-				{
-					for (int i = 0; i < nEvents; i++)
-					{
-						if (pEvents[i]->Check())
-						{
-							iEventIndex = i;
-							return true;
-						}
-					}
-				}
-				return false;
-			};
-
-			CStdNullLock lock;
-			if (timeout == TT_INFINITE)
-			{
-				condition->wait(lock, lPredSignaledCheck);
-				// !! BUG BUG: workaround a deadlock in material system. once fixed, use above code.
-				// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
-                /*while (true)
-                {
-                    if (condition->wait_for(lock, std::chrono::milliseconds(5), lPredSignaledCheck))
-                    {
-                        break;
-                    }
-                }*/
-				bRet = true;
-			}
-			else
-			{
-				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledCheck);
-			}
-			// Clear out listeners
 			for (int i = 0; i < nEvents; i++)
 			{
-				pEvents[i]->RemoveListener(condition);
+				if (pEvents[i]->Check())
+				{
+					iEventIndex = i;
+					bRet = true;
+					break;
+				}
 			}
-			condition.reset();
 
 			// Calling Check will auto reset, so no need to do it manually like we do for Wait All.
+
+			if (!bRet)
+			{
+				CStdNullLock lock;
+				if (timeout == TT_INFINITE)
+				{
+					condition->wait(lock);
+					// !! BUG BUG: workaround a deadlock in material system. once fixed, use above code.
+					// similar code is used in the previous implementation for POSIX, so it's not a big deal that we use this.
+					/*while (true)
+					{
+						if (condition->wait_for(lock, std::chrono::milliseconds(5), lPredSignaledCheck))
+						{
+							break;
+						}
+					}*/
+					bRet = true;
+				}
+				else
+				{
+					bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+				}
+
+				// Clear out listeners
+				for (int i = 0; i < nEvents; i++)
+				{
+					pEvents[i]->RemoveListener(condition);
+				}
+
+				// Since we don't call check in here, we need to manually auto reset.
+				for (int i = 0; i < nEvents; i++)
+				{
+					if (pEvents[i]->m_bAutoReset)
+					{
+						pEvents[i]->m_bSignaled = false;
+					}
+				}
+			}
+
+			condition.reset();
 		}
 	}
 	if (bRet)
