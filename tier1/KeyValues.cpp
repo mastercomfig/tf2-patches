@@ -2807,18 +2807,12 @@ void *KeyValues::operator new( size_t iAllocSize, int nBlockUse, const char *pFi
 //-----------------------------------------------------------------------------
 void KeyValues::operator delete( void *pMem )
 {
-	if (pMem)
-	{
-		KeyValuesSystem()->FreeKeyValuesMemory(pMem);
-	}
+	KeyValuesSystem()->FreeKeyValuesMemory(pMem);
 }
 
 void KeyValues::operator delete( void *pMem, int nBlockUse, const char *pFileName, int nLine )
 {
-	if (pMem)
-	{
-		KeyValuesSystem()->FreeKeyValuesMemory(pMem);
-	}
+	KeyValuesSystem()->FreeKeyValuesMemory(pMem);
 }
 
 void KeyValues::UnpackIntoStructure( KeyValuesUnpackStructure const *pUnpackTable, void *pDest, size_t DestSizeInBytes )

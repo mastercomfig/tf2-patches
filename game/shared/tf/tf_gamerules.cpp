@@ -18000,16 +18000,16 @@ const char *CTFGameRules::GetTeamGoalString( int iTeam )
 
 CTFGameRules::~CTFGameRules()
 {
+	if (m_pkvVisionFilterTranslationsParticle)
+	{
+		// We don't delete, because it's deleted in the parent below.
+		m_pkvVisionFilterTranslationsParticle = NULL;
+	}
+
 	if ( m_pkvVisionFilterTranslations )
 	{
 		m_pkvVisionFilterTranslations->deleteThis();
 		m_pkvVisionFilterTranslations = NULL;
-	}
-
-	if (m_pkvVisionFilterTranslationsParticle)
-	{
-		m_pkvVisionFilterTranslationsParticle->deleteThis();
-		m_pkvVisionFilterTranslationsParticle = NULL;
 	}
 
 	if ( m_pkvVisionFilterShadersMapWhitelist )
