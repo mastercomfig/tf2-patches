@@ -1804,8 +1804,6 @@ void CClientState::FinishSignonState_New()
 
 	CL_InstallAndInvokeClientStringTableCallbacks();
 
-	materials->CacheUsedMaterials();
-
 	// force a consistency check
 	ConsistencyCheck( true );
 

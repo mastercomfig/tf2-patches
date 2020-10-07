@@ -2071,23 +2071,18 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 {
 	if ( IsPC() )
 	{
-		// Start mixing right away unless not loaded
-		bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool();
+		const bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool();
 
 		// Notify load
 		bool bCacheValid;
-		bool bLoaded = wavedatacache->IsDataLoadCompleted(m_hCache, &bCacheValid);
-		if (!bCacheValid)
+		const bool bLoaded = wavedatacache->IsDataLoadCompleted( m_hCache, &bCacheValid );
+		if ( !bCacheValid )
 		{
-			wavedatacache->RestartDataLoad(&m_hCache, GetFileName(), m_dataSize, m_dataStart);
+			wavedatacache->RestartDataLoad( &m_hCache, GetFileName(), m_dataSize, m_dataStart );
 		}
 
-		if (bReady || bLoaded)
-		{
-			return true;
-		}
-
-		return false;
+		// Start mixing right away unless not loaded
+		return bReady || bLoaded;
 	}
 
 	if ( IsX360() )
@@ -2335,30 +2330,33 @@ int CWaveDataMemoryAsync::ReadSourceData( void **pData, int sampleIndex, int sam
 //-----------------------------------------------------------------------------
 bool CWaveDataMemoryAsync::IsReadyToMix()
 {
-	if ( !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() )
-	{
-		// Wait until we're pending at least
-		if ( m_source.GetCacheStatus() != CAudioSource::AUDIO_NOT_LOADED )
-		{
-			return true;
-		}
-	}
+	const int iStatus = m_source.GetCacheStatus();
 
-	if ( m_source.IsCached() )
-	{
-		return true;
-	}
+	// Wait until we're pending at least
+	const bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() && iStatus != CAudioSource::AUDIO_IS_LOADED;
 
-	if ( IsPC() )
+	const bool bLoaded = iStatus == CAudioSource::AUDIO_IS_LOADED;
+	if ( IsPC() && !bLoaded )
 	{
-		// Msg( "Waiting for data '%s'\n", m_source.GetFileName() );
 		m_source.CacheLoad();
 	}
 
 	if ( IsX360() )
 	{
+	    if (bLoaded || bReady)
+	    {
+			return true;
+	    }
+
 		// expected to be resident and valid, otherwise being called prior to load
-		Assert( 0 );
+		Assert(0);
+
+		return false;
+	}
+
+    if ( IsPC() )
+	{
+		return bReady || bLoaded;
 	}
 
 	return false;

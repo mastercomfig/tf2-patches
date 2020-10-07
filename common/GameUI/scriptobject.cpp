@@ -62,7 +62,8 @@ objtypedesc_t objtypes[] =
 	{ O_STRING, "STRING" },
 	{ O_OBSOLETE  , "OBSOLETE" }, 
 	{ O_SLIDER , "SLIDER" }, 
-	{ O_CATEGORY, "CATEGORY" }, 
+	{ O_CATEGORY, "CATEGORY" },
+	{ O_BUTTON, "BUTTON" },
 };
 
 mpcontrol_t::mpcontrol_t( Panel *parent, char const *panelName )

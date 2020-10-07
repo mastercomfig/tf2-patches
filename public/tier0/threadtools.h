@@ -1054,8 +1054,9 @@ public:
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
 	void AddListener(std::shared_ptr<std::condition_variable_any>& condition);
-
+	void AddListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
 	void RemoveListener(std::shared_ptr<std::condition_variable_any>& condition);
+	void RemoveListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
 
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
@@ -1107,12 +1108,12 @@ private:
 class CStdNullLock
 {
 public:
-	explicit CStdNullLock() noexcept {};
-	~CStdNullLock() noexcept {};
+	explicit CStdNullLock() noexcept {}
+	~CStdNullLock() noexcept {}
 	CStdNullLock(const CStdNullLock&) = delete;
 	CStdNullLock& operator=(const CStdNullLock&) = delete;
-	void lock() {};
-	void unlock() {};
+	void lock() {}
+	void unlock() {}
 };
 
 PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
