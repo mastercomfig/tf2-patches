@@ -2561,21 +2561,30 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 			config.m_fGammaTVExponent, config.m_bGammaTVEnabled );
 	}
 
+	static bool bInitialMode = true;
 	if ( bVideoModeChange )
 	{
-		if ( mat_debugalttab.GetBool() )
+		if (bInitialMode)
 		{
-			Warning( "mat_debugalttab: ChangeVideoMode\n" );
+			bInitialMode = false;
 		}
-		ShaderDeviceInfo_t info;
-		ConvertModeStruct( &info, config );
-		g_pShaderAPI->ChangeVideoMode( info );
+		else
+		{
+			if (mat_debugalttab.GetBool())
+			{
+				Warning("mat_debugalttab: ChangeVideoMode\n");
+			}
+			ShaderDeviceInfo_t info;
+			ConvertModeStruct(&info, config);
+			g_pShaderAPI->ChangeVideoMode(info);
 
 #if defined( USE_SDL )
-		uint width = info.m_DisplayMode.m_nWidth;
-		uint height = info.m_DisplayMode.m_nHeight;
-		g_pLauncherMgr->RenderedSize( width, height, true ); // true = set
+			uint width = info.m_DisplayMode.m_nWidth;
+			uint height = info.m_DisplayMode.m_nHeight;
+			g_pLauncherMgr->RenderedSize(width, height, true); // true = set
 #endif
+		}
+
 	}
 
 	if ( bForceAltTab )
