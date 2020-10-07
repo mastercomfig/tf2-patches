@@ -1693,17 +1693,20 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		}
 		else if (timeout != 0) // If we didn't succeed, and we need to wait some time, then do so now
 		{
+			bool bInitialCheck = true;
 			// We use check here because we don't actually have a lock on the events at this point.
-			auto lPredSignaledCheck = [nEvents, &pEvents, &iEventIndex]
+			// The first check doesn't do this so that we can enter our condition variable without taking a lock.
+			auto lPredSignaledCheck = [nEvents, &pEvents, &iEventIndex, &bInitialCheck]
 			{
 				for (int i = 0; i < nEvents; i++)
 				{
-					if (pEvents[i]->Check())
+					if (bInitialCheck ? pEvents[i]->m_bSignaled : pEvents[i]->Check())
 					{
 						iEventIndex = i;
 						return true;
 					}
 				}
+				bInitialCheck = false;
 				return false;
 			};
 

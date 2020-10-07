@@ -589,6 +589,7 @@ bool CScriptObject::ReadFromBuffer( const char **pBuffer, bool isNewObject )
 	{
 	case O_OBSOLETE:
 	case O_BOOL:
+	case O_BUTTON:
 		// Parse the next {
 		*pBuffer = engine->ParseFile( *pBuffer, token, sizeof( token ) );
 		if ( strlen( token ) <= 0 )
@@ -688,7 +689,7 @@ bool CScriptObject::ReadFromBuffer( const char **pBuffer, bool isNewObject )
 	// Now read in the default value
 
 	// Parse the {
-		*pBuffer = engine->ParseFile( *pBuffer, token, sizeof( token ) );
+	    *pBuffer = engine->ParseFile( *pBuffer, token, sizeof( token ) );
 	if ( strlen( token ) <= 0 )
 		return false;
 
