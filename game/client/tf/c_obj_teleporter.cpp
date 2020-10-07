@@ -457,5 +457,10 @@ void C_ObjectTeleporter::OnGoInactive( void )
 	StopBuildingEffects();
 	StopChargedEffects();
 
+	if ( m_pSpinSound )
+	{
+		CSoundEnvelopeController::GetController().SoundDestroy( m_pSpinSound );
+	}
+
 	BaseClass::OnGoInactive();
 }
