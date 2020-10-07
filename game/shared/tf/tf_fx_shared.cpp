@@ -5,6 +5,7 @@
 //=============================================================================
 #include "cbase.h"
 #include "tf_fx_shared.h"
+
 #include "tf_weaponbase.h"
 #include "takedamageinfo.h"
 #include "tf_gamerules.h"
@@ -314,7 +315,7 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		}
 	}
 	bool bSpreadShotPattern = (nDamageType & DMG_BUCKSHOT) && (nBulletsPerShot > 1);
-	bool bFixedRecoilSpread = !bSpreadShotPattern && bFixedSpreadEnabled;
+	bool bFixedRecoilSpread = false;
 	bool bFixedSpread = bSpreadShotPattern && bFixedSpreadEnabled;
 
 	int iSpreadScalesConsecutive = 0;
@@ -344,9 +345,10 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 					bFirePerfect = true;
 					pWpn->m_iConsecutiveShots = 0;
 				}
-				if (tf_weaponspread_continuous_seed_multishot.GetInt() > -1)
+				if (bFixedSpreadEnabled && tf_weaponspread_continuous_seed_multishot.GetInt() > -1)
 				{
 					iBaseSeed = tf_weaponspread_continuous_seed_multishot.GetInt();
+					bFixedRecoilSpread = !bSpreadShotPattern;
 				}
 			}
 			else if (bSpreadNormal && nBulletsPerShot == 1)
@@ -356,16 +358,17 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 					bFirePerfect = true;
 					pWpn->m_iConsecutiveShots = 0;
 				}
-				if (tf_weaponspread_continuous_seed.GetInt() > -1)
+				if (bFixedSpreadEnabled && tf_weaponspread_continuous_seed.GetInt() > -1)
 				{
 					iBaseSeed = tf_weaponspread_continuous_seed.GetInt();
+					bFixedRecoilSpread = !bSpreadShotPattern;
 				}
 			}
 		}
 
 		if (pWpn)
 		{
-			if (bFixedRecoilSpread)
+			if (bFixedRecoilSpread && iBullet == 0)
 			{
 				iSeed = iBaseSeed + pWpn->m_iConsecutiveShots;
 			}
@@ -421,10 +424,7 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		pPlayer->FireBullet( pWpn, fireInfo, bDoEffects, nDamageType, nCustomDamageType );
 
 		// Use new seed for next bullet.
-		if (!bFixedRecoilSpread)
-		{
-			++iSeed;
-		}
+		++iSeed;
 	}
 
 #if !defined (CLIENT_DLL)
