@@ -58,7 +58,7 @@ void CGameConsoleDialog::OnKeyCodeTyped(KeyCode code)
 	if ( m_pConsolePanel->TextEntryHasFocus() )
 	{
 		// HACK: Allow F key bindings to operate even here
-		if ( code >= KEY_F1 && code <= KEY_F24 )
+		if ( code >= KEY_F1 && code <= KEY_F12 )
 		{
 			// See if there is a binding for the FKey
 			const char *binding = gameuifuncs->GetBindingForButtonCode( code );

@@ -438,18 +438,6 @@ CInputSystem::CInputSystem()
 	_keyTrans[KEY_F10]			="\0\0KEY_F10";
 	_keyTrans[KEY_F11]			="\0\0KEY_F11";
 	_keyTrans[KEY_F12]			="\0\0KEY_F12";
-	_keyTrans[KEY_F13]			="\0\0KEY_F13";
-	_keyTrans[KEY_F14]			="\0\0KEY_F14";
-	_keyTrans[KEY_F15]			="\0\0KEY_F15";
-	_keyTrans[KEY_F16]			="\0\0KEY_F16";
-	_keyTrans[KEY_F17]			="\0\0KEY_F17";
-	_keyTrans[KEY_F18]			="\0\0KEY_F18";
-	_keyTrans[KEY_F19]			="\0\0KEY_F19";
-	_keyTrans[KEY_F20]			="\0\0KEY_F20";
-	_keyTrans[KEY_F21]			="\0\0KEY_F21";
-	_keyTrans[KEY_F22]			="\0\0KEY_F22";
-	_keyTrans[KEY_F23]			="\0\0KEY_F23";
-	_keyTrans[KEY_F24]			="\0\0KEY_F24";
 }
 
 CInputSystem::~CInputSystem()
