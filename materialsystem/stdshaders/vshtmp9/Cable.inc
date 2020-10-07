@@ -13,7 +13,6 @@ public:
 		return 0;
 	}
 };
-#define shaderStaticTest_cable 0
 class cable_Dynamic_Index
 {
 private:
@@ -56,4 +55,3 @@ public:
 		return ( 1 * m_nDOWATERFOG ) + 0;
 	}
 };
-#define shaderDynamicTest_cable vsh_forgot_to_set_dynamic_DOWATERFOG + 0

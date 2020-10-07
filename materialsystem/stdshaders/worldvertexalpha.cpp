@@ -31,7 +31,7 @@ BEGIN_VS_SHADER( WorldVertexAlpha,
 
 	SHADER_FALLBACK
 	{
-		if ( g_pHardwareConfig->GetDXSupportLevel() < 90 )
+		if( g_pHardwareConfig->GetDXSupportLevel() < 90 || g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE )
 		{
 			return "WorldVertexAlpha_DX8";
 		}
@@ -42,7 +42,7 @@ BEGIN_VS_SHADER( WorldVertexAlpha,
 	{
 		if( g_pHardwareConfig->SupportsVertexAndPixelShaders() && !UsingEditor( params ) )
 		{
-			if( g_pHardwareConfig->GetDXSupportLevel() < 90 || g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE )
+			if( g_pHardwareConfig->GetDXSupportLevel() < 90 )
 			{
 				// NOTE: This is the DX8, Non-Hammer version.
 
