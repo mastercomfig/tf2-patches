@@ -2071,19 +2071,27 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 {
 	if ( IsPC() )
 	{
-		// Notify load
-		bool bCacheValid;
-		bool bLoaded = wavedatacache->IsDataLoadCompleted( m_hCache, &bCacheValid );
-		if ( !bCacheValid )
-		{
-			wavedatacache->RestartDataLoad( &m_hCache, GetFileName(), m_dataSize, m_dataStart );
-		}
+		bool bReady = false;
 
 		// Start mixing right away unless not loaded
-		if (!m_source.IsAsyncLoad() || bLoaded && !snd_async_fullyasync.GetBool())
+		if (!m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool())
+		{
+			bReady = true;
+		}
+
+		// Notify load
+		bool bCacheValid;
+		bool bLoaded = wavedatacache->IsDataLoadCompleted(m_hCache, &bCacheValid);
+		if (!bCacheValid)
+		{
+			wavedatacache->RestartDataLoad(&m_hCache, GetFileName(), m_dataSize, m_dataStart);
+		}
+
+		if (bReady || bLoaded)
 		{
 			return true;
 		}
+
 		return false;
 	}
 
