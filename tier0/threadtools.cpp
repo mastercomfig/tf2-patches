@@ -1693,20 +1693,21 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		}
 		else if (timeout != 0) // If we didn't succeed, and we need to wait some time, then do so now
 		{
-			bool bInitialCheck = true;
 			// We use check here because we don't actually have a lock on the events at this point.
-			// The first check doesn't do this so that we can enter our condition variable without taking a lock.
-			auto lPredSignaledCheck = [nEvents, &pEvents, &iEventIndex, &bInitialCheck]
+			auto lPredSignaledCheck = [nEvents, &pEvents, &iEventIndex]
 			{
-				for (int i = 0; i < nEvents; i++)
+				// This probably isn't correct, but we need to check if we got notified just after Set took the lock from us the first time.
+				for (int i = 0; i < 2; i++)
 				{
-					if (bInitialCheck ? pEvents[i]->m_bSignaled : pEvents[i]->Check())
+					for (int i = 0; i < nEvents; i++)
 					{
-						iEventIndex = i;
-						return true;
+						if (pEvents[i]->Check())
+						{
+							iEventIndex = i;
+							return true;
+						}
 					}
 				}
-				bInitialCheck = false;
 				return false;
 			};
 
