@@ -625,7 +625,7 @@ static void initKeymap(void)
 		scantokey[i] = KEY_A + (i - SDL_SCANCODE_A);
 	for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++)
 		scantokey[i] = KEY_1 + (i - SDL_SCANCODE_1);
-	for (int i = SDL_SCANCODE_F1; i <= SDL_SCANCODE_F12; i++)
+	for (int i = SDL_SCANCODE_F1; i <= SDL_SCANCODE_F24; i++)
 		scantokey[i] = KEY_F1 + (i - SDL_SCANCODE_F1);
 	for (int i = SDL_SCANCODE_KP_1; i <= SDL_SCANCODE_KP_9; i++)
 		scantokey[i] = KEY_PAD_1 + (i - SDL_SCANCODE_KP_1);
