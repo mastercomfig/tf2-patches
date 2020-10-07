@@ -2080,7 +2080,7 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 		}
 
 		// Start mixing right away unless not loaded
-		if (bLoaded || !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool())
+		if (!m_source.IsAsyncLoad() || bLoaded && !snd_async_fullyasync.GetBool())
 		{
 			return true;
 		}
