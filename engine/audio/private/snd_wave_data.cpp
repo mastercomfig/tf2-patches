@@ -2071,13 +2071,8 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 {
 	if ( IsPC() )
 	{
-		bool bReady = false;
-
 		// Start mixing right away unless not loaded
-		if (!m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool())
-		{
-			bReady = true;
-		}
+		bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool();
 
 		// Notify load
 		bool bCacheValid;
