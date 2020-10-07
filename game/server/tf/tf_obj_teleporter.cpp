@@ -450,7 +450,19 @@ bool CObjectTeleporter::IsPlacementPosValid( void )
 	trace_t tr;
 	UTIL_TraceHull( vecTestPos, vecTestPos, VEC_HULL_MIN, VEC_HULL_MAX, MASK_SOLID | CONTENTS_PLAYERCLIP, this, COLLISION_GROUP_PLAYER_MOVEMENT, &tr );
 
-	return ( tr.fraction >= 1.0 );
+	if ( tr.fraction < 1.0 )
+		return false;
+
+	// make sure no buildings are above us
+	UTIL_TraceHull( vecTestPos, vecTestPos, VEC_HULL_MIN, VEC_HULL_MAX, MASK_SOLID | CONTENTS_PLAYERCLIP, this, COLLISION_GROUP_NONE, &tr );
+
+	if ( tr.m_pEnt )
+    {
+        if ( FClassnameIs( tr.m_pEnt, "obj_dispenser" ) || FClassnameIs( tr.m_pEnt, "obj_sentrygun" ) || FClassnameIs( tr.m_pEnt, "obj_teleporter" ) )
+            return false;
+    }
+
+	return true;
 }
 
 //-----------------------------------------------------------------------------
