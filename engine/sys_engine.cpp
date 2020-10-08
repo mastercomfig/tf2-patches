@@ -345,7 +345,7 @@ void CEngine::Frame( void )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last two milliseconds to ensure very tight timing.
-			double fBusyWaitMS = 2.0;
+			double fBusyWaitMS = IsWindows() ? 2.25 : 1.5;
 			double fWaitTime = m_flMinFrameTime - m_flFrameTime;
 			double fWaitEnd = m_flCurrentTime + fWaitTime;
 			if ( sv.IsDedicated() || bCustomBusyWait )
@@ -357,8 +357,8 @@ void CEngine::Frame( void )
 			// If we are meeting our frame rate then go idle for a while
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
-			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
-			if ( nSleepMS > 3 )
+			unsigned nSleepMS = (unsigned)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
+			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep(nSleepMS);
 			}
