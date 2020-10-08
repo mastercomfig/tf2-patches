@@ -414,8 +414,10 @@ private:
 				case TPM_RUNFUNCTOR:
 					if( pFunctor )
 					{
+						int iInitialPriority = BoostPriority();
 						( *pFunctor )();
 						Reply( true );
+						SetPriority(iInitialPriority);
 					}
 					else
 					{
@@ -436,6 +438,7 @@ private:
 
 				CJob *pJob;
 				bool bTookJob = false;
+				int iInitialPriority;
 				do
 				{
 					if ( !m_DirectQueue.Pop( &pJob) )
@@ -448,6 +451,7 @@ private:
 					}
 					if ( !bTookJob )
 					{
+						iInitialPriority = BoostPriority();
 						m_IdleEvent.Reset();
 						m_pOwner->m_nIdleThreads--;
 						bTookJob = true;
@@ -460,6 +464,7 @@ private:
 				{
 					m_pOwner->m_nIdleThreads++;
 					m_IdleEvent.Set();
+					SetPriority(iInitialPriority);
 				}
 			}
 		}

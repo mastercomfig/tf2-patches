@@ -3369,7 +3369,6 @@ void CShaderDeviceDx8::RefreshFrontBufferNonInteractive()
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 // Page flip
 //-----------------------------------------------------------------------------
@@ -3390,22 +3389,30 @@ void CShaderDeviceDx8::Present()
 	// if we're in queued mode, don't present if the device is already lost
 	bool bValidPresent = true;
 	bool bInMainThread = ThreadInMainThread();
-	if ( !bInMainThread )
+	static bool s_bSetPriority = true;
+	if ( bInMainThread )
+	{
+		s_bSetPriority = true;
+	}
+	else
 	{
 		// don't present if the device is in an invalid state and in queued mode
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
 		// check for lost device early in threaded mode
 		CheckDeviceLost( m_bOtherAppInitializing );
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
 #ifndef DX_TO_GL_ABSTRACTION
-		if (bValidPresent && g_ShaderDeviceUsingD3D9Ex)
+		if (s_bSetPriority && g_ShaderDeviceUsingD3D9Ex)
 		{
+			s_bSetPriority = false;
 			Dx9ExDevice()->SetGPUThreadPriority(7);
 		}
 #endif
@@ -3447,13 +3454,9 @@ void CShaderDeviceDx8::Present()
 		{
 			g_pShaderAPI->OwnGPUResources( false );
 #ifndef DX_TO_GL_ABSTRACTION
-			if (g_ShaderDeviceUsingD3D9Ex)
+			if (g_ShaderDeviceUsingD3D9Ex && m_PresentParameters.PresentationInterval != D3DPRESENT_INTERVAL_IMMEDIATE)
 			{
-				int flags = 0;
-				if (m_PresentParameters.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE)
-				{
-					flags |= D3DPRESENT_DONOTWAIT;
-				}
+				int flags = D3DPRESENT_DONOTWAIT;
 				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
 			}
 			else

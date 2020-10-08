@@ -357,7 +357,7 @@ void CEngine::Frame( void )
 			// If we are meeting our frame rate then go idle for a while
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
-			unsigned nSleepMS = (unsigned)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
+			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
 			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep(nSleepMS);
