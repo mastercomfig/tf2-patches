@@ -848,11 +848,11 @@ CEconItem *CEconItemView::GetSOCData( void ) const
 	// We need to find the inventory that contains this item. If we're not connected 
 	// to a server, and the owner is the same as the local player, use the local inventory.
 	// We need to do this for trading, since we are subscribed to the other person's cache.
-	if ( !engine->IsInGame() && InventoryManager()->GetLocalInventory()->GetOwner().GetAccountID() == m_iAccountID )
+	if ( InventoryManager()->GetLocalInventory()->GetOwner().GetAccountID() == m_iAccountID )
 		return InventoryManager()->GetLocalInventory()->GetSOCDataForItem( GetItemID() );
 #endif // CLIENT_DLL
 
-	// We're in-game. Find the inventory with our account ID.
+	// UNDONE(mastercoms): We're in-game. Find the inventory with our account ID.
 	CPlayerInventory *pInventory = InventoryManager()->GetInventoryForAccount( m_iAccountID );
 	if ( pInventory )
 		return pInventory->GetSOCDataForItem( GetItemID() );
@@ -1084,7 +1084,7 @@ int CEconItemView::GetQualityParticleType() const
 	if ( !pItem )
 		return 0;
 
-	if( GetSOCData()->GetQuality() == AE_SELFMADE || GetSOCData()->GetQuality() == AE_COMMUNITY )
+	if( pItem->GetQuality() == AE_SELFMADE || pItem->GetQuality() == AE_COMMUNITY )
 		return pSparkleSystem ? pSparkleSystem->nSystemID : 0;
 	else
 		return 0;

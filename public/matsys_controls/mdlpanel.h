@@ -81,6 +81,7 @@ public:
 	void SetLookAtCamera( bool bLookAtCamera );
 	void SetIgnoreDoubleClick( bool bState );
 	void SetThumbnailSafeZone( bool bVisible );
+	void SetDoFlexes(bool bFlex);
 
 	// Bounds.
 	bool GetBoundingBox( Vector &vecBoundsMin, Vector &vecBoundsMax );
@@ -150,6 +151,7 @@ private:
 	bool	m_bLookAtCamera : 1;
 	bool	m_bIgnoreDoubleClick : 1;
 	bool	m_bThumbnailSafeZone : 1;
+	bool    m_bDoFlexes : 1;
 
 	float	m_PoseParameters[ MAXSTUDIOPOSEPARAM ];
 };

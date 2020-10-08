@@ -88,7 +88,7 @@ private:
 	}
 	CUtlRBTree<MemoryLeakTracker_t, int> m_KeyValuesTrackingList;
 
-	CThreadFastMutex m_mutex;
+	CThreadMutex m_mutex;
 
 	CUtlMap<CUtlString, KeyValues*> m_KeyValueCache;
 };

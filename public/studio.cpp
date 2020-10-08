@@ -800,15 +800,15 @@ const virtualmodel_t * CStudioHdr::ResetVModel( const virtualmodel_t *pVModel ) 
 	{
 		m_pVModel = (virtualmodel_t *)pVModel;
 		Assert( !pVModel->m_Lock.GetOwnerId() );
-		m_pStudioHdrCache.SetCount( m_pVModel->m_group.Count() );
+		const int iCount = m_pVModel->m_group.Count();
+		m_pStudioHdrCache.SetCount( iCount );
 
-		int i;
-		for (i = 0; i < m_pStudioHdrCache.Count(); i++)
+		for (int i = 0; i < iCount; i++)
 		{
 			m_pStudioHdrCache[ i ] = NULL;
 		}
 		
-		return const_cast<virtualmodel_t *>(pVModel);
+		return m_pVModel;
 	}
 	else
 	{

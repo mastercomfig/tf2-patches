@@ -8,6 +8,7 @@
 #include "dmxloader/dmxattribute.h"
 #include "tier1/utlbuffer.h"
 #include "mathlib/ssemath.h"
+#include "tier1/utlsymbollarge.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -16,7 +17,7 @@
 //-----------------------------------------------------------------------------
 // globals
 //-----------------------------------------------------------------------------
-CUtlSymbolTableMT CDmxElement::s_TypeSymbols;
+CUtlSymbolTableLargeMT CDmxElement::s_TypeSymbols;
 
 
 //-----------------------------------------------------------------------------
@@ -50,14 +51,14 @@ CDmxElement::~CDmxElement()
 //-----------------------------------------------------------------------------
 // Utility method for getting at the type
 //-----------------------------------------------------------------------------
-CUtlSymbol CDmxElement::GetType()  const
+CUtlSymbolLarge CDmxElement::GetType()  const
 {
 	return m_Type;
 }
 
 const char* CDmxElement::GetTypeString() const
 {
-	return s_TypeSymbols.String( m_Type );
+	return m_Type.String();
 }
 
 const char* CDmxElement::GetName() const
@@ -138,11 +139,6 @@ CDmxAttribute *CDmxElement::AddAttribute( const char *pAttributeName )
 	CDmxElementModifyScope modify( this );
 	m_bResortNeeded = true;
 	CDmxAttribute *pAttribute = new CDmxAttribute( pAttributeName );
-	if (!pAttribute)
-	{
-		Warning("%s dmx attribute was not parsed.", pAttributeName);
-		return nullptr;
-	}
 	m_Attributes.InsertNoSort( pAttribute );
 	return pAttribute;
 }
@@ -230,7 +226,7 @@ int CDmxElement::FindAttribute( const char *pAttributeName ) const
 //-----------------------------------------------------------------------------
 // Find an attribute by name-based lookup
 //-----------------------------------------------------------------------------
-int CDmxElement::FindAttribute( CUtlSymbol attributeName ) const
+int CDmxElement::FindAttribute( CUtlSymbolLarge attributeName ) const
 {
 	Resort();
 	CDmxAttribute search( attributeName );

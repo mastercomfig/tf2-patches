@@ -333,7 +333,7 @@ void CEngine::Frame( void )
 			m_flFrameTime = host_nexttick;
 		}
 
-		if ( FilterTime( m_flFrameTime )  )
+		if ( FilterTime( m_flFrameTime ) )
 		{
 			// Time to render our frame.
 			break;

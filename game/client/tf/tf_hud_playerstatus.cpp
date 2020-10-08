@@ -167,6 +167,7 @@ void CTFHudPlayerClass::ApplySchemeSettings( IScheme *pScheme )
 	m_pSpyOutlineImage = FindControl<CTFImagePanel>( "PlayerStatusSpyOutlineImage", false );
 
 	m_pPlayerModelPanel = FindControl<CTFPlayerModelPanel>( "classmodelpanel", false );
+	m_pPlayerModelPanel->SetDoFlexes(false);
 	m_pPlayerModelPanelBG = FindControl<CTFImagePanel>( "classmodelpanelBG", false );
 
 	m_pCarryingWeaponPanel = FindControl< EditablePanel >( "CarryingWeapon", false );
