@@ -139,7 +139,11 @@
 #endif
 #endif // !_XM_NO_INTRINSICS_
 
+#ifdef WIN32
 #include "sal.h"
+#else
+#include "../Native/sal.h"
+#endif
 #include <assert.h>
 
 #pragma warning(push)
