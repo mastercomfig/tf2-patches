@@ -96,6 +96,6 @@ float GetClientInterpAmount()
 	{
 		return 0.03f;
 	}
-	return cl_interp_ratio->GetInt() * pUpdateInterval->GetFloat();;
+	return cl_interp_ratio->GetInt() * pUpdateInterval->GetFloat();
 }
 
