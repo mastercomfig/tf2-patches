@@ -3485,9 +3485,8 @@ void CMaterialSystem::BeginFrame( float frameTime )
 	VPROF_BUDGET( "CMaterialSystem::BeginFrame", VPROF_BUDGETGROUP_SWAP_BUFFERS );
 	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
 
-	IMatRenderContextInternal *pRenderContext = GetRenderContextInternal();
-
-	if (g_config.ForceHWSync() && m_ThreadMode != MATERIAL_QUEUED_THREADED)
+	IMatRenderContextInternal* pRenderContext = GetRenderContextInternal();
+	if (g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED))
 	{
 		tmZoneFiltered(TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync");
 		pRenderContext->ForceHardwareSync();
@@ -3703,18 +3702,14 @@ void CMaterialSystem::EndFrame( void )
 
 			if ( m_pActiveAsyncJob )
 			{
-				// Sync with GPU if we had a job for it, even if it finished early on CPU!
-				// We want to sync at the end of the frame, because hardware sync
-				// lags behind by one frame already, and r_reduce_frame_latency wouldn't make
-				// much of a difference if it happened later
-				// Do this before the wait for finish so that we can hide the hardware sync time.
-				if (g_config.ForceHWSync())
-				{
-					g_pShaderAPI->ForceHardwareSync();
-				}
 				if ( !m_pActiveAsyncJob->IsFinished() )
 				{
 					m_pActiveAsyncJob->WaitForFinish();
+				}
+				// Sync with GPU if we had a job for it, even if it finished early on CPU!
+				if (!IsPC() && g_config.ForceHWSync())
+				{
+					g_pShaderAPI->ForceHardwareSync();
 				}
 			}
 			SafeRelease( m_pActiveAsyncJob );
