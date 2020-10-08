@@ -80,5 +80,20 @@ Debug_*/
 *.tlog/
 UpgradeLog*.htm
 
+# third party build products
+thirdparty/protobuf-2.5.0/src/Makefile.in
+thirdparty/protobuf-2.5.0/protobuf.pc
+thirdparty/protobuf-2.5.0/compile
+thirdparty/protobuf-2.5.0/stamp-h1
+thirdparty/protobuf-2.5.0/Makefile
+thirdparty/protobuf-2.5.0/Makefile.in
+thirdparty/protobuf-2.5.0/libtool
+thirdparty/protobuf-2.5.0/config.log
+thirdparty/protobuf-2.5.0/protobuf-lite.pc
+thirdparty/protobuf-2.5.0/configure
+thirdparty/protobuf-2.5.0/config.status
+thirdparty/protobuf-2.5.0/config.h
+thirdparty/protobuf-2.5.0/test-driver
+
 # ignore generated protobufs
 generated_proto*/
