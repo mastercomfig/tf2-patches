@@ -1105,17 +1105,6 @@ private:
 	std::tuple<_Mutexes&...> m_Mutexes;
 };
 
-class CStdNullLock
-{
-public:
-	explicit CStdNullLock() noexcept {}
-	~CStdNullLock() noexcept {}
-	CStdNullLock(const CStdNullLock&) = delete;
-	CStdNullLock& operator=(const CStdNullLock&) = delete;
-	void lock() {}
-	void unlock() {}
-};
-
 PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
 
 //-----------------------------------------------------------------------------
