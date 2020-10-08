@@ -493,16 +493,16 @@ void CGameClient::SetUpdateInterval(float fUpdateInterval, bool bForce)
 	{
 		if (1.0f / sv_maxupdateinterval.GetFloat() > 0)
 		{
-			fUpdateInterval = clamp(fUpdateInterval, 0.015f, sv_maxupdateinterval.GetFloat());
+			fUpdateInterval = max(fUpdateInterval, sv_maxupdateinterval.GetFloat());
 		}
 
 		if (1.0f / sv_minupdateinterval.GetFloat() > 0)
 		{
-			fUpdateInterval = max(fUpdateInterval, sv_minupdateinterval.GetFloat());
+			fUpdateInterval = min(fUpdateInterval, sv_minupdateinterval.GetFloat());
 		}
 	}
 
-	CBaseClient::SetUpdateInterval(fUpdateInterval, bForce);
+	m_fSnapshotInterval = fUpdateInterval;
 }
 
 

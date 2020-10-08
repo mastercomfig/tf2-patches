@@ -365,7 +365,8 @@ void CEngine::Frame( void )
 
 			while (Plat_FloatTime() < fWaitEnd)
 			{
-				ThreadSleepEx();
+				ThreadPause();
+				ThreadSleep();
 			}
 
 			// Go back to the top of the loop and see if it is time yet.
