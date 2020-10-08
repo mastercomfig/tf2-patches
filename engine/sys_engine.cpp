@@ -345,7 +345,7 @@ void CEngine::Frame( void )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last two milliseconds to ensure very tight timing.
-			double fBusyWaitMS = IsWindows() ? 2.25 : 1.5;
+			double fBusyWaitMS = IsWindows() ? 2.0 : 1.5;
 			double fWaitTime = m_flMinFrameTime - m_flFrameTime;
 			double fWaitEnd = m_flCurrentTime + fWaitTime;
 			if ( sv.IsDedicated() || bCustomBusyWait )
