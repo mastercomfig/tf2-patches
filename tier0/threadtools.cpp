@@ -710,7 +710,6 @@ bool CThreadEvent::Set()
 					}
 				}
 			}
-		    
 
 		    // At least be non-pessimistic after we loop through
 			if (!bOneListener)

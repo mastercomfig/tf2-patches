@@ -8,33 +8,53 @@ set -e
 
 DEV_DIR=../../game
 CLEAN_DIR=${DEV_DIR}_clean
+CLEAN_DEBUG_DIR=${DEV_DIR}_clean_debug
 rm -rf ${CLEAN_DIR}
-mkdir -p ${CLEAN_DIR}/{bin,tf/{bin,custom}}
+rm -rf ${CLEAN_DEBUG_DIR}
+mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
+mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
 cp -rf copy/* ${CLEAN_DIR}
 
 declare -a FILES=(
                   {hl2,srcds}.exe
-                  bin/engine.dll
-                  bin/GameUI.dll
-                  bin/replay.dll
-                  bin/launcher.dll
-                  bin/inputsystem.dll
-                  bin/{Material,SoundEmitter}System.dll
-                  bin/dedicated.dll
-                  bin/ServerBrowser.dll
-                  bin/{shaderapi,stdshader_}dx9.dll
-                  bin/vgui{matsurface,2}.dll
-                  bin/{data,scenefile}cache.dll
-                  bin/sourcevr.dll
-                  bin/StudioRender.dll
-                  bin/bsppack.dll
-                  bin/FileSystem_Stdio.dll
-                  bin/vstdlib.dll
-                  bin/tier0.dll
-                  tf/bin/{client,server}.dll
                  )
+
+declare -a DLLS_CI=(
+                  bin/engine
+                  bin/replay
+                  bin/launcher
+                  bin/inputsystem
+                  bin/{Material,SoundEmitter}System
+                  bin/dedicated
+                  bin/{shaderapi,stdshader_}dx9
+                  bin/vgui{matsurface,2}
+                  bin/{data,scenefile}cache
+                  bin/sourcevr
+                  bin/StudioRender
+                  bin/bsppack
+                  bin/FileSystem_Stdio
+                  bin/vstdlib
+                  bin/tier0
+                  tf/bin/{client,server}
+                 )
+
+declare -a DLLS=(
+                  bin/GameUI
+                  bin/ServerBrowser
+                 )
+
 for F in "${FILES[@]}"; do
   cp -f ${DEV_DIR}/${F} ${CLEAN_DIR}/${F}
+done
+
+for F in "${DLLS_CI[@]}"; do
+  cp -f ${DEV_DIR}/${F}.dll ${CLEAN_DIR}/${F}.dll
+  cp -f ${DEV_DIR}/${F,,}.pdb ${CLEAN_DEBUG_DIR}/${F,,}.pdb
+done
+
+for F in "${DLLS[@]}"; do
+  cp -f ${DEV_DIR}/${F}.dll ${CLEAN_DIR}/${F}.dll
+  cp -f ${DEV_DIR}/${F}.pdb ${CLEAN_DEBUG_DIR}/${F}.pdb
 done
 
 declare -a FILES=(
