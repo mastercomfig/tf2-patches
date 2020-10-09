@@ -125,7 +125,7 @@ void C_EntityFlyingBird::InitFromServerData( float flyAngle, float flyAngleRate,
 //-----------------------------------------------------------------------------
 void C_EntityFlyingBird::ClientThink( void )
 {
-	if ( m_lifetimeTimer.IsElapsed() )
+	if ( m_lifetimeTimer.IsElapsed() || (enginetrace->GetPointContents( GetAbsOrigin() ) & MASK_WATER) )
 	{
 		Release();
 		return;
