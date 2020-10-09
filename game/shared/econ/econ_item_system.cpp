@@ -118,6 +118,7 @@ extern ConVar mp_tournament;
 
 #ifdef GAME_DLL
 ConVar mp_tournament_whitelist( "mp_tournament_whitelist", "item_whitelist.txt", FCVAR_NONE, "Specifies the item whitelist file to use." );
+ConVar mp_tournament_allow_whitelist_in_non_tournament( "mp_tournament_allow_whitelist_in_non_tournament", "0", FCVAR_REPLICATED | FCVAR_NOTIFY, "Allows the tournament whitelist to be loaded in non-tournament games." );
 #endif
 
 //-----------------------------------------------------------------------------
@@ -132,7 +133,7 @@ void CEconItemSystem::ReloadWhitelist( void )
 	KeyValues *pWhitelistKV = new KeyValues( "item_whitelist" );
 
 #ifdef GAME_DLL
-	if ( mp_tournament.GetBool() && mp_tournament_whitelist.GetString() )
+	if ( (mp_tournament.GetBool() && mp_tournament_whitelist.GetString()) || (mp_tournament_allow_whitelist_in_non_tournament.GetBool() && mp_tournament_whitelist.GetString()) )
 	{
 		const char *pszWhitelistFile = mp_tournament_whitelist.GetString();
 		if ( pWhitelistKV->LoadFromFile( filesystem, pszWhitelistFile ) )

@@ -4709,7 +4709,7 @@ CEconItemView *CTFPlayer::GetLoadoutItem( int iClass, int iSlot, bool bReportWhi
 
 	// Check to see if this item passes the tournament rules (in whitelist/or normal quality).
 	// If it doesn't, we fall back to the base item for the loadout slot.
-	if ( (pItem && pItem->IsValid()) && (pItem->GetItemQuality() != AE_NORMAL) && !pItem->GetStaticData()->IsAllowedInMatch() && TFGameRules()->IsInTournamentMode() )
+	if ( (pItem && pItem->IsValid()) && (pItem->GetItemQuality() != AE_NORMAL) && !pItem->GetStaticData()->IsAllowedInMatch() )
 	{
 		if ( bReportWhitelistFails )
 		{
