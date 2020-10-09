@@ -66,7 +66,7 @@ public:
 	static void SetErrorReportFunc( MemoryPoolReportFunc_t func );
 
 	// returns number of allocated blocks
-	int Count() { return m_BlocksAllocated; }
+	int Count() const { return m_BlocksAllocated; }
 	int PeakCount() { return m_PeakAlloc; }
 
 protected:
