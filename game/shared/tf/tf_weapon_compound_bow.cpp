@@ -219,6 +219,9 @@ void CTFCompoundBow::PrimaryAttack( void )
 	CTFPlayer *pPlayer = ToTFPlayer( GetPlayerOwner() );
 	if ( !pPlayer )
 		return;
+	
+	if ( (pPlayer->m_nButtons & IN_ATTACK2) )
+		return;
 
 	// Check for ammunition.
 	if ( m_iClip1 <= 0 && m_iClip1 != -1 )
