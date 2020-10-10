@@ -1593,14 +1593,13 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 	}
 	else
 	{
-	    // We use the raw boolean because we have a lock on all events.
 	    auto lPredSignaledAny = [nEvents, &pEvents, &iEventIndex]
 	    {
 		    for (int i = 0; i < nEvents; i++)
 		    {
 			    if (pEvents[i]->m_bSignaled)
 			    {
-					iEventIndex = i;
+				    iEventIndex = i;
 				    return true;
 			    }
 		    }
@@ -1622,11 +1621,27 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			return false;
 		};
 
-		if (lPredSignaledAny() || lPredSignaledAnyCheck())
+		// Most optimistic case: we have signal state synced already.
+		for (int i = 0; i < 20; i++)
 		{
+			if (lPredSignaledAny())
+			{
+				if (pEvents[iEventIndex]->m_bAutoReset)
+				{
+					pEvents[iEventIndex]->Reset();
+				}
+				bRet = true;
+				break;
+			}
+			ThreadPause();
+		}
+		// Second optimistic case: we can do an initial check to minimize contention
+		if (!bRet && lPredSignaledAnyCheck())
+		{
+			// Check handles auto reset
 			bRet = true;
 		}
-		else
+		else if (!bRet)
 		{
 		    // Lock all at the same time, to prevent race conditions.
 		    // Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
