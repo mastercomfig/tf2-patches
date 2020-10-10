@@ -184,6 +184,11 @@ void CTFParticleCannon::PrimaryAttack( void )
 //-----------------------------------------------------------------------------
 void CTFParticleCannon::SecondaryAttack( void )
 {
+	CTFPlayer *pPlayer = ToTFPlayer( GetPlayerOwner() );
+
+	if ( (pPlayer->m_nButtons & IN_ATTACK) )
+		return;
+
 	// Check for ammunition.
 	if ( !Energy_FullyCharged() )
 	{
@@ -212,7 +217,6 @@ void CTFParticleCannon::SecondaryAttack( void )
 	// save that we had the attack button down
 	m_flChargeBeginTime = gpGlobals->curtime;
 
-	CTFPlayer *pPlayer = ToTFPlayer( GetPlayerOwner() );
 	if ( pPlayer )
 	{
 		SendWeaponAnim( ACT_PRIMARY_VM_PRIMARYATTACK_3 );
