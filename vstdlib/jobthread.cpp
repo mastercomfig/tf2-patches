@@ -358,18 +358,18 @@ private:
 		tmZone( TELEMETRY_LEVEL0, TMZF_IDLE, "%s", __FUNCTION__ );
 		enum Event_t
 		{
-			CALL_FROM_MASTER,
 			SHARED_QUEUE,
+			CALL_FROM_MASTER,
 			DIRECT_QUEUE,
 
 			NUM_EVENTS
 		};
 
 		CThreadEvent*	 waitHandles[NUM_EVENTS];
-		
-		waitHandles[CALL_FROM_MASTER]	= &GetCallHandle();
-		waitHandles[SHARED_QUEUE]		= &m_SharedQueue.GetEventHandle();
-		waitHandles[DIRECT_QUEUE] 		= &m_DirectQueue.GetEventHandle();
+
+		waitHandles[SHARED_QUEUE] = &m_SharedQueue.GetEventHandle();
+		waitHandles[CALL_FROM_MASTER] = &GetCallHandle();
+		waitHandles[DIRECT_QUEUE] = &m_DirectQueue.GetEventHandle();
 		
 #if defined(_DEBUG) && defined(JOBS_DEBUG)
 		while ( (waitResult = ThreadWaitForEvents(ARRAYSIZE(waitHandles), waitHandles, false, 10) ) == WAIT_TIMEOUT )

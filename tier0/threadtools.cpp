@@ -1608,192 +1608,213 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		    return false;
 	    };
 
-		// Lock all at the same time, to prevent race conditions.
-		// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
-	    switch (nEvents)
-	    {
-	        case 2:
+		auto lPredSignaledAnyCheck = [nEvents, &pEvents, &iEventIndex]
+		{
+			for (int i = 0; i < nEvents; i++)
+			{
+				if (pEvents[i]->Check())
+				{
+					iEventIndex = i;
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+		if (lPredSignaledAny() || lPredSignaledAnyCheck())
+		{
+			bRet = true;
+		}
+		else
+		{
+		    // Lock all at the same time, to prevent race conditions.
+		    // Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
+	        switch (nEvents)
 	        {
-		        CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAny())
-				{
-					bRet = true;
-				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->AddListenerNoLock(condition);
-					}
+	            case 2:
+	            {
+		            CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
+				    // If we're already signaled, skip adding listeners
+				    if (lPredSignaledAny())
+				    {
+					    bRet = true;
+				    }
+				    else if (timeout != 0)
+				    {
+					    std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->AddListenerNoLock(condition);
+					    }
 
-					if (timeout == TT_INFINITE)
-					{
-						condition->wait(lock, lPredSignaledAny);
-						bRet = true;
-					}
-					else
-					{
-						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
-					}
+					    if (timeout == TT_INFINITE)
+					    {
+						    condition->wait(lock, lPredSignaledAny);
+						    bRet = true;
+					    }
+					    else
+					    {
+						    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+					    }
 
-					// Clear out listeners
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->RemoveListenerNoLock(condition);
-					}
-					condition.reset();
-				}
+					    // Clear out listeners
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->RemoveListenerNoLock(condition);
+					    }
+					    condition.reset();
+				    }
 
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					if (pEvents[iEventIndex]->m_bAutoReset)
-					{
-						pEvents[iEventIndex]->m_bSignaled = false;
-					}
-				}
-		        break;
+				    // Auto reset, since this function is a wait too!
+				    if (bRet)
+				    {
+					    if (pEvents[iEventIndex]->m_bAutoReset)
+					    {
+						    pEvents[iEventIndex]->m_bSignaled = false;
+					    }
+				    }
+		            break;
+	            }
+	            case 3:
+	            {
+		            CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
+				    // If we're already signaled, skip adding listeners
+				    if (lPredSignaledAny())
+				    {
+					    bRet = true;
+				    }
+				    else if (timeout != 0)
+				    {
+					    std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->AddListenerNoLock(condition);
+					    }
+
+					    if (timeout == TT_INFINITE)
+					    {
+						    condition->wait(lock, lPredSignaledAny);
+						    bRet = true;
+					    }
+					    else
+					    {
+						    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+					    }
+
+					    // Clear out listeners
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->RemoveListenerNoLock(condition);
+					    }
+					    condition.reset();
+				    }
+
+				    // Auto reset, since this function is a wait too!
+				    if (bRet)
+				    {
+					    if (pEvents[iEventIndex]->m_bAutoReset)
+					    {
+						    pEvents[iEventIndex]->m_bSignaled = false;
+					    }
+				    }
+		            break;
+	            }
+	            case 4:
+	            {
+		            CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
+				    // If we're already signaled, skip adding listeners
+				    if (lPredSignaledAny())
+				    {
+					    bRet = true;
+				    }
+				    else if (timeout != 0)
+				    {
+					    std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->AddListenerNoLock(condition);
+					    }
+
+					    if (timeout == TT_INFINITE)
+					    {
+						    condition->wait(lock, lPredSignaledAny);
+						    bRet = true;
+					    }
+					    else
+					    {
+						    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+					    }
+
+					    // Clear out listeners
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->RemoveListenerNoLock(condition);
+					    }
+					    condition.reset();
+				    }
+
+				    // Auto reset, since this function is a wait too!
+				    if (bRet)
+				    {
+					    if (pEvents[iEventIndex]->m_bAutoReset)
+					    {
+						    pEvents[iEventIndex]->m_bSignaled = false;
+					    }
+				    }
+		            break;
+	            }
+	            case 5:
+	            {
+		            CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
+				    // If we're already signaled, skip adding listeners
+				    if (lPredSignaledAny())
+				    {
+					    bRet = true;
+				    }
+				    else if (timeout != 0)
+				    {
+					    std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->AddListenerNoLock(condition);
+					    }
+
+					    if (timeout == TT_INFINITE)
+					    {
+						    condition->wait(lock, lPredSignaledAny);
+						    bRet = true;
+					    }
+					    else
+					    {
+						    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+					    }
+
+					    // Clear out listeners
+					    for (int i = 0; i < nEvents; i++)
+					    {
+						    pEvents[i]->RemoveListenerNoLock(condition);
+					    }
+					    condition.reset();
+				    }
+
+				    // Auto reset, since this function is a wait too!
+				    if (bRet)
+				    {
+					    if (pEvents[iEventIndex]->m_bAutoReset)
+					    {
+						    pEvents[iEventIndex]->m_bSignaled = false;
+					    }
+				    }
+		            break;
+	            }
+	            default:
+	            {
+		            Assert(0);
+		            break;
+	            }
 	        }
-	        case 3:
-	        {
-		        CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAny())
-				{
-					bRet = true;
-				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->AddListenerNoLock(condition);
-					}
-
-					if (timeout == TT_INFINITE)
-					{
-						condition->wait(lock, lPredSignaledAny);
-						bRet = true;
-					}
-					else
-					{
-						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
-					}
-
-					// Clear out listeners
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->RemoveListenerNoLock(condition);
-					}
-					condition.reset();
-				}
-
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					if (pEvents[iEventIndex]->m_bAutoReset)
-					{
-						pEvents[iEventIndex]->m_bSignaled = false;
-					}
-				}
-		        break;
-	        }
-	        case 4:
-	        {
-		        CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAny())
-				{
-					bRet = true;
-				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->AddListenerNoLock(condition);
-					}
-
-					if (timeout == TT_INFINITE)
-					{
-						condition->wait(lock, lPredSignaledAny);
-						bRet = true;
-					}
-					else
-					{
-						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
-					}
-
-					// Clear out listeners
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->RemoveListenerNoLock(condition);
-					}
-					condition.reset();
-				}
-
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					if (pEvents[iEventIndex]->m_bAutoReset)
-					{
-						pEvents[iEventIndex]->m_bSignaled = false;
-					}
-				}
-		        break;
-	        }
-	        case 5:
-	        {
-		        CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAny())
-				{
-					bRet = true;
-				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->AddListenerNoLock(condition);
-					}
-
-					if (timeout == TT_INFINITE)
-					{
-						condition->wait(lock, lPredSignaledAny);
-						bRet = true;
-					}
-					else
-					{
-						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
-					}
-
-					// Clear out listeners
-					for (int i = 0; i < nEvents; i++)
-					{
-						pEvents[i]->RemoveListenerNoLock(condition);
-					}
-					condition.reset();
-				}
-
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					if (pEvents[iEventIndex]->m_bAutoReset)
-					{
-						pEvents[iEventIndex]->m_bSignaled = false;
-					}
-				}
-		        break;
-	        }
-	        default:
-	        {
-		        Assert(0);
-		        break;
-	        }
-	    }
+		}
 	}
 	if (bRet)
 	{
