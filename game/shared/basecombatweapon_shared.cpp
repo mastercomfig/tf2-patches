@@ -1692,8 +1692,6 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		CheckReload();
 	}
 
-	bool bFired = false;
-
 	// Secondary attack has priority
 	if ((pOwner->m_nButtons & IN_ATTACK2) && CanPerformSecondaryAttack() )
 	{
@@ -1714,17 +1712,6 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 		else
 		{
-			// FIXME: This isn't necessarily true if the weapon doesn't have a secondary fire!
-			// For instance, the crossbow doesn't have a 'real' secondary fire, but it still 
-			// stops the crossbow from firing on the 360 if the player chooses to hold down their
-			// zoom button. (sjb) Orange Box 7/25/2007
-#if !defined(CLIENT_DLL)
-			if( !IsX360() || !ClassMatches("weapon_crossbow") )
-#endif
-			{
-				bFired = ShouldBlockPrimaryFire();
-			}
-
 			SecondaryAttack();
 
 			// Secondary ammo doesn't have a reload animation
@@ -1740,7 +1727,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 	}
 	
-	if ( !bFired && (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime))
+	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		// Clip empty? Or out of ammo on a no-clip weapon?
 		if ( !IsMeleeWeapon() &&  
@@ -1795,7 +1782,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	// -----------------------
 	//  No buttons down
 	// -----------------------
-	if (!((pOwner->m_nButtons & IN_ATTACK) || (pOwner->m_nButtons & IN_ATTACK2) || (CanReload() && pOwner->m_nButtons & IN_RELOAD)))
+	if (!((pOwner->m_nButtons & IN_ATTACK) || (CanReload() && pOwner->m_nButtons & IN_RELOAD)))
 	{
 		// no fire buttons down or reloading
 		if ( !ReloadOrSwitchWeapons() && ( m_bInReload == false ) )
