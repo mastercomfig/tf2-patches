@@ -67,6 +67,8 @@ public:
 
 	virtual bool	ShouldBlockPrimaryFire() OVERRIDE;
 
+	virtual bool	CanReload( void );
+
 #ifdef CLIENT_DLL
 	virtual void CreateMuzzleFlashEffects( C_BaseEntity *pAttachEnt, int nIndex );
 #endif

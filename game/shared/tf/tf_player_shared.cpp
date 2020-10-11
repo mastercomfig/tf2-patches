@@ -708,6 +708,13 @@ bool CTFPlayer::IsAllowedToTaunt( void )
 	if ( m_Shared.InCond( TF_COND_GRAPPLED_TO_PLAYER ) )
 		return false;
 
+	if ( IsPlayerClass( TF_CLASS_SOLDIER ) )
+	{
+		// Stop from taunting if we have any rockets overloaded in the Beggers Bazooka
+		if ( pActiveWeapon && pActiveWeapon->CanOverload() && pActiveWeapon->Clip1() > 0 )
+			return false;
+	}
+
 	if ( IsPlayerClass( TF_CLASS_SCOUT ) )
 	{
 		if ( pActiveWeapon && pActiveWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX )

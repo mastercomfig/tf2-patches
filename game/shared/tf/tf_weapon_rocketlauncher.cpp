@@ -392,6 +392,21 @@ bool CTFRocketLauncher::DefaultReload( int iClipSize1, int iClipSize2, int iActi
 	return BaseClass::DefaultReload( iClipSize1, iClipSize2, iActivity );
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+bool CTFRocketLauncher::CanReload( void )
+{
+	CTFPlayer *pPlayer = GetTFPlayerOwner();
+
+	// Need this here since the beggers Bazooka has a delay before loading a rocket
+	// If we taunt just as we are about to load the rocket, we can store the rocket
+	if ( CanOverload() && pPlayer->m_Shared.InCond( TF_COND_TAUNTING ) )
+		return false;
+
+	return true;
+}
+
 #ifdef CLIENT_DLL
 //-----------------------------------------------------------------------------
 // Purpose: 
