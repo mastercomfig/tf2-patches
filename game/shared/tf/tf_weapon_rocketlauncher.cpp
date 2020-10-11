@@ -399,7 +399,7 @@ bool CTFRocketLauncher::CanReload( void )
 {
 	CTFPlayer *pPlayer = GetTFPlayerOwner();
 
-	// Need this here since the beggers Bazooka has a delay before loading a rocket
+	// Need this here since the Beggar's Bazooka has a delay before loading a rocket
 	// If we taunt just as we are about to load the rocket, we can store the rocket
 	if ( CanOverload() && pPlayer->m_Shared.InCond( TF_COND_TAUNTING ) )
 		return false;
