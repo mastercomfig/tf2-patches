@@ -2442,9 +2442,23 @@ void CPopulationManager::RemoveRespecFromPlayer( CTFPlayer *pPlayer )
 //-----------------------------------------------------------------------------
 void CPopulationManager::SetNumRespecsForPlayer( CTFPlayer *pPlayer, int nCount )
 {
+	bool IsPlayerBeingTrackedForRespecs(CTFPlayer *player)
+	{
+		if (player == nullptr) return false;
+		
+		CSteamID id;
+		if (!player->GetSteamID(&id)) return false;
+		
+		return g_pPopulationManager->m_PlayerRespecPoints->IsValidIndex(g_pPopulationManager->m_PlayerRespecPoints->Find(id.ConvertToUint64()));
+	}
+	
 	if ( !pPlayer )
 		return;
-
+	
+	if ( pPlayer->GetAutoTeam() > 0 && IsPlayerBeingTrackedForRespecs( pPlayer ) ) {
+		return;
+	}
+	
 	CSteamID steamID;
 	if ( pPlayer->GetSteamID( &steamID ) )
 	{
