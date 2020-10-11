@@ -710,7 +710,7 @@ bool CTFPlayer::IsAllowedToTaunt( void )
 
 	if ( IsPlayerClass( TF_CLASS_SOLDIER ) )
 	{
-		// Stop from taunting if we have any rockets overloaded in the Begger's Bazooka
+		// Stop from taunting if we have any rockets overloaded in the Beggar's Bazooka
 		if ( pActiveWeapon && pActiveWeapon->CanOverload() && pActiveWeapon->Clip1() > 0 )
 			return false;
 	}
