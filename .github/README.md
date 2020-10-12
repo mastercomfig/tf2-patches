@@ -45,10 +45,11 @@ New users should follow this approach.
 2. In your copied TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 	* Do *not* delete the entire `tf/cfg` folder!
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-4. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
-5. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
-6. Double click `start_tf2.bat`. Note that you must have Steam running.
-7. Enjoy!
+4. ![Unblock ZIP](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
+5. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
+6. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
+7. Double click `start_tf2.bat`. Note that you must have Steam running.
+8. Enjoy!
 
 *Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/team-comtress-2/wiki/Advanced-Installation-Instructions).*
 
