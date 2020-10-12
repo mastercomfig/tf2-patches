@@ -1073,7 +1073,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 	(PyList_Check(sf) ? ((PyListObject *)(sf))->ob_item \
 			  : ((PyTupleObject *)(sf))->ob_item)
 	/* Return a pointer to the underlying item array for
-           an object retured by PySequence_Fast */
+           an object returned by PySequence_Fast */
 
      PyAPI_FUNC(Py_ssize_t) PySequence_Count(PyObject *o, PyObject *value);
 
