@@ -25,7 +25,8 @@ while $( mount | grep schroot/mount | grep -q $CHROOT_NAME ); do
 done
 
 echo Unpacking runtime $2...
-tar xaf $2.tar.xz
+mkdir $2
+tar xaf $2.tar.xz -C $2
 touch $2/timestamp
 
 echo Configuring schroot at $DIRNAME/$TARBALL
@@ -34,6 +35,7 @@ cat << EOF > /etc/schroot/chroot.d/$CHROOT_NAME.conf
 description=Steam Runtime
 directory=$DIRNAME/$TARBALL
 personality=$PERSONALITY
+users=$SUDO_USER,root
 groups=sudo
 root-groups=sudo
 preserve-environment=true
@@ -55,7 +57,6 @@ home           /home           none    rw,bind         0       0
 tmp            /tmp            none    rw,bind         0       0
 # For PulseAudio and other desktop-related things
 var/lib/dbus   /var/lib/dbus   none    rw,bind         0       0
-run/shm        /run/shm        none    rw,bind         0       0
 EOF
 
 if [ -d /data ]; then

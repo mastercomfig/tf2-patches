@@ -127,13 +127,13 @@ ifdef MAKE_CHROOT
         $(info '$(SCHROOT_CHROOT_NAME)' is not '$(CHROOT_NAME)')
         $(error This makefile should be run from within a chroot. 'schroot --chroot $(CHROOT_NAME) -- $(MAKE) $(MAKEFLAGS)')  
 	endif
-	GCC_VER = -4.8
+	GCC_VER = -9
 	P4BIN = $(SRCROOT)/devtools/bin/linux/p4
 	CRYPTOPPDIR=ubuntu12_32_gcc48
 else ifeq ($(USE_VALVE_BINDIR),1)
 	# Using /valve/bin directory.
 	export STEAM_RUNTIME_PATH ?= /valve
-	GCC_VER = -4.6
+	GCC_VER = -9
 	P4BIN = p4
 	CRYPTOPPDIR=linux32
 else

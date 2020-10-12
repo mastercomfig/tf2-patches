@@ -1,7 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 cd "$(dirname "$0")" || exit
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
     live_install="$HOME/.steam/steam/steamapps/common/Team Fortress 2/"
 else
 	live_install="$1"
