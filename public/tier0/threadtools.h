@@ -660,7 +660,7 @@ public:
 	//------------------------------------------------------
 	// Enable tracing to track deadlock problems
 	//------------------------------------------------------
-	void SetTrace( bool );
+	void SetTrace(bool) {};
 
 private:
 	// Disallow copying
@@ -668,6 +668,11 @@ private:
 	CThreadMutex &operator=( const CThreadMutex & );
 
 	std::mutex m_Mutex;
+#ifdef _WIN32
+	std::atomic<unsigned long> m_ownerID{0};
+#else
+	std::atomic<uint> m_ownerID{ 0 };
+#endif
 };
 
 //-----------------------------------------------------------------------------
@@ -1538,20 +1543,32 @@ public:
 
 inline bool CThreadMutex::TryLock()
 {
-	return m_Mutex.try_lock();
+	if (!AssertOwnedByCurrentThread() && m_Mutex.try_lock())
+	{
+		m_ownerID = ThreadGetCurrentId();
+		return true;
+	}
+	DebuggerBreak();
+	return false;
 }
 
 //---------------------------------------------------------
 
 inline void CThreadMutex::Lock()
 {
-	m_Mutex.lock();
+	Assert(!AssertOwnedByCurrentThread());
+	if (!AssertOwnedByCurrentThread())
+	{
+		m_Mutex.lock();
+		m_ownerID = ThreadGetCurrentId();
+	}
 }
 
 //---------------------------------------------------------
 
 inline void CThreadMutex::Unlock()
 {
+	Assert(AssertOwnedByCurrentThread());
 	m_Mutex.unlock();
 }
 
@@ -1559,13 +1576,7 @@ inline void CThreadMutex::Unlock()
 
 inline bool CThreadMutex::AssertOwnedByCurrentThread()
 {
-	return true;
-}
-
-//---------------------------------------------------------
-
-inline void CThreadMutex::SetTrace(bool fTrace)
-{
+	return m_ownerID == ThreadGetCurrentId();
 }
 
 //-----------------------------------------------------------------------------
