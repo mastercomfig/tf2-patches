@@ -10470,7 +10470,7 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 		CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed_shieldrequired );
 	}
 
-	if ( m_Shared.GetActiveTFWeapon()->GetLastDeployTime() <= gpGlobals->curtime )
+	if ( m_Shared.GetActiveTFWeapon() && m_Shared.GetActiveTFWeapon()->GetLastDeployTime() <= gpGlobals->curtime )
 	{
 		CALL_ATTRIB_HOOK_FLOAT(maxfbspeed, mult_player_movespeed_active);
 	}

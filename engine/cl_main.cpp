@@ -2243,13 +2243,13 @@ void CL_Move(float accumulated_extra_samples, bool bFinalTick )
 		// use full update rate when active
 		float commandInterval = cl_cmdinterval->GetFloat();
 		float maxDelta = min ( host_state.interval_per_tick, commandInterval );
-		float delta = clamp( (float)(net_time - cl.m_flNextCmdTime), 0.0f, maxDelta );
+		double delta = clamp<double>( net_time - cl.m_flNextCmdTime, 0.0, (double)maxDelta );
 		cl.m_flNextCmdTime = net_time + commandInterval - delta;
 	}
 	else
 	{
 		// during signon process send only 5 packets/second
-		cl.m_flNextCmdTime = net_time + ( 1.0f / 5.0f );
+		cl.m_flNextCmdTime = net_time + ( 1.0 / 5.0 );
 	}
 
 }

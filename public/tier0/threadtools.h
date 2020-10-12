@@ -671,7 +671,7 @@ private:
 #ifdef _WIN32
 	std::atomic<unsigned long> m_ownerID{0};
 #else
-	std::atomic<uint> m_ownerID{ 0 };
+	std::atomic<uint> m_ownerID{0};
 #endif
 };
 
@@ -1543,12 +1543,14 @@ public:
 
 inline bool CThreadMutex::TryLock()
 {
-	if (!AssertOwnedByCurrentThread() && m_Mutex.try_lock())
+	if (!AssertOwnedByCurrentThread())
 	{
-		m_ownerID = ThreadGetCurrentId();
-		return true;
+		if (m_Mutex.try_lock())
+		{
+			m_ownerID = ThreadGetCurrentId();
+			return true;
+		}
 	}
-	DebuggerBreak();
 	return false;
 }
 

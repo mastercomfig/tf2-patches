@@ -134,17 +134,6 @@ typedef struct
 	char	buffer[ NET_MAX_MESSAGE ];	// This has to be big enough to hold the largest message
 } LONGPACKET;
 
-// Use this to pick apart the network stream, must be packed
-#pragma pack(1)
-typedef struct
-{
-	int		netID;
-	int		sequenceNumber;
-	int		packetID : 16;
-	int		nSplitSize : 16;
-} SPLITPACKET;
-#pragma pack()
-
 #define MIN_USER_MAXROUTABLE_SIZE	576  // ( X.25 Networks )
 #define MAX_USER_MAXROUTABLE_SIZE	MAX_ROUTABLE_PAYLOAD
 
@@ -2324,7 +2313,7 @@ static int NET_SendLong( INetChannel *chan, int sock, SOCKET s, const char FAR *
 		
 		Q_memcpy( packet + sizeof(SPLITPACKET), sendbuf + (nPacketNumber * nSplitSizeMinusHeader), size );
 		
-		int ret = 0;
+		int ret;
 
 		// Setting net_queued_packet_thread to NET_QUEUED_PACKET_THREAD_DEBUG_VALUE goes into a mode where all packets are queued.. can be used to stress-test it.
 		// Linux threads aren't prioritized well enough for this to work well (i.e. the queued packet thread doesn't get enough

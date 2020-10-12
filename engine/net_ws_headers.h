@@ -82,6 +82,17 @@ typedef int SOCKET;
 #include "cl_rcon.h"
 #endif
 
+// Use this to pick apart the network stream, must be packed
+#pragma pack(1)
+typedef struct
+{
+	int		netID;
+	int		sequenceNumber;
+	int		packetID : 16;
+	int		nSplitSize : 16;
+} SPLITPACKET;
+#pragma pack()
+
 #if defined( _X360 )
 #include "xbox/xbox_win32stubs.h"
 #endif
