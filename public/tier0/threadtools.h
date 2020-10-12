@@ -1570,6 +1570,7 @@ inline void CThreadMutex::Unlock()
 {
 	Assert(AssertOwnedByCurrentThread());
 	m_Mutex.unlock();
+	m_ownerID = 0;
 }
 
 //---------------------------------------------------------

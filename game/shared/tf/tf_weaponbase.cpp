@@ -1058,7 +1058,7 @@ bool CTFWeaponBase::Deploy( void )
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flDeployTimeMultiplier, mult_deploy_time );
 		CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_single_wep_deploy_time );
 
-		CTFWeaponBase* pLastWeapon = dynamic_cast<CTFWeaponBase*>(pPlayer->GetLastWeapon());
+		CTFWeaponBase* pLastWeapon = static_cast<CTFWeaponBase*>(pPlayer->GetLastWeapon());
 
 		int iIsSword = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER(pLastWeapon, iIsSword, is_a_sword);
