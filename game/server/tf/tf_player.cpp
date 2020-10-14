@@ -21566,6 +21566,10 @@ float CTFPlayer::GetDesiredHeadScale() const
 //-----------------------------------------------------------------------------
 float CTFPlayer::GetHeadScaleSpeed() const
 {
+	if ( TFGameRules()->IsMannVsMachineMode() ) 
+	{
+		return FLT_MAX;
+	}
 	// change size now
 	if (
 		m_Shared.InCond( TF_COND_HALLOWEEN_BOMB_HEAD ) ||
@@ -21595,6 +21599,10 @@ float CTFPlayer::GetDesiredTorsoScale() const
 //-----------------------------------------------------------------------------
 float CTFPlayer::GetTorsoScaleSpeed() const
 {
+	if ( TFGameRules()->IsMannVsMachineMode() ) 
+	{
+		return FLT_MAX;
+	}
 	return gpGlobals->frametime;
 }
 
@@ -21613,6 +21621,10 @@ float CTFPlayer::GetDesiredHandScale() const
 //-----------------------------------------------------------------------------
 float CTFPlayer::GetHandScaleSpeed() const
 {
+	if ( TFGameRules()->IsMannVsMachineMode() ) 
+	{
+		return FLT_MAX;
+	}
 	if ( m_Shared.InCond( TF_COND_MELEE_ONLY ) )
 	{
 		return GetDesiredHandScale();
