@@ -1,29 +1,31 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")" || exit
+# NOTE: Do not set -e, some cp commands fail because they don't overwrite existing files, which we want
+cd "$(dirname "$0")" || exit 1
 
-if [[ -z "$1" ]]; then
-    live_install="$HOME/.steam/steam/steamapps/common/Team Fortress 2/"
+if [[ -n "$1" ]]; then
+	ORIGINAL_INSTALL_DIR="$1"
 else
-	live_install="$1"
+	ORIGINAL_INSTALL_DIR="${HOME}/.steam/steam/steamapps/common/Team Fortress 2/"
 fi
 
-if [ ! -d "$live_install" ]; then
-    echo Failed to find TF2 at \'"$live_install"\'
+if [[ ! -d "$ORIGINAL_INSTALL_DIR" ]]; then
+    echo Failed to find TF2 at \'"${ORIGINAL_INSTALL_DIR}"\'
     echo Did you move your steam library?
-    echo If so, put the path to your TF2 folder after \'link.sh\'
+    echo If so, pass the path to your TF2 installation after \'link.sh\'
+    echo If you already did so, check your supplied path
     exit 1
 fi
 
 link_dir() {
-	ln -sn "$live_install/$1" "../game/$1"
+	ln -sn "${ORIGINAL_INSTALL_DIR}/$1" "../game/$1"
 }
 
 link_glob() {
-	ln -sn "$live_install/$1/"*"$2" "../game/$1/"
+	ln -sn "${ORIGINAL_INSTALL_DIR}/$1/"*"$2" "../game/$1/"
 }
 
 copy () {
-	cp -rfT --remove-destination "$live_install/$1" "../game/$1"
+	cp -rfT --remove-destination "${ORIGINAL_INSTALL_DIR}/$1" "../game/$1"
 }
 
 link_dir hl2
@@ -44,4 +46,4 @@ copy tf/gamestate.txt
 copy tf/glshaders.cfg
 copy tf/videoconfig_linux.cfg
 
-cp -rf game_clean/copy/ ../game/
+cp -rfT game_clean/copy/ ../game/

@@ -13,7 +13,7 @@ fi
 CF_SUPPRESSION="-w"
 MAKE_SRT_FLAGS="NO_CHROOT=1 STEAM_RUNTIME_PATH="
 MAKE_CFG="CFG=release"
-MAKE_VERBOSE=''
+MAKE_VERBOSE=""
 VPC_FLAGS="/define:LTCG /define:CERT"
 CORES=$(nproc)
 export VALVE_NO_AUTO_P4=1
@@ -45,7 +45,7 @@ while [[ ${1:0:1} == '-' ]]; do
 		;;
 		"-r")
 			MAKE_SRT_FLAGS="PATH=/bin:/usr/bin"
-			CHROOT_NAME="$(pwd | sed 's/\//_/g')_"  # Echo is required for trailing slash
+			CHROOT_NAME="$(pwd | sed 's/\//_/g')_"  # Trailing _ is required
 		;;
 		*)
 			echo "Unknown flag ${1}"
@@ -106,9 +106,11 @@ EOF
 		else
 			make "-j$CORES" $3
 		fi
-	popd
+		popd
 	fi
 }
+
+# TODO(melvyn2) make vpcs for these instead (except for vpc obviously)
 
 check_and_at_build thirdparty/gperftools-2.0/ thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so
 check_and_at_build thirdparty/protobuf-2.5.0/ thirdparty/protobuf-2.5.0/src/.libs/libprotobuf.a
@@ -119,7 +121,7 @@ check_and_make ./external/vpc/utils/vpc ./devtools/bin/vpc_linux
 check_and_make ./thirdparty/libpng-1.5.2 ./lib/public/linux32/libpng.a "-f scripts/makefile.gcc"
 
 # shellcheck disable=SC2086   # we want arguments to be split
-devtools/bin/vpc /define:WORKSHOP_IMPORT_DISABLE /define:SIXENSE_DISABLE /define:NO_X360_XDK \
+devtools/bin/vpc_linux /define:WORKSHOP_IMPORT_DISABLE /define:SIXENSE_DISABLE /define:NO_X360_XDK \
 				/define:RAD_TELEMETRY_DISABLED /define:DISABLE_ETW /retail /tf ${VPC_FLAGS} +game /mksln games
 
 
