@@ -1432,7 +1432,7 @@ static KeyValues *FindBuiltinFallbackBlock( char const *pShaderName, KeyValues *
 
 inline const char *MissingShaderName()
 {
-	return "Wireframe_DX9";
+	return (IsWindows() && !IsEmulatingGL()) ? "Wireframe_DX8" : "Wireframe_DX9";
 }
 
 //-----------------------------------------------------------------------------

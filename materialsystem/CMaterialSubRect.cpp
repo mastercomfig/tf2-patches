@@ -645,7 +645,7 @@ void CMaterialSubRect::ParseMaterialVars( KeyValues &keyValues )
 	{
 		DevWarning( 1, "CMaterialSubRect::InitializeShader: Shader not specified in material %s.\n", GetName() );
 		Assert( 0 );
-		pShaderName = "Wireframe_DX9";
+		pShaderName = IsPC() && !IsOpenGL() ? "Wireframe_DX6" : "Wireframe_DX9";
 	}
 
 	// Verify we have the correct "shader."  There is only one type.
