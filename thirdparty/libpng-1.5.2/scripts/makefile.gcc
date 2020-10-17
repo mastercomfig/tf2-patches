@@ -8,31 +8,33 @@
 # and license in png.h
 
 # Location of the zlib library and include files
-ZLIBINC = ../zlib
-ZLIBLIB = ../zlib
+ZLIBINC = ../zlib-1.2.5
+ZLIBLIB = ../zlib-1.2.5
 
-# Compiler, linker, lib and other tools
-ifeq ($(origin CC),default)
-        CC = gcc
-endif
-
-ifeq ($(origin AR_RC),default)
-        AR_RC = ar rcs
-endif
+CC ?= gcc
+AR_RC ?= ar rcs
 
 LD = $(CC)
 RANLIB = ranlib
 RM_F = rm -f
+CP = cp
 
 CDEBUG = -g -DPNG_DEBUG=5
 LDDEBUG =
 CRELEASE = -O2
 LDRELEASE = -s
-#CFLAGS = -W -Wall $(CDEBUG)
-CFLAGS = -W -Wall $(CRELEASE)
-#LDFLAGS = $(LDDEBUG)
-LDFLAGS = $(LDRELEASE)
+# NOTE(melvyn2) This should have fvisibility=hidden, see ../README.valve; However, this does not work, see makefile_base_posix.mak:83
+#CFLAGS = -W -Wall -fPIC -m32 $(CDEBUG)
+CFLAGS = -W -Wall -fPIC -m32 $(CRELEASE)
+#LDFLAGS = -m32 $(LDDEBUG)
+LDFLAGS = -m32 $(LDRELEASE)
 LIBS = -lz -lm
+ifeq ($(shell uname),Linux)
+LIBDIR = ../../lib/public/linux32
+endif
+ifeq ($(shell uname),Darwin)
+LIBDIR = ../../lib/public/osx32
+endif
 
 # File extensions
 O=.o
@@ -45,16 +47,19 @@ OBJS =  png$(O) pngerror$(O) pngget$(O) pngmem$(O) pngpread$(O) \
 	pngtrans$(O) pngwio$(O) pngwrite$(O) pngwtran$(O) pngwutil$(O)
 
 # Targets
-all: static
+all: static $(LIBDIR)/libpng$(A)
 
 # see scripts/pnglibconf.mak for more options
 pnglibconf.h: scripts/pnglibconf.h.prebuilt
-	cp scripts/pnglibconf.h.prebuilt $@
+	$(CP) scripts/pnglibconf.h.prebuilt $@
 
 .c$(O):
 	$(CC) -c $(CFLAGS) -I$(ZLIBINC) $<
 
 static: libpng$(A) pngtest$(EXE)
+
+$(LIBDIR)/libpng$(A): libpng$(A)
+	$(CP) ./libpng$(A) $@
 
 shared:
 	@echo This is a generic makefile that cannot create shared libraries.
