@@ -95,5 +95,7 @@ thirdparty/protobuf-2.5.0/config.status
 thirdparty/protobuf-2.5.0/config.h
 thirdparty/protobuf-2.5.0/test-driver
 
+thirdparty/libpng-1.5.2/pngtest
+
 # ignore generated protobufs
 generated_proto*/

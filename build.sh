@@ -100,11 +100,11 @@ check_and_make() {
 		cd "$1"
 		if [[ -n ${CHROOT_NAME} ]]; then
 			schroot --chroot "${CHROOT_NAME}" -- /bin/bash << EOF
-			export PATH=/bin:/usr/bin
-			make "-j$CORES"
+				export PATH=/bin:/usr/bin
+				make "-j$CORES" $3
 EOF
 		else
-			make "-j$CORES"
+			make "-j$CORES" $3
 		fi
 	popd
 	fi
@@ -115,6 +115,7 @@ check_and_at_build thirdparty/protobuf-2.5.0/ thirdparty/protobuf-2.5.0/src/.lib
 check_and_at_build thirdparty/libedit-3.1/ thirdparty/libedit-3.1/src/.libs/libedit.so
 
 check_and_make ./external/vpc/utils/vpc ./devtools/bin/vpc_linux
+check_and_make ./thirdparty/libpng-1.5.2 ./lib/public/linux32/libpng.a "-f scripts/makefile.gcc"
 
 # shellcheck disable=SC2086   # we want arguments to be split
 devtools/bin/vpc /define:WORKSHOP_IMPORT_DISABLE /define:SIXENSE_DISABLE /define:NO_X360_XDK \
