@@ -752,7 +752,7 @@ void CTFTeamMenu::SetHighlanderTeamsFullPanels( bool bTeamsFull, bool bForce /* 
 	}
 }
 
-ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "12", FCVAR_REPLICATED);
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "10", FCVAR_REPLICATED);
 
 //-----------------------------------------------------------------------------
 // Frame-based update
