@@ -3791,7 +3791,9 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 	} 
 	else if ( bCopyFromCurrent )
 	{
-		Assert( !"We're about to crash, last chance to examine this texture." );
+		// UNDONE(mastercoms): it seems like we would have nothing to do in this case?
+		// Assert( !"We're about to crash, last chance to examine this texture." );
+		return;
 	}
 
 
