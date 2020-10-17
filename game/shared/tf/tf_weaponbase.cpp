@@ -311,6 +311,7 @@ CTFWeaponBase::CTFWeaponBase()
 	m_iCurrentSeed = -1;
 	m_flReloadPriorNextFire = 0;
 	m_flLastDeployTime = 0;
+	m_flLastSwitchMult = 1;
 
 	m_bDisguiseWeapon = false;
 
@@ -1071,13 +1072,17 @@ bool CTFWeaponBase::Deploy( void )
 
 		flBaseWeaponSwitchTime *= MAX(flDeployTimeMultiplier, 0.00001f);
 
-		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed for more than 0.5 second to match to weapon script switch time
+		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed
 		// unless the player latched to a hook target, then allow switching right away
 		
 		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime >= pLastWeapon->m_flLastDeployTime ) )
 		{
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
+			// If the last weapon deployed, then reset the switch multiplier.
+			m_flLastSwitchMult = 1;
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, m_flLastSwitchMult, mult_switch_from_wep_deploy_time );
 		}
+
+		flDeployTimeMultiplier *= m_flLastSwitchMult;
 
 		if (pPlayer->m_Shared.InCond(TF_COND_BLASTJUMPING))
 		{

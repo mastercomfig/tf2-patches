@@ -629,6 +629,7 @@ protected:
 	float			m_flLastRapidFireCritCheckTime;
 
 	float			m_flLastDeployTime;
+	float           m_flLastSwitchMult;
 
 	char			m_szTracerName[MAX_TRACER_NAME];
 

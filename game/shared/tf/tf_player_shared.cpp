@@ -10464,15 +10464,14 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 
 	// If we have an item with a move speed modification, apply it to the final speed.
 	CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed );
+	if (m_Shared.GetActiveTFWeapon())
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(m_Shared.GetActiveTFWeapon(), maxfbspeed, mult_player_movespeed_active);
+	}
 
 	if ( m_Shared.IsShieldEquipped() )
 	{
 		CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed_shieldrequired );
-	}
-
-	if ( m_Shared.GetActiveTFWeapon() && m_Shared.GetActiveTFWeapon()->GetLastDeployTime() <= gpGlobals->curtime )
-	{
-		CALL_ATTRIB_HOOK_FLOAT(maxfbspeed, mult_player_movespeed_active);
 	}
 
 	if ( playerclass == TF_CLASS_MEDIC )
