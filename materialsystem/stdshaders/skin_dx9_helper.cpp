@@ -24,7 +24,7 @@
 static ConVar mat_fullbright( "mat_fullbright", "0", FCVAR_CHEAT );
 static ConVar r_lightwarpidentity( "r_lightwarpidentity", "0", FCVAR_CHEAT );
 static ConVar r_rimlight( "r_rimlight", "1", FCVAR_NONE );
-static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_NONE);
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 0, true, 0, NULL);
 
 // Textures may be bound to the following samplers:
 //	SHADER_SAMPLER0	 Base (Albedo) / Gloss in alpha

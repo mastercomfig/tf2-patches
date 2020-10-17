@@ -32,6 +32,7 @@ enum SoundQuality_e
 	SOUNDQUALITY_LOW,
 	SOUNDQUALITY_MEDIUM,
 	SOUNDQUALITY_HIGH,
+	SOUNDQUALITY_ULTRA
 };
 
 //-----------------------------------------------------------------------------
@@ -48,6 +49,7 @@ COptionsSubAudio::COptionsSubAudio(vgui::Panel *parent) : PropertyPage(parent, N
 	m_pCloseCaptionCombo->AddItem( "#GameUI_Subtitles", NULL );
 
 	m_pSoundQualityCombo = new ComboBox( this, "SoundQuality", 6, false );
+	m_pSoundQualityCombo->AddItem( "#GameUI_Ultra", new KeyValues("SoundQuality", "quality", SOUNDQUALITY_ULTRA) );
 	m_pSoundQualityCombo->AddItem( "#GameUI_High", new KeyValues("SoundQuality", "quality", SOUNDQUALITY_HIGH) );
 	m_pSoundQualityCombo->AddItem( "#GameUI_Medium", new KeyValues("SoundQuality", "quality", SOUNDQUALITY_MEDIUM) );
 	m_pSoundQualityCombo->AddItem( "#GameUI_Low", new KeyValues("SoundQuality", "quality", SOUNDQUALITY_LOW) );
@@ -134,14 +136,19 @@ void COptionsSubAudio::OnResetData()
 	// sound quality is made up from several cvars
 	ConVarRef Snd_PitchQuality("Snd_PitchQuality");
 	ConVarRef dsp_slow_cpu("dsp_slow_cpu");
+	ConVarRef dsp_off("dsp_off");
 	int quality = SOUNDQUALITY_LOW;
+	if (dsp_off.GetBool() == false)
+	{
+	    quality = SOUNDQUALITY_MEDIUM;
+	}
 	if (dsp_slow_cpu.GetBool() == false)
 	{
-		quality = SOUNDQUALITY_MEDIUM;
+		quality = SOUNDQUALITY_HIGH;
 	}
 	if (Snd_PitchQuality.GetBool())
 	{
-		quality = SOUNDQUALITY_HIGH;
+		quality = SOUNDQUALITY_ULTRA;
 	}
 	// find the item in the list and activate it
 	{for (int itemID = 0; itemID < m_pSoundQualityCombo->GetItemCount(); itemID++)
@@ -259,20 +266,24 @@ void COptionsSubAudio::OnApplyChanges()
 	// quality
 	ConVarRef Snd_PitchQuality( "Snd_PitchQuality" );
 	ConVarRef dsp_slow_cpu( "dsp_slow_cpu" );
+	ConVarRef dsp_off("dsp_off");
 	int quality = m_pSoundQualityCombo->GetActiveItemUserData()->GetInt( "quality" );
 	switch ( quality )
 	{
 	case SOUNDQUALITY_LOW:
+		dsp_off.SetValue(true);
 		dsp_slow_cpu.SetValue(true);
 		Snd_PitchQuality.SetValue(false);
 		break;
 	case SOUNDQUALITY_MEDIUM:
+		dsp_off.SetValue(false);
 		dsp_slow_cpu.SetValue(false);
 		Snd_PitchQuality.SetValue(false);
 		break;
 	default:
 		Assert("Undefined sound quality setting.");
 	case SOUNDQUALITY_HIGH:
+		dsp_off.SetValue(false);
 		dsp_slow_cpu.SetValue(false);
 		Snd_PitchQuality.SetValue(true);
 		break;

@@ -21,7 +21,7 @@ ConVar mat_disable_fancy_blending( "mat_disable_fancy_blending", "0" );
 ConVar mat_fullbright( "mat_fullbright","0", FCVAR_CHEAT );
 ConVar my_mat_fullbright( "mat_fullbright","0", FCVAR_CHEAT );
 extern ConVar r_flashlight_version2;
-static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_NONE);
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 0, true, 0, NULL);
 
 class CLightmappedGeneric_DX9_Context : public CBasePerMaterialContextData
 {

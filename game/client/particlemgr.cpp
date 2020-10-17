@@ -1693,7 +1693,7 @@ bool CParticleMgr::RetireParticleCollections( CParticleSystemDefinition* pDef,
 }
 
 // Next, see if there are new particle systems that need early retirement
-static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "-10", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 bool CParticleMgr::EarlyRetireParticleSystems( int nCount, ParticleSimListEntry_t *ppEffects )
 {
@@ -1749,7 +1749,18 @@ bool CParticleMgr::EarlyRetireParticleSystems( int nCount, ParticleSimListEntry_
 	{
 		CParticleSystemDefinition* pDef = ppDefs[i];
 		int nActualCount = ComputeParticleDefScreenArea( nCount, pInfo, &flScreenArea, pDef, *pViewSetup, worldToScreen, flFocalDist );
-		if ( flScreenArea > flMaxScreenArea )
+		bool bShouldRetire;
+		// If negative, then max screen area acts as a cap rather than a floor
+		// This is to accomodate particle "LOD" instead of the old way of retiring high fill particles
+		if ( flMaxScreenArea >= 0 )
+		{
+			bShouldRetire = flScreenArea > flMaxScreenArea;
+		}
+		else
+		{
+		    bShouldRetire = flScreenArea < -flMaxScreenArea;
+		}
+		if ( bShouldRetire )
 		{
 			if ( RetireParticleCollections( pDef, nActualCount, pInfo, flScreenArea, flMaxScreenArea ) )
 			{

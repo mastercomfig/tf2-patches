@@ -1756,7 +1756,7 @@ static ConVar mat_showmiplevels(	"mat_showmiplevels", "0", FCVAR_CHEAT, "color-c
 
 static ConVar mat_specular(			"mat_specular", "1", FCVAR_ALLOWED_IN_COMPETITIVE, "Enable/Disable specularity for perf testing.  Will cause a material reload upon change." );
 static ConVar mat_bumpmap(			"mat_bumpmap", "1", FCVAR_ALLOWED_IN_COMPETITIVE );
-static ConVar mat_phong(			"mat_phong", "1" );
+static ConVar mat_phong(			"mat_phong", "1", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 1, true, 1, NULL);
 static ConVar mat_parallaxmap(		"mat_parallaxmap", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_reducefillrate(	"mat_reducefillrate", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
