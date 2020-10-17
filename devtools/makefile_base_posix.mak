@@ -129,7 +129,7 @@ ifdef MAKE_CHROOT
 	endif
 	GCC_VER = -4.8
 	P4BIN = $(SRCROOT)/devtools/bin/linux/p4
-	CRYPTOPPDIR=ubuntu12_32_gcc48
+	CRYPTOPPDIR=ubuntu12_32
 else ifeq ($(USE_VALVE_BINDIR),1)
 	# Using /valve/bin directory.
 	export STEAM_RUNTIME_PATH ?= /valve
