@@ -62,7 +62,8 @@ ARFLAGS = r
 endif
 
 # VALVE: Some defaults to match the rest of the steam build
-CXXFLAGS += $(OPTIMIZER_FLAGS) -fvisibility=hidden -w
+# NOTE(melvyn2): Removed fvisibility here and in darwin to fix missing symbols (see makefile_base_posix.mak:83)
+CXXFLAGS += $(OPTIMIZER_FLAGS) -w
 
 
 # If we're building this for STEAMCMD, then we use the Valve compile tools
@@ -74,10 +75,10 @@ else
 # Otherwise we're building for STEAM, so use the native compile tools
   BUILDVERSION="Building libcryptopp.a for Steam"
   ifeq ($(ISX64),1)
-    CXX = g++-4.8 -m64
+    CXX = g++ -m64
     BINDIR  =ubuntu12_64
   else
-    CXX = g++-4.8 -m32
+    CXX = g++ -m32
     BINDIR  =ubuntu12_32
   endif
 endif 
@@ -194,7 +195,7 @@ AR = libtool
 ARFLAGS = -static -o
 # VALVE: Mac build compatibility
 CXX = clang++
-CXXFLAGS = -std=c++11 -stdlib=libc++ -DNDEBUG -g2 -O2 -fPIC -ffunction-sections -fdata-sections -mstackrealign -fvisibility=hidden -w -march=core2 -pipe -arch x86_64 -arch i386 -mmacosx-version-min=10.7 -DCRYPTOPP_DISABLE_ASM
+CXXFLAGS = -std=c++11 -stdlib=libc++ -DNDEBUG -g2 -O2 -fPIC -ffunction-sections -fdata-sections -mstackrealign -w -march=core2 -pipe -arch x86_64 -arch i386 -mmacosx-version-min=10.7 -DCRYPTOPP_DISABLE_ASM
 BINDIR = osx32
 ifeq ($(IS_GCC_29),1)
 CXXFLAGS += -fno-coalesce-templates -fno-coalesce-static-vtables
@@ -416,8 +417,10 @@ libcryptopp.a: public_service | $(LIBOBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 	$(RANLIB) $@
 #VALVE: Copy the file into the right spot.
+ifeq ($(VALVE_NO_AUTO_P4),)
 	p4 edit ../../lib/$(BINDIR)/release/libcryptopp.a
-	$(CP) libcryptopp.a ../../lib/$(BINDIR)/release
+endif
+	$(CP) libcryptopp.a ../../lib/common/$(BINDIR)/
 
 libcryptopp.so: public_service | $(LIBOBJS)
 	$(CXX) -shared -o $@ $(CXXFLAGS) $(GOLD_OPTION) $(LIBOBJS) $(LDLIBS)

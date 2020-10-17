@@ -114,6 +114,7 @@ check_and_at_build thirdparty/gperftools-2.0/ thirdparty/gperftools-2.0/.libs/li
 check_and_at_build thirdparty/protobuf-2.5.0/ thirdparty/protobuf-2.5.0/src/.libs/libprotobuf.a
 check_and_at_build thirdparty/libedit-3.1/ thirdparty/libedit-3.1/src/.libs/libedit.so
 
+check_and_make ./external/crypto++-5.6.3 ./lib/common/ubuntu12_32/libcryptopp.a
 check_and_make ./external/vpc/utils/vpc ./devtools/bin/vpc_linux
 check_and_make ./thirdparty/libpng-1.5.2 ./lib/public/linux32/libpng.a "-f scripts/makefile.gcc"
 
