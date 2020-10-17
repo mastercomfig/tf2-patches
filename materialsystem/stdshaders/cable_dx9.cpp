@@ -31,7 +31,7 @@ BEGIN_VS_SHADER( Cable_DX9,
 	SHADER_FALLBACK
 	{
 		if ( !(g_pHardwareConfig->SupportsPixelShaders_2_0() && g_pHardwareConfig->SupportsVertexShaders_2_0()) ||
-				(g_pHardwareConfig->GetDXSupportLevel() < 90) )
+				(g_pHardwareConfig->GetDXSupportLevel() < 90) || IsWindows() && !IsOpenGL() && g_pHardwareConfig->PreferReducedFillrate() )
 		{
 			return "Cable_DX8";
 		}

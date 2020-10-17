@@ -20,7 +20,7 @@ BEGIN_VS_SHADER( Wireframe_DX9,
 
 	SHADER_FALLBACK
 	{
-		if ( IsWindows() && g_pHardwareConfig->GetDXSupportLevel() < 90 )
+		if ( IsWindows() && !IsEmulatingGL() )
 		{
 			return "Wireframe_DX8";
 		}

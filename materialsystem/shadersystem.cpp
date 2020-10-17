@@ -325,8 +325,8 @@ void CShaderSystem::LoadAllShaderDLLs( )
 	// TODO(mastercoms): add dx10 DLL?
 	dxSupportLevel = min(9, dxSupportLevel);
 
-	// 360 only supports its dx9 dll
-	int dxStart = IsX360() || IsOpenGL() ? 9 : 6;
+	// 360 and OpenGL only supports its dx9 dll
+	int dxStart = IsX360() || !IsWindows() || IsOpenGL() ? 9 : 6;
 	char buf[32];
 	for ( i = dxStart; i <= dxSupportLevel; ++i )
 	{

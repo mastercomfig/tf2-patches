@@ -25,7 +25,7 @@ BEGIN_VS_SHADER( Cable_DX8,
 
 	SHADER_FALLBACK
 	{
-		if ( IsPC() && !g_pHardwareConfig->SupportsVertexAndPixelShaders())
+		if ( IsPC() && !g_pHardwareConfig->SupportsVertexAndPixelShaders() || IsWindows() && !IsOpenGL() && g_pHardwareConfig->PreferReducedFillrate() )
 		{
 			return "UnlitGeneric_DX6";
 		}
