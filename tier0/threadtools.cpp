@@ -1621,7 +1621,9 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			return false;
 		};
 
+		// UNDONE(mastercoms): TOO OPTIMISTIC: what if its signaled on this thread, but actually not signaled?
 		// Most optimistic case: we have signal state synced already.
+#if 0
 		for (int i = 0; i < 20; i++)
 		{
 			if (lPredSignaledAny())
@@ -1635,6 +1637,7 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 			}
 			ThreadPause();
 		}
+#endif
 		if (!bRet)
 		{
 			// Second optimistic case: we can do an initial check to minimize contention

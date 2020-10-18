@@ -842,7 +842,7 @@ public:
 		
 		if (mat_reducefillrate.GetBool())
 		{
-			if (mat_phong.GetBool() && r_force_fastpath.GetBool() && r_skybox_lowend.GetBool())
+			if (!mat_phong.GetBool() && r_force_fastpath.GetBool() && r_skybox_lowend.GetBool())
 			{
 			    m_pShaderDetail->ActivateItem( 0 );
 			}

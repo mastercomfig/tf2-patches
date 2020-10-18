@@ -86,6 +86,8 @@ enum JobFlags_t
 	JF_BOOST_THREAD		= ( 1 << 1 ),	// Up the thread priority to max allowed while processing task
 	JF_SERIAL			= ( 1 << 2 ),	// Job cannot be executed out of order relative to other "strict" jobs
 	JF_QUEUE			= ( 1 << 3 ),	// Queue it, even if not an IO job
+	JF_NO_NOTIFY        = ( 1 << 4 ),   // Do not notify the queue, because we are gonna queue up more calls!
+	JF_NO_ADD           = ( 1 << 5 ),   // Do not add to the queue, because we are gonna modify the job!
 };
 
 enum JobPriority_t
@@ -346,6 +348,17 @@ public:
 			return pJob; \
 		}
 
+	#define DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS(N) \
+		template <typename OBJECT_TYPE, typename FUNCTION_CLASS, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N FUNC_TEMPLATE_ARG_PARAMS_##N> \
+		CJob *QueueCall(OBJECT_TYPE *pObject, int flags, FUNCTION_RETTYPE ( FUNCTION_CLASS::*pfnProxied )( FUNC_BASE_TEMPLATE_FUNC_PARAMS_##N ) FUNC_ARG_FORMAL_PARAMS_##N ) \
+		{ \
+			CJob *pJob; \
+			int jobFlags = JF_QUEUE; \
+	        jobFlags |= flags; \
+			AddFunctorInternal( CreateFunctor( pObject, pfnProxied FUNC_FUNCTOR_CALL_ARGS_##N ), &pJob, NULL, jobFlags ); \
+			return pJob; \
+		}
+
 	//-------------------------------------
 
 	#define DEFINE_CONST_MEMBER_QUEUE_CALL(N) \
@@ -387,6 +400,7 @@ public:
 	FUNC_GENERATE_ALL( DEFINE_REF_COUNTING_CONST_MEMBER_ADD_CALL );
 	FUNC_GENERATE_ALL( DEFINE_NONMEMBER_QUEUE_CALL );
 	FUNC_GENERATE_ALL( DEFINE_MEMBER_QUEUE_CALL );
+	FUNC_GENERATE_ALL( DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS );
 	FUNC_GENERATE_ALL( DEFINE_CONST_MEMBER_QUEUE_CALL );
 	FUNC_GENERATE_ALL( DEFINE_REF_COUNTING_MEMBER_QUEUE_CALL );
 	FUNC_GENERATE_ALL( DEFINE_REF_COUNTING_CONST_MEMBER_QUEUE_CALL );
@@ -398,6 +412,7 @@ public:
 	#undef DEFINE_REF_COUNTING_CONST_MEMBER_ADD_CALL
 	#undef DEFINE_NONMEMBER_QUEUE_CALL
 	#undef DEFINE_MEMBER_QUEUE_CALL
+    #undef DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS
 	#undef DEFINE_CONST_MEMBER_QUEUE_CALL
 	#undef DEFINE_REF_COUNTING_MEMBER_QUEUE_CALL
 	#undef DEFINE_REF_COUNTING_CONST_MEMBER_QUEUE_CALL
@@ -896,12 +911,18 @@ public:
 			CJob **jobs = (CJob **)stackalloc( nJobs * sizeof(CJob **) );
 			int i = nJobs;
 
-			while( i-- )
+			// For the first jobs, don't notify the thread pool yet so every thread has a fair chance at getting a stab at it.
+			while( --i )
 			{
-				jobs[i] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+				jobs[i] = pThreadPool->QueueCall( this, JF_NO_NOTIFY, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
 				jobs[i]->SetDescription( m_szDescription );
 			}
 
+			// Last job notifies for all of them!
+			jobs[0] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+			jobs[0]->SetDescription( m_szDescription );
+
+			// Do jobs alongside the threads
 			DoExecute();
 
 			for ( i = 0; i < nJobs; i++ )

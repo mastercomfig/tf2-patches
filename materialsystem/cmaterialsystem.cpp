@@ -3702,9 +3702,9 @@ void CMaterialSystem::EndFrame( void )
 
 			if ( m_pActiveAsyncJob )
 			{
-				if ( !m_pActiveAsyncJob->IsFinished() )
+				while ( !m_pActiveAsyncJob->IsFinished() )
 				{
-					m_pActiveAsyncJob->WaitForFinish();
+					m_pActiveAsyncJob->WaitForFinish(0);
 				}
 				// Sync with GPU if we had a job for it, even if it finished early on CPU!
 				if (!IsPC() && g_config.ForceHWSync())
@@ -3786,7 +3786,10 @@ void CMaterialSystem::EndFrame( void )
 			{
 				if ( m_pActiveAsyncJob )
 				{
-					m_pActiveAsyncJob->WaitForFinish();
+					while (!m_pActiveAsyncJob->IsFinished())
+					{
+						m_pActiveAsyncJob->WaitForFinish(0);
+					}
 					SafeRelease( m_pActiveAsyncJob );
 				}
 				// probably have a queued context set here, need hardware to flush the queue if the job isn't active
@@ -4871,7 +4874,10 @@ void CMaterialSystem::ThreadRelease( )
 	CJob		*pActiveAsyncJob = new CThreadRelease();
 	IThreadPool *pThreadPool = CreateMatQueueThreadPool();
 	pThreadPool->AddJob( pActiveAsyncJob );
-	pActiveAsyncJob->WaitForFinish();
+	while (!pActiveAsyncJob->IsFinished())
+	{
+		pActiveAsyncJob->WaitForFinish(0);
+	}
 
 	SafeRelease( pActiveAsyncJob );
 
@@ -4958,7 +4964,10 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-		m_pActiveAsyncJob->WaitForFinish();
+		while (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish(0);
+		}
 		// threadsafety note: not releasing or nulling pointer.
 	}
 
