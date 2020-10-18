@@ -4119,7 +4119,7 @@ void CGameMovement::FinishUnDuck( void )
 		player->ResetLatched();
 	}
 #else
-	player->ResetLatched();
+	//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 
@@ -4225,7 +4225,7 @@ void CGameMovement::FinishDuck( void )
 			player->ResetLatched();
 		}
 #else
-		player->ResetLatched();
+		//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 	}
