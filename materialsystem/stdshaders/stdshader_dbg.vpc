@@ -43,6 +43,7 @@ $Configuration
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;..\..\dx9sdk\include"	[$WIN32]
+        $AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9"     					[$POSIX]
 		$AdditionalIncludeDirectories	"$BASE;fxctmp9_360;vshtmp9_360"					[$X360]
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DBG_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
 	}
