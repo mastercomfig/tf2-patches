@@ -878,7 +878,7 @@ CTFPlayer::CTFPlayer()
 	m_flNextChangeClassTime = 0.0f;
 	m_flNextChangeTeamTime = 0.0f;
 
-	m_bScattergunJump = false;
+	m_iScattergunJump = 0;
 	m_iOldStunFlags = 0;
 	m_iLastWeaponSlot = 1;
 	m_iNumberofDominations = 0;
@@ -3641,7 +3641,7 @@ void CTFPlayer::Spawn()
 
 	m_Shared.SetFeignDeathReady( false );
 
-	m_bScattergunJump = false;
+	m_iScattergunJump = 0;
 	m_iOldStunFlags = 0;
 
 	m_flAccumulatedHealthRegen = 0;
