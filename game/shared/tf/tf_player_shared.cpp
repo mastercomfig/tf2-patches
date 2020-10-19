@@ -10820,7 +10820,7 @@ int CTFPlayer::CanBuild( int iObjectType, int iObjectMode )
 	}
 
 	// Special handling of "disposable" sentries
-	if ( TFGameRules()->GameModeUsesUpgrades() && iObjectType == OBJ_SENTRYGUN )
+	if ( iObjectType == OBJ_SENTRYGUN )
 	{
 		// If we have our main sentry, see if we're allowed to build disposables
 		if ( GetNumObjects( iObjectType, iObjectMode ) )

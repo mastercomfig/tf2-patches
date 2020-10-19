@@ -1444,17 +1444,16 @@ bool CBaseObject::ShouldBeMiniBuilding( CTFPlayer* pPlayer )
 	if ( !pPlayer )
 		return false;
 
-	CTFWrench* pWrench = dynamic_cast<CTFWrench*>( pPlayer->Weapon_OwnsThisID( TF_WEAPON_WRENCH ) );
-	if ( !pWrench )
-		return false;
-
-	if ( TFGameRules()->GameModeUsesUpgrades() )
+	int nDisposableSentries = 0;
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( pPlayer, nDisposableSentries, engy_disposable_sentry );
+	if ( nDisposableSentries > 0 )
 	{
 		if ( pPlayer->GetNumObjects( OBJ_SENTRYGUN ) && pPlayer->CanBuild( OBJ_SENTRYGUN ) == CB_CAN_BUILD && !IsCarried() )
 			return true;	
 	}
 
-	if ( !pWrench->IsPDQ() )
+	CTFWrench* pWrench = dynamic_cast<CTFWrench*>( pPlayer->Weapon_OwnsThisID( TF_WEAPON_WRENCH ) );
+	if ( !pWrench || !pWrench->IsPDQ() )
 		return false;
 
 	return true;
