@@ -577,12 +577,12 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
     // Lock because we want to sync m_bSignaled
     std::unique_lock<std::mutex> lock(m_Mutex);
     bool bRet = m_bSignaled;
-	if (dwTimeout == 0)
+	if (bRet || dwTimeout == 0)
 	{
 	    // Emulate context switch behavior seen in other waits
 		ThreadSleep(0);
 	}
-	else if (!bRet)
+	else
 	{
 		if (dwTimeout == TT_INFINITE)
         {
