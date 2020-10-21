@@ -4964,9 +4964,9 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-		if (!m_pActiveAsyncJob->IsFinished())
+		while (!m_pActiveAsyncJob->IsFinished())
 		{
-			m_pActiveAsyncJob->WaitForFinish();
+			m_pActiveAsyncJob->WaitForFinish(0);
 		}
 		// threadsafety note: not releasing or nulling pointer.
 	}
