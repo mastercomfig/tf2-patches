@@ -14,6 +14,7 @@ rm -rf ${CLEAN_DEBUG_DIR}
 mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
 mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
 cp -rf copy/* ${CLEAN_DIR}
+cp -rf copy/* ${DEV_DIR}
 
 declare -a FILES=(
                   {hl2,srcds}.exe

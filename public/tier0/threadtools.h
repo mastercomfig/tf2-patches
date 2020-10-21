@@ -662,16 +662,18 @@ public:
 	//------------------------------------------------------
 	void SetTrace(bool) {};
 
-private:
 	// Disallow copying
-	CThreadMutex( const CThreadMutex & );
-	CThreadMutex &operator=( const CThreadMutex & );
+	CThreadMutex( const CThreadMutex & ) = delete;
+	CThreadMutex &operator=( const CThreadMutex & ) = delete;
 
-	std::mutex m_Mutex;
+private:
+	std::recursive_mutex m_Mutex;
+#ifdef _DEBUG
 #ifdef _WIN32
 	std::atomic<unsigned long> m_ownerID{0};
 #else
 	std::atomic<uint> m_ownerID{0};
+#endif
 #endif
 };
 
@@ -1543,6 +1545,7 @@ public:
 
 inline bool CThreadMutex::TryLock()
 {
+#ifdef _DEBUG
 	if (!AssertOwnedByCurrentThread())
 	{
 		if (m_Mutex.try_lock())
@@ -1552,6 +1555,9 @@ inline bool CThreadMutex::TryLock()
 		}
 	}
 	return false;
+#else
+	return m_Mutex.try_lock();
+#endif
 }
 
 //---------------------------------------------------------
@@ -1559,11 +1565,10 @@ inline bool CThreadMutex::TryLock()
 inline void CThreadMutex::Lock()
 {
 	Assert(!AssertOwnedByCurrentThread());
-	if (!AssertOwnedByCurrentThread())
-	{
-		m_Mutex.lock();
-		m_ownerID = ThreadGetCurrentId();
-	}
+	m_Mutex.lock();
+#ifdef _DEBUG
+	m_ownerID = ThreadGetCurrentId();
+#endif
 }
 
 //---------------------------------------------------------
@@ -1572,14 +1577,20 @@ inline void CThreadMutex::Unlock()
 {
 	Assert(AssertOwnedByCurrentThread());
 	m_Mutex.unlock();
+#ifdef _DEBUG
 	m_ownerID = 0;
+#endif
 }
 
 //---------------------------------------------------------
 
 inline bool CThreadMutex::AssertOwnedByCurrentThread()
 {
+#ifdef _DEBUG
 	return m_ownerID == ThreadGetCurrentId();
+#else
+	return true;
+#endif
 }
 
 //-----------------------------------------------------------------------------
