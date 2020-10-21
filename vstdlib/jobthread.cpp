@@ -604,11 +604,6 @@ int CThreadPool::YieldWait( CThreadEvent **pEvents, int nEvents, bool bWaitAll, 
 	int result;
 	CJob *pJob;
 
-	if (timeout != TT_INFINITE)
-	{
-	    DevWarning("Yielding for non-infinite timeout %d!\n", timeout);
-	}
-
 	// If we aren't exiting this wait immediately, take the opportunity to process jobs on this thread as much as possible.
 	if (timeout != 0)
 	{

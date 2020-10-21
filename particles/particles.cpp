@@ -3344,7 +3344,7 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 				pFileName = pFallbackBuf;
 			}
 		}
-		else if (ParticleFallbackMode == 1 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 && g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
+		else if ( ParticleFallbackMode == 1 || g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx90_slow.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )

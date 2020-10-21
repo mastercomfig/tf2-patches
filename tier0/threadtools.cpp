@@ -576,20 +576,24 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 #endif
     // Lock because we want to sync m_bSignaled
     std::unique_lock<std::mutex> lock(m_Mutex);
-    bool bRet;
-    if (dwTimeout == 0)
-    {
-	    bRet = m_bSignaled;
-    }
-    else if (dwTimeout == TT_INFINITE)
-    {
-	    m_Condition.wait(lock, [this] { return m_bSignaled; });
-	    bRet = true;
-    }
-    else
-    {
-	    bRet = m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
-    }
+    bool bRet = m_bSignaled;
+	if (dwTimeout == 0)
+	{
+	    // Emulate context switch behavior seen in other waits
+		ThreadSleep(0);
+	}
+	else if (!bRet)
+	{
+		if (dwTimeout == TT_INFINITE)
+        {
+	        m_Condition.wait(lock, [this] { return m_bSignaled; });
+	        bRet = true;
+        }
+        else
+        {
+	        bRet = m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
+        }
+	}
     if (m_bAutoReset && bRet)
     {
 	    m_bSignaled = false;
@@ -625,7 +629,7 @@ bool CThreadEvent::Set()
 
 	if (m_bSignaled)
 	{
-#ifdef THREADS_DEBUG
+#if defined(THREADS_DEBUG)
 		// We could let Set fallthrough here if the event is signaled, but it would mask race conditions.
 		return true;
 	}
@@ -1607,39 +1611,35 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 		    return false;
 	    };
 
-		auto lPredSignaledAnyCheck = [nEvents, &pEvents, &iEventIndex]
-		{
-			for (int i = 0; i < nEvents; i++)
-			{
-				if (pEvents[i]->Check())
-				{
-					iEventIndex = i;
-					return true;
-				}
-			}
-
-			return false;
-		};
-
 		// UNDONE(mastercoms): TOO OPTIMISTIC: what if its signaled on this thread, but actually not signaled?
-		// Most optimistic case: we have signal state synced already.
 #if 0
-		for (int i = 0; i < 20; i++)
+		// Most optimistic case: we have signal state synced already.
+		if (lPredSignaledAny())
 		{
-			if (lPredSignaledAny())
+		    if (pEvents[iEventIndex]->m_bAutoReset)
 			{
-				if (pEvents[iEventIndex]->m_bAutoReset)
-				{
-					pEvents[iEventIndex]->Reset();
-				}
-				bRet = true;
-				break;
+				pEvents[iEventIndex]->Reset();
 			}
-			ThreadPause();
+			bRet = true;
 		}
+		else
 #endif
-		if (!bRet)
 		{
+			// UNDONE(mastercoms): benefit is dubious
+#if 0
+			auto lPredSignaledAnyCheck = [nEvents, &pEvents, &iEventIndex]
+		    {
+			    for (int i = 0; i < nEvents; i++)
+			    {
+				    if (pEvents[i]->Check())
+				    {
+					    iEventIndex = i;
+					    return true;
+				    }
+			    }
+
+			    return false;
+		    };
 			// Second optimistic case: we can do an initial check to minimize contention
 			if (lPredSignaledAnyCheck())
 			{
@@ -1647,6 +1647,7 @@ int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll
 				bRet = true;
 			}
 			else
+#endif
 			{
 				// Lock all at the same time, to prevent race conditions.
 				// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.

@@ -1,2 +1,2 @@
 @echo OFF
-hl2.bat -novid -nojoy -nosteamcontroller -nohltv -particle_fallback 2 %* < nul
+hl2.bat -novid -nojoy -nosteamcontroller -particle_fallback 2 %* < nul

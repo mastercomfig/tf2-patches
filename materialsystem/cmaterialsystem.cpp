@@ -3786,9 +3786,9 @@ void CMaterialSystem::EndFrame( void )
 			{
 				if ( m_pActiveAsyncJob )
 				{
-					while (!m_pActiveAsyncJob->IsFinished())
+					if (!m_pActiveAsyncJob->IsFinished())
 					{
-						m_pActiveAsyncJob->WaitForFinish(0);
+						m_pActiveAsyncJob->WaitForFinish();
 					}
 					SafeRelease( m_pActiveAsyncJob );
 				}
@@ -4874,9 +4874,9 @@ void CMaterialSystem::ThreadRelease( )
 	CJob		*pActiveAsyncJob = new CThreadRelease();
 	IThreadPool *pThreadPool = CreateMatQueueThreadPool();
 	pThreadPool->AddJob( pActiveAsyncJob );
-	while (!pActiveAsyncJob->IsFinished())
+	if (!pActiveAsyncJob->IsFinished())
 	{
-		pActiveAsyncJob->WaitForFinish(0);
+		pActiveAsyncJob->WaitForFinish();
 	}
 
 	SafeRelease( pActiveAsyncJob );
@@ -4964,9 +4964,9 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-		while (!m_pActiveAsyncJob->IsFinished())
+		if (!m_pActiveAsyncJob->IsFinished())
 		{
-			m_pActiveAsyncJob->WaitForFinish(0);
+			m_pActiveAsyncJob->WaitForFinish();
 		}
 		// threadsafety note: not releasing or nulling pointer.
 	}

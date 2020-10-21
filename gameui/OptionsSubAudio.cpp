@@ -277,12 +277,17 @@ void COptionsSubAudio::OnApplyChanges()
 		break;
 	case SOUNDQUALITY_MEDIUM:
 		dsp_off.SetValue(false);
-		dsp_slow_cpu.SetValue(false);
+		dsp_slow_cpu.SetValue(true);
 		Snd_PitchQuality.SetValue(false);
 		break;
 	default:
 		Assert("Undefined sound quality setting.");
 	case SOUNDQUALITY_HIGH:
+		dsp_off.SetValue(false);
+		dsp_slow_cpu.SetValue(false);
+		Snd_PitchQuality.SetValue(false);
+		break;
+	case SOUNDQUALITY_ULTRA:
 		dsp_off.SetValue(false);
 		dsp_slow_cpu.SetValue(false);
 		Snd_PitchQuality.SetValue(true);

@@ -4166,6 +4166,10 @@ void Host_Init( bool bDedicated )
 		// stop the various windows error message boxes from showing up (used by the auto-builder so it doesn't block on error) 
 		Sys_NoCrashDialog();
 	}
+	else
+	{
+	    Sys_FixAlignment();
+	}
 
 	TRACEINIT( NET_Init( bDedicated ), NET_Shutdown() );     
 

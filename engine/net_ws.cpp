@@ -3271,7 +3271,11 @@ void NET_Init( bool bIsDedicated )
 		net_notcp = false;
 	}
 
+#ifdef DEDICATED
 	if (CommandLine()->FindParm("-nohltv"))
+#else
+	if (!CommandLine()->FindParm("-hltv"))
+#endif
 	{
 		net_nohltv = true;
 	}

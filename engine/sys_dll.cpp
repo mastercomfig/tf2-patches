@@ -1535,6 +1535,13 @@ void Sys_NoCrashDialog()
 #endif
 }
 
+void Sys_FixAlignment()
+{
+#if defined(_WIN32)
+	::SetErrorMode(SetErrorMode(SEM_NOALIGNMENTFAULTEXCEPT) | SEM_NOALIGNMENTFAULTEXCEPT);
+#endif
+}
+
 void Sys_TestSendKey( const char *pKey )
 {
 #if defined(_WIN32) && !defined(USE_SDL) && !defined(_XBOX)
