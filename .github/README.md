@@ -42,7 +42,7 @@ TC2 is based on the 2017 TF2 source code leak, which contained an in-development
 New users should follow this approach.
 
 1. Copy your current `Team Fortress 2` installation to a new folder.
-2. In your copied TF2 folder, delete the `tf/custom` folder, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
+2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 	* Do *not* delete the entire `tf/cfg` folder!
 3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
 4. ![Unblock ZIP](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
