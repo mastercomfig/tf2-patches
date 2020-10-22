@@ -3702,10 +3702,17 @@ void CMaterialSystem::EndFrame( void )
 
 			if ( m_pActiveAsyncJob )
 			{
+#if 1
 				while ( !m_pActiveAsyncJob->IsFinished() )
 				{
 					m_pActiveAsyncJob->WaitForFinish(0);
 				}
+#else
+				if ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish();
+				}
+#endif
 				// Sync with GPU if we had a job for it, even if it finished early on CPU!
 				if (!IsPC() && g_config.ForceHWSync())
 				{
@@ -4964,10 +4971,17 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
+#if 1
 		while (!m_pActiveAsyncJob->IsFinished())
 		{
 			m_pActiveAsyncJob->WaitForFinish(0);
 		}
+#else
+		if (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish();
+		}
+#endif
 		// threadsafety note: not releasing or nulling pointer.
 	}
 
