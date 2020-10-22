@@ -913,8 +913,11 @@ public:
 
 			while( i-- )
 			{
-				jobs[i] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+				jobs[i] = pThreadPool->QueueCall( this, JF_NO_ADD, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
 				jobs[i]->SetDescription( m_szDescription );
+				jobs[i]->SetServiceThread(i);
+				jobs[i]->SetFlags(JF_QUEUE);
+				pThreadPool->AddJob(jobs[i]);
 			}
 
 			// Do jobs alongside the threads
