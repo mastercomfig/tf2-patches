@@ -2561,29 +2561,21 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 			config.m_fGammaTVExponent, config.m_bGammaTVEnabled );
 	}
 
-	static bool bInitialMode = true;
 	if ( bVideoModeChange )
 	{
-		if (bInitialMode)
+		if (mat_debugalttab.GetBool())
 		{
-			bInitialMode = false;
+			Warning("mat_debugalttab: ChangeVideoMode\n");
 		}
-		else
-		{
-			if (mat_debugalttab.GetBool())
-			{
-				Warning("mat_debugalttab: ChangeVideoMode\n");
-			}
-			ShaderDeviceInfo_t info;
-			ConvertModeStruct(&info, config);
-			g_pShaderAPI->ChangeVideoMode(info);
+		ShaderDeviceInfo_t info;
+		ConvertModeStruct(&info, config);
+		g_pShaderAPI->ChangeVideoMode(info);
 
 #if defined( USE_SDL )
-			uint width = info.m_DisplayMode.m_nWidth;
-			uint height = info.m_DisplayMode.m_nHeight;
-			g_pLauncherMgr->RenderedSize(width, height, true); // true = set
+		uint width = info.m_DisplayMode.m_nWidth;
+		uint height = info.m_DisplayMode.m_nHeight;
+		g_pLauncherMgr->RenderedSize(width, height, true); // true = set
 #endif
-		}
 
 	}
 
@@ -3702,7 +3694,7 @@ void CMaterialSystem::EndFrame( void )
 
 			if ( m_pActiveAsyncJob )
 			{
-#if 0
+#if 1
 				while ( !m_pActiveAsyncJob->IsFinished() )
 				{
 					m_pActiveAsyncJob->WaitForFinish(0);
@@ -4971,7 +4963,7 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-#if 0
+#if 1
 		while (!m_pActiveAsyncJob->IsFinished())
 		{
 			m_pActiveAsyncJob->WaitForFinish(0);
