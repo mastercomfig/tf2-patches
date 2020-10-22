@@ -2459,13 +2459,6 @@ bool CTexture::AsyncReadTextureFromFile( IVTFTexture* pVTFTexture, unsigned int 
 		return false;
 	}
 
-	if ( V_strstr( GetName(), "c_sniperrifle_scope" ) )
-	{
-		int i = 0;
-		i = 3;
-	}
-
-
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s - %s", __FUNCTION__, tmDynamicString( TELEMETRY_LEVEL0, pCacheFileName ) );
 	
 	// OSX hackery
@@ -3793,7 +3786,8 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 	{
 		// UNDONE(mastercoms): it seems like we would have nothing to do in this case?
 		// Assert( !"We're about to crash, last chance to examine this texture." );
-		return;
+	    FreeOptimalReadBuffer( 6*1024*1024 );
+	    return;
 	}
 
 
