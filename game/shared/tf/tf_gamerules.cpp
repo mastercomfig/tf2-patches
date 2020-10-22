@@ -5476,12 +5476,17 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 	CBaseEntity *pInflictor = dmgInfo->GetInflictor();
 
 	// Check that the explosion can 'see' this entity.
-	Vector vecSpot = pEntity->BodyTarget( vecSrc, false );
+	//std::vector<Vector> vecSpots{pEntity->EyePosition(), pEntity->WorldSpaceCenter(), pEntity->GetAbsOrigin()};
+	std::vector<Vector> vecSpots{pEntity->EyePosition()};
+    static const float flInnerRadiusPct = 0.05f;
 	CTraceFilterIgnorePlayers filterPlayers( pInflictor, COLLISION_GROUP_PROJECTILE );
 	CTraceFilterIgnoreFriendlyCombatItems filterCombatItems( pInflictor, COLLISION_GROUP_PROJECTILE, pInflictor->GetTeamNumber() );
 	CTraceFilterChain filter( &filterPlayers, &filterCombatItems );
-
-	UTIL_TraceLine( vecSrc, vecSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
+	Vector vecOffset;
+	int totalChecks = 1;
+	int passedChecks = 0;
+	Vector vecMainSpot = pEntity->BodyTarget(vecSrc, false);
+	UTIL_TraceLine( vecSrc, vecMainSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
 	if ( tr.startsolid && tr.m_pEnt )
 	{
 		// Return when inside an enemy combat shield and tracing against a player of that team ("absorbed")
@@ -5490,12 +5495,48 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 
 		filterPlayers.SetPassEntity( tr.m_pEnt );
 		CTraceFilterChain filterSelf( &filterPlayers, &filterCombatItems );
-		UTIL_TraceLine( vecSrc, vecSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
+		UTIL_TraceLine( vecSrc, vecMainSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
 	}
-
-	// If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked
+	// If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked, so do a more robust check
 	if ( tr.fraction != 1.0 && tr.m_pEnt != pEntity )
-		return 0;
+	{
+		for (int x = -1; x <= 1; x += 2)
+	    {
+		    vecOffset.x = x * flInnerRadiusPct;
+	        for (int y = -1; y <= 1; y += 2)
+	        {
+			    vecOffset.y = y * flInnerRadiusPct;
+	            for (int z = -1; z <= 1; z += 2)
+	            {
+				    vecOffset.z = z * flInnerRadiusPct;
+				    for ( auto& vecSpot : vecSpots )
+				    {
+	                    UTIL_TraceLine( vecSrc + vecOffset, vecSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
+	                    if ( tr.startsolid && tr.m_pEnt )
+	                    {
+		                    // Return when inside an enemy combat shield and tracing against a player of that team ("absorbed")
+		                    if ( tr.m_pEnt->IsCombatItem() && pEntity->InSameTeam( tr.m_pEnt ) && ( pEntity != tr.m_pEnt ) )
+			                    return 0;
+
+		                    filterPlayers.SetPassEntity( tr.m_pEnt );
+		                    CTraceFilterChain filterSelf( &filterPlayers, &filterCombatItems );
+		                    UTIL_TraceLine( vecSrc + vecOffset, vecSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
+	                    }
+
+					    totalChecks++;
+	                    // If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked
+	                    if ( tr.fraction != 1.0 && tr.m_pEnt != pEntity )
+		                    return 0;
+					    passedChecks++;
+				    }
+	            }
+	        }
+	    }
+	}
+	else
+	{
+	    passedChecks++;
+	}
 
 	// Adjust the damage - apply falloff.
 	float flAdjustedDamage = 0.0f;
@@ -5538,6 +5579,9 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 		}
 	}
 
+	// As a compromise, reduce the damage if we only did it on a robust check
+	flAdjustedDamage *= passedChecks / (float) totalChecks;
+
 	// If we end up doing 0 damage, exit now.
 	if ( flAdjustedDamage <= 0 )
 		return 0;
@@ -5553,7 +5597,7 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 	CTakeDamageInfo adjustedInfo = *dmgInfo;
 	adjustedInfo.SetDamage( flAdjustedDamage );
 
-	Vector dir = vecSpot - vecSrc;
+	Vector dir = vecMainSpot - vecSrc;
 	VectorNormalize( dir );
 
 	// If we don't have a damage force, manufacture one
@@ -6147,7 +6191,7 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 	// Use defense buffs if it's not a backstab or direct crush damage (telefrage, etc.)
 	if ( pVictim && info.GetDamageCustom() != TF_DMG_CUSTOM_BACKSTAB && ( info.GetDamageType() & DMG_CRUSH ) == 0 )
 	{
-		if ( pVictim->m_Shared.InCond( TF_COND_DEFENSEBUFF ) )
+		if ( !iPierceResists && pVictim->m_Shared.InCond( TF_COND_DEFENSEBUFF ) )
 		{
 			// We take no crits of any kind...
 			if( eBonusEffect == kBonusEffect_MiniCrit || eBonusEffect == kBonusEffect_Crit )
@@ -16437,7 +16481,7 @@ bool CTFGameRules::PlayerMayBlockPoint( CBasePlayer *pPlayer, int iPointIndex, c
 #endif
 
 	// Invuln players can block points
-	if ( pTFPlayer->m_Shared.IsInvulnerable() )
+	if ( pTFPlayer->m_Shared.IsInvulnerable() || pTFPlayer->m_Shared.InCond( TF_COND_MEGAHEAL ) )
 	{
 		if ( pszReason )
 		{

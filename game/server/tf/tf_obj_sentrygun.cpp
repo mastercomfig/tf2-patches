@@ -2002,9 +2002,12 @@ int CObjectSentrygun::OnTakeDamage( const CTakeDamageInfo &info )
 		flDamage *= 1.0 - m_flHeavyBulletResist;
 		newInfo.SetDamage( flDamage );
 	}
+
+	int iPierceResists = 0;
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( info.GetWeapon(), iPierceResists, mod_pierce_resists_absorbs );
 	
 	// If we are shielded due to player control, we take less damage.
-	bool bFullyShielded = ( m_nShieldLevel > 0 ) && !HasSapper() && !IsPlasmaDisabled();
+	const bool bFullyShielded = !iPierceResists && ( m_nShieldLevel > 0 ) && !HasSapper() && !IsPlasmaDisabled();
 	if ( bFullyShielded )
 	{
 		float flDamage = newInfo.GetDamage();
@@ -2013,7 +2016,7 @@ int CObjectSentrygun::OnTakeDamage( const CTakeDamageInfo &info )
 	}
 
 	// Check to see if we are being sapped.
-	if ( HasSapper() )
+	if ( !iPierceResists && HasSapper() )
 	{
 		// Get the sapper owner.
 		CBaseObject *pSapper = GetObjectOfTypeOnMe( OBJ_ATTACHMENT_SAPPER );
