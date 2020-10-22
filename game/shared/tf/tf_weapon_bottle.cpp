@@ -188,7 +188,7 @@ void CTFStickBomb::Smack( void )
 
 			TE_TFExplosion( filter, 0.0f, explosion, Vector(0,0,1), TF_WEAPON_GRENADELAUNCHER, pTFPlayer->entindex(), -1, SPECIAL1, iCustomParticleIndex );
 
-			int dmgType = DMG_BLAST | DMG_USEDISTANCEMOD;
+			int dmgType = DMG_BLAST | DMG_NOCLOSEDISTANCEMOD;
 			if ( IsCurrentAttackACrit() )
 				dmgType |= DMG_CRITICAL;
 
