@@ -911,16 +911,11 @@ public:
 			CJob **jobs = (CJob **)stackalloc( nJobs * sizeof(CJob **) );
 			int i = nJobs;
 
-			// For the first jobs, don't notify the thread pool yet so every thread has a fair chance at getting a stab at it.
-			while( --i )
+			while( i-- )
 			{
-				jobs[i] = pThreadPool->QueueCall( this, JF_NO_NOTIFY, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+				jobs[i] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
 				jobs[i]->SetDescription( m_szDescription );
 			}
-
-			// Last job notifies for all of them!
-			jobs[0] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
-			jobs[0]->SetDescription( m_szDescription );
 
 			// Do jobs alongside the threads
 			DoExecute();
