@@ -65,7 +65,7 @@ struct DataCacheItem_t : DataCacheItemData_t
 
 //-------------------------------------
 
-typedef CThreadMutex CDataCacheMutex;
+typedef CThreadFastMutex CDataCacheMutex;
 typedef CDataManager<DataCacheItem_t, DataCacheItemData_t, DataCacheItem_t *, CDataCacheMutex> CDataCacheLRU;
 
 //-----------------------------------------------------------------------------
