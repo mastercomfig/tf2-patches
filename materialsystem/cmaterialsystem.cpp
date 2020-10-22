@@ -3702,7 +3702,7 @@ void CMaterialSystem::EndFrame( void )
 
 			if ( m_pActiveAsyncJob )
 			{
-#if 1
+#if 0
 				while ( !m_pActiveAsyncJob->IsFinished() )
 				{
 					m_pActiveAsyncJob->WaitForFinish(0);
@@ -4971,7 +4971,7 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-#if 1
+#if 0
 		while (!m_pActiveAsyncJob->IsFinished())
 		{
 			m_pActiveAsyncJob->WaitForFinish(0);
