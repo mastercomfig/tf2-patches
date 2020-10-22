@@ -116,7 +116,7 @@ ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_CHEAT );
 #endif
 static ConVar r_drawtranslucentrenderables( "r_drawtranslucentrenderables", "1", FCVAR_CHEAT );
 static ConVar r_drawopaquerenderables( "r_drawopaquerenderables", "1", FCVAR_CHEAT );
-static ConVar r_threaded_renderables( "r_threaded_renderables", "0" );
+static ConVar r_threaded_renderables( "r_threaded_renderables", "1" );
 
 // FIXME: This is not static because we needed to turn it off for TF2 playtests
 ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe" );
@@ -2068,19 +2068,13 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	
 		if ( !building_cubemaps.GetBool() && viewRender.m_bDoBloomAndToneMapping )
 		{
-			pRenderContext.GetFrom( materials );
+			bool bFlashlightIsOn = false;
+			C_BasePlayer *pLocal = C_BasePlayer::GetLocalPlayer();
+			if ( pLocal )
 			{
-				PIXEVENT( pRenderContext, "DoEnginePostProcessing" );
-
-				bool bFlashlightIsOn = false;
-				C_BasePlayer *pLocal = C_BasePlayer::GetLocalPlayer();
-				if ( pLocal )
-				{
-					bFlashlightIsOn = pLocal->IsEffectActive( EF_DIMLIGHT );
-				}
-				DoEnginePostProcessing( viewRender.x, viewRender.y, viewRender.width, viewRender.height, bFlashlightIsOn );
+				bFlashlightIsOn = pLocal->IsEffectActive( EF_DIMLIGHT );
 			}
-			pRenderContext.SafeRelease();
+			DoEnginePostProcessing( viewRender.x, viewRender.y, viewRender.width, viewRender.height, bFlashlightIsOn );
 		}
 
 		// And here are the screen-space effects

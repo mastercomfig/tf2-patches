@@ -520,7 +520,7 @@ protected:
 	int								m_iAccumulatedBoneMask;
 
 	CBoneAccessor					m_BoneAccessor;
-	CThreadFastMutex				m_BoneSetupLock;
+	CThreadMutex				    m_BoneSetupLock;
 
 	ClientSideAnimationListHandle_t	m_ClientSideAnimationListHandle;
 
