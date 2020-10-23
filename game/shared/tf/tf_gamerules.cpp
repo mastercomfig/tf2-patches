@@ -6339,9 +6339,10 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 					flRandomDamage *= 0.5f;
 				}
 				break;
-			case TF_WEAPON_PIPEBOMBLAUNCHER :	// Stickies
-			case TF_WEAPON_GRENADELAUNCHER :
-			case TF_WEAPON_CANNON :
+			case TF_WEAPON_PIPEBOMBLAUNCHER:	// Stickies
+			case TF_WEAPON_GRENADELAUNCHER:
+			case TF_WEAPON_CANNON:
+			case TF_WEAPON_STICKBOMB:
 				if ( !( bitsDamage & DMG_NOCLOSEDISTANCEMOD ) )
 				{
 					flRandomDamage *= 0.2f;
@@ -16480,7 +16481,7 @@ bool CTFGameRules::PlayerMayBlockPoint( CBasePlayer *pPlayer, int iPointIndex, c
 #endif
 
 	// Invuln players can block points
-	if ( pTFPlayer->m_Shared.IsInvulnerable() || pTFPlayer->m_Shared.InCond( TF_COND_MEGAHEAL ) )
+	if ( pTFPlayer->m_Shared.IsInvulnerable() )
 	{
 		if ( pszReason )
 		{

@@ -529,6 +529,7 @@ void CTFGrenadePipebombProjectile::Spawn()
 
 	BaseClass::Spawn();
 
+#if 0
 	// Reset vphysics model but keep the material
 	if ( !bHasStickyEffects && m_iType == TF_GL_MODE_CANNONBALL )
 	{
@@ -549,6 +550,7 @@ void CTFGrenadePipebombProjectile::Spawn()
 			pPhysicsObject->Wake();
 	    }
 	}
+#endif
 
 	m_bTouched = false;
 	m_flCreationTime = gpGlobals->curtime;

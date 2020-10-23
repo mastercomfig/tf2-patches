@@ -2016,7 +2016,7 @@ int CObjectSentrygun::OnTakeDamage( const CTakeDamageInfo &info )
 	}
 
 	// Check to see if we are being sapped.
-	if ( !iPierceResists && HasSapper() )
+	if ( HasSapper() )
 	{
 		// Get the sapper owner.
 		CBaseObject *pSapper = GetObjectOfTypeOnMe( OBJ_ATTACHMENT_SAPPER );

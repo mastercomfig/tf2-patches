@@ -16,6 +16,7 @@ ipch
 *.idb
 *.sln
 *.recipe
+pythonenv*/
 
 *.lib
 *.a

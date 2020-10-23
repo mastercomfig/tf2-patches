@@ -820,30 +820,13 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 	CALL_ATTRIB_HOOK_INT( iCritFromBehind, crit_from_behind );
 	if ( iCritFromBehind > 0 )
 	{
-		// Get a vector from owner origin to target origin
-	    Vector vecToTarget;
-	    vecToTarget = ent->WorldSpaceCenter() - pPlayer->WorldSpaceCenter();
-	    vecToTarget.z = 0.0f;
-	    vecToTarget.NormalizeInPlace();
+		Vector entForward; 
+		AngleVectors( ent->EyeAngles(), &entForward );
 
-	    // Get owner forward view vector
-	    Vector vecOwnerForward;
-	    AngleVectors( pPlayer->EyeAngles(), &vecOwnerForward );
-	    vecOwnerForward.z = 0.0f;
-	    vecOwnerForward.NormalizeInPlace();
+		Vector toEnt = ent->GetAbsOrigin() - pPlayer->GetAbsOrigin();
+		toEnt.NormalizeInPlace();
 
-	    // Get target forward view vector
-	    Vector vecTargetForward;
-	    AngleVectors( ent->EyeAngles(), &vecTargetForward );
-	    vecTargetForward.z = 0.0f;
-	    vecTargetForward.NormalizeInPlace();
-
-		// Make sure owner is behind, facing and aiming at target's back
-	    float flPosVsTargetViewDot = DotProduct( vecToTarget, vecTargetForward );	// Behind?
-	    float flPosVsOwnerViewDot = DotProduct( vecToTarget, vecOwnerForward );		// Facing?
-	    float flViewAnglesDot = DotProduct( vecTargetForward, vecOwnerForward );	// Facestab?
-
-		if ( flPosVsTargetViewDot > 0.f && flPosVsOwnerViewDot > 0.5 && flViewAnglesDot > -0.3f )
+		if ( DotProduct( toEnt, entForward ) > 0.7071f )
 		{
 			iDmgType |= DMG_CRITICAL;
 		}
