@@ -1,4 +1,5 @@
 // Copyright (c) 2009, Google Inc.
+// Copyright (c) 2009, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -135,7 +136,8 @@ void** StackTraceTable::ReadStackTracesAndClear() {
       b = b->next;
     }
   }
-  out[idx++] = static_cast<uintptr_t>(0);
+  // note(melvyn2) edited to work with clang
+  out[idx++] = static_cast<void *>(0);
   ASSERT(idx == out_len);
 
   // Clear state

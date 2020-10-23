@@ -516,7 +516,7 @@ inline const char *CSaveRestoreSegment::StringFromSymbol( int token )
 #include <x86intrin.h>
 #endif
 
-#ifdef COMPILER_CLANG
+#if !defined( _rotr ) && defined( COMPILER_CLANG )
 static __inline__ unsigned int __attribute__((__always_inline__, __nodebug__))
 _rotr(unsigned int _Value, int _Shift) {
 	_Shift &= 0x1f;

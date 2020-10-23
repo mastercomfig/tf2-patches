@@ -207,7 +207,7 @@ endif
 
 ifeq ($(CLANG_BUILD),1)
 	# Clang specific flags
-	WARN_FLAGS += -Wno-unused-const-variable -Wno-unused-local-typedef
+	WARN_FLAGS += -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-register
 else ifeq ($(GCC_VER),-4.8)
 	WARN_FLAGS += -Wno-unused-result
 	WARN_FLAGS += -Wno-unused-but-set-variable
@@ -274,10 +274,10 @@ endif
 
 
 LIB_START_EXE = $(PATHWRAP) -static-libgcc -Wl,--start-group
-LIB_END_EXE = -Wl,--end-group -lm -ldl $(LIBSTDCXX) -lpthread
+LIB_END_EXE = -Wl,--end-group -lm -ldl -latomic $(LIBSTDCXX) -lpthread
 
 LIB_START_SHLIB = $(PATHWRAP) -static-libgcc -Wl,--start-group
-LIB_END_SHLIB = -Wl,--end-group -lm -ldl $(LIBSTDCXXPIC) -lpthread -l:$(LD_SO) -Wl,--version-script=$(SRCROOT)/devtools/version_script.linux.txt
+LIB_END_SHLIB = -Wl,--end-group -lm -ldl -latomic $(LIBSTDCXXPIC) -lpthread -l:$(LD_SO) -Wl,--version-script=$(SRCROOT)/devtools/version_script.linux.txt
 
 #
 # Profile-directed optimizations.

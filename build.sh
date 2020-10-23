@@ -16,6 +16,8 @@ MAKE_CFG="CFG=release"
 MAKE_VERBOSE=""
 VPC_FLAGS="/define:LTCG /define:CERT"
 CORES=$(nproc)
+export CC=gcc
+export CXX=g++
 export VALVE_NO_AUTO_P4=1
 
 while [[ ${1:0:1} == '-' ]]; do
@@ -46,6 +48,16 @@ while [[ ${1:0:1} == '-' ]]; do
 		"-r")
 			MAKE_SRT_FLAGS="PATH=/bin:/usr/bin"
 			CHROOT_NAME="$(pwd | sed 's/\//_/g')_"  # Trailing _ is required
+			# shellcheck disable=SC2155
+			export CC="$(pwd)/devtools/bin/linux/ccache gcc-9"
+			# shellcheck disable=SC2155
+			export CXX="$(pwd)/devtools/bin/linux/ccache g++-9"
+		;;
+		"-l")
+			# shellcheck disable=SC2155
+			export CC="$(pwd)/devtools/bin/linux/ccache clang"
+			# shellcheck disable=SC2155
+			export CXX="$(pwd)/devtools/bin/linux/ccache clang++"
 		;;
 		*)
 			echo "Unknown flag ${1}"
@@ -71,14 +83,17 @@ check_and_at_build() {
 		pushd .
 		cd "$1"
 		if [[ -n ${CHROOT_NAME} ]]; then
-			schroot --chroot ${CHROOT_NAME} -- /bin/bash << EOF
+			schroot --chroot "${CHROOT_NAME}" -- /bin/bash << EOF
 				export PATH=/bin:/usr/bin
+				export CC=$CC
+				export CXX=$CXX
 				aclocal
 				automake --add-missing
 				autoconf
 				chmod u+x configure
-				./configure CC=gcc-9 CXX=g++-9 "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
-					"CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" "LDFLAGS=-m32"
+				./configure "CFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
+					"CXXFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
+					"LDFLAGS=-m32"
 				make "-j$CORES"
 EOF
 		else
@@ -86,8 +101,9 @@ EOF
 			automake --add-missing
 			autoconf
 			chmod u+x configure
-			./configure "CFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
-				"CXXFLAGS=-m32 -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" "LDFLAGS=-m32"
+			./configure "CFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
+				"CXXFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
+				"LDFLAGS=-m32"
 			make "-j$CORES"
 		fi
 		popd
@@ -101,9 +117,12 @@ check_and_make() {
 		if [[ -n ${CHROOT_NAME} ]]; then
 			schroot --chroot "${CHROOT_NAME}" -- /bin/bash << EOF
 				export PATH=/bin:/usr/bin
+				export CC=$CC
+				export CXX=$CXX
 				make "-j$CORES" $3
 EOF
 		else
+			# shellcheck disable=SC2086
 			make "-j$CORES" $3
 		fi
 		popd
