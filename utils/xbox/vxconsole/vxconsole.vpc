@@ -80,6 +80,6 @@ $Project "VXConsole"
 
 	$Folder	"Link Libraries"
 	{
-		$DynamicFile	"$SRCDIR\lib\common\jpeglib.lib"
+		$DynamicFile	"$SRCDIR\lib\common\libjpeg.lib"
 	}
 }
