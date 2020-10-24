@@ -17,6 +17,7 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;fopen=dont_use_fopen" [$WIN32]
 		$EnableC++Exceptions			"Yes (/EHsc)"
 //		$TreatWchar_tAsBuiltinType		"No"
+		$AdditionalIncludeDirectories	"$BASE;/usr/include/freetype2"	[$LINUXALL]
 	}
 
 	$Linker
