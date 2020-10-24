@@ -475,7 +475,7 @@ bool CHudUpgradePanel::ShouldDraw( void )
 
 		bool bInZone = m_hPlayer->m_Shared.IsInUpgradeZone();
 
-		// check for other popups
+		//// check for other popups
 		//if ( bInZone && !CHudElement::ShouldDraw() ) 
 		//{
 		//	CTFStatPanel *pStatPanel = GetStatPanel();
