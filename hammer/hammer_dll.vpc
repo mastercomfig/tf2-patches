@@ -693,7 +693,7 @@ $Project "hammer_dll"
 		$Lib choreoobjects
 		$Lib dmxloader
 		$Lib fgdlib
-		$Lib $LIBCOMMON\jpeglib
+		$Lib $LIBCOMMON\libjpeg
 		$Lib mathlib
 		$Lib matsys_controls
 		$Lib raytrace

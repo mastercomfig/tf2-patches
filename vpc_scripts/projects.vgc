@@ -529,9 +529,9 @@ $Project "ivp_physics"
 	"ivp\ivp_physics\ivp_physics.vpc" [$WINDOWS||$X360||$POSIX]
 }
 
-$Project "jpeglib"
+$Project "libjpeg"
 {
-	"utils\jpeglib\jpeglib.vpc" [$WINDOWS||$POSIX]
+	"utils\jpeglib\libjpeg.vpc" [$WINDOWS||$POSIX]
 }
 
 $Project "kvc"

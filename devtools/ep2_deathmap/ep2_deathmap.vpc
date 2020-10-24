@@ -49,6 +49,6 @@ $Project "ep2_deathmap"
 	$Folder	"Link Libraries"
 	{
 		$Lib tier2
-		$Lib $LIBCOMMON/jpeglib
+		$Lib $LIBCOMMON/libjpeg
 	}
 }
