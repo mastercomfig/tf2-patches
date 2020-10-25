@@ -269,7 +269,7 @@ int GetUpgradeStepData( CTFPlayer *pPlayer, int nWeaponSlot, int nUpgradeIndex, 
 		// Early out here -- we know we're over the cap already, so just fill out and return values
 		// that show that.
 		bOverCap = true;
-		nCurrentStep = RoundFloatToInt( fabsf( ( flCurrentAttribValue - flBase ) / flIncrement ) );
+		nCurrentStep = ceilf( fabsf( ( flCurrentAttribValue - flBase ) / flIncrement ) );
 
 		return nCurrentStep;			// Include the 0th step
 	}
@@ -278,8 +278,8 @@ int GetUpgradeStepData( CTFPlayer *pPlayer, int nWeaponSlot, int nUpgradeIndex, 
 	int nNumSteps = 0;
 	
 	// ...
-	nNumSteps = RoundFloatToInt( fabsf( ( flCap - flBase ) / flIncrement ) );
-	nCurrentStep = RoundFloatToInt( fabsf( ( flCurrentAttribValue - flBase ) / flIncrement ) );
+	nNumSteps = ceilf( fabsf( ( flCap - flBase ) / flIncrement ) );
+	nCurrentStep = ceilf( fabsf( ( flCurrentAttribValue - flBase ) / flIncrement ) );
 
 	// Include the 0th step
 	return nNumSteps;
