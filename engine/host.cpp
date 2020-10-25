@@ -3902,7 +3902,7 @@ void Host_PostInit()
 
 #if defined( LINUX )
 	const char en_US[] = "en_US.UTF-8";
-	const char *CurrentLocale = setlocale( LC_ALL, NULL );
+	const char *CurrentLocale = setlocale( LC_ALL, en_US );
 	if ( !CurrentLocale )
 		CurrentLocale = "c";
 	if ( Q_stricmp( CurrentLocale, en_US ) )
