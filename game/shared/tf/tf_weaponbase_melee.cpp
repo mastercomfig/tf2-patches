@@ -886,7 +886,7 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 		{
 			CTFPlayer *pVictimPlayer = ToTFPlayer( ent );
 
-			if ( pVictimPlayer && pVictimPlayer->CanBeForcedToLaugh() && ( pPlayer->GetTeamNumber() != pVictimPlayer->GetTeamNumber() ) )
+			if ( pVictimPlayer && pVictimPlayer->CanBeForcedToLaugh() && ( pPlayer->GetTeamNumber() != pVictimPlayer->GetTeamNumber() || friendlyfire.GetInt() ) )
 			{
 				// force victim to laugh!
 				pVictimPlayer->Taunt( TAUNT_MISC_ITEM, MP_CONCEPT_TAUNT_LAUGH );
@@ -905,7 +905,7 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 		{
 			CTFPlayer *pVictimPlayer = ToTFPlayer( ent );
 
-			if ( pVictimPlayer && pVictimPlayer->CanBeForcedToLaugh() && ( pPlayer->GetTeamNumber() != pVictimPlayer->GetTeamNumber() ) )
+			if ( pVictimPlayer && pVictimPlayer->CanBeForcedToLaugh() && ( pPlayer->GetTeamNumber() != pVictimPlayer->GetTeamNumber() || friendlyfire.GetInt() ) )
 			{
 				CTFWeaponBase *myWeapon = pPlayer->GetActiveTFWeapon();
 				CTFWeaponBase *theirWeapon = pVictimPlayer->GetActiveTFWeapon();
