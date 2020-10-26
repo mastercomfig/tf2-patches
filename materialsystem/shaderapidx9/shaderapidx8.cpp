@@ -3493,12 +3493,15 @@ void CShaderAPIDx8::ResetRenderState( bool bFullReset )
 		bAntialiasing = false;
 	}
 	SetRenderState( D3DRS_MULTISAMPLEANTIALIAS, bAntialiasing );
-	
+
+	// UNDONE(mastercoms): WHY? all this does is cause yet another alt-tab because the aniso level flips back and forth
+#if 0
 	// Anisotropic filtering is disabled by default
 	if ( bFullReset )
 	{
 		SetAnisotropicLevel( 1 );
 	}
+#endif
 	
 	int i;
 	for ( i = 0; i < g_pHardwareConfig->ActualCaps().m_NumTextureStages; ++i )
@@ -4032,7 +4035,8 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
             // On L4D2/TF2 in GL mode this spinning was causing slowdowns.
 			ThreadSleepEx(1);
 #else
-			ThreadSleepEx();
+			ThreadPause();
+			ThreadSleep();
 #endif
 		}
 	    while (hr == S_FALSE);

@@ -74,6 +74,8 @@ public:
 
 	void	InvalidateParticleEffects();
 
+	CPanelAnimationVar(bool, m_bDisableSpeakEvent, "disable_speak_event", "0");
+
 protected:
 	// From CBaseModelPanel
 	virtual void	PrePaint3D( IMatRenderContext *pRenderContext ) OVERRIDE;
@@ -149,6 +151,7 @@ private:
 		CEconItemView					*pEconItem
 	);
 
+	void    UpdateSpotlight(IMatRenderContext* pRenderContext);
 	void	UpdateEyeGlows( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix, bool bIsRightEye );
 	void	UpdateActionSlotEffects( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix );
 	void	UpdateTauntEffects( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix );
@@ -210,8 +213,6 @@ private:
 	float m_flTauntParticleRefireRate;
 
 	bool m_bIsRobot;
-
-	CPanelAnimationVar( bool, m_bDisableSpeakEvent, "disable_speak_event", "0" );
 
 	CEconItemView			*GetLoadoutItemFromMDLHandle( loadout_positions_t iPosition, MDLHandle_t mdlHandle );
 	bool					RenderStatTrack( CStudioHdr *pStudioHdr, matrix3x4_t *pWorldMatrix );

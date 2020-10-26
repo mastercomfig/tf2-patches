@@ -1,26 +1,69 @@
 #!/bin/bash
+#
 # Run script within the directory
-BINDIR=$(dirname "$(readlink -fn "$0")")
-cd "${BINDIR}" || exit 2
+BIN_DIR=$(dirname "$(readlink -fn "$0")")
+cd "${BIN_DIR}" || exit 2
 
 set -e
 
-clean_folder=../../game_clean
-dev_folder=../../game
-mkdir -p $clean_folder
-mkdir -p $clean_folder/bin
-mkdir -p $clean_folder/tf/bin
-mkdir -p $clean_folder/tf/custom
-cp -f *.bat $clean_folder
-cp -rf copy/* $clean_folder/
+DEV_DIR=../../game
+CLEAN_DIR=${DEV_DIR}_clean
+CLEAN_DEBUG_DIR=${DEV_DIR}_clean_debug
+rm -rf ${CLEAN_DIR}
+rm -rf ${CLEAN_DEBUG_DIR}
+mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
+mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
+cp -rf copy/* ${CLEAN_DIR}
+cp -rf copy/* ${DEV_DIR}
 
-declare -a files=("hl2.exe" "srcds.exe" "bin/engine.dll" "bin/GameUI.dll" "bin/replay.dll" "bin/launcher.dll" "bin/inputsystem.dll" "bin/MaterialSystem.dll" "bin/dedicated.dll" "bin/ServerBrowser.dll" "bin/shaderapidx9.dll" "bin/vguimatsurface.dll" "bin/stdshader_dx9.dll" "bin/vgui2.dll" "bin/datacache.dll" "bin/sourcevr.dll" "bin/StudioRender.dll" "bin/SoundEmitterSystem.dll" "bin/bsppack.dll" "bin/FileSystem_Stdio.dll" "bin/scenefilecache.dll" "bin/vstdlib.dll" "bin/tier0.dll" "tf/bin/client.dll" "tf/bin/server.dll")
-for F in "${files[@]}"; do
-  cp -f $dev_folder/$F $clean_folder/$F
+declare -a FILES=(
+                  {hl2,srcds}.exe
+                 )
+
+declare -a DLLS_CI=(
+                  bin/engine
+                  bin/replay
+                  bin/launcher
+                  bin/inputsystem
+                  bin/{Material,SoundEmitter}System
+                  bin/dedicated
+                  bin/{shaderapi,stdshader_}dx9
+                  bin/vgui{matsurface,2}
+                  bin/{data,scenefile}cache
+                  bin/sourcevr
+                  bin/StudioRender
+                  bin/bsppack
+                  bin/FileSystem_Stdio
+                  bin/vstdlib
+                  bin/tier0
+                  tf/bin/{client,server}
+                 )
+
+declare -a DLLS=(
+                  bin/GameUI
+                  bin/ServerBrowser
+                 )
+
+for F in "${FILES[@]}"; do
+  cp -f ${DEV_DIR}/${F} ${CLEAN_DIR}/${F}
 done
 
-declare -a files=("../LICENSE" "../README.md" "../thirdpartylegalnotices.txt")
-for F in "${files[@]}"; do
-  orig=$(basename $F)
-  cp -f $F $clean_folder/$orig
+for F in "${DLLS_CI[@]}"; do
+  cp -f ${DEV_DIR}/${F}.dll ${CLEAN_DIR}/${F}.dll
+  cp -f ${DEV_DIR}/${F,,}.pdb ${CLEAN_DEBUG_DIR}/${F,,}.pdb
+done
+
+for F in "${DLLS[@]}"; do
+  cp -f ${DEV_DIR}/${F}.dll ${CLEAN_DIR}/${F}.dll
+  cp -f ${DEV_DIR}/${F}.pdb ${CLEAN_DEBUG_DIR}/${F}.pdb
+done
+
+declare -a FILES=(
+                  ../LICENSE_SDK
+                  ../.github/README.md
+                  ../thirdpartylegalnotices.txt
+                 )
+for F in "${FILES[@]}"; do
+  ORIG=$(basename ${F})
+  cp -f ${F} ${CLEAN_DIR}/${ORIG}
 done

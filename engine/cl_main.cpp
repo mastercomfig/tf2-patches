@@ -173,6 +173,11 @@ void CL_ReloadFilesInList( IFileList *pFilesToReload )
 
 	ResourceLocker crashPreventer;
 
+	// Handle KeyValues
+	// TODO: only reload paths we need to reload
+	// this is still better than completely disabling the KV cache...
+	KeyValuesSystem()->InvalidateCache();
+
 	// Handle materials..
 	materials->ReloadFilesInList( pFilesToReload );
 
@@ -1055,7 +1060,10 @@ void CL_FullyConnected( void )
 	// Purge the preload stores, oreder is critical
 	g_pMDLCache->ShutdownPreloadData();
 
-	// NOTE: purposely disabling for singleplayer, memory spike causing issues, preload's stay in
+	// NOTE: purposely disabling...
+	// THIS IS A BAD THING, so purposely disabled... it saves a few MB that otherwise prevents a bunch of hitchy sync i/o during gameplay.
+	// Also, memory spike causing issues, so preload's stay in
+	// This may show up on the memory users, and the preloads can be made smaller, or maybe accidentally too large, but ditching them is not the right thing to do.
 	// UNDONE: discard preload for TF to save memory
 	// g_pFileSystem->DiscardPreloadData();
 
@@ -2235,13 +2243,13 @@ void CL_Move(float accumulated_extra_samples, bool bFinalTick )
 		// use full update rate when active
 		float commandInterval = cl_cmdinterval->GetFloat();
 		float maxDelta = min ( host_state.interval_per_tick, commandInterval );
-		float delta = clamp( (float)(net_time - cl.m_flNextCmdTime), 0.0f, maxDelta );
+		double delta = clamp<double>( net_time - cl.m_flNextCmdTime, 0.0, (double)maxDelta );
 		cl.m_flNextCmdTime = net_time + commandInterval - delta;
 	}
 	else
 	{
 		// during signon process send only 5 packets/second
-		cl.m_flNextCmdTime = net_time + ( 1.0f / 5.0f );
+		cl.m_flNextCmdTime = net_time + ( 1.0 / 5.0 );
 	}
 
 }
@@ -2772,6 +2780,7 @@ void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOl
 
 void CL_InitCloudSettingsCvar()
 {
+#ifdef VALVE_PURE
 	if ( IsPC()	&& Steam3Client().SteamRemoteStorage() )
 	{
 		int iCloudSettings = STEAMREMOTESTORAGE_CLOUD_OFF;
@@ -2781,6 +2790,7 @@ void CL_InitCloudSettingsCvar()
 		cl_cloud_settings.SetValue( iCloudSettings );
 	}
 	else
+#endif
 	{
 		// If not on PC or steam not available, set to 0 to make sure no replication occurs or is attempted
 		cl_cloud_settings.SetValue( STEAMREMOTESTORAGE_CLOUD_OFF );

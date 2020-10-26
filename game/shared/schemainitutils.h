@@ -23,10 +23,6 @@
 		{																\
 			AssertMsg( expr, "%s", msg.String() );						\
 		}																\
-		else															\
-		{																\
-			pVecErrors->AddToTail( msg );								\
-		}																\
 		return false;													\
 	}																	
 #else
@@ -35,7 +31,7 @@
 	{																	\
 		CUtlString msg;													\
 		msg.Format( __VA_ARGS__ );										\
-		Warning( "%s\n", msg.String() );						        \
+		DevWarning( "%s\n", msg.String() );						        \
 		return false;													\
 	}		
 #endif

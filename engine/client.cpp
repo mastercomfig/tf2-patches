@@ -624,7 +624,7 @@ float CClientState::GetClientInterpAmount()
 		return 0.03f;
 	}
 
-	return s_cl_interp_ratio->GetFloat() * cl_updateinterval->GetFloat();
+	return s_cl_interp_ratio->GetInt() * cl_updateinterval->GetFloat();
 }
 
 //-----------------------------------------------------------------------------
@@ -1803,8 +1803,6 @@ void CClientState::FinishSignonState_New()
 	CL_CheckForPureServerWhitelist( m_pPendingPureFileReloads );
 
 	CL_InstallAndInvokeClientStringTableCallbacks();
-
-	materials->CacheUsedMaterials();
 
 	// force a consistency check
 	ConsistencyCheck( true );

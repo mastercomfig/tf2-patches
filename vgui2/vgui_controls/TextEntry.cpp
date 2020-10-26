@@ -1629,6 +1629,18 @@ void TextEntry::OnKeyCodePressed(KeyCode code)
 		case KEY_F10:
 		case KEY_F11:
 		case KEY_F12:
+		case KEY_F13:
+		case KEY_F14:
+		case KEY_F15:
+		case KEY_F16:
+		case KEY_F17:
+		case KEY_F18:
+		case KEY_F19:
+		case KEY_F20:
+		case KEY_F21:
+		case KEY_F22:
+		case KEY_F23:
+		case KEY_F24:
 		case KEY_ESCAPE:
 		case KEY_APP:
 			Panel::OnKeyCodePressed( code );
@@ -1964,6 +1976,18 @@ void TextEntry::OnKeyCodeTyped(KeyCode code)
 		case KEY_F10:
 		case KEY_F11:
 		case KEY_F12:
+		case KEY_F13:
+		case KEY_F14:
+		case KEY_F15:
+		case KEY_F16:
+		case KEY_F17:
+		case KEY_F18:
+		case KEY_F19:
+		case KEY_F20:
+		case KEY_F21:
+		case KEY_F22:
+		case KEY_F23:
+		case KEY_F24:
 			{
 				fallThrough = true;
 				break;

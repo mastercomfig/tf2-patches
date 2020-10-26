@@ -54,7 +54,6 @@ void CHudTeamGoalTournament::LevelInit( void )
 
 	ListenForGameEvent( "tournament_stateupdate" );
 	ListenForGameEvent( "teamplay_round_start" );
-	ListenForGameEvent( "competitive_state_changed" );
 }
 C_TFTeam *GetTeamRoles( int iTeamRole )
 {
@@ -120,10 +119,6 @@ void CHudTeamGoalTournament::FireGameEvent( IGameEvent * event )
 		
 			m_flShowAt = gpGlobals->curtime + 1.f;
 		}
-	}
-	else if ( FStrEq( "competitive_state_changed", pEventName ) )
-	{
-		InvalidateLayout( false, true );
 	}
 }
 

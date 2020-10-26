@@ -353,13 +353,9 @@ void CTFHudMatchStatus::ApplySchemeSettings(IScheme *pScheme)
 		pConditions = new KeyValues( "conditions" );
 		AddSubKeyNamed( pConditions, "if_match" );
 
-		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GTFGCClientSystem()->GetLiveMatchGroup() );
-		if ( pMatchDesc )
+		if (GetGlobalTeam(TF_TEAM_RED)->GetNumPlayers() >= 12 || GetGlobalTeam(TF_TEAM_BLUE)->GetNumPlayers() >= 12)
 		{
-			if (GetGlobalTeam(TF_TEAM_RED)->GetNumPlayers() >= 12 || GetGlobalTeam(TF_TEAM_BLUE)->GetNumPlayers() >= 12)
-			{
-				AddSubKeyNamed( pConditions, "if_large" );
-			}
+			AddSubKeyNamed( pConditions, "if_large" );
 		}
 	}
 

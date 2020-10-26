@@ -539,6 +539,8 @@ void COverlayMgr::AddFragmentListToRenderList( int nSortGroup, OverlayFragmentHa
 		// Add the fragment to the bucket of fragments to render...
 		pFragment->m_hNextRender = info.m_hFirstFragment;
 		info.m_hFirstFragment = i;
+
+		Assert(info.m_nVertexCount + nVertexCount < 65535);
 		info.m_nVertexCount += nVertexCount;
 		info.m_nIndexCount += 3 * (nVertexCount - 2);
 	}

@@ -2363,7 +2363,9 @@ void CStudioRenderContext::DrawModel( DrawModelResults_t *pResults, const DrawMo
 			}
 		}
 
-		pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags));
+		// FIXME(mastercoms): crashes
+		//pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags));
+		pCallQueue->QueueCall( g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags );
 	}
 
 	if( flags & STUDIORENDER_DRAW_ACCURATETIME )
@@ -2503,16 +2505,20 @@ void CStudioRenderContext::DestroyDecalList( StudioDecalHandle_t handle )
 
 void CStudioRenderContext::AddDecals()
 {
-	StudioRenderDecalInfo_t decalInfo;
+	StudioRenderDecalInfo_t* pDecalInfo;
 	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
-    while (m_addDecalRequests.PopItem(&decalInfo))
+    while (m_addDecalRequests.PopItem(&pDecalInfo))
     {
-		if (decalInfo.handle)
+		if (pDecalInfo)
 		{
-			Assert(pRenderContext->IsRenderData(decalInfo.pBoneToWorld));
-			QUEUE_STUDIORENDER_CALL_RC(AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext,
-				decalInfo.handle, m_RC, decalInfo.pBoneToWorld, decalInfo.pStudioHdr, decalInfo.ray, decalInfo.decalUp, decalInfo.pDecalMaterial, decalInfo.radius,
-				decalInfo.body, decalInfo.noPokethru, decalInfo.maxLODToDecal);
+			StudioRenderDecalInfo_t decalInfo = *pDecalInfo;
+			if (decalInfo.handle)
+			{
+				Assert(pRenderContext->IsRenderData(decalInfo.pBoneToWorld));
+				QUEUE_STUDIORENDER_CALL_RC(AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext,
+					decalInfo.handle, m_RC, decalInfo.pBoneToWorld, decalInfo.pStudioHdr, decalInfo.ray, decalInfo.decalUp, decalInfo.pDecalMaterial, decalInfo.radius,
+					decalInfo.body, decalInfo.noPokethru, decalInfo.maxLODToDecal);
+			}
 		}
     }
 }
@@ -2529,8 +2535,7 @@ void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pS
                                      matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
                                      IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
 {
-	const StudioRenderDecalInfo_t queuedDecal(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal);
-	m_addDecalRequests.PushItem(queuedDecal);
+	m_addDecalRequests.PushItem(new StudioRenderDecalInfo_t(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal));
 }
 
 

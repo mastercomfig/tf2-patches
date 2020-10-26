@@ -1264,6 +1264,8 @@ static HANDLE OpenWin32File( const char *filename, bool bOverlapped, bool bUnbuf
 		createFlags |= FILE_FLAG_NO_BUFFERING;
 	}
 
+	//createFlags |= FILE_FLAG_SEQUENTIAL_SCAN;
+
 	hFile = ::CreateFile( filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, createFlags, NULL );
 	if ( hFile != INVALID_HANDLE_VALUE && !*pFileSize )
 	{

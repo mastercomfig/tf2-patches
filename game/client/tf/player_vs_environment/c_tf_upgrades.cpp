@@ -505,7 +505,7 @@ void CHudUpgradePanel::SetVisible( bool bVisible )
 {
 	if ( !bVisible && IsActive() )
 	{
-		engine->ClientCmd_Unrestricted( "gameui_allowescapetoshow\n" );
+		engine->ClientCmd_Unrestricted("gameui_allowescapetoshow\n");
 	}
 
 	BaseClass::SetVisible( bVisible );
@@ -573,9 +573,16 @@ void CHudUpgradePanel::SetActive( bool bActive )
 		OnTick();
 
 		m_bAwardMaxSlotAchievement = false;
+
+		if (TFGameRules()->State_Get() == GR_STATE_BETWEEN_RNDS && !m_bInspectMode)
+		{
+			C_TFPlayer::GetLocalTFPlayer()->EmitSound("music.mvm_upgrade_machine");
+		}
 	}
 	else if ( !bActive && IsActive() )
 	{
+		C_TFPlayer::GetLocalTFPlayer()->StopSound("music.mvm_upgrade_machine");
+
 		if ( m_bCancelUpgrades )
 		{
 			CancelUpgrades();

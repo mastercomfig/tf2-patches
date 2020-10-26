@@ -21,7 +21,7 @@ BEGIN_VS_SHADER( Sky_DX9, "Help for Sky_DX9 shader" )
 
 	SHADER_FALLBACK
 	{
-		if( g_pHardwareConfig->GetDXSupportLevel() < 90 )
+		if( g_pHardwareConfig->GetDXSupportLevel() < 90 || IsWindows() && !IsOpenGL() && g_pHardwareConfig->PreferReducedFillrate() )
 		{
 			return "sky_dx6";
 		}

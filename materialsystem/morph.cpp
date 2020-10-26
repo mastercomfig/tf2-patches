@@ -1181,6 +1181,11 @@ void CMorph::CreateStaticMesh()
 	m_pMorphBuffer = pRenderContext->CreateStaticMesh( vertexFormat, TEXTURE_GROUP_MORPH_TARGETS, m_MorphAccumulationMaterial );
 
 	int nVertexCount = CountStaticMeshVertices();
+	if (nVertexCount >= 65535)
+	{
+		Warning("Too many morph vertices! Call brian\n");
+	}
+	Assert(nVertexCount < 65535);
 
 	int n4TupleCount = Get4TupleCount( m_Format );
 

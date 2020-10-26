@@ -4977,10 +4977,11 @@ struct ListLeafBoxInfo_t
 	VectorAligned m_vecBoxHalfDiagonal;
 };
 
-#ifdef DBGFLAG_ASSERT
-static fltx4 AlignThatVector(const Vector &vc)
+#if defined(DBGFLAG_ASSERT)
+#if defined(_X360)
+static fltx4 AlignThatVector(const Vector& vc)
 {
-	fltx4 out = VectorLoad(&vc);
+	fltx4 out = __loadunalignedvector(vc.Base());
 
 	/*
 	out.x = vc.x;
@@ -4988,12 +4989,21 @@ static fltx4 AlignThatVector(const Vector &vc)
 	out.z = vc.z;
 	*/
 
+	// squelch the w component 
+	return __vrlimi(out, __vzero(), 1, 0);
+}
+#elif defined(USE_DIRECTX_MATH)
+static fltx4 AlignThatVector(const Vector &vc)
+{
+	fltx4 out = VectorLoad(&vc);
+
 	// squelch the w component
-	//return __vrlimi( out, DirectX::g_XMZero, 1, 0 );
 	return DirectX::XMVectorSetW(out, 0);
 }
 #endif
+#endif
 
+#if defined(USE_DIRECTX_MATH) || defined(_X360)
 static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pInfo, unsigned short* RESTRICT pList, int listMax)
 {
 	int leafCount = 0;
@@ -5073,25 +5083,25 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 					fltx4 vecBoxMin = LoadAlignedSIMD(pInfo->m_vecBoxMin);
 					fltx4 vecBoxMax = LoadAlignedSIMD(pInfo->m_vecBoxMax);
 					fltx4 cornermin, cornermax;
+#ifdef USE_DIRECTX_MATH
 					// by now planeNormal is ready...
-					fltx4 control = XMVectorGreaterOrEqual(planeNormal, DirectX::g_XMZero);
+					fltx4 control = DirectX::XMVectorGreaterOrEqual(planeNormal, DirectX::g_XMZero);
 					// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
 					cornermin = DirectX::XMVectorSelect(vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
 					cornermax = DirectX::XMVectorSelect(vecBoxMin, vecBoxMax, control);
-
 					// compute dot products
 					fltx4 dotCornerMax = DirectX::XMVector3Dot(planeNormal, cornermax);
 					fltx4 dotCornerMin = DirectX::XMVector3Dot(planeNormal, cornermin);
 					fltx4 vPlaneDist = ReplicateX4(plane->dist);
 					uint conditionRegister;
-                    DirectX::XMVectorGreaterR(&conditionRegister, vPlaneDist, dotCornerMax);
+					DirectX::XMVectorGreaterR(&conditionRegister, vPlaneDist, dotCornerMax);
 					if (DirectX::XMComparisonAllTrue(conditionRegister)) // plane->normal . cornermax <= plane->dist
 					{
 						node = node->children[1];
 					}
 					else
 					{
-                        DirectX::XMVectorGreaterOrEqualR(&conditionRegister, dotCornerMin, vPlaneDist);
+						DirectX::XMVectorGreaterOrEqualR(&conditionRegister, dotCornerMin, vPlaneDist);
 						if (DirectX::XMComparisonAllTrue(conditionRegister))
 						{
 							node = node->children[0];
@@ -5106,6 +5116,41 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 							node = node->children[1];
 						}
 					}
+#elif _X360
+					// by now planeNormal is ready...
+					fltx4 control = XMVectorGreaterOrEqual(planeNormal, __vzero());
+					// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
+					cornermin = XMVectorSelect(vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
+					cornermax = XMVectorSelect(vecBoxMin, vecBoxMax, control);
+
+					// compute dot products
+					fltx4 dotCornerMax = __vmsum3fp(planeNormal, cornermax); // vsumfp ignores w component
+					fltx4 dotCornerMin = __vmsum3fp(planeNormal, cornermin);
+					fltx4 vPlaneDist = ReplicateX4(plane->dist);
+					UINT conditionRegister;
+					XMVectorGreaterR(&conditionRegister, vPlaneDist, dotCornerMax);
+					if (XMComparisonAllTrue(conditionRegister)) // plane->normal . cornermax <= plane->dist
+					{
+						node = node->children[1];
+					}
+					else
+					{
+						XMVectorGreaterOrEqualR(&conditionRegister, dotCornerMin, vPlaneDist);
+						if (XMComparisonAllTrue(conditionRegister))
+						{
+							node = node->children[0];
+						}
+						else
+						{
+							// Here the box is split by the node
+							nodeList[nodeWriteIndex] = node->children[0];
+							nodeWriteIndex = (nodeWriteIndex + 1) & (NODELIST_MAX - 1);
+							// check for overflow of the ring buffer
+							Assert(nodeWriteIndex != nodeReadIndex);
+							node = node->children[1];
+						}
+					}
+#endif
 				}
 			}
 			else
@@ -5118,6 +5163,7 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 		}
 	}
 }
+#endif
 
 static int ListLeafsInBox(mnode_t* RESTRICT node, const Vector& center, const Vector& extents, unsigned short* RESTRICT pList, int listMax)
 {
@@ -5562,6 +5608,7 @@ bool CEngineBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnum
 
 int CEngineBSPTree::ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax)
 {
+#if defined(USE_DIRECTX_MATH) || defined(_X360)
     if (opt_ListLeavesFastAlgorithm.GetBool())
     {
 		ListLeafBoxInfo_t info;
@@ -5572,6 +5619,7 @@ int CEngineBSPTree::ListLeavesInBox(const Vector& mins, const Vector& maxs, unsi
 		info.m_vecBoxMin = mins;
 		return ListLeafsInBox(host_state.worldbrush->nodes, &info, pList, listMax);
     }
+#endif
 	Vector center, extents;
 	VectorAdd(mins, maxs, center);
 	center *= 0.5f;

@@ -106,8 +106,8 @@ void TangentSpaceComputeBasis( Vector& tangentS, Vector& tangentT, const Vector&
 inline void BuildIndicesForSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t surfID )
 {
 	int nSurfTriangleCount = MSurf_VertCount( surfID ) - 2;
-	int startVert = MSurf_VertBufferIndex( surfID );
-	Assert(startVert!=INT_MAX);
+	unsigned short startVert = MSurf_VertBufferIndex(surfID);
+	Assert(startVert != 0xFFFF);
 
 	// NOTE: This switch appears to help performance
 	// add surface to this batch
@@ -147,7 +147,7 @@ inline void BuildIndicesForWorldSurface( CMeshBuilder &meshBuilder, SurfaceHandl
 	{
 		mprimitive_t* pPrim = &pData->primitives[MSurf_FirstPrimID(surfID, pData)];
 		Assert(pPrim->vertCount == 0);
-		int startVert = MSurf_VertBufferIndex(surfID);
+		unsigned short startVert = MSurf_VertBufferIndex(surfID);
 		Assert(pPrim->indexCount == ((MSurf_VertCount(surfID) - 2) * 3));
 
 		CIndexBuilder& indexBuilder = meshBuilder;

@@ -10,34 +10,74 @@ ConVar tf_paint_kit_force_wear( "tf_paint_kit_force_wear", "0", FCVAR_REPLICATED
 #endif
 
 // --------------------------------------------------------------------------
-bool IEconItemInterface::GetCustomPaintKitWear( float &flWear ) const
+bool IEconItemInterface::GetCustomPaintKitWear( float &flWear )
 {
 
 #ifdef STAGING_ONLY
 	// don't assert in staging if this ConVar is set
-	if ( tf_paint_kit_force_wear.GetInt() > 0 )
+	if ( tf_paint_kit_force_wear.GetInt() <= 0 )
+#endif // STAGING_ONLY
+	{
+		if (m_flCachedWear == 0)
+		{
+			return false;
+		}
+		if (m_flCachedWear > 0)
+		{
+			flWear = m_flCachedWear;
+			return true;
+		}
+	}
+
+	bool bSuccess = std::as_const(*this).GetCustomPaintKitWear(flWear);
+	if (bSuccess)
+	{
+		m_flCachedWear = flWear;
+	}
+	else
+	{
+		m_flCachedWear = 0;
+	}
+	return bSuccess;
+}
+
+bool IEconItemInterface::GetCustomPaintKitWear(float& flWear) const
+{
+#ifdef STAGING_ONLY
+	// don't assert in staging if this ConVar is set
+	if (tf_paint_kit_force_wear.GetInt() > 0)
 	{
 		flWear = tf_paint_kit_force_wear.GetFloat();
 		return true;
 	}
 #endif // STAGING_ONLY
 
-	static CSchemaAttributeDefHandle pAttrDef_PaintKitWear( "set_item_texture_wear" );
+	if (m_flCachedWear == 0)
+	{
+		return false;
+	}
+	if (m_flCachedWear > 0)
+	{
+		flWear = m_flCachedWear;
+		return true;
+	}
+
+	static CSchemaAttributeDefHandle pAttrDef_PaintKitWear("set_item_texture_wear");
 	float flPaintKitWear = 0;
-	if ( pAttrDef_PaintKitWear && FindAttribute_UnsafeBitwiseCast<attrib_value_t>( this, pAttrDef_PaintKitWear, &flPaintKitWear ) )
+	if (pAttrDef_PaintKitWear && FindAttribute_UnsafeBitwiseCast<attrib_value_t>(this, pAttrDef_PaintKitWear, &flPaintKitWear))
 	{
 		flWear = flPaintKitWear;
 		return true;
 	}
 
-	static CSchemaAttributeDefHandle pAttrDef_DefaultWear( "texture_wear_default" );
-	if ( pAttrDef_DefaultWear && FindAttribute_UnsafeBitwiseCast<attrib_value_t>( this, pAttrDef_DefaultWear, &flPaintKitWear ) )
+	static CSchemaAttributeDefHandle pAttrDef_DefaultWear("texture_wear_default");
+	if (pAttrDef_DefaultWear && FindAttribute_UnsafeBitwiseCast<attrib_value_t>(this, pAttrDef_DefaultWear, &flPaintKitWear))
 	{
 		flWear = flPaintKitWear;
 		return true;
 	}
 	// If you have no wear, you also should not have a paint kit
-	AssertMsg( !GetCustomPainkKitDefinition(), "No Wear Found on Item [%llu - %s] that has a Paintkit!", GetID(), GetItemDefinition()->GetDefinitionName() );
+	AssertMsg(!GetCustomPainkKitDefinition(), "No Wear Found on Item [%llu - %s] that has a Paintkit!", GetID(), GetItemDefinition()->GetDefinitionName());
 
 	return false;
 }

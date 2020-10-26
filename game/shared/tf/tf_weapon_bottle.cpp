@@ -166,7 +166,8 @@ void CTFStickBomb::Smack( void )
 		{
 			Vector vecForward; 
 			AngleVectors( pTFPlayer->EyeAngles(), &vecForward );
-			Vector vecSwingStart = pTFPlayer->Weapon_ShootPosition();
+			Vector vecCenter = pTFPlayer->WorldSpaceCenter();
+		    Vector vecSwingStart = pTFPlayer->Weapon_ShootPosition();
 			Vector vecSwingEnd = vecSwingStart + vecForward * GetSwingRange();
 
 			Vector explosion = vecSwingStart;
@@ -185,13 +186,13 @@ void CTFStickBomb::Smack( void )
 				}
 			}
 
-			TE_TFExplosion( filter, 0.0f, explosion, Vector(0,0,1), TF_WEAPON_GRENADELAUNCHER, pTFPlayer->entindex(), -1, SPECIAL1, iCustomParticleIndex );
+			TE_TFExplosion( filter, 0.0f, explosion, Vector(0,0,1), TF_WEAPON_STICKBOMB, pTFPlayer->entindex(), -1, SPECIAL1, iCustomParticleIndex );
 
 			int dmgType = DMG_BLAST | DMG_USEDISTANCEMOD;
 			if ( IsCurrentAttackACrit() )
 				dmgType |= DMG_CRITICAL;
 
-			CTakeDamageInfo info( pTFPlayer, pTFPlayer, this, explosion, explosion, 75.0f, dmgType, TF_DMG_CUSTOM_STICKBOMB_EXPLOSION, &explosion );
+			CTakeDamageInfo info( pTFPlayer, pTFPlayer, this, vec3_origin, explosion, 75.0f, dmgType, TF_DMG_CUSTOM_STICKBOMB_EXPLOSION, &explosion );
 			CTFRadiusDamageInfo radiusinfo( &info, explosion, 100.f );
 			TFGameRules()->RadiusDamage( radiusinfo );
 		}

@@ -5573,7 +5573,10 @@ void CTFPlayerShared::OnAddHalloweenKartCage( void )
 	if ( !m_pOuter->m_hHalloweenKartCage )
 	{
 		m_pOuter->m_hHalloweenKartCage = C_PlayerAttachedModel::Create( "models/props_halloween/bumpercar_cage.mdl", m_pOuter, 0, vec3_origin, PAM_PERMANENT, 0 );
-		m_pOuter->m_hHalloweenKartCage->FollowEntity( m_pOuter, true );
+		if (m_pOuter->m_hHalloweenKartCage)
+		{
+			m_pOuter->m_hHalloweenKartCage->FollowEntity(m_pOuter, true);
+		}
 	}
 #else
 	AddCond( TF_COND_FREEZE_INPUT );
@@ -10461,6 +10464,10 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 
 	// If we have an item with a move speed modification, apply it to the final speed.
 	CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed );
+	if (m_Shared.GetActiveTFWeapon())
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(m_Shared.GetActiveTFWeapon(), maxfbspeed, mult_player_movespeed_active);
+	}
 
 	if ( m_Shared.IsShieldEquipped() )
 	{
@@ -12152,26 +12159,18 @@ bool CTFPlayer::CanAirDash( void ) const
 	if ( m_Shared.InCond( TF_COND_HALLOWEEN_SPEED_BOOST ) )
 		return true;
 
-	bool bScout = GetPlayerClass()->IsClass( TF_CLASS_SCOUT );
-	if ( !bScout )
-		return false;
+	int iNoAirDash = 0;
+	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
+
+	int iDashCount = ( !iNoAirDash && GetPlayerClass()->IsClass( TF_CLASS_SCOUT ) ) ? tf_scout_air_dash_count.GetInt() : 0;
 
 	if ( m_Shared.InCond( TF_COND_SODAPOPPER_HYPE ) )
 	{
-		if ( m_Shared.GetAirDash() < 5 )
-			return true;
-		else
- 			return false;
+		iDashCount += 4;
 	}
 
-	int iDashCount = tf_scout_air_dash_count.GetInt();
 	CALL_ATTRIB_HOOK_INT( iDashCount, air_dash_count );
 	if ( m_Shared.GetAirDash() >= iDashCount ) 
-		return false;
-
-	int iNoAirDash = 0;
-	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
-	if ( 1 == iNoAirDash )
 		return false;
 
 	return true;
@@ -12734,13 +12733,15 @@ int CTFPlayerShared::GetSequenceForDeath( CBaseAnimating* pRagdoll, bool bBurnin
 {
 	if ( !pRagdoll )
 		return -1;
-
+	
+#ifdef VALVE_PURE
 	if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
 	{
 		if ( m_pOuter && ( m_pOuter->GetTeamNumber() == TF_TEAM_PVE_INVADERS ) )
 			return -1;
 	}
-
+#endif
+	
 	int iDeathSeq = -1;
 // 	if ( bBurning )
 // 	{

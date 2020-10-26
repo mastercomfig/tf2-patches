@@ -2844,7 +2844,7 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 	bool useInterpolation = Q_atoi( QUICKGETCVARVALUE("cl_interpolate") ) != 0;
 	if ( useInterpolation )
 	{
-		float flLerpRatio = Q_atof( QUICKGETCVARVALUE("cl_interp_ratio") );
+		float flLerpRatio = (int) Q_atof( QUICKGETCVARVALUE("cl_interp_ratio") );
 		if ( flLerpRatio < 1.0f )
 			flLerpRatio = 1.0f;
 

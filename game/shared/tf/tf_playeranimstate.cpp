@@ -505,7 +505,7 @@ void CTFPlayerAnimState::CheckPasstimeThrowAnimation()
 		return;
 	}
 
-	CPasstimeGun* pGun = dynamic_cast<CPasstimeGun*>(pPlayer->GetEntityForLoadoutSlot(LOADOUT_POSITION_UTILITY));
+	CPasstimeGun* pGun = static_cast<CPasstimeGun*>(pWeapon);
 
 	if ( pGun->GetCurrentCharge() > 0 ) 
 	{

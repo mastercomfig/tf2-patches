@@ -396,14 +396,12 @@ void CNetChan::Shutdown(const char *pReason)
 	}
 
 	// free new messages
+
 	int numtypes = m_NetMessages.Count();
-	for( int i = 0; i < numtypes; i++ )
+	for (int i = 0; i < numtypes; i++)
 	{
-		if (m_NetMessages[i])
-		{
-			m_NetMessages[i]->SetNetChannel(NULL);
-		}
-		m_NetMessages.Remove( i );
+		Assert(m_NetMessages[i]);
+		delete m_NetMessages[i];
 	}
 
 	m_NetMessages.Purge();
@@ -771,7 +769,7 @@ bool CNetChan::CanPacket () const
 		return false;
 	}
 
-	return m_fClearTime < net_time;
+	return m_fClearTime - net_time < 0.001;
 }
 
 bool CNetChan::IsPlayback( void ) const
@@ -1835,15 +1833,22 @@ int CNetChan::SendDatagram(bf_write *datagram)
 	FlowNewPacket( FLOW_OUTGOING, m_nOutSequenceNr, m_nInSequenceNr, m_nChokedPackets, 0, nTotalSize );
 
 	FlowUpdate( FLOW_OUTGOING, nTotalSize );
-	
+
+	// UNDONE(mastercoms): clear time should be in wall time
+#if 0
 	if ( m_fClearTime < net_time )
 	{
 		m_fClearTime = net_time;
 	}
+#endif
 
 	// calculate net_time when channel will be ready for next packet (throttling)
-	// TODO:  This doesn't exactly match size sent when packet is a "split" packet (actual bytes sent is higher, etc.)
-	double fAddTime = (float)nTotalSize / (float)m_Rate;
+	const std::size_t nMaxRoutableSize = GetMaxRoutablePayloadSize();
+	const std::size_t nSplitPacketSize = sizeof(SPLITPACKET);
+	const std::size_t nPacketSize = (std::size_t)nTotalSize;
+	const std::size_t nSplitPackets = nPacketSize > nMaxRoutableSize ? nPacketSize / (nMaxRoutableSize - nSplitPacketSize) : 0;
+
+    double fAddTime = ((double)nTotalSize + (double)nSplitPacketSize * (double)nSplitPackets) / m_Rate;
 
 	m_fClearTime += fAddTime;
 

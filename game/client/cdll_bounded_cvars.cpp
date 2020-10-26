@@ -77,11 +77,11 @@ public:
 		  static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
 		  if ( pMin && pMax && pMin->GetFloat() != -1 )
 		  {
-			  return clamp( GetBaseFloatValue(), pMin->GetFloat(), pMax->GetFloat() );
+			  return (int) clamp( GetBaseFloatValue(), pMin->GetFloat(), pMax->GetFloat() );
 		  }
 		  else
 		  {
-			  return GetBaseFloatValue();
+			  return (int) GetBaseFloatValue();
 		  }
 	  }
 };
@@ -96,6 +96,6 @@ float GetClientInterpAmount()
 	{
 		return 0.03f;
 	}
-	return cl_interp_ratio->GetFloat() * pUpdateInterval->GetFloat();;
+	return cl_interp_ratio->GetInt() * pUpdateInterval->GetFloat();
 }
 

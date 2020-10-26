@@ -11,9 +11,7 @@ assignees:
 <!-- Number of the issue where this idea was proposed -->
 
 ### Changes
-<!--
-A clear and concise description of the changes
--->
+<!-- A clear and concise description of the changes -->
 
 ### Checklist
 <!-- You do not have to answer "yes" to all of these to open a pull request -->

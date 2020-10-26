@@ -15,7 +15,7 @@
 #include "tier0/vprof_telemetry.h"
 
 // VProf is enabled by default in all configurations -except- Retail.
-#if defined( _CERT )
+#if !defined(VALVE_PURE) || !defined( _CERT )
 #define VPROF_ENABLED
 #endif
 

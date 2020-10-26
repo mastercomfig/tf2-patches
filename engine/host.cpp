@@ -466,7 +466,7 @@ void OnChangeThreadAffinity( IConVar *var, const char *pOldValue, float flOldVal
 	}
 }
 
-ConVar threadpool_affinity( "threadpool_affinity", "1", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
+ConVar threadpool_affinity( "threadpool_affinity", ( IsX360() ) ? "1" : "0", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
 
 #if 0
 extern ConVar threadpool_reserve;
@@ -591,7 +591,7 @@ ConVar	host_speeds( "host_speeds","0", 0, "Show general system running times." )
 ConVar	host_flush_threshold( "host_flush_threshold", "20", 0, "Memory threshold below which the host should flush caches between server instances" );
 
 void HostTimerSpinMsChangedCallback( IConVar *var, const char *pOldString, float flOldValue );
-ConVar host_timer_spin_ms( "host_timer_spin_ms", "2", FCVAR_NONE, "Use CPU busy-loop for improved timer precision (dedicated only)", HostTimerSpinMsChangedCallback );
+ConVar host_timer_spin_ms( "host_timer_spin_ms", IsWindows() ? "1.5" : "0", FCVAR_NONE, "Use CPU busy-loop for improved timer precision (dedicated only)", HostTimerSpinMsChangedCallback );
 
 void HostTimerSpinMsChangedCallback( IConVar *var, const char *pOldString, float flOldValue )
 {
@@ -4165,6 +4165,10 @@ void Host_Init( bool bDedicated )
 	{
 		// stop the various windows error message boxes from showing up (used by the auto-builder so it doesn't block on error) 
 		Sys_NoCrashDialog();
+	}
+	else
+	{
+	    Sys_FixAlignment();
 	}
 
 	TRACEINIT( NET_Init( bDedicated ), NET_Shutdown() );     

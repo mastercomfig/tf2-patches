@@ -78,7 +78,7 @@ void RestoreMaterialSystemObjects( int nChangeFlags );
 extern ConVar mat_colorcorrection;
 extern ConVar sv_allow_color_correction;
 
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 // Static pointers to renderable textures
 static CTextureReference g_PowerOfTwoFBTexture;
@@ -590,9 +590,7 @@ static void OverrideMaterialSystemConfigFromCommandLine( MaterialSystem_Config_t
 	}
 
 	// Check for windowed mode command line override
-	// HACK(mastercoms): force windowed for now because fullscreen is busted
-	if ( !CommandLine()->FindParm("-dev") ||
-		CommandLine()->FindParm( "-sw" ) ||
+	if ( CommandLine()->FindParm( "-sw" ) ||
 		CommandLine()->FindParm( "-startwindowed" ) ||
 		CommandLine()->FindParm( "-windowed" ) ||
 		CommandLine()->FindParm( "-window" ) )
@@ -2113,7 +2111,7 @@ void WorldStaticMeshCreate( void )
 //			|| SurfaceHasDispInfo( surfID ) )
 		if( SurfaceHasDispInfo( surfID ) )
 		{
-			MSurf_VertBufferIndex( surfID ) = INT_MAX;
+			MSurf_VertBufferIndex(surfID) = 0xFFFF;
 			continue;
 		}
 
@@ -2176,7 +2174,6 @@ void WorldStaticMeshCreate( void )
 		// NOTE: Index count is zero because this will be a static vertex buffer!!!
 		CMeshBuilder meshBuilder;
 		meshBuilder.Begin( g_Meshes[i].pMesh, MATERIAL_TRIANGLES, g_Meshes[i].vertCount, 0 );
-		Msg("Start world mesh draw: %d\n", g_Meshes[i].vertCount);
 		for ( int j = 0; j < g_WorldStaticMeshes.Count(); j++ )
 		{
 			int meshId = sortIndex[j];

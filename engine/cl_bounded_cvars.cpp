@@ -72,7 +72,7 @@ public:
 	CBoundedCvar_CmdInterval() :
 	  ConVar_ServerBounded( 
 		  "cl_cmdinterval", 
-		  "0.015", 
+		  "0.015",
 		  FCVAR_ARCHIVE | FCVAR_USERINFO, 
 		  "Time between command packets sent to server", true, MIN_CMD_INTERVAL, true, MAX_CMD_INTERVAL )
 	{

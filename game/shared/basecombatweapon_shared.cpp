@@ -2301,17 +2301,16 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 
 	// To make the firing framerate independent, we may have to fire more than one bullet here on low-framerate systems, 
 	// especially if the weapon we're firing has a really fast rate of fire.
-	info.m_iShots = 0;
 	float fireRate = GetFireRate();
-	int32 fireTimes = fireRate > 0.0f ? truncf((gpGlobals->curtime - m_flNextPrimaryAttack) / fireRate) + 1 : 1;
+	int32 fireTimes = fireRate > 0.0f ? (int)((gpGlobals->curtime - m_flNextPrimaryAttack) / fireRate) + 1 : 1;
 
-	for (int32 times = 0; times < fireTimes; ++times)
+	for (info.m_iShots = 1; info.m_iShots <= fireTimes; info.m_iShots++)
 	{
 		// MUST call sound before removing a round from the clip of a CMachineGun
 		WeaponSound(SINGLE, m_flNextPrimaryAttack);
-		m_flNextPrimaryAttack = m_flNextPrimaryAttack + fireRate;
-		info.m_iShots++;
 	}
+
+	m_flNextPrimaryAttack += info.m_iShots * fireRate;
 
 	// Make sure we don't fire more than the amount in the clip
 	if ( UsesClipsForAmmo1() )

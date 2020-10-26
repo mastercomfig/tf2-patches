@@ -2459,13 +2459,6 @@ bool CTexture::AsyncReadTextureFromFile( IVTFTexture* pVTFTexture, unsigned int 
 		return false;
 	}
 
-	if ( V_strstr( GetName(), "c_sniperrifle_scope" ) )
-	{
-		int i = 0;
-		i = 3;
-	}
-
-
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s - %s", __FUNCTION__, tmDynamicString( TELEMETRY_LEVEL0, pCacheFileName ) );
 	
 	// OSX hackery
@@ -3751,7 +3744,10 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 
 			// Ahh--I feel terrible about this, but we genuinely don't need anything else if we're streaming.
 			if ( bCopyFromCurrent )
+			{
+				FreeOptimalReadBuffer( 6*1024*1024 );
 				return;
+			}
 		}
 		else
 		{
@@ -3777,7 +3773,11 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 
 			// Create the shader api textures
 			if ( !AllocateShaderAPITextures() )
+			{
+				free( pResolvedFilename );
+			    FreeOptimalReadBuffer( 6*1024*1024 );
 				return;
+			}
 
 			// Restored once we successfully allocate the shader api textures, but only if we're 
 			// 
@@ -3791,7 +3791,19 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 	} 
 	else if ( bCopyFromCurrent )
 	{
-		Assert( !"We're about to crash, last chance to examine this texture." );
+		// UNDONE(mastercoms): it seems like we would have nothing to do in this case?
+		// Assert( !"We're about to crash, last chance to examine this texture." );
+		if ( HasBeenAllocated() )
+		{
+			tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s - Deallocate", __FUNCTION__ );
+
+			// This is necessary for the reload case, we may discover there
+			// are more frames of a texture animation, for example, which means
+			// we can't rely on having the same number of texture frames.
+			FreeShaderAPITextures();
+		}
+	    FreeOptimalReadBuffer( 6*1024*1024 );
+	    return;
 	}
 
 
@@ -3815,7 +3827,8 @@ void CTexture::ReconstructTexture( bool bCopyFromCurrent )
 			pRenderContext->PopRenderTargetAndViewport();										// Pop back to previous target
 		}
 		// no upload
-		return;
+	    FreeOptimalReadBuffer( 6*1024*1024 );
+	    return;
 	}
 
 	// Blit down the texture faces, frames, and mips into the board memory
@@ -4190,12 +4203,6 @@ bool SLoadTextureBitsFromFile( IVTFTexture **ppOutVtfTexture, FileHandle_t hFile
 	// NOTE! NOTE! NOTE! or by the streaming texture code!
 	Assert( ppOutVtfTexture != NULL && *ppOutVtfTexture != NULL );
 
-	if ( V_strstr( pName, "c_rocketlauncher/c_rocketlauncher" ) )
-	{
-		int i = 0;
-		i = 3;
-	}
-
 	CUtlBuffer buf;
 
 	{
@@ -4216,6 +4223,7 @@ bool SLoadTextureBitsFromFile( IVTFTexture **ppOutVtfTexture, FileHandle_t hFile
 	if ( !( *ppOutVtfTexture )->Unserialize( buf, true ) )
 	{
 		Warning( "Error reading texture header \"%s\"\n", pCacheFileName );
+		FreeOptimalReadBuffer( 6*1024*1024 );
 		return false;
 	}
 

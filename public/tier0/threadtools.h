@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <mutex>
 #include <condition_variable>
+#include <list>
+
 
 
 #include "tier0/platform.h"
@@ -658,14 +660,21 @@ public:
 	//------------------------------------------------------
 	// Enable tracing to track deadlock problems
 	//------------------------------------------------------
-	void SetTrace( bool );
+	void SetTrace(bool) {};
+
+	// Disallow copying
+	CThreadMutex( const CThreadMutex & ) = delete;
+	CThreadMutex &operator=( const CThreadMutex & ) = delete;
 
 private:
-	// Disallow copying
-	CThreadMutex( const CThreadMutex & );
-	CThreadMutex &operator=( const CThreadMutex & );
-
-	std::mutex m_Mutex;
+	std::recursive_mutex m_Mutex;
+#ifdef _DEBUG
+#ifdef _WIN32
+	std::atomic<unsigned long> m_ownerID{0};
+#else
+	std::atomic<uint> m_ownerID{0};
+#endif
+#endif
 };
 
 //-----------------------------------------------------------------------------
@@ -972,14 +981,14 @@ public:
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
 	bool m_bSignaled = false;
+	bool m_bAutoReset = false;
+	std::mutex m_Mutex;
 
 protected:
 	CThreadSyncObject();
 	void AssertUseable();
 
-	std::mutex m_Mutex;
 	std::condition_variable m_Condition;
-	bool m_bAutoReset = false;
 	bool m_bInitialized = false;
 
 private:
@@ -987,6 +996,48 @@ private:
 	CThreadSyncObject &operator=( const CThreadSyncObject & ) = delete;
 };
 
+
+template <class T>
+class CThreadSafeQueue
+{
+public:
+	CThreadSafeQueue()
+	{}
+
+	~CThreadSafeQueue()
+	{}
+
+	void PushItem(T& t)
+	{
+		std::scoped_lock<std::mutex> lock(m);
+		q.push_back(t);
+	}
+
+	bool PopItem(T& pResult)
+	{
+		std::scoped_lock<std::mutex> lock(m);
+		if (q.empty())
+			return false;
+		pResult = q.front();
+		q.pop_front();
+		return true;
+	}
+
+	void RemoveItem(T& pItem)
+	{
+		std::scoped_lock<std::mutex> lock(m);
+		q.remove(pItem);
+	}
+
+	size_t Size()
+	{
+		return q.size();
+	}
+
+private:
+	std::list<T> q;
+	std::mutex m;
+};
 
 class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
 {
@@ -1009,9 +1060,15 @@ public:
 
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
+	void AddListener(std::shared_ptr<std::condition_variable_any>& condition);
+	void AddListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
+	void RemoveListener(std::shared_ptr<std::condition_variable_any>& condition);
+	void RemoveListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
+
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
 	CThreadEvent &operator=( const CThreadEvent & ) = delete;
+	CThreadSafeQueue<std::shared_ptr<std::condition_variable_any>> m_listeningConditions;
 };
 
 // Hard-wired manual event for use in array declarations
@@ -1024,86 +1081,38 @@ public:
 	}
 };
 
-inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE)
+template <class... _Mutexes>
+class CExtendedScopedLock
 {
-    unsigned StartTime = 0;
-    if (timeout != 0 && timeout != TT_INFINITE)
-    {
-        StartTime = Plat_MSTime();
-    }
-	if (nEvents == 1)
-	{
-		if (pEvents[0]->Wait(timeout))
-			return 0;
-		return TW_TIMEOUT;
+public:
+	explicit CExtendedScopedLock(_Mutexes&... _Mtxes) : m_Mutexes(_Mtxes...) {
+		std::lock(_Mtxes...);
 	}
-	int iLoops = 0;
-    do
+
+	explicit CExtendedScopedLock(std::adopt_lock_t, _Mutexes&... _Mtxes) : m_Mutexes(_Mtxes...) {}
+
+	~CExtendedScopedLock() noexcept {
+		this->unlock();
+	}
+
+	CExtendedScopedLock(const CExtendedScopedLock&) = delete;
+	CExtendedScopedLock& operator=(const CExtendedScopedLock&) = delete;
+
+	void lock()
+	{
+		std::apply([](_Mutexes&... _Mtxes) { std::lock(_Mtxes...); }, m_Mutexes);
+	}
+
+    void unlock()
     {
-        int WaitStatus;
-        bool bWaitedAll = true;
-        for (int i = 0; i < nEvents; i++)
-        {
-            if (bWaitAll)
-            {
-                if (!pEvents[i]->m_bSignaled)
-                {
-                    bWaitedAll = false;
-					break;
-                }
-            }
-            else
-            {
-                if (pEvents[i]->m_bSignaled)
-                {
-                    WaitStatus = i;
-                    return WaitStatus;
-                }
-            }
-        }
-        if (bWaitAll && bWaitedAll)
-        {
-            return 0;
-        }
-        if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
-        {
-            return TW_TIMEOUT;
-        }
-		++iLoops;
-		if (iLoops >= 20000)
-		{
-			// Wow! It's been quite a long while. Our events are probably idle.
-			ThreadSleepEx(2 * (iLoops / 20000) );
-			continue;
-		}
-		if (iLoops >= 5000)
-		{
-			// It's been quite a while. Start sleeping often.
-			ThreadSleepEx(1);
-			continue;
-		}
-		if (iLoops >= 1000)
-		{
-			if (iLoops % 100 == 0)
-			{
-				// If we've been waiting for quite a bit, sleep regularly.
-				ThreadSleepEx(1);
-				continue;
-			}
-		}
-		else
-		{
-			if (iLoops % 500 == 0)
-			{
-				// If we've been waiting for quite a bit, sleep regularly.
-				ThreadSleepEx(1);
-				continue;
-			}
-		}
-		// Never spin lock. That sort of tight timing is so rare that it's not worth it.
-		ThreadPause();
-    } while (true);
-}
+		std::apply([](_Mutexes&... _Mtxes) { (..., (void)_Mtxes.unlock()); }, m_Mutexes);
+    }
+
+private:
+	std::tuple<_Mutexes&...> m_Mutexes;
+};
+
+PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
 
 //-----------------------------------------------------------------------------
 //
@@ -1129,11 +1138,7 @@ public:
 private:
 	void WaitForRead();
 
-#ifdef WIN32
-	CThreadFastMutex m_mutex;
-#else
-	CThreadMutex m_mutex;	
-#endif
+	CThreadMutex m_mutex;
 	CThreadEvent m_CanWrite;
 	CThreadEvent m_CanRead;
 
@@ -1540,34 +1545,52 @@ public:
 
 inline bool CThreadMutex::TryLock()
 {
+#ifdef _DEBUG
+	if (!AssertOwnedByCurrentThread())
+	{
+		if (m_Mutex.try_lock())
+		{
+			m_ownerID = ThreadGetCurrentId();
+			return true;
+		}
+	}
+	return false;
+#else
 	return m_Mutex.try_lock();
+#endif
 }
 
 //---------------------------------------------------------
 
 inline void CThreadMutex::Lock()
 {
+	Assert(!AssertOwnedByCurrentThread());
 	m_Mutex.lock();
+#ifdef _DEBUG
+	m_ownerID = ThreadGetCurrentId();
+#endif
 }
 
 //---------------------------------------------------------
 
 inline void CThreadMutex::Unlock()
 {
+	Assert(AssertOwnedByCurrentThread());
 	m_Mutex.unlock();
+#ifdef _DEBUG
+	m_ownerID = 0;
+#endif
 }
 
 //---------------------------------------------------------
 
 inline bool CThreadMutex::AssertOwnedByCurrentThread()
 {
+#ifdef _DEBUG
+	return m_ownerID == ThreadGetCurrentId();
+#else
 	return true;
-}
-
-//---------------------------------------------------------
-
-inline void CThreadMutex::SetTrace(bool fTrace)
-{
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1615,7 +1638,8 @@ inline void CThreadRWLock::UnlockRead()
 
 inline bool CThreadSpinRWLock::AssignIf( LockInfo_t &newValue, LockInfo_t &comperand )
 {
-	return m_lockInfo.compare_exchange_weak(comperand, newValue);
+	LockInfo_t expected = comperand;
+	return m_lockInfo.compare_exchange_weak(expected, newValue);
 }
 
 inline bool CThreadSpinRWLock::TryLockForWrite( const uint32 threadId )

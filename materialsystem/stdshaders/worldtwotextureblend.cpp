@@ -18,7 +18,7 @@
 #include "tier0/memdbgon.h"
 
 extern ConVar r_flashlight_version2;
-static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_NONE);
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 0, true, 0, NULL);
 
 // FIXME: Need to make a dx9 version so that "CENTROID" works.
 BEGIN_VS_SHADER( WorldTwoTextureBlend, 

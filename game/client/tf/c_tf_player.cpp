@@ -4630,10 +4630,13 @@ void C_TFPlayer::SetDormant( bool bDormant )
 		}
 	}
 
+	// UNDONE(mastercoms): this isn't used and it's pretty expensive, removing
+#if 0
 	if ( bDormant == false )
 	{
 		m_rtSpottedInPVSTime = steamapicontext && steamapicontext->SteamUtils() ? steamapicontext->SteamUtils()->GetServerRealTime() : CRTime::RTime32TimeCur();
 	}
+#endif
 
 	// Deliberately skip base combat weapon
 	C_BaseEntity::SetDormant( bDormant );
@@ -5185,6 +5188,8 @@ void C_TFPlayer::OnDataChanged( DataUpdateType_t updateType )
 		m_bUpdateObjectHudState = false;
 	}
 
+	// UNDONE(mastercoms): this doesn't seem to be used and its expensive
+#if 0
 	if ( m_iOldTeam != GetTeamNumber() )
 	{
 		if ( GetTeamNumber() == TEAM_SPECTATOR )
@@ -5196,6 +5201,7 @@ void C_TFPlayer::OnDataChanged( DataUpdateType_t updateType )
 			m_rtJoinedNormalTeam = steamapicontext && steamapicontext->SteamUtils() ? steamapicontext->SteamUtils()->GetServerRealTime() : CRTime::RTime32TimeCur();
 		}
 	}
+#endif
 }
 
 
@@ -7520,7 +7526,19 @@ void C_TFPlayer::UpdateIDTarget()
 	}
 	else
 	{
-		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
+		// Add DEBRIS when a medic has revive (for tracing against revive markers)
+		int iReviveMedic = 0;
+		CALL_ATTRIB_HOOK_INT(iReviveMedic, revive);
+		if (TFGameRules() && TFGameRules()->GameModeUsesUpgrades() && pLocalPlayer->IsPlayerClass(TF_CLASS_MEDIC))
+		{
+			iReviveMedic = 1;
+		}
+
+		int nMask = MASK_SOLID;
+		if (iReviveMedic == 1)
+		{
+			nMask |= CONTENTS_DEBRIS;
+		}
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
 
@@ -9993,6 +10011,18 @@ void C_TFPlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, f
 	HandleTaunting();
 	BaseClass::CalcView( eyeOrigin, eyeAngles, zNear, zFar, fov );
 }
+
+static void cc_tf_player_helpme(const CCommand& args)
+{
+	engine->ServerCmd("voicemenu 0 0");
+}
+
+static void cc_tf_player_helpme_release(const CCommand& args)
+{
+}
+
+static ConCommand helpme("+helpme", cc_tf_player_helpme);
+static ConCommand helpme_release("-helpme", cc_tf_player_helpme_release);
 
 void SelectDisguise( int iClass, int iTeam );
 

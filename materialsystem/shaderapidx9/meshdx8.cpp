@@ -39,7 +39,15 @@
 #include "tier1/strtools.h"
 #include "convar.h"
 #include "shaderdevicedx8.h"
+
+//-----------------------------------------------------------------------------
+// Uncomment this to try threaded device submits
+//-----------------------------------------------------------------------------
+//#define THREADED_DEVICE_SUBMIT 1
+
+#ifdef THREADED_DEVICE_SUBMIT
 #include "vstdlib/jobthread.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -48,11 +56,6 @@
 // Uncomment this to test buffered state
 //-----------------------------------------------------------------------------
 //#define DEBUG_BUFFERED_MESHES 1
-
-//-----------------------------------------------------------------------------
-// Uncomment this to try threaded device submits
-//-----------------------------------------------------------------------------
-//#define THREADED_DEVICE_SUBMIT 1
 
 #define MAX_DX8_STREAMS 16
 
@@ -3478,7 +3481,7 @@ void CMeshDX8::RenderPass()
 
 			// (For point/instanced-quad lists, we don't actually fill in indices, but we treat it as
 			// though there are indices for the list up until here).
-#if 1
+#ifndef THREADED_DEVICE_SUBMIT
 			Dx9Device()->DrawPrimitive(m_Mode, s_FirstVertex, pPrim->m_NumIndices);
 #else
 			// FIXME(mastercoms): not working. something not queued properly?
@@ -3499,7 +3502,7 @@ void CMeshDX8::RenderPass()
 				VPROF_INCREMENT_GROUP_COUNTER( "render/DrawIndexedPrimitive", COUNTER_GROUP_TELEMETRY, 1 );
 				VPROF_INCREMENT_GROUP_COUNTER( "render/numPrimitives", COUNTER_GROUP_TELEMETRY, 1 );
 
-#if 1
+#ifndef THREADED_DEVICE_SUBMIT
 				Dx9Device()->DrawIndexedPrimitive( 
 					m_Mode,			// Member of the D3DPRIMITIVETYPE enumerated type, describing the type of primitive to render. D3DPT_POINTLIST is not supported with this method.
 
@@ -5525,6 +5528,14 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 		pMesh = pBaseMesh;
 	}
 
+	// Static mesh? Max you can use is 65535
+	if (!IsDynamicMesh(pMesh))
+	{
+		*pMaxVerts = 65535;
+		*pMaxIndices = 65535;
+		return;
+	}
+
 	CVertexBuffer *pVertexBuffer = pBaseMesh->GetVertexBuffer();
 	CIndexBuffer *pIndexBuffer = pBaseMesh->GetIndexBuffer();
 
@@ -5538,6 +5549,10 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 	if ( !bMaxUntilFlush )
 	{
 		*pMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / pVertexBuffer->VertexSize();
+		if (*pMaxVerts > 65535)
+		{
+			*pMaxVerts = 65535;
+		}
 		*pMaxIndices = pIndexBuffer ? pIndexBuffer->IndexCount() : 0;
 		return;
 	}
@@ -5547,6 +5562,10 @@ void CMeshMgr::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush, int *pMaxVerts
 	if ( *pMaxVerts == 0 )
 	{
 		*pMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / pVertexBuffer->VertexSize();
+	}
+	if (*pMaxVerts > 65535)
+	{
+		*pMaxVerts = 65535;
 	}
 	if ( *pMaxIndices == 0 )
 	{
@@ -5571,7 +5590,7 @@ int CMeshMgr::GetMaxVerticesToRender( IMaterial *pMaterial )
 	}
 
 	int nMaxVerts = ShaderAPI()->GetCurrentDynamicVBSize() / nVertexSize;
-	return nMaxVerts;
+	return MIN(nMaxVerts, 65535);
 }
 
 int CMeshMgr::GetMaxIndicesToRender( )

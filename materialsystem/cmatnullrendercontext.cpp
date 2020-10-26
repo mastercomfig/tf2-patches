@@ -637,6 +637,11 @@ public:
 		AssertMsg( 0, "CMatNullRenderContext only provides base features, not a stub (right now)" );
 	}
 
+	void EvictManagedResources()
+	{
+		AssertMsg(0, "EvictManagedResources only provides base features, not a stub (right now)");
+	}
+
 	void GetLightmapDimensions(int *,int *)
 	{
 		AssertMsg( 0, "CMatNullRenderContext only provides base features, not a stub (right now)" );

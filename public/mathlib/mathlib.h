@@ -20,11 +20,14 @@
 #if defined(__i386__) || defined(_M_IX86)
 // For MMX intrinsics
 #include <xmmintrin.h>
-#ifndef VectorLoad
+#endif
+
+#define USE_DIRECTX_MATH
+
+#ifdef USE_DIRECTX_MATH
 #include "../thirdparty/DirectXMath-apr2020/Inc/DirectXMath.h"
 #define VectorLoad( Ptr ) DirectX::XMLoadFloat4( (const DirectX::XMFLOAT4*)(Ptr) )
 #define VectorStore( Vec, Ptr )	DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)(Ptr), Vec )
-#endif
 #endif
 
 // XXX remove me
@@ -445,8 +448,10 @@ int Q_log2(int val);
 // Math routines done in optimized assembly math package routines
 void inline SinCos( float radians, float *sine, float *cosine )
 {
-#if 1 || defined(_X360)
+#if defined(USE_DIRECTX_MATH)
     DirectX::XMScalarSinCosEst( sine, cosine, radians );
+#elif defined(_X360)
+	XMScalarSinCos(sine, cosine, radians);
 #elif defined( PLATFORM_WINDOWS_PC32 )
 	_asm
 	{
@@ -459,15 +464,15 @@ void inline SinCos( float radians, float *sine, float *cosine )
 		fstp DWORD PTR [edx]
 		fstp DWORD PTR [eax]
 	}
-#elif defined( PLATFORM_WINDOWS_PC64 )
-	*sine = sin( radians );
-	*cosine = cos( radians );
 #elif defined( POSIX )
 	double __cosr, __sinr;
 	__asm ("fsincos" : "=t" (__cosr), "=u" (__sinr) : "0" (radians));
 
   	*sine = __sinr;
   	*cosine = __cosr;
+#else
+	*sine = sinf(radians);
+	*cosine = cosf(radians);
 #endif
 }
 

@@ -749,7 +749,7 @@ void CTFWeaponBaseMelee::Smack( void )
 #ifdef GAME_DLL
 		for( int i=0; i<m_potentialVictimVector.Count(); ++i )
 		{
-			if ( m_potentialVictimVector[i] != NULL && m_potentialVictimVector[i]->IsAlive() )
+			if ( m_potentialVictimVector[i] == NULL || !m_potentialVictimVector[i]->IsAlive() )
 			{
 				bIsCleanMiss = false;
 				break;

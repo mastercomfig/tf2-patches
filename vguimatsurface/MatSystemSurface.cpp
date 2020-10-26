@@ -1083,89 +1083,108 @@ void CMatSystemSurface::DrawQuad( const vgui::Vertex_t &ul, const vgui::Vertex_t
 //-----------------------------------------------------------------------------
 // Purpose: Draws an array of quads
 //-----------------------------------------------------------------------------
-void CMatSystemSurface::DrawQuadArray( int quadCount, vgui::Vertex_t *pVerts, unsigned char *pColor, bool bShouldClip )
+void CMatSystemSurface::DrawQuadArray(int quadCount, Vertex_t* pVerts, unsigned char* pColor, bool bShouldClip)
 {
-	MAT_FUNC;
+	Assert(!m_bIn3DPaintMode);
 
-	Assert( !m_bIn3DPaintMode );
-
-	if ( !m_pMesh )
+	if (!m_pMesh)
 		return;
-
-	meshBuilder.Begin( m_pMesh, MATERIAL_QUADS, quadCount );
 
 	vgui::Vertex_t ulc;
 	vgui::Vertex_t lrc;
-	vgui::Vertex_t *pulc;
-	vgui::Vertex_t *plrc;
+	vgui::Vertex_t* pulc;
+	vgui::Vertex_t* plrc;
 
-	if ( bShouldClip )
+	int nMaxVertices, nMaxIndices;
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+	pRenderContext->GetMaxToRender(m_pMesh, false, &nMaxVertices, &nMaxIndices);
+	if (!nMaxVertices || !nMaxIndices)
+		return; // probably in alt-tab
+
+	int nMaxQuads = nMaxVertices / 4;
+	nMaxQuads = MIN(nMaxQuads, nMaxIndices / 6);
+
+	int nFirstQuad = 0;
+	int nQuadsRemaining = quadCount;
+
+	while (nQuadsRemaining > 0)
 	{
-		for ( int i = 0; i < quadCount; ++i )
-		{
-			PREFETCH360( &pVerts[ 2 * ( i + 1 ) ], 0 );
+		quadCount = MIN(nQuadsRemaining, nMaxQuads);
 
-			if ( !ClipRect( pVerts[2*i], pVerts[2*i + 1], &ulc, &lrc ) )
+		meshBuilder.Begin(m_pMesh, MATERIAL_QUADS, quadCount);
+		if (bShouldClip)
+		{
+			for (int q = 0; q < quadCount; ++q)
 			{
-				continue;	
+				int i = q + nFirstQuad;
+				PREFETCH360(&pVerts[2 * (i + 1)], 0);
+
+				if (!ClipRect(pVerts[2 * i], pVerts[2 * i + 1], &ulc, &lrc))
+				{
+					continue;
+				}
+				pulc = &ulc;
+				plrc = &lrc;
+
+				meshBuilder.Position3f(pulc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(plrc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(plrc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(pulc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 			}
-			pulc = &ulc;
-			plrc = &lrc;
-
-			meshBuilder.Position3f( pulc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( plrc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( plrc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( pulc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 		}
-	}
-	else
-	{
-		for ( int i = 0; i < quadCount; ++i )
+		else
 		{
-			PREFETCH360( &pVerts[ 2 * ( i + 1 ) ], 0 );
+			for (int q = 0; q < quadCount; ++q)
+			{
+				int i = q + nFirstQuad;
+				PREFETCH360(&pVerts[2 * (i + 1)], 0);
 
-			pulc = &pVerts[2*i];
-			plrc = &pVerts[2*i + 1];
+				pulc = &pVerts[2 * i];
+				plrc = &pVerts[2 * i + 1];
 
-			meshBuilder.Position3f( pulc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(pulc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( plrc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(plrc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( plrc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(plrc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( pulc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(pulc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+			}
 		}
-	}
 
-	meshBuilder.End();
-	m_pMesh->Draw();
+		meshBuilder.End();
+		m_pMesh->Draw();
+
+		nFirstQuad += quadCount;
+		nQuadsRemaining -= quadCount;
+	}
 }
 
 

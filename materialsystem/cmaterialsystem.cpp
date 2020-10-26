@@ -38,7 +38,7 @@
 #endif
 
 // this is hooked into the engines convar
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 ConVar mat_forcemanagedtextureintohardware( "mat_forcemanagedtextureintohardware", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 
@@ -1756,7 +1756,7 @@ static ConVar mat_showmiplevels(	"mat_showmiplevels", "0", FCVAR_CHEAT, "color-c
 
 static ConVar mat_specular(			"mat_specular", "1", FCVAR_ALLOWED_IN_COMPETITIVE, "Enable/Disable specularity for perf testing.  Will cause a material reload upon change." );
 static ConVar mat_bumpmap(			"mat_bumpmap", "1", FCVAR_ALLOWED_IN_COMPETITIVE );
-static ConVar mat_phong(			"mat_phong", "1" );
+static ConVar mat_phong(			"mat_phong", "1", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 1, true, 1, NULL);
 static ConVar mat_parallaxmap(		"mat_parallaxmap", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_reducefillrate(	"mat_reducefillrate", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
@@ -1881,7 +1881,8 @@ void CMaterialSystem::ReadConfigFromConVars( MaterialSystem_Config_t *pConfig )
 	pConfig->m_bSupportFlashlight = mat_supportflashlight.GetInt() != 0;
 	pConfig->m_bShadowDepthTexture = r_flashlightdepthtexture.GetBool();
 
-	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, HardwareConfig() && HardwareConfig()->GetHDREnabled() );
+	static ConVarRef mat_hdr_level("mat_hdr_level");
+	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, mat_hdr_level.GetInt() > 1);
 
 	// Render-to-texture shadows are disabled for dxlevel 70 because of material issues
 	if ( pConfig->dxSupportLevel < 80 )
@@ -2401,7 +2402,7 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 		if( mat_debugalttab.GetBool() )
 		{
 			Warning( "mat_debugalttab: new m_nForceAnisotropicLevel: %d, old m_nForceAnisotropicLevel: %d, setting bResetAnisotropy and bResetTextureFilter\n",
-				( int )config.ForceTrilinear(), ( int )g_config.ForceTrilinear() );
+				( int )config.m_nForceAnisotropicLevel, ( int )g_config.m_nForceAnisotropicLevel);
 		}
 		bResetAnisotropy = true;
 		bResetTextureFilter = true;
@@ -2562,19 +2563,20 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 
 	if ( bVideoModeChange )
 	{
-		if ( mat_debugalttab.GetBool() )
+		if (mat_debugalttab.GetBool())
 		{
-			Warning( "mat_debugalttab: ChangeVideoMode\n" );
+			Warning("mat_debugalttab: ChangeVideoMode\n");
 		}
 		ShaderDeviceInfo_t info;
-		ConvertModeStruct( &info, config );
-		g_pShaderAPI->ChangeVideoMode( info );
+		ConvertModeStruct(&info, config);
+		g_pShaderAPI->ChangeVideoMode(info);
 
 #if defined( USE_SDL )
 		uint width = info.m_DisplayMode.m_nWidth;
 		uint height = info.m_DisplayMode.m_nHeight;
-		g_pLauncherMgr->RenderedSize( width, height, true ); // true = set
+		g_pLauncherMgr->RenderedSize(width, height, true); // true = set
 #endif
+
 	}
 
 	if ( bForceAltTab )
@@ -3082,7 +3084,9 @@ void CMaterialSystem::ResetTempHWMemory( bool bExitingLevel )
 //-----------------------------------------------------------------------------
 void CMaterialSystem::CacheUsedMaterials( )
 {
-	g_pShaderAPI->EvictManagedResources();
+	IMatRenderContextInternal* pRenderContext = GetRenderContextInternal();
+	pRenderContext->EvictManagedResources();
+
 #ifdef OSX
 	size_t count = 0;
 #endif
@@ -3473,10 +3477,10 @@ void CMaterialSystem::BeginFrame( float frameTime )
 	VPROF_BUDGET( "CMaterialSystem::BeginFrame", VPROF_BUDGETGROUP_SWAP_BUFFERS );
 	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
 
-	IMatRenderContextInternal *pRenderContext = GetRenderContextInternal();
-	if ( g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED) )
+	IMatRenderContextInternal* pRenderContext = GetRenderContextInternal();
+	if (g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED))
 	{
-		tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync" );
+		tmZoneFiltered(TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync");
 		pRenderContext->ForceHardwareSync();
 	}
 
@@ -3524,7 +3528,7 @@ void CMaterialSystem::ThreadExecuteQueuedContext( CMatQueuedRenderContext *pCont
 
 	Assert( m_bThreadHasOwnership );
 
-	m_nRenderThreadID = ThreadGetCurrentId(); 
+	m_nRenderThreadID = ThreadGetCurrentId();
 	IMatRenderContextInternal* pSavedRenderContext = m_pRenderContext.Get();
 	m_pRenderContext.Set( &m_HardwareRenderContext );
 	pContext->EndQueue( true );
@@ -3688,10 +3692,21 @@ void CMaterialSystem::EndFrame( void )
 				ThreadAcquire( true );
 			}
 
-			if ( m_pActiveAsyncJob && !m_pActiveAsyncJob->IsFinished() )
+			if ( m_pActiveAsyncJob )
 			{
-				m_pActiveAsyncJob->WaitForFinish();
-				if ( !IsPC() && g_config.ForceHWSync() )
+#if 1
+				while ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish(0);
+				}
+#else
+				if ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish();
+				}
+#endif
+				// Sync with GPU if we had a job for it, even if it finished early on CPU!
+				if (!IsPC() && g_config.ForceHWSync())
 				{
 					g_pShaderAPI->ForceHardwareSync();
 				}
@@ -3770,7 +3785,10 @@ void CMaterialSystem::EndFrame( void )
 			{
 				if ( m_pActiveAsyncJob )
 				{
-					m_pActiveAsyncJob->WaitForFinish();
+					if (!m_pActiveAsyncJob->IsFinished())
+					{
+						m_pActiveAsyncJob->WaitForFinish();
+					}
 					SafeRelease( m_pActiveAsyncJob );
 				}
 				// probably have a queued context set here, need hardware to flush the queue if the job isn't active
@@ -4855,7 +4873,10 @@ void CMaterialSystem::ThreadRelease( )
 	CJob		*pActiveAsyncJob = new CThreadRelease();
 	IThreadPool *pThreadPool = CreateMatQueueThreadPool();
 	pThreadPool->AddJob( pActiveAsyncJob );
-	pActiveAsyncJob->WaitForFinish();
+	if (!pActiveAsyncJob->IsFinished())
+	{
+		pActiveAsyncJob->WaitForFinish();
+	}
 
 	SafeRelease( pActiveAsyncJob );
 
@@ -4942,7 +4963,17 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-		m_pActiveAsyncJob->WaitForFinish();
+#if 1
+		while (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish(0);
+		}
+#else
+		if (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish();
+		}
+#endif
 		// threadsafety note: not releasing or nulling pointer.
 	}
 

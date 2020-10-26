@@ -268,6 +268,7 @@ float ModifyBossDamage( const CTakeDamageInfo &info )
 		case TF_WEAPON_GRENADELAUNCHER:
 		case TF_WEAPON_PIPEBOMBLAUNCHER:
 		case TF_WEAPON_GRENADE_DEMOMAN:
+		case TF_WEAPON_STICKBOMB:
 			return info.GetDamage() * tf_boss_alpha_dmg_mult_grenade.GetFloat();
 
 		case TF_WEAPON_ROCKETLAUNCHER:

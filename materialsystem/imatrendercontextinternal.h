@@ -62,6 +62,8 @@ public:
 	virtual void MarkRenderDataUnused( bool bBeginFrame ) = 0;
 	virtual CMatCallQueue *GetCallQueueInternal() = 0;
 
+	virtual void EvictManagedResources() = 0;
+
 	// Map and unmap a texture. The pRecipient->OnAsyncMapComplete is called when complete. 
 	virtual void AsyncMap( ITextureInternal* pTexToMap, IAsyncTextureOperationReceiver* pRecipient, void* pExtraArgs ) = 0;
 	virtual void AsyncUnmap( ITextureInternal* pTexToUnmap ) = 0;

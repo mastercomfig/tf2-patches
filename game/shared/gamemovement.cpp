@@ -3591,7 +3591,6 @@ bool CGameMovement::CheckWater( void )
 void CGameMovement::SetGroundEntity( trace_t *pm )
 {
 	CBaseEntity *newGround = pm ? pm->m_pEnt : NULL;
-
 	CBaseEntity *oldGround = player->GetGroundEntity();
 	Vector vecBaseVelocity = player->GetBaseVelocity();
 
@@ -4120,7 +4119,7 @@ void CGameMovement::FinishUnDuck( void )
 		player->ResetLatched();
 	}
 #else
-	player->ResetLatched();
+	//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 
@@ -4226,7 +4225,7 @@ void CGameMovement::FinishDuck( void )
 			player->ResetLatched();
 		}
 #else
-		player->ResetLatched();
+		//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 	}

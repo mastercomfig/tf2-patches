@@ -16,6 +16,7 @@ ipch
 *.idb
 *.sln
 *.recipe
+pythonenv*/
 
 *.lib
 *.a
@@ -69,6 +70,7 @@ config.cfg
 
 # ignore vs-generated folders
 .vs/
+.vscode/
 Retail/
 Retail_*/
 Release/

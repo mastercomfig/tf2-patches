@@ -33,8 +33,6 @@ class CStudioRender;
 extern IStudioDataCache *g_pStudioDataCache;
 extern CStudioRender *g_pStudioRenderImp;
 
-IMaterial* GetModelSpecificDecalMaterial( IMaterial* pDecalMaterial );
-
 //-----------------------------------------------------------------------------
 // Internal config structure
 //-----------------------------------------------------------------------------
@@ -281,7 +279,7 @@ private:
 	lightpos_t m_pLightPos[MAXLIGHTCOMPUTE];
 
 	CTSQueue<StudioDecalHandle_t> m_removeDecalRequests;
-	CTSQueue<StudioRenderDecalInfo_t> m_addDecalRequests;
+	CTSQueue<StudioRenderDecalInfo_t*> m_addDecalRequests;
 };
 
 

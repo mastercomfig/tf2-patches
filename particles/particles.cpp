@@ -520,7 +520,7 @@ void CParticleSystemDefinition::ParseOperators(
 		if ( !bFound )
 		{
 			if ( flist.Count() )							// don't warn if no ops of that type defined (server)
-				Warning( "Didn't find particle function %s\n", pOpName );
+				DevWarning( "Didn't find particle function %s\n", pOpName );
 		}
 	}
 }
@@ -3344,7 +3344,7 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 				pFileName = pFallbackBuf;
 			}
 		}
-		else if (ParticleFallbackMode == 1 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 && g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
+		else if ( ParticleFallbackMode == 1 || g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx90_slow.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )

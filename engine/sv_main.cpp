@@ -229,8 +229,8 @@ ConVar  sv_client_min_interp_ratio( "sv_client_min_interp_ratio", "1", FCVAR_REP
 ConVar  sv_client_max_interp_ratio( "sv_client_max_interp_ratio", "5", FCVAR_REPLICATED, 
 								   "This can be used to limit the value of cl_interp_ratio for connected clients "
 								   "(only while they are connected). If sv_client_min_interp_ratio is -1, "
-								   "then this cvar has no effect."
-								   );
+									"then this cvar has no effect.",
+									true, 2, false, 5);
 ConVar  sv_client_predict( "sv_client_predict", "-1", FCVAR_REPLICATED, 
 	"This can be used to force the value of cl_predict for connected clients "
 	"(only while they are connected).\n"
@@ -239,7 +239,7 @@ ConVar  sv_client_predict( "sv_client_predict", "-1", FCVAR_REPLICATED,
 	"    1 = force cl_predict to 1"
 	);
 
-ConVar  sv_restrict_aspect_ratio_fov( "sv_restrict_aspect_ratio_fov", "2", FCVAR_REPLICATED, 
+ConVar  sv_restrict_aspect_ratio_fov( "sv_restrict_aspect_ratio_fov", "1", FCVAR_REPLICATED, 
 									 "This can be used to limit the effective FOV of users using wide-screen\n"
 									 "resolutions with aspect ratios wider than 1.85:1 (slightly wider than 16:9).\n"
 									 "    0 = do not cap effective FOV\n"

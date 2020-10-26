@@ -130,6 +130,8 @@ public:
 	ICallQueue *							GetCallQueue();
 	CMatCallQueue *							GetCallQueueInternal() { return &m_queue; }
 
+	DEFINE_QUEUED_CALL_0(EvictManagedResources, IShaderAPI, g_pShaderAPI);
+
 	bool									OnDrawMesh( IMesh *pMesh, int firstIndex, int numIndices );
 	bool									OnDrawMesh( IMesh *pMesh, CPrimList *pLists, int nLists );
 	bool									OnSetFlexMesh( IMesh *pStaticMesh, IMesh *pMesh, int nVertexOffsetInBytes );

@@ -98,7 +98,7 @@ static ConVar mat_supports_d3d9ex( "mat_supports_d3d9ex", "0", FCVAR_HIDDEN );
 static ConVar mat_forcedynamic( "mat_forcedynamic", "0", FCVAR_CHEAT );
 
 // this is hooked into the engines convar
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 
 //-----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ bool CShaderDeviceMgrDx8::Connect( CreateInterfaceFn factory )
 								( CommandLine()->ParmValue( "-dxlevel", 100 ) < 90 );
 
 	bool bD3D9ExAvailable = false;
-	if ( HMODULE hMod = ::LoadLibraryA( "d3d9.dll" ) )
+	if ( HMODULE hMod = ::LoadLibraryA ( "d3d9.dll" ) )
 	{
 		typedef HRESULT ( WINAPI *CreateD3D9ExFunc_t )( UINT, IUnknown** );
 		if ( CreateD3D9ExFunc_t pfnCreateD3D9Ex = (CreateD3D9ExFunc_t) ::GetProcAddress( hMod, "Direct3DCreate9Ex" ) )
@@ -1775,50 +1775,57 @@ void CShaderDeviceDx8::SetPresentParameters( void* hWnd, int nAdapter, const Sha
 		m_PresentParameters.BackBufferCount = 0;
 	}
 
-	if ( info.m_nAASamples > 1 && ( m_PresentParameters.SwapEffect == D3DSWAPEFFECT_DISCARD ) )
+	if ( info.m_nAASamples > 1 )
 	{
-		D3DMULTISAMPLE_TYPE multiSampleType = ComputeMultisampleType( info.m_nAASamples );
-		DWORD nQualityLevel;
-
-		// FIXME: Should we add the quality level to the ShaderAdapterMode_t struct?
-		// 16x on nVidia refers to CSAA or "Coverage Sampled Antialiasing"
-		const HardwareCaps_t &adapterCaps = g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter );
-		if ( ( info.m_nAASamples == 16 ) && ( adapterCaps.m_VendorID == VENDORID_NVIDIA ) )
+		if (m_PresentParameters.SwapEffect == D3DSWAPEFFECT_DISCARD)
 		{
-			multiSampleType = ComputeMultisampleType(4);
-			hr = D3D()->CheckDeviceMultiSampleType( nAdapter, DX8_DEVTYPE, 
-				m_PresentParameters.BackBufferFormat, m_PresentParameters.Windowed, 
-				multiSampleType, &nQualityLevel );						// 4x at highest quality level
+		    D3DMULTISAMPLE_TYPE multiSampleType = ComputeMultisampleType( info.m_nAASamples );
+		    DWORD nQualityLevel;
 
-			if ( !FAILED( hr ) && ( nQualityLevel == 16 ) )
-			{
-				nQualityLevel = nQualityLevel - 1;						// Highest quality level triggers 16x CSAA
-			}
-			else
-			{
-				nQualityLevel  = 0;										// No CSAA
-			}
-		}
-		else	// Regular MSAA on any old vendor
-		{
-			hr = D3D()->CheckDeviceMultiSampleType( nAdapter, DX8_DEVTYPE, 
-				m_PresentParameters.BackBufferFormat, m_PresentParameters.Windowed, 
-				multiSampleType, &nQualityLevel );
+		    // FIXME: Should we add the quality level to the ShaderAdapterMode_t struct?
+		    // 16x on nVidia refers to CSAA or "Coverage Sampled Antialiasing"
+		    const HardwareCaps_t &adapterCaps = g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter );
+		    if ( ( info.m_nAASamples == 16 ) && ( adapterCaps.m_VendorID == VENDORID_NVIDIA ) )
+		    {
+			    multiSampleType = ComputeMultisampleType(4);
+			    hr = D3D()->CheckDeviceMultiSampleType( nAdapter, DX8_DEVTYPE, 
+				    m_PresentParameters.BackBufferFormat, m_PresentParameters.Windowed, 
+				    multiSampleType, &nQualityLevel );						// 4x at highest quality level
 
-			nQualityLevel = 0;
-		}
+			    if ( !FAILED( hr ) && ( nQualityLevel == 16 ) )
+			    {
+				    nQualityLevel = nQualityLevel - 1;						// Highest quality level triggers 16x CSAA
+			    }
+			    else
+			    {
+				    nQualityLevel  = 0;										// No CSAA
+			    }
+		    }
+		    else	// Regular MSAA on any old vendor
+		    {
+			    hr = D3D()->CheckDeviceMultiSampleType( nAdapter, DX8_DEVTYPE, 
+				    m_PresentParameters.BackBufferFormat, m_PresentParameters.Windowed, 
+				    multiSampleType, &nQualityLevel );
 
-		if ( !FAILED( hr ) )
-		{
-			m_PresentParameters.MultiSampleType = multiSampleType;
-			m_PresentParameters.MultiSampleQuality = nQualityLevel;
+			    nQualityLevel = 0;
+		    }
+
+		    if ( !FAILED( hr ) )
+		    {
+			    m_PresentParameters.MultiSampleType = multiSampleType;
+			    m_PresentParameters.MultiSampleQuality = nQualityLevel;
+				return;
+		    }
 		}
 	}
-	else
+	m_PresentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
+	m_PresentParameters.MultiSampleQuality = 0;
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+	if (m_PresentParameters.Windowed && g_ShaderDeviceUsingD3D9Ex)
 	{
-		m_PresentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
-		m_PresentParameters.MultiSampleQuality = 0;
+		m_PresentParameters.SwapEffect = D3DSWAPEFFECT_FLIPEX;
 	}
+#endif
 }
 
 
@@ -1870,7 +1877,7 @@ void CShaderDeviceDx8::ShutdownDevice()
 //-----------------------------------------------------------------------------
 bool CShaderDeviceDx8::IsUsingGraphics() const
 {
-	//*****LOCK_SHADERAPI();
+	//!!!!!LOCK_SHADERAPI();
 	return IsActive();
 }
 
@@ -2410,10 +2417,12 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	g_pHardwareConfig->SetupHardwareCaps( info, g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter ) );
 
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
 	if (g_ShaderDeviceUsingD3D9Ex)
 	{
 		Dx9ExDevice()->SetMaximumFrameLatency(1);
 	}
+#endif
 
 	// FIXME: Bake this into hardware config
 	// What texture formats do we support?
@@ -3367,7 +3376,6 @@ void CShaderDeviceDx8::RefreshFrontBufferNonInteractive()
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 // Page flip
 //-----------------------------------------------------------------------------
@@ -3388,19 +3396,33 @@ void CShaderDeviceDx8::Present()
 	// if we're in queued mode, don't present if the device is already lost
 	bool bValidPresent = true;
 	bool bInMainThread = ThreadInMainThread();
-	if ( !bInMainThread )
+	static bool s_bSetPriority = true;
+	if ( bInMainThread )
+	{
+		s_bSetPriority = true;
+	}
+	else
 	{
 		// don't present if the device is in an invalid state and in queued mode
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
 		// check for lost device early in threaded mode
 		CheckDeviceLost( m_bOtherAppInitializing );
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+		if (bValidPresent && s_bSetPriority && g_ShaderDeviceUsingD3D9Ex)
+		{
+			s_bSetPriority = false;
+			Dx9ExDevice()->SetGPUThreadPriority(7);
+		}
+#endif
 	}
 	// Copy the back buffer into the non-interactive temp buffer
 	if ( m_NonInteractiveRefresh.m_Mode == MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD )
@@ -3438,20 +3460,18 @@ void CShaderDeviceDx8::Present()
 		else
 		{
 			g_pShaderAPI->OwnGPUResources( false );
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
 			if (g_ShaderDeviceUsingD3D9Ex)
 			{
 				int flags = D3DPRESENT_DONOTWAIT;
-				if (!m_PresentParameters.Windowed)
-				{
-					flags |= D3DPRESENT_DONOTFLIP;
-				}
-				if (m_PresentParameters.SwapEffect == D3DSWAPEFFECT_FLIPEX)
+				if (m_PresentParameters.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE && m_PresentParameters.SwapEffect == D3DSWAPEFFECT_FLIPEX)
 				{
 					flags |= D3DPRESENT_FORCEIMMEDIATE;
 				}
 				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, flags);
 			}
 			else
+#endif
 			{
 				hr = Dx9Device()->Present(0, 0, 0, 0);
 			}

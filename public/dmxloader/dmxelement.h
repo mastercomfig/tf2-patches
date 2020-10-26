@@ -15,6 +15,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/utlrbtree.h"
 #include "tier1/utlsymbol.h"
+#include "utlsymbollarge.h"
 #include "tier1/mempool.h"
 #include "tier1/UtlSortVector.h"
 #include "dmxloader/dmxattribute.h"
@@ -26,9 +27,9 @@
 class CDmxAttributeLess
 {
 public:
-	bool Less( const CDmxAttribute * pAttribute1, const CDmxAttribute *pAttribute2, void *pContext )
+	bool Less(const CDmxAttribute* pAttribute1, const CDmxAttribute* pAttribute2, void* pContext)
 	{
-		return pAttribute1->GetNameSymbol() < pAttribute2->GetNameSymbol();
+		return (pAttribute1 ? pAttribute1->GetNameSymbol() : CUtlSymbolLarge(UTL_INVAL_SYMBOL_LARGE)) < (pAttribute2 ? pAttribute2->GetNameSymbol() : CUtlSymbolLarge(UTL_INVAL_SYMBOL_LARGE));
 	}
 };
 
@@ -105,7 +106,7 @@ public:
 	int					AttributeCount() const;
 	CDmxAttribute		*GetAttribute( int nIndex );
 	const CDmxAttribute *GetAttribute( int nIndex ) const;
-	CUtlSymbol			GetType() const;
+	CUtlSymbolLarge		GetType() const;
 	const char*			GetTypeString() const;
 	const char*			GetName() const;
 	const DmObjectId_t &GetId() const;
@@ -161,7 +162,7 @@ private:
 
 	// Finds an attribute by name
 	int FindAttribute( const char *pAttributeName ) const;
-	int FindAttribute( CUtlSymbol attributeName ) const;
+	int FindAttribute( CUtlSymbolLarge attributeName ) const;
 
 	// Sets the object id
 	void SetId( const DmObjectId_t &id );
@@ -171,12 +172,12 @@ private:
 
 	AttributeList_t m_Attributes;
 	DmObjectId_t m_Id;	// We need this strictly because we support serialization
-	CUtlSymbol m_Type;
+	CUtlSymbolLarge m_Type;
 	char m_nLockCount;
 	mutable bool m_bResortNeeded : 1;
 	bool m_bIsMarkedForDeletion : 1;
 
-	static CUtlSymbolTableMT s_TypeSymbols;
+	static CUtlSymbolTableLargeMT s_TypeSymbols;
 
 	friend class CDmxSerializer;
 	friend class CDmxSerializerKeyValues2;

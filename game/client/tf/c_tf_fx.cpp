@@ -45,6 +45,8 @@ RecvPropFloat( RECVINFO( m_flSpread ) ),
 RecvPropInt( RECVINFO( m_bCritical ) ),
 END_RECV_TABLE()
 
+// FIXME(mastercoms): fire bullets should replicate fire times
+
 void C_TEFireBullets::PostDataUpdate( DataUpdateType_t updateType )
 {
 	VPROF( "C_TEFireBullets::PostDataUpdate" );

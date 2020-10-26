@@ -2746,7 +2746,7 @@ ConVar cl_warn_thread_contested_bone_setup("cl_warn_thread_contested_bone_setup"
 // Marked this developmentonly because it currently crashes, and users are enabling it and complaining because of
 // course.  Once this actually works it should just be FCVAR_INTERNAL_USE.
 // UNDONE(mastercoms)
-ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "0", FCVAR_INTERNAL_USE,
+ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "1", FCVAR_INTERNAL_USE,
                               "Enable parallel processing of C_BaseAnimating::SetupBones()" );
 
 //-----------------------------------------------------------------------------
@@ -2965,13 +2965,23 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			AddFlag( EFL_SETTING_UP_BONES );
 
 			// NOTE: For model scaling, we need to opt out of IK because it will mark the bones as already being calculated
-			// [msmith]: What game is it that want's to do model scaling and needs to opt out of IK?  It seems as if opting out of IK should be the exception and not the rule here.
-			// I suggest we change the #ifdef such that only the games that need to kill IK get used here... rather than ORing in all other games that use this engine in the future.
-#if defined( PORTAL2 ) || defined( INFESTED ) || defined( CSTRIKE15 ) || defined( TF_CLIENT_DLL )
-			// only allocate an ik block if the npc can use it
-			if (!m_pIk && hdr->numikchains() > 0 && !(m_EntClientFlags & ENTCLIENTFLAG_DONTUSEIK))
-				m_pIk = new CIKContext;
-#endif // PORTAL2
+			if ( !IsModelScaled() )
+			{
+				// only allocate an ik block if the npc can use it
+				if ( !m_pIk && hdr->numikchains() > 0 && !(m_EntClientFlags & ENTCLIENTFLAG_DONTUSEIK) )
+				{
+					m_pIk = new CIKContext;
+				}
+			}
+			else
+			{
+				// Reset the IK
+				if ( m_pIk )
+				{
+					delete m_pIk;
+					m_pIk = NULL;
+				}
+			}
 
 			Vector		pos[MAXSTUDIOBONES];
 			Quaternion	q[MAXSTUDIOBONES];
