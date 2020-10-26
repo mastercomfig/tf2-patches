@@ -14,6 +14,11 @@ $Configuration
 		$AdditionalIncludeDirectories	"$BASE;..\public\mathlib"
 		$PreprocessorDefinitions		"$BASE;MATHLIB_LIB"
 	}
+
+	$Compiler	[$POSIX]
+	{
+		$OptimizerLevel					"$BASE -fno-associative-math"
+	}
 }
 
 $Project "mathlib"
