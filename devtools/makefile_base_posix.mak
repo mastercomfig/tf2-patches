@@ -259,19 +259,21 @@ PATHWRAP = $(_WRAP)fopen $(_WRAP)freopen $(_WRAP)open    $(_WRAP)creat    $(_WRA
 	   $(_WRAP)mknod $(_WRAP)utimes  $(_WRAP)unlink  $(_WRAP)rename   $(_WRAP)utime   $(_WRAP)__xstat64 \
 	   $(_WRAP)mount $(_WRAP)mkfifo  $(_WRAP)mkdir   $(_WRAP)rmdir    $(_WRAP)scandir $(_WRAP)realpath
 
-ifeq "$(BufferSecurityCheck)" "No"
-    CFLAGS += -fno-stack-protector
-else
-    ifeq ($(shell $(CC) -fstack-protector-strong -xc -c /dev/null -o /dev/null 2>/dev/null && echo yes || echo no),yes)
-        # Newer GCC versions have a better stack protector available
-        # http://lwn.net/Articles/584225/
-        STACK_PROTECTOR := -fstack-protector-strong
-    else
-        STACK_PROTECTOR := -fstack-protector
-    endif
-    CFLAGS += $(STACK_PROTECTOR)
-endif
-
+#ifeq "$(BufferSecurityCheck)" "No"
+#    CFLAGS += -fno-stack-protector
+#else
+#    ifeq ($(shell $(CC) -fstack-protector-strong -xc -c /dev/null -o /dev/null 2>/dev/null && echo yes || echo no),yes)
+#        # Newer GCC versions have a better stack protector available
+#        # http://lwn.net/Articles/584225/
+#        STACK_PROTECTOR := -fstack-protector-strong
+#    else
+#        STACK_PROTECTOR := -fstack-protector
+#    endif
+#    CFLAGS += $(STACK_PROTECTOR)
+#endif
+CFLAGS += -fno-stack-protector
+CXXFLAGS += -fno-stack-protector
+# todo(melvyn2) find out why this breaks, THIS IS VERY BROKEN
 
 LIB_START_EXE = $(PATHWRAP) -static-libgcc -Wl,--start-group
 LIB_END_EXE = -Wl,--end-group -lm -ldl -latomic $(LIBSTDCXX) -lpthread

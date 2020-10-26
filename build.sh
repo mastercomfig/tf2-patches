@@ -58,6 +58,7 @@ while [[ ${1:0:1} == '-' ]]; do
 			export CC="$(pwd)/devtools/bin/linux/ccache clang"
 			# shellcheck disable=SC2155
 			export CXX="$(pwd)/devtools/bin/linux/ccache clang++"
+			VPC_FLAGS+=" /define:CLANG"
 		;;
 		*)
 			echo "Unknown flag ${1}"
