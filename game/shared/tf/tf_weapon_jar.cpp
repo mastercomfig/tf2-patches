@@ -352,7 +352,7 @@ void JarExplode( int iEntIndex, CTFPlayer *pAttacker, CBaseEntity *pOriginalWeap
 			continue;
 
 		// Drench the target.
-		if ( pPlayer->GetTeamNumber() != iTeam )
+		if ( pPlayer->GetTeamNumber() != iTeam || ( friendlyfire.GetInt() == 1 && pPlayer != pAttacker ) )
 		{
 			if ( pPlayer->m_Shared.IsInvulnerable() )
 				continue;
@@ -512,7 +512,7 @@ void CTFProjectile_Jar::PipebombTouch( CBaseEntity *pOther )
 		return;
 
 	// Don't collide with teammate if we're still in the grace period.
-	if ( pOther->IsPlayer() && pOther->GetTeamNumber() == GetTeamNumber() && !CanCollideWithTeammates() )
+	if ( pOther->IsPlayer() && pOther->GetTeamNumber() == GetTeamNumber() && !CanCollideWithTeammates() && friendlyfire.GetInt() != 1)
 	{
 		// Exception to this rule - if we're a jar or milk, and our potential victim is on fire, then allow collision after all.
 		// If we're a jar or milk, then still allow collision if our potential victim is on fire.
@@ -573,7 +573,7 @@ void CTFProjectile_Jar::OnBreadMonsterHit( CBaseEntity *pOther, trace_t *pTrace 
 		return;
 
 	CTFPlayer *pVictim = ToTFPlayer( pOther );
-	if ( !pVictim || pVictim->GetTeamNumber() == GetTeamNumber() )
+	if ( !pVictim || ( pVictim->GetTeamNumber() == GetTeamNumber() && friendlyfire.GetInt() != 1 ) )
 		return;
 
 	// This is a player on the other team, attach a breadmonster
@@ -715,7 +715,7 @@ void CTFProjectile_Jar::CreateStickyAttachmentToTarget( CTFPlayer *pOwner, CTFPl
 
 	// Look for nearest hitbox
 	mstudiobbox_t *closest_box = NULL;
-	if ( trace->m_pEnt && trace->m_pEnt->GetTeamNumber() != GetTeamNumber() )
+	if ( trace->m_pEnt && ( trace->m_pEnt->GetTeamNumber() != GetTeamNumber() || friendlyfire.GetInt() == 1 ) )
 	{
 		closest_box = set->pHitbox( trace->hitbox );
 	}
@@ -1009,7 +1009,7 @@ void CTFProjectile_Cleaver::OnHit( CBaseEntity *pOther )
 	if ( pPlayer->m_Shared.IsInvulnerable() || pPlayer->m_Shared.InCond( TF_COND_INVULNERABLE_WEARINGOFF ) )
 		return;
 
-	if ( pPlayer->GetTeamNumber() == pOwner->GetTeamNumber() )
+	if ( pPlayer->GetTeamNumber() == pOwner->GetTeamNumber() && !friendlyfire.GetInt() )
 		return;
 
 	if ( TFGameRules() && TFGameRules()->IsTruceActive() && pOwner->IsTruceValidForEnt() )
