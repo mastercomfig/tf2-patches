@@ -423,7 +423,7 @@ else
 endif
 
 ifneq "$(origin VALVE_NO_AUTO_P4)" "undefined"
-	P4_EDIT_START = chmod -R +w
+	P4_EDIT_START = true
 	P4_EDIT_END = || true
 	P4_REVERT_START = true
 	P4_REVERT_END =
