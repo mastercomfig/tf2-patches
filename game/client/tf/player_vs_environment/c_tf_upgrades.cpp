@@ -37,6 +37,9 @@
 
 #define UPGRADE_PANEL_LEVEL_LABEL_COUNT 10
 
+#ifdef CLIENT_DLL
+ConVar tf_mvm_move_in_shop("tf_mvm_move_in_shop", "0", FCVAR_ARCHIVE, "Allow keyboard input while in the upgrade shop.");
+#endif
 
 extern CAchievementMgr g_AchievementMgrTF;
 
@@ -461,6 +464,7 @@ bool CHudUpgradePanel::ShouldDraw( void )
 	if ( !m_bInspectMode )
 	{
 		m_hPlayer = C_TFPlayer::GetLocalTFPlayer();
+		SetKeyBoardInputEnabled(false);
 	}
 
 	// Local mode
@@ -474,9 +478,9 @@ bool CHudUpgradePanel::ShouldDraw( void )
 		}
 
 		bool bInZone = m_hPlayer->m_Shared.IsInUpgradeZone();
-
+		
 		// check for other popups
-		if ( bInZone && !CHudElement::ShouldDraw() ) 
+		if ( bInZone && !CHudElement::ShouldDraw() )
 		{
 			CTFStatPanel *pStatPanel = GetStatPanel();
 			if ( pStatPanel->IsVisible() )
@@ -493,6 +497,16 @@ bool CHudUpgradePanel::ShouldDraw( void )
 				m_bShowUpgradeMenu = true;
 				m_bCancelUpgrades = false;
 				m_bOpenLoadout = false;
+				#ifdef CLIENT_DLL
+				if (tf_mvm_move_in_shop.GetInt() >= 1)
+				{
+					SetKeyBoardInputEnabled(false);
+				}
+				else
+				{
+					SetKeyBoardInputEnabled(true);
+				}
+				#endif
 			}
 			m_bWasInZone = bInZone;
 		}
@@ -557,7 +571,6 @@ void CHudUpgradePanel::SetActive( bool bActive )
 		// Accept button is disabled till you buy or sell something
 		m_pSelectWeaponPanel->SetControlEnabled( "CloseButton", false );
 
-		SetKeyBoardInputEnabled( false );
 		engine->ClientCmd_Unrestricted( "gameui_preventescapetoshow\n" );
 
 		// Move the mouse cursor to the middle of our panel
