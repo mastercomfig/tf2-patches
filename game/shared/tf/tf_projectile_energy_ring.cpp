@@ -4,6 +4,7 @@
 //
 //=============================================================================
 #include "cbase.h"
+#include "tf_gamerules.h"
 #include "tf_projectile_energy_ring.h"
 #include "tf_weapon_raygun.h"
 
@@ -308,7 +309,7 @@ void CTFProjectile_EnergyRing::ProjectileTouch( CBaseEntity *pOther )
 	if ( bCombatEntity && ( pOther != pOwner ) )
 	{
 		// Bison projectiles shouldn't collide with friendly things
-		if ( pOther->GetTeamNumber() == GetTeamNumber() && ShouldPenetrate() )
+		if ( ( pOther->GetTeamNumber() == GetTeamNumber() && !friendlyfire.GetInt() ) && ShouldPenetrate() )
 		{
 			return;
 		}
