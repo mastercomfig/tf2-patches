@@ -37,6 +37,11 @@ $Configuration
 		$PrecompiledHeaderFile			"$(IntDir)/client.pch"
 	}
 
+	$Compiler	[$POSIX]
+	{
+		$OptimizerLevel					"$BASE -fno-associative-math"
+	}
+
 	$Linker
 	{
 		$SystemLibraries				"iconv" [$OSXALL]
