@@ -46,7 +46,9 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;OVERRIDE_V_DEFINES"	  [$OSXALL]						
 		$PreprocessorDefinitions		"$BASE;_LINUX;LINUX;" [$LINUXALL]
 		$PreprocessorDefinitions		"$BASE;PLATFORM_64BITS" [$LINUX64]
-		$SymbolVisibility				"hidden" 					[$POSIX]
+		// TODO(melvyn2) builds do not work with symbols hidden
+		// Upstream TF2 comes with all symbols exported too however
+		$SymbolVisibility				"default" 					[$POSIX]
 		$PreprocessorDefinitions		"$BASE;POSIX;_POSIX"		[$POSIX]
 
 		$PreprocessorDefinitions		"$BASE;PLATFORM_64BITS"		[$OSX64]
