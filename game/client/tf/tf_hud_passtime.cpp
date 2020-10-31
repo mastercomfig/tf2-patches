@@ -916,9 +916,9 @@ void CTFHudPasstimeBallStatus::ApplySchemeSettings( IScheme *pScheme )
 		{
 			V_sprintf_safe( controlname, "playericon%i", i ); // ugh
 			m_pPlayerIcons[i] = FindControl<vgui::ImagePanel>( controlname );
-			Assert( m_pPlayerIcons[i] );
-			m_pPlayerIcons[i]->SetEnabled( true );
-			m_pPlayerIcons[i]->SetShouldScaleImage( true );
+//			Assert( m_pPlayerIcons[i] );
+//			m_pPlayerIcons[i]->SetEnabled( true );
+//			m_pPlayerIcons[i]->SetShouldScaleImage( true );
 		}
 	}
 }

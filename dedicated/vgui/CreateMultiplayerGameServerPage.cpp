@@ -253,7 +253,7 @@ void CCreateMultiplayerGameServerPage::LoadConfig()
 		if (m_pSavedData->FindKey("MaxPlayers", false))
 		{
 			int maxPlayers = m_pSavedData->GetInt("MaxPlayers", -1);
-			if (maxPlayers > 0 && maxPlayers <= 32)
+			if (maxPlayers > 0 && maxPlayers <= MAX_PLAYERS)
 			{
 				m_pNumPlayers->ActivateItemByRow(maxPlayers - 1);
 			}

@@ -20,7 +20,7 @@
 #include "tier0/memdbgon.h"
 
 
-#define PROPINDEX_NUMBITS 12
+#define PROPINDEX_NUMBITS 14
 #define MAX_TOTAL_SENDTABLE_PROPS	(1 << PROPINDEX_NUMBITS)
 
 

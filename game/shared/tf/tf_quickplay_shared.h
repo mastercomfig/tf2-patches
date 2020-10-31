@@ -16,7 +16,7 @@ class CUtlStringList;
 const int kTFMaxQuickPlayServersToScore = 25;
 const int kTFQuickPlayIdealMaxNumberOfPlayers = 24;
 const int kTFQuickPlayMinMaxNumberOfPlayers = 18; // don't auto match to servers with max players set too low
-const int kTFQuickPlayMaxPlayers = 33;
+const int kTFQuickPlayMaxPlayers = MAX_PLAYERS;
 
 const struct SchemaMap_t *GetQuickplayMapInfoByName( const char *pMapName );
 
