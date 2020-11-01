@@ -23,7 +23,9 @@ ConVar sv_pushaway_clientside( "sv_pushaway_clientside", "0", SV_PUSH_CONVAR_FLA
 ConVar sv_pushaway_player_force( "sv_pushaway_player_force", "200000", SV_PUSH_CONVAR_FLAGS | FCVAR_CHEAT, "How hard the player is pushed away from physics objects (falls off with inverse square of distance)." );
 ConVar sv_pushaway_max_player_force( "sv_pushaway_max_player_force", "10000", SV_PUSH_CONVAR_FLAGS | FCVAR_CHEAT, "Maximum of how hard the player is pushed away from physics objects." );
 
-#ifdef CLIENT_DLL
+#if defined( TF_CLIENT_DLL )
+ConVar sv_turbophysics( "sv_turbophysics", "1", FCVAR_REPLICATED, "Turns on turbo physics" );
+#elif defined( CLIENT_DLL )
 ConVar sv_turbophysics( "sv_turbophysics", "0", FCVAR_REPLICATED, "Turns on turbo physics" );
 #else
 extern ConVar sv_turbophysics;
