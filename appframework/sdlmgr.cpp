@@ -1114,7 +1114,7 @@ void CSDLMgr::ShowPixels( CShowPixelsParams *params )
 		m_lastKnownSwapInterval = swapInterval;
 		m_lastKnownSwapLimit = swapLimit;
 
-		printf("\n ##### swap interval = %d     swap limit = %d #####\n", m_lastKnownSwapInterval, m_lastKnownSwapLimit );
+		printf("GL swap interval = %d\nGL swap limit = %d\n", m_lastKnownSwapInterval, m_lastKnownSwapLimit );
 		fflush(stdout);
 
 	}

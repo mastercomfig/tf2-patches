@@ -1732,8 +1732,8 @@ HRESULT IDirect3D9::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,VD3DHWND hFo
 	GL_BATCH_PERF_CALL_TIMER;
 
 #if GLMDEBUG
-	GLMDebugPrintf( "WARNING: GLMEBUG is 1, perf. is going to be low!" );
-	Warning( "WARNING: GLMEBUG is 1, perf. is going to be low!" );
+	GLMDebugPrintf( "WARNING: GLMEBUG is 1, perf. is going to be low!\n" );
+	Warning( "WARNING: GLMEBUG is 1, perf. is going to be low!\n" );
 #endif
 #if !TOGL_SUPPORT_NULL_DEVICE	
 	if (DeviceType == D3DDEVTYPE_NULLREF)

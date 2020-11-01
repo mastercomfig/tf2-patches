@@ -327,7 +327,7 @@ static bool CheckOpenGLExtension_internal(const char *ext, const int coremajor, 
 static bool CheckOpenGLExtension(const char *ext, const int coremajor, const int coreminor)
 {
 	const bool retval = CheckOpenGLExtension_internal(ext, coremajor, coreminor);
-	printf("This system %s the OpenGL extension %s.\n", retval ? "supports" : "DOES NOT support", ext);
+    _SpewMessage("This system %s the OpenGL extension %s.\n", retval ? "supports" : "DOES NOT support", ext);
 	return retval;
 }
 
