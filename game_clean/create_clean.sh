@@ -8,11 +8,9 @@ set -e
 
 DEV_DIR=../../game
 CLEAN_DIR=${DEV_DIR}_clean
-CLEAN_DEBUG_DIR=${DEV_DIR}_clean_debug
-rm -rf ${CLEAN_DIR}
-rm -rf ${CLEAN_DEBUG_DIR}
-mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
-mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
+CLEAN_DEBUG_DIR=${CLEAN_DIR}_debug
+rm -rf ${CLEAN_DIR} ${CLEAN_DEBUG_DIR}
+mkdir -p ${CLEAN_DIR}/{bin,tf/bin} ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
 cp -rf copy/* ${CLEAN_DIR}
 cp -rf copy/* ${DEV_DIR}
 
