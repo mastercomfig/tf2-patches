@@ -134,6 +134,11 @@ void CBaseCombatCharacter::RemoveAmmo( int iCount, int iAmmoIndex )
 	// Infinite ammo?
 	if ( GetAmmoDef()->MaxCarry( iAmmoIndex ) == INFINITE_AMMO )
 		return;
+	#ifdef TF_DLL || TF_CLIENT_DLL
+		extern ConVar tf_infinite_ammo;
+		if ( tf_infinite_ammo.GetBool() )
+			return;
+	#endif
 
 	// Ammo pickup sound
 	m_iAmmo.Set( iAmmoIndex, MAX( m_iAmmo[iAmmoIndex] - iCount, 0 ) );

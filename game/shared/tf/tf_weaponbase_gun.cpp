@@ -410,6 +410,11 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 //-----------------------------------------------------------------------------
 void CTFWeaponBaseGun::RemoveProjectileAmmo( CTFPlayer *pPlayer )
 {
+	extern ConVar tf_infinite_ammo;
+	if ( tf_infinite_ammo.GetInt() == 1 )
+	{
+		return;
+	}
 	if ( m_iClip1 != -1 )
 	{
 		m_iClip1 -= GetAmmoPerShot();

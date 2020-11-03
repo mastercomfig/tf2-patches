@@ -292,7 +292,7 @@ extern ConVar tf_bountymode_upgrades_wipeondeath;
 extern ConVar tf_bountymode_currency_penalty_ondeath;
 #endif // STAGING_ONLY
 
-ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_CHEAT );
+extern ConVar tf_infinite_ammo;
 
 ConVar tf_halloween_unlimited_spells( "tf_halloween_unlimited_spells", "0", FCVAR_CHEAT );
 extern ConVar tf_halloween_kart_boost_recharge;
@@ -13674,7 +13674,7 @@ int CTFPlayer::GiveAmmo( int iCount, int iAmmoIndex, bool bSuppressSound, EAmmoS
 //-----------------------------------------------------------------------------
 void CTFPlayer::RemoveAmmo( int iCount, int iAmmoIndex )
 {
-	if ( tf_infinite_ammo.GetBool() )
+	if ( tf_infinite_ammo.GetInt() == 1 )
 	{
 		return;
 	}

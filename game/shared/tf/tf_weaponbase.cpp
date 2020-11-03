@@ -90,6 +90,8 @@ extern ConVar tf_weapon_criticals_force_random;
 extern ConVar tf_weapon_criticals_bucket_cap;
 extern ConVar tf_weapon_criticals_bucket_bottom;
 
+ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_REPLICATED | FCVAR_CHEAT );
+
 #ifdef CLIENT_DLL
 extern ConVar cl_crosshair_file;
 extern ConVar cl_flipviewmodels;
@@ -5967,7 +5969,8 @@ bool CTFWeaponBase::Energy_HasEnergy( void )
 //-----------------------------------------------------------------------------
 void CTFWeaponBase::Energy_DrainEnergy( void )
 {
-	Energy_DrainEnergy( Energy_GetShotCost() );
+	if ( tf_infinite_ammo.GetInt() != 1 )
+		Energy_DrainEnergy( Energy_GetShotCost() );
 }
 
 //-----------------------------------------------------------------------------
@@ -5975,7 +5978,8 @@ void CTFWeaponBase::Energy_DrainEnergy( void )
 //-----------------------------------------------------------------------------
 void CTFWeaponBase::Energy_DrainEnergy( float flDrain )
 {
-	m_flEnergy -= flDrain;
+	if ( tf_infinite_ammo.GetInt() != 1 )
+		m_flEnergy -= flDrain;
 }
 
 //-----------------------------------------------------------------------------
