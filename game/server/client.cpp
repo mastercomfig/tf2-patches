@@ -1207,13 +1207,7 @@ void CC_God_f (void)
 	if ( !pPlayer )
 		return;
 
-#ifdef TF_DLL
-   if ( TFGameRules() && ( TFGameRules()->IsPVEModeActive() == false ) )
-   {
-	   if ( gpGlobals->deathmatch )
-		   return;
-   }
-#else
+#ifndef TF_DLL || TF_CLIENT_DLL
 	if ( gpGlobals->deathmatch )
 		return;
 #endif
