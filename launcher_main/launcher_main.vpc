@@ -28,6 +28,7 @@ $Configuration
 	{
 		$PreprocessorDefinitions	"$BASE;fopen=dont_use_fopen"
 		$ForceIncludes				" "
+		$GCC_ExtraLinkerFlags		"-Wl,-rpath=\$$ORIGIN/bin -Wl,-rpath=\$$ORIGIN/tf/bin"
 	}
 
 	$Linker [$WIN32]

@@ -16,8 +16,10 @@ MAKE_CFG="CFG=release"
 MAKE_VERBOSE=""
 VPC_FLAGS="/define:LTCG /define:CERT"
 CORES=$(nproc)
-export CC=gcc
-export CXX=g++
+# shellcheck disable=SC2155
+export CC="$(pwd)/devtools/bin/linux/ccache gcc"
+# shellcheck disable=SC2155
+export CXX="$(pwd)/devtools/bin/linux/ccache g++"
 export VALVE_NO_AUTO_P4=1
 
 while [[ ${1:0:1} == '-' ]]; do
