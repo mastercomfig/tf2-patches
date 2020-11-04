@@ -1375,7 +1375,7 @@ void CTFWeaponBase::CalcIsAttackCritical( void)
 	}
 #endif
 
-	if ( (TFGameRules()->State_Get() == GR_STATE_TEAM_WIN) && (TFGameRules()->GetWinningTeam() == pPlayer->GetTeamNumber()) )
+	if ( (TFGameRules()->State_Get() == GR_STATE_TEAM_WIN) && (TFGameRules()->GetWinningTeam() == pPlayer->GetTeamNumber()) || tf_weapon_criticals.GetInt() >= 2 )
 	{
 		m_bCurrentAttackIsCrit = true;
 	}
