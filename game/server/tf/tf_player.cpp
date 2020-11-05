@@ -4699,7 +4699,8 @@ CEconItemView *CTFPlayer::GetLoadoutItem( int iClass, int iSlot, bool bReportWhi
 			return pItem;
 	}
 
-	if ( TFGameRules()->IsInTraining() || TFGameRules()->IsInItemTestingMode() )
+	extern ConVar training_can_equip_nonstock;
+	if ( ( TFGameRules()->IsInTraining() && ( ( !IsWearableSlot( iSlot ) && training_can_equip_nonstock.GetInt() == 1 ) || !training_can_equip_nonstock.GetBool() ) ) || TFGameRules()->IsInItemTestingMode() )
 	{
 		CTFInventoryManager *pInventoryManager = TFInventoryManager();
 		return pInventoryManager->GetBaseItemForClass( iClass, iSlot );
