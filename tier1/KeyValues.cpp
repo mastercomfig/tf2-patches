@@ -14,7 +14,6 @@
 #define _wtoi(arg) wcstol(arg, NULL, 10)
 #define _wtoi64(arg) wcstoll(arg, NULL, 10)
 #endif
-
 #include <KeyValues.h>
 #include "filesystem.h"
 #include <vstdlib/IKeyValuesSystem.h>
@@ -2584,7 +2583,7 @@ void KeyValues::RecursiveLoadFromBuffer( char const *resourceName, CUtlBuffer &b
 
 
 // writes KeyValue as binary data to buffer
-bool KeyValues::WriteAsBinary( CUtlBuffer &buffer )
+bool KeyValues::WriteAsBinary( CUtlBuffer &buffer,bool recurse)
 {
 	if ( buffer.IsText() ) // must be a binary buffer
 		return false;
@@ -2598,6 +2597,9 @@ bool KeyValues::WriteAsBinary( CUtlBuffer &buffer )
 	for ( KeyValues *dat = this; dat != NULL; dat = dat->m_pPeer )
 	{
 		// write type
+		if(recurse){
+			break;   //HACK: no idea how this works, put in as a debugging tool, but seems to fix the issue. Stops segfaulting on inspecting on Linux. (int)
+		}
 		buffer.PutUnsignedChar( dat->m_iDataType );
 
 		// write name
@@ -2608,7 +2610,7 @@ bool KeyValues::WriteAsBinary( CUtlBuffer &buffer )
 		{
 		case TYPE_NONE:
 			{
-				dat->m_pSub->WriteAsBinary( buffer );
+				dat->m_pSub->WriteAsBinary( buffer,true );
 				break;
 			}
 		case TYPE_STRING:
@@ -2696,7 +2698,6 @@ bool KeyValues::ReadAsBinary( CUtlBuffer &buffer, int nStackDepth )
 	{
 		if ( type == TYPE_NUMTYPES )
 			break; // no more peers
-
 		dat->m_iDataType = type;
 
 		{

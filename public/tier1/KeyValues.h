@@ -213,7 +213,7 @@ public:
 	
 	void RecursiveSaveToFile( CUtlBuffer& buf, int indentLevel, bool sortKeys = false, bool bAllowEmptyString = false );
 
-	bool WriteAsBinary( CUtlBuffer &buffer );
+	bool WriteAsBinary( CUtlBuffer &buffer, bool recurse = false );
 	bool ReadAsBinary( CUtlBuffer &buffer, int nStackDepth = 0 );
 
 	// Allocate & create a new copy of the keys
