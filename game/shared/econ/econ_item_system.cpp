@@ -133,7 +133,7 @@ void CEconItemSystem::ReloadWhitelist( void )
 	KeyValues *pWhitelistKV = new KeyValues( "item_whitelist" );
 
 #ifdef GAME_DLL
-	if ( (mp_tournament.GetBool() && mp_tournament_whitelist.GetString()) || (mp_tournament_allow_whitelist_in_non_tournament.GetBool() && mp_tournament_whitelist.GetString()) )
+	if ( mp_tournament_whitelist.GetString() && (mp_tournament.GetBool() || mp_tournament_allow_whitelist_in_non_tournament.GetBool()) )
 	{
 		const char *pszWhitelistFile = mp_tournament_whitelist.GetString();
 		if ( pWhitelistKV->LoadFromFile( filesystem, pszWhitelistFile ) )
