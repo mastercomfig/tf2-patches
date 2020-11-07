@@ -525,7 +525,7 @@ bool CTFProjectile_Arrow::StrikeTarget( mstudiobbox_t *pBox, CBaseEntity *pOther
 			}
 		}
 
-		if ( !InSameTeam( pOther ) )
+		if ( !InSameTeam( pOther ) || friendlyfire.GetInt() == 1 )
 		{
 			IScorer *pScorerInterface = dynamic_cast<IScorer*>( pAttacker );
 			if ( pScorerInterface )
@@ -872,7 +872,7 @@ void CTFProjectile_Arrow::ArrowTouch( CBaseEntity *pOther )
 
 	// If we hit a hitbox, stop tracing.
 	mstudiobbox_t *closest_box = NULL;
-	if ( tr.m_pEnt && tr.m_pEnt->GetTeamNumber() != GetTeamNumber() )
+	if ( tr.m_pEnt && ( tr.m_pEnt->GetTeamNumber() != GetTeamNumber() || friendlyfire.GetInt() == 1 ) )
 	{
 		// This means the arrow was true and was flying directly at a hitbox on the target.
 		// We'll attach to that hitbox.
