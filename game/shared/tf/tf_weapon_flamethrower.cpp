@@ -1081,7 +1081,7 @@ void ExtinguishPlayer( CEconEntity *pExtinguisher, CTFPlayer *pOwner, CTFPlayer 
 
 bool CTFFlameThrower::DeflectPlayer( CTFPlayer *pTarget, CTFPlayer *pOwner, Vector &vecForward, Vector &vecCenter, Vector &vecSize )
 {
-	if ( pTarget->GetTeamNumber() == pOwner->GetTeamNumber() && pTarget != pOwner )
+	if ( ( pTarget->GetTeamNumber() == pOwner->GetTeamNumber() && friendlyfire.GetInt() != 1 ) && pTarget != pOwner )
 	{
 		if ( pTarget->m_Shared.InCond( TF_COND_BURNING ) && SupportsAirBlastFunction( TF_FUNCTION_AIRBLAST_PUT_OUT_TEAMMATES ) )
 		{
@@ -1263,7 +1263,7 @@ bool CTFFlameThrower::DeflectEntity( CBaseEntity *pTarget, CTFPlayer *pOwner, Ve
 
 	// can't deflect things on our own team
 	// except the passtime ball when in passtime mode
-	if ( (pTarget->GetTeamNumber() == pOwner->GetTeamNumber()) 
+	if ( (pTarget->GetTeamNumber() == pOwner->GetTeamNumber() && !friendlyfire.GetInt()) 
 		&& !(g_pPasstimeLogic && (g_pPasstimeLogic->GetBall() == pTarget)) )
 	{
 		return false;
@@ -2352,12 +2352,12 @@ public:
 			// add non-player bots
 			m_Targets.AddToTail( pEnt );
 		}
-		else if ( pEnt->IsBaseObject() && m_pShooter->GetTeamNumber() != pEnt->GetTeamNumber() )
+		else if ( pEnt->IsBaseObject() && ( m_pShooter->GetTeamNumber() != pEnt->GetTeamNumber() || friendlyfire.GetInt() ) )
 		{
 			// only add enemy objects
 			m_Targets.AddToTail( pEnt );
 		}
-		else if ( CTFRobotDestructionLogic::GetRobotDestructionLogic() && m_pShooter->GetTeamNumber() != pEnt->GetTeamNumber() && FClassnameIs( pEnt, "tf_robot_destruction_robot" ) )
+		else if ( CTFRobotDestructionLogic::GetRobotDestructionLogic() && ( m_pShooter->GetTeamNumber() != pEnt->GetTeamNumber() || friendlyfire.GetInt() ) && FClassnameIs( pEnt, "tf_robot_destruction_robot" ) )
 		{
 			// only add enemy robots
 			m_Targets.AddToTail( pEnt );
@@ -2444,7 +2444,7 @@ void CTFFlameEntity::FlameThink( void )
 			}
 
 			// burn them all!
-			if ( pEnt->IsPlayer() && pEnt->InSameTeam( pAttacker ) )
+			if ( pEnt->IsPlayer() && ( pEnt->InSameTeam( pAttacker ) && !friendlyfire.GetInt() ) )
 			{
 				OnCollideWithTeammate( ToTFPlayer( pEnt ) );
 			}
@@ -3007,7 +3007,7 @@ bool CTFProjectile_Napalm::InitialExplodeEffects( CTFPlayer *pThrower, const tra
 //-----------------------------------------------------------------------------
 void CTFProjectile_Napalm::ExplodeEffectOnTarget( CTFPlayer *pThrower, CTFPlayer *pTarget, CBaseCombatCharacter *pBaseTarget )
 {
-	if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() )
+	if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() && !friendlyfire.GetInt() )
 		return;
 
 	if ( pTarget )
