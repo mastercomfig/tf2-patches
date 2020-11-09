@@ -1761,7 +1761,7 @@ static ConVar mat_parallaxmap(		"mat_parallaxmap", "0", FCVAR_HIDDEN | FCVAR_ALL
 static ConVar mat_reducefillrate(	"mat_reducefillrate", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 
-static ConVar mat_picmip(			"mat_picmip", "0", FCVAR_ARCHIVE, "", true, -1, true, 4 );
+static ConVar mat_picmip(			"mat_picmip", "0", FCVAR_ARCHIVE, "", true, -10, true, 4 );
 static ConVar mat_slopescaledepthbias_normal( "mat_slopescaledepthbias_normal", "0.0f", FCVAR_CHEAT );
 static ConVar mat_depthbias_normal( "mat_depthbias_normal", "0.0f", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_slopescaledepthbias_decal( "mat_slopescaledepthbias_decal", "-0.5", FCVAR_CHEAT );		// Reciprocals of these biases sent to API
