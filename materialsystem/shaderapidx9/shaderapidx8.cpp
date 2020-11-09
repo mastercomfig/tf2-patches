@@ -6883,7 +6883,7 @@ void CShaderAPIDx8::SetTextureState( Sampler_t sampler, ShaderAPITextureHandle_t
 		mipFilter = D3DTEXF_NONE;
 	} 
 
-	if ( materialSystemConfig.bFilterTextures == 0 && tex.m_NumLevels > 1 ) 
+	if ( materialSystemConfig.bFilterTextures == 0 /*&& tex.m_NumLevels > 1*/ )
 	{
 		minFilter = D3DTEXF_NONE;
 		magFilter = D3DTEXF_NONE;
