@@ -28,6 +28,8 @@ copy () {
 	cp -rfT --remove-destination "${ORIGINAL_INSTALL_DIR}/$1" "../game/$1"
 }
 
+cp -rfT game_clean/copy/ ../game/
+
 link_dir hl2
 link_dir platform
 link_dir tf/maps
@@ -38,12 +40,11 @@ link_dir tf/media
 link_dir tf/resource
 link_dir tf/scripts
 
-link_glob bin ''
+link_glob bin '' 2> >(grep -v "File exists")
 link_glob tf '.vpk'
+link_glob tf '.cache'
 
 copy tf/cfg
 copy tf/gamestate.txt
 copy tf/glshaders.cfg
 copy tf/videoconfig_linux.cfg
-
-cp -rfT game_clean/copy/ ../game/
