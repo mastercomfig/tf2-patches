@@ -28,6 +28,8 @@ copy () {
 	cp -rfT --remove-destination "${ORIGINAL_INSTALL_DIR}/$1" "../game/$1"
 }
 
+git submodule update --init
+
 cp -rfT game_clean/copy/ ../game/
 
 link_dir hl2
