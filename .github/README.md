@@ -5,11 +5,11 @@
 
 # Welcome to Team Comtress 2!
 
-### What *is* TC2?
+## What *is* TC2?
 
 Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community development team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
-### What is TC2 *not*?
+## What is TC2 *not*?
 
 * **TC2 is *not* a "pro mod"**
 
@@ -18,6 +18,10 @@ While much of the work in TC2 will improve the competitive experience, TC2 does 
 * **TC2 is *not* a vision for the "good old days" of TF2**
 
 TC2 will not feature game design changes, gameplay additions, or almost any form of new content. If you're looking for this kind of content, [Team Fortress 2 Classic](https://tf2classic.com/) is more up your alley.
+
+* **TC2 is *not* 2007-2008 TF2**
+
+You're looking for https://github.com/NicknineTheEagle/TF2-Base
 
 * **TC2 is *not* the modern game, with new content/updates**
 
@@ -35,33 +39,63 @@ TC2 is based on the 2017 TF2 source code leak, which contained an in-development
 	* These changes should not affect gameplay, and should be unanimously desired.
 3. **Install TC2 and play the game to test stability, bugfixes, and performance.**
 	* As a separate game, you cannot play normal TF2 matchmaking. You can *only* connect to TC2 servers.
-	* Information about multiplayer playtests can be found [on our Discord server](https://discord.gg/CuPb2zV).
+	* Information about multiplayer playtests can be found on our [Discord server](https://discord.gg/CuPb2zV).
 
 ## Basic Installation
 
 New users should follow this approach.
+<!--### Automatic
 
-1. Copy your current `Team Fortress 2` installation to a new folder.
-2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
-	* Do *not* delete the entire `tf/cfg` folder!
-3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
-4. ![Unblock ZIP](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
-5. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
-6. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
-7. Double click `start_tf2.bat`. Note that you must have Steam running.
-8. Enjoy!
+https://github.com/GoodOldJack12/Team-Comtress-2-Installer#Install-guide
 
-*Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/team-comtress-2/wiki/Advanced-Installation-Instructions).*
+### Manual
+-->
+1. Go to your Steam Library, right click Team Fortress 2, click `Properties...`, go to the `Updates` tab, and untick `Enable Steam Cloud Synchronization`.
+2. Go to the `Local Files` tab, and click `Browse Local Files...`
+3. Copy `Team Fortress 2` to a new folder.
+4. Delete the following in the `Team Fortress 2` **COPY** folder:
+	* `tf/`
+		* `addons`
+		* `custom`
+		* `cfg/`
+			* `autoexec.cfg`
+			* `config.cfg`
+			* `listenserver.cfg`
+			* `scout.cfg`
+			* `soldier.cfg`
+			* `pyro.cfg`
+			* `demoman.cfg`
+			* `heavyweapons.cfg`
+			* `engineer.cfg`
+			* `medic.cfg`
+			* `sniper.cfg`
+			* `spy.cfg`
+5. Download `game_clean.zip` from [the latest release](https://github.com/mastercomfig/team-comtress-2/releases/latest).
+6. Right click `game_clean.zip`, click `Properties`, tick `Unblock`, and press OK:
+	* Note: The file extension (`.zip`) might not be visible.
+	<br>![](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png)
+	<br>If there is no option to Unblock it, you can skip this step.
+7. Extract `game_clean.zip` into your `Team Fortress 2` copy overwriting all files.
+8. To run TC2, open `start_tf2.bat`.
+	* Note: Steam must be running.
 
 ## For players:
 
-### [Things to keep in mind with TC2](https://github.com/mastercomfig/team-comtress-2/wiki/Things-to-keep-in-mind-with-TC2)
-### [New console commands and launch options](https://github.com/mastercomfig/team-comtress-2/wiki/New-console-commands-and-launch-options)
+* [Things to keep in mind with TC2](https://github.com/mastercomfig/team-comtress-2/wiki/Things-to-keep-in-mind-with-TC2)
+* [New console commands and launch options](https://github.com/mastercomfig/team-comtress-2/wiki/New-console-commands-and-launch-options)
+* [Edited and removed console commands](https://github.com/mastercomfig/team-comtress-2/wiki/Edited-and-removed-console-commands)
 
 ## For developers:
 
-### [Windows Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions)
-### [Linux Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Linux-Build-Instructions)
+### Advanced Installation
+
+Advanced Installation instructions for contributors and developers can be found [here](https://github.com/mastercomfig/team-comtress-2/wiki/Advanced-Installation-Instructions).
+
+### Build Instructions:
+
+* [Windows](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions)
+* [Linux](https://github.com/mastercomfig/team-comtress-2/wiki/Linux-Build-Instructions)
+* ~~[Mac](https://github.com/mastercomfig/team-comtress-2/wiki/Mac-Build-Instructions)~~
 
 ## Legal
 
