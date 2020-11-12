@@ -1359,6 +1359,22 @@ void CTFClassMenu::OnCommand( const char *command )
 //-----------------------------------------------------------------------------
 void CTFClassMenu::Join_Class( const CCommand &args )
 {
+	if ( TFGameRules() && TFGameRules()->IsInTraining() )
+	{
+		SetVisible( false );
+
+		CHudNotificationPanel *pNotifyPanel = GET_HUDELEMENT( CHudNotificationPanel );
+		if ( pNotifyPanel )
+		{
+			if ( C_TFPlayer::GetLocalTFPlayer() )
+			{
+				pNotifyPanel->SetupNotifyCustom( "#TF_CantChangeClassNow", "ico_notify_flag_moving", C_TFPlayer::GetLocalTFPlayer()->GetTeamNumber() );
+			}
+		}
+
+		return;
+	}
+
 	if ( args.ArgC() > 1 )
 	{
 		char cmd[256];

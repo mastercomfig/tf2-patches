@@ -4105,6 +4105,7 @@ void CTFGameRules::Activate()
 		m_bIsInTraining.Set( true );
 		m_bAllowTrainingAchievements.Set( false );
 		mp_humans_must_join_team.SetValue( "blue" );
+		mp_allowspectators.SetValue( "0.0" );
 		m_bIsTrainingHUDVisible.Set( true );
 		tf_training_client_message.SetValue( (int)TRAINING_CLIENT_MESSAGE_NONE );
 	}
@@ -7604,6 +7605,7 @@ void CTFGameRules::LevelShutdown()
 	if ( IsInTraining() )
 	{
 		mp_humans_must_join_team.SetValue( "any" );
+		mp_allowspectators.SetValue( "1.0" );
 		training_can_build_sentry.Revert();
 		training_can_build_dispenser.Revert();
 		training_can_build_tele_entrance.Revert();
