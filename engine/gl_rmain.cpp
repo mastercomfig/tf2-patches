@@ -42,11 +42,7 @@
 extern ConVar r_waterforceexpensive;
 #endif
 
-ConVar r_aspectratio( "r_aspectratio", "0" 
-#if !defined( _X360 )
-					 , FCVAR_CHEAT
-#endif
-					 );
+ConVar r_aspectratio( "r_aspectratio", "0" );
 ConVar r_dynamiclighting( "r_dynamiclighting", "1", FCVAR_CHEAT );
 extern ConVar building_cubemaps;
 extern float scr_demo_override_fov;	
@@ -124,17 +120,29 @@ void PerpendicularVector( Vector& dst, const Vector& src )
 //-----------------------------------------------------------------------------
 float GetScreenAspect( )
 {
-	// use the override if set
-	if ( r_aspectratio.GetFloat() > 0.0f )
-		return r_aspectratio.GetFloat();
-
 	// mikesart: This is just sticking in unnecessary BeginRender/EndRender calls to the queue.
 	//   CMatRenderContextPtr pRenderContext( materials );
 	IMatRenderContext *pRenderContext = g_pMaterialSystem->GetRenderContext();
 
 	int width, height;
 	pRenderContext->GetRenderTargetDimensions( width, height );
-	return (height != 0) ? ( (float)width / (float)height ) : 1.0f;
+	float aspectratio = (height != 0) ? ( (float)width / (float)height ) : 1.0f;
+
+	// use the override if set
+	if ( r_aspectratio.GetFloat() != 0.0f )
+	{
+		extern ConVar sv_cheats;
+		if ( ( r_aspectratio.GetFloat() <= aspectratio && r_aspectratio.GetFloat() > 0 ) || sv_cheats.GetInt() )
+		{
+			return r_aspectratio.GetFloat();
+		}
+		else
+		{
+			ConMsg( "r_aspectratio was set wider than the native aspect ratio, or less than 0 without sv_cheats... Reverting.\n" );
+			r_aspectratio.SetValue( "0" );
+		}
+	}
+	return aspectratio;
 }
 
 
