@@ -645,9 +645,7 @@ ConVar tf_arena_override_team_size( "tf_arena_override_team_size", "0", FCVAR_RE
 ConVar tf_arena_first_blood( "tf_arena_first_blood", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "Rewards the first player to get a kill each round." );
 extern ConVar tf_arena_preround_time;
 extern ConVar tf_arena_max_streak;
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 extern ConVar mp_developer;
-#endif // _DEBUG || STAGING_ONLY
 
 //=============================================================================
 // HPE_BEGIN
@@ -18243,10 +18241,8 @@ bool CTFGameRules::ShouldRespawnQuickly( CBasePlayer *pPlayer )
 		return true;
 	}
 
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetBool() )
 		return true;
-#endif // _DEBUG || STAGING_ONLY
 
 	if ( IsCompetitiveMode() && State_Get() == GR_STATE_BETWEEN_RNDS )
 		return true;

@@ -235,8 +235,8 @@ ConVar  tf_space_thrust_heavy( "tf_space_thrust_heavy", "33.0", FCVAR_CHEAT | FC
 ConVar  tf_space_thrust_demo( "tf_space_thrust_demo", "33.0", FCVAR_CHEAT | FCVAR_REPLICATED, "How much thrust is added while holding jump" );
 ConVar  tf_space_thrust_use_rate( "tf_space_thrust_use_rate", "2.0", FCVAR_CHEAT | FCVAR_REPLICATED, "How much fuel is used per tick" );
 ConVar  tf_space_thrust_recharge_rate( "tf_space_thrust_recharge_rate", "0.5", FCVAR_CHEAT | FCVAR_REPLICATED, "How much fuel is recharged per tick" );
-ConVar  tf_skip_intro_and_spectate( "tf_skip_intro_and_spectate", "0", FCVAR_REPLICATED, "Skip intro panels and start spectating." );
 #endif
+ConVar  tf_skip_intro_and_spectate( "tf_skip_intro_and_spectate", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "Skip intro panels and start spectating." );
 
 #ifdef STAGING_ONLY
 ConVar tf_highfive_separation_forward( "tf_highfive_separation_forward", "0", FCVAR_CHEAT, "Forward distance between high five partners" );
@@ -332,9 +332,7 @@ extern ConVar mp_spectators_restricted;
 extern ConVar mp_teams_unbalance_limit;
 extern ConVar tf_tournament_classchange_allowed;
 extern ConVar tf_tournament_classchange_ready_allowed;
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 extern ConVar mp_developer;
-#endif // _DEBUG || STAGING_ONLY 
 #ifdef STAGING_ONLY
 extern ConVar tf_skillrating_debug_bots_allowed;
 #endif // STAGING_ONLY
@@ -6660,7 +6658,6 @@ void CTFPlayer::HandleCommand_JoinClass( const char *pClassName, bool bAllowSpaw
 		}
 	}
 
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetBool() && !IsBot() )
 	{
 		Vector vPos = GetAbsOrigin();
@@ -6670,7 +6667,6 @@ void CTFPlayer::HandleCommand_JoinClass( const char *pClassName, bool bAllowSpaw
 		Teleport( &vPos, &qAngle, &vec3_origin );
 		return;
 	}
-#endif // _DEBUG || STAGING_ONLY
 
 	// joining the same class?
 	if ( iClass != TF_CLASS_RANDOM && iClass == GetDesiredPlayerClassIndex() )
@@ -8557,10 +8553,8 @@ int CTFPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 	bool bBuddha = ( m_debugOverlays & OVERLAY_BUDDHA_MODE ) ? true : false;
 
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetInt() > 1 && !IsBot() )
 		bBuddha = true;
-#endif // _DEBUG || STAGING_ONLY
 
 	if ( bBuddha )
 	{
@@ -13109,14 +13103,12 @@ void CTFPlayer::StateEnterWELCOME( void )
 //=============================================================================
 // HPE_END
 //=============================================================================
-#ifdef STAGING_ONLY
 	else if ( tf_skip_intro_and_spectate.GetBool() )
 	{
 		m_bSeenRoundInfo = true;
 		ChangeTeam( TEAM_SPECTATOR );
 		SetObserverMode( OBS_MODE_CHASE );
 	}
-#endif
 	else
 	{
 		if ( !IsX360() )
@@ -13384,7 +13376,6 @@ void CTFPlayer::StateThinkOBSERVER()
 	Assert( m_lifeState == LIFE_DEAD );
 	Assert( pl.deadflag );
 
-#ifdef STAGING_ONLY
 	if ( tf_skip_intro_and_spectate.GetInt() > 5 )
 	{
 		static float s_flLastTime = gpGlobals->curtime;
@@ -13410,7 +13401,6 @@ void CTFPlayer::StateThinkOBSERVER()
 			}
 		}
 	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -13679,10 +13669,8 @@ void CTFPlayer::RemoveAmmo( int iCount, int iAmmoIndex )
 		return;
 	}
 
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetInt() > 1 && !IsBot() )
 		return;
-#endif // _DEBUG || STAGING_ONLY
 
 	if ( m_Shared.InCond( TF_COND_HALLOWEEN_GIANT ) )
 	{
@@ -19417,7 +19405,7 @@ void DebugParticles( const CCommand &args )
 	}
 }
 
-static ConCommand sv_debug_stuck_particles( "sv_debug_stuck_particles", DebugParticles, "Debugs particles attached to the player under your crosshair.", FCVAR_DEVELOPMENTONLY );
+static ConCommand sv_debug_stuck_particles( "sv_debug_stuck_particles", DebugParticles, "Debugs particles attached to the player under your crosshair.", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
 
 //-----------------------------------------------------------------------------
 // Purpose: Debug concommand to set the player on fire

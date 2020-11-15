@@ -99,10 +99,8 @@ bool CTFAutobalance::ShouldBeActive() const
 	if ( TFGameRules()->IsInArenaMode() && tf_arena_use_queue.GetBool() )
 		return false;
 
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetBool() )
 		return false;
-#endif // _DEBUG || STAGING_ONLY
 
 	if ( mp_teams_unbalance_limit.GetInt() <= 0 )
 		return false;

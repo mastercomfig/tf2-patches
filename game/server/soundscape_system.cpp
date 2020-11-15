@@ -91,7 +91,7 @@ void CSoundscapeSystem::AddSoundscapeFile( const char *filename )
 	pKeyValuesData->deleteThis();
 }
 
-CON_COMMAND_F( sv_soundscape_printdebuginfo, "print soundscapes", FCVAR_DEVELOPMENTONLY )
+CON_COMMAND_F( sv_soundscape_printdebuginfo, "print soundscapes", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY )
 {
 	if ( !UTIL_IsCommandIssuedByServerAdmin() )
 		return;

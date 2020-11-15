@@ -156,9 +156,7 @@ ConVar tf_allow_sliding_taunt( "tf_allow_sliding_taunt", "0", FCVAR_NONE, "1 - A
 
 #endif // GAME_DLL
 
-#ifdef STAGING_ONLY
-ConVar tf_force_allow_move_during_taunt( "tf_force_allow_move_during_taunt", "0", FCVAR_REPLICATED );
-#endif // STAGING_ONLY
+ConVar tf_force_allow_move_during_taunt( "tf_force_allow_move_during_taunt", "0", FCVAR_REPLICATED | FCVAR_CHEAT );
 
 ConVar tf_useparticletracers( "tf_useparticletracers", "1", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED, "Use particle tracers instead of old style ones." );
 ConVar tf_spy_cloak_consume_rate( "tf_spy_cloak_consume_rate", "10.0", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED, "cloak to use per second while cloaked, from 100 max )" );	// 10 seconds of invis
@@ -201,9 +199,7 @@ extern ConVar cam_idealdistright;
 
 extern ConVar tf_flamethrower_flametime;
 extern ConVar weapon_medigun_chargerelease_rate;
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 extern ConVar mp_developer;
-#endif // _DEBUG || STAGING_ONLY
 
 //ConVar tf_spy_stealth_blink_time( "tf_spy_stealth_blink_time", "0.3", FCVAR_DEVELOPMENTONLY, "time after being hit the spy blinks into view" );
 //ConVar tf_spy_stealth_blink_scale( "tf_spy_stealth_blink_scale", "0.85", FCVAR_DEVELOPMENTONLY, "percentage visible scalar after being hit the spy blinks into view" );
@@ -10252,10 +10248,8 @@ bool CTFPlayer::CanPlayerMove() const
 	bool bFreezeOnRestart = tf_player_movement_restart_freeze.GetBool();
 	if ( bFreezeOnRestart )
 	{
-#if defined( _DEBUG ) || defined( STAGING_ONLY )
 		if ( mp_developer.GetBool() )
 			bFreezeOnRestart = false;
-#endif // _DEBUG || STAGING_ONLY
 
 	if ( TFGameRules() && TFGameRules()->UsePlayerReadyStatusMode() && ( TFGameRules()->State_Get() == GR_STATE_BETWEEN_RNDS ) )
 		bFreezeOnRestart = false;

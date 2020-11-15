@@ -330,7 +330,7 @@ void CTFWrench::ApplyBuildingHealthUpgrade( void )
 #endif
 
 // STAGING_ENGY
-ConVar tf_construction_build_rate_multiplier( "tf_construction_build_rate_multiplier", "1.5f", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
+ConVar tf_construction_build_rate_multiplier( "tf_construction_build_rate_multiplier", "1.5f", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY | FCVAR_CHEAT );
 float CTFWrench::GetConstructionValue( void )
 {
 	float flValue = tf_construction_build_rate_multiplier.GetFloat();

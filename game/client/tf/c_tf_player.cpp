@@ -1971,7 +1971,7 @@ bool CSpyInvisProxy::Init( IMaterial *pMaterial, KeyValues* pKeyValues )
 	return ( bInvis && bTint );
 }
 
-ConVar tf_teammate_max_invis( "tf_teammate_max_invis", "0.95", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+ConVar tf_teammate_max_invis( "tf_teammate_max_invis", "0.95", FCVAR_NONE );
 
 //-----------------------------------------------------------------------------
 // Purpose: 

@@ -120,7 +120,7 @@ public:
 // If it can't get there, leave the player where he is.
 // 
 
-ConVar sv_unlag_debug( "sv_unlag_debug", "0", FCVAR_GAMEDLL | FCVAR_DEVELOPMENTONLY );
+ConVar sv_unlag_debug( "sv_unlag_debug", "0", FCVAR_GAMEDLL | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
 
 float g_flFractionScale = 0.95;
 static void RestorePlayerTo( CBasePlayer *pPlayer, const Vector &vWantedPos )
