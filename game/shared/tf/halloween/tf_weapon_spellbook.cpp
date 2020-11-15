@@ -1389,7 +1389,7 @@ bool CTFSpellBook::CastRocketJump( CTFPlayer *pPlayer )
 			pBaseTarget = pTarget;
 		}
 
-		if ( !pBaseTarget || !pTarget || !pTarget->IsAlive() || pBaseTarget->GetTeamNumber() == pPlayer->GetTeamNumber() )
+		if ( !pBaseTarget || !pTarget || !pTarget->IsAlive() || ( pBaseTarget->GetTeamNumber() == pPlayer->GetTeamNumber() && friendlyfire.GetInt() != 1 ) )
 			continue;
 
 		// Do a quick trace to see if there's any geometry in the way.
@@ -1496,7 +1496,7 @@ bool CTFSpellBook::CastKartRocketJump( CTFPlayer *pPlayer )
 	{
 		CTFPlayer *pTarget = ToTFPlayer( pListOfEntities[i] );
 		
-		if ( !pTarget || !pTarget->IsAlive() || pTarget->GetTeamNumber() == pPlayer->GetTeamNumber() )
+		if ( !pTarget || !pTarget->IsAlive() || ( pTarget->GetTeamNumber() == pPlayer->GetTeamNumber() && !friendlyfire.GetInt() ) )
 			continue;
 
 		// Do a quick trace to see if there's any geometry in the way.
@@ -1709,7 +1709,7 @@ public:
 	virtual bool		InitialExplodeEffects( CTFPlayer *pThrower, const trace_t *pTrace ) { return true; }
 	virtual void		ExplodeEffectOnTarget( CTFPlayer *pThrower, CTFPlayer *pTarget, CBaseCombatCharacter *pBaseTarget )
 	{
-		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() )
+		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() && !friendlyfire.GetInt() || pBaseTarget == pThrower )
 			return;
 
 		if ( pTarget )
@@ -1920,7 +1920,7 @@ public:
 
 	virtual void ExplodeEffectOnTarget( CTFPlayer *pThrower, CTFPlayer *pTarget, CBaseCombatCharacter *pBaseTarget )
 	{
-		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() )
+		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() && !friendlyfire.GetInt() || pBaseTarget == pThrower )
 			return;
 
 		if ( pTarget )
@@ -2908,7 +2908,7 @@ public:
 			if ( !pTarget->IsAlive() )
 				continue;
 
-			if ( pOwner->InSameTeam( pTarget ) )
+			if ( pOwner->InSameTeam( pTarget ) && !friendlyfire.GetInt() || pOwner == pTarget )
 				continue;
 
 			if ( !FVisible( pTarget, MASK_OPAQUE ) )
@@ -2980,7 +2980,8 @@ public:
 			if ( !pEntity )
 				continue;
 
-			if ( InSameTeam( pEntity ) )
+			CBaseEntity* pOwner = GetOwnerEntity();
+			if ( InSameTeam( pEntity ) && !friendlyfire.GetInt() || pEntity == pOwner )
 				continue;
 
 			if ( !FVisible( pEntity, MASK_OPAQUE ) )
@@ -3341,7 +3342,7 @@ public:
 						pBasePlayer = pPlayer;
 					}
 
-					if ( !pBasePlayer || !pPlayer || !pPlayer->IsAlive() || InSameTeam(pPlayer) )
+					if ( !pBasePlayer || !pPlayer || !pPlayer->IsAlive() || ( InSameTeam(pPlayer) && !friendlyfire.GetInt() ) || pBasePlayer == pThrower )
 						continue;
 
 					// Do a quick trace to see if there's any geometry in the way.
@@ -3403,7 +3404,7 @@ public:
 
 	virtual void ExplodeEffectOnTarget( CTFPlayer *pThrower, CTFPlayer *pTarget, CBaseCombatCharacter *pBaseTarget )
 	{
-		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() )
+		if ( pBaseTarget->GetTeamNumber() == GetTeamNumber() && !friendlyfire.GetInt() )
 			return;
 
 		if ( !pTarget )
