@@ -759,7 +759,7 @@ CTFPlayerShared::CTFPlayerShared()
 	// of m_nPlayerCond, m_nPlayerCondEx, m_nPlayerCondEx2, and m_nPlayerCondEx3 to get more bits.
 	// This pattern is as such to preserve replays.
 	// Don't forget to add an m_nOldCond* and m_nForceCond*
-	COMPILE_TIME_ASSERT( TF_COND_LAST < (32 + 32 + 32 + 32) );
+	//COMPILE_TIME_ASSERT( TF_COND_LAST < (32 + 32 + 32 + 32) );
 
 	m_nPlayerState.Set( TF_STATE_WELCOME );
 	m_bJumping = false;
@@ -9058,7 +9058,7 @@ void CTFPlayerShared::GetConditionsBits( CBitVec< TF_COND_LAST >& vbConditions )
 	vbConditions.Set( 1u, (uint32)m_nPlayerCondEx );
 	vbConditions.Set( 2u, (uint32)m_nPlayerCondEx2 );
 	vbConditions.Set( 3u, (uint32)m_nPlayerCondEx3 );
-	COMPILE_TIME_ASSERT( 32 + 32 + 32 + 32 > TF_COND_LAST );
+	//COMPILE_TIME_ASSERT( 32 + 32 + 32 + 32 > TF_COND_LAST );
 }
 
 //-----------------------------------------------------------------------------
