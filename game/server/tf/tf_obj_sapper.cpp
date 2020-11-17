@@ -199,26 +199,29 @@ void CObjectSapper::FinishedBuilding( void )
 	BaseClass::FinishedBuilding();
 
 	CBaseEntity *pEntity =  m_hBuiltOnEntity.Get();
-	if ( pEntity )
+	if (pEntity)
 	{
-		if ( GetParentObject() )
+		if (!IsPlacing())
 		{
-			GetParentObject()->OnAddSapper();
-
-			CBaseObject *pObject = dynamic_cast<CBaseObject *>( m_hBuiltOnEntity.Get() );
-			if ( pObject )
+			if (GetParentObject())
 			{
-				if ( GetBuilder() && pObject->GetBuilder() )
-				{
-					IGameEvent * event = gameeventmanager->CreateEvent( "player_sapped_object" );
-					if ( event )
-					{
-						event->SetInt( "userid", GetBuilder()->GetUserID() );
-						event->SetInt( "ownerid", pObject->GetBuilder()->GetUserID() );
-						event->SetInt( "object", pObject->ObjectType() );
-						event->SetInt( "sapperid", entindex() );
+				GetParentObject()->OnAddSapper();
 
-						gameeventmanager->FireEvent( event );
+				CBaseObject* pObject = dynamic_cast<CBaseObject*>(m_hBuiltOnEntity.Get());
+				if (pObject)
+				{
+					if (GetBuilder() && pObject->GetBuilder())
+					{
+						IGameEvent* event = gameeventmanager->CreateEvent("player_sapped_object");
+						if (event)
+						{
+							event->SetInt("userid", GetBuilder()->GetUserID());
+							event->SetInt("ownerid", pObject->GetBuilder()->GetUserID());
+							event->SetInt("object", pObject->ObjectType());
+							event->SetInt("sapperid", entindex());
+							
+							gameeventmanager->FireEvent(event);
+						}
 					}
 				}
 			}
