@@ -23,10 +23,11 @@ assignees:
 - [ ] This PR does not introduce any regressions.
 - [ ] I certify that this PR is my own entirely original work, or I have permission from and have attributed the relevant authors.
 - [ ] I have agreed to and signed this project's [Contributor License Agreement](https://cla-assistant.io/mastercomfig/team-comtress-2).
+- [ ] This PR only contains changes to the engine and/or core game framework
+- [ ] This PR targets the `community` branch.
 
 <!-- You do NOT have to answer "yes" to the following, but please mark them if relevant -->
 <!-- To tick a checkbox, place an 'x' in it, like so: [x] -->
-- [ ] This PR targets the `master` branch.
 - [ ] This bug has been filed as an issue.
 - [ ] No other PRs fix this bug.
 - [ ] This fix is as minimal as possible.
