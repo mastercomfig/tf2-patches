@@ -82,3 +82,5 @@ UpgradeLog*.htm
 
 # ignore generated protobufs
 generated_proto*/
+
+external/crypto++-5.6.3/*
