@@ -1344,13 +1344,19 @@ bool CTFPlayerAnimState::HandleJumping( Activity &idealActivity )
 		
 	// Handle air walking before handling jumping - air walking supersedes jump
 	TFPlayerClassData_t *pData = m_pTFPlayer->GetPlayerClass()->GetData();
-	bool bValidAirWalkClass = ( pData && pData->m_bDontDoAirwalk == false );
+	const bool bValidAirWalkClass = ( pData && pData->m_bDontDoAirwalk == false );
 
-	if ( bValidAirWalkClass && ( vecVelocity.z > 300.0f || m_bInAirWalk || m_pTFPlayer->GetGrapplingHookTarget() != NULL ) && !bInDuck )
+	if ( bValidAirWalkClass && ( vecVelocity.z > 300.0f || m_bInAirWalk || m_pTFPlayer->GetGrapplingHookTarget() != NULL ) )
 	{
-		// Check to see if we were in an airwalk and now we are basically on the ground.
-		if ( ( GetBasePlayer()->GetFlags() & FL_ONGROUND ) && m_bInAirWalk )
-		{				
+		if ( ( GetBasePlayer()->GetFlags() & FL_ONGROUND ) == 0 )
+		{
+			// In an air walk.
+			idealActivity = ACT_MP_AIRWALK;
+			m_bInAirWalk = true;
+		}
+		else if ( ( GetBasePlayer()->GetFlags() & FL_ONGROUND ) && m_bInAirWalk )
+		{
+			// Check to see if we were in an airwalk and now we are basically on the ground.
 			m_bInAirWalk = false;
 			RestartMainSequence();
 			RestartGesture( GESTURE_SLOT_JUMP, ACT_MP_JUMP_LAND );	
@@ -1360,12 +1366,6 @@ bool CTFPlayerAnimState::HandleJumping( Activity &idealActivity )
 			// Turn off air walking and reset the animation.
 			m_bInAirWalk = false;
 			RestartMainSequence();
-		}
-		else if ( ( GetBasePlayer()->GetFlags() & FL_ONGROUND ) == 0 )
-		{
-			// In an air walk.
-			idealActivity = ACT_MP_AIRWALK;
-			m_bInAirWalk = true;
 		}
 	}
 	// Jumping.
