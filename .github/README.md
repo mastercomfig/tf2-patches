@@ -7,23 +7,11 @@
 
 ### What *is* TC2?
 
-Team Comtress 2 is a fork of an older version of Team Fortress 2, with a community development team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
+Team Comtress 2 is a set of modifications on top of an older version of Team Fortress 2, with a community development team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
 ### What is TC2 *not*?
 
-* **TC2 is *not* a "pro mod"**
-
-While much of the work in TC2 will improve the competitive experience, TC2 does not touch gameplay, balance, or competitive rules.
-
-* **TC2 is *not* a vision for the "good old days" of TF2**
-
-TC2 will not feature game design changes, gameplay additions, or almost any form of new content. If you're looking for this kind of content, [Team Fortress 2 Classic](https://tf2classic.com/) is more up your alley.
-
-* **TC2 is *not* the modern game, with new content/updates**
-
-You're looking for [Creators.TF](https://creators.tf/).
-
-* **TC2 is *not* an alternative, more stable game experience**
+**TC2 is *not* an alternative, more stable game experience**
 
 TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and ***is not compatible*** with the modern game client.
 
