@@ -1223,7 +1223,7 @@ bool CTFGameMovement::CheckJumpButton()
 
 	ToggleParachute();
 
-	// Cannot jump will ducked.
+	// Cannot jump while ducked.
 	if ( player->GetFlags() & FL_DUCKING )
 	{
 		// Let a scout do it.
