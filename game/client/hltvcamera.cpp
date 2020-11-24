@@ -88,7 +88,7 @@ void C_HLTVCamera::Reset()
 {
 	m_nCameraMode = OBS_MODE_FIXED;
 	m_iCameraMan  = 0;
-	m_iTraget1 = m_iTraget2 = 0;
+	m_iTarget1 = m_iTarget2 = 0;
 	m_flFOV = 90;
 	m_flDistance = m_flLastDistance = 96.0f;
 	m_flInertia = 3.0f;
@@ -110,7 +110,7 @@ void C_HLTVCamera::CalcChaseCamView( Vector& eyeOrigin, QAngle& eyeAngles, float
 	
  	Vector targetOrigin1, targetOrigin2, cameraOrigin, forward;
 
- 	if ( m_iTraget1 == 0 )
+ 	if ( m_iTarget1 == 0 )
 		return;
 
 	// get primary target, also translates to ragdoll
@@ -140,9 +140,9 @@ void C_HLTVCamera::CalcChaseCamView( Vector& eyeOrigin, QAngle& eyeAngles, float
 	// get secondary target if set
 	C_BaseEntity *target2 = NULL;
 
-	if ( m_iTraget2 > 0 && (m_iTraget2 != m_iTraget1) && !bManual )
+	if ( m_iTarget2 > 0 && (m_iTarget2 != m_iTarget1) && !bManual )
 	{
-		target2 = ClientEntityList().GetBaseEntity( m_iTraget2 );
+		target2 = ClientEntityList().GetBaseEntity( m_iTarget2 );
 
 		// if target is out PVS and not dead, it's not valid
 		if ( target2 && target2->IsDormant() && target2->IsAlive() )
@@ -183,7 +183,7 @@ void C_HLTVCamera::CalcChaseCamView( Vector& eyeOrigin, QAngle& eyeAngles, float
         VectorAngles( forward, cameraAngles );
         cameraAngles.z = 0; // no ROLL
 	}
-	else if ( m_iTraget2 == 0 || m_iTraget2 == m_iTraget1)
+	else if ( m_iTarget2 == 0 || m_iTarget2 == m_iTarget1)
 	{
 		// look into direction where primary target is looking
 		cameraAngles = target1->EyeAngles();
@@ -284,10 +284,10 @@ C_BaseEntity* C_HLTVCamera::GetPrimaryTarget()
 		}
 	}
 
-	if ( m_iTraget1 <= 0 )
+	if ( m_iTarget1 <= 0 )
 		return NULL;
 
-	C_BaseEntity* target = ClientEntityList().GetEnt( m_iTraget1 );
+	C_BaseEntity* target = ClientEntityList().GetEnt( m_iTarget1 );
 
 	return target;
 }
@@ -299,7 +299,7 @@ C_BaseEntity *C_HLTVCamera::GetCameraMan()
 
 void C_HLTVCamera::CalcInEyeCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov )
 {
-	C_BasePlayer *pPlayer = UTIL_PlayerByIndex( m_iTraget1 );
+	C_BasePlayer *pPlayer = UTIL_PlayerByIndex( m_iTarget1 );
 
 	if ( !pPlayer )
 		return;
@@ -472,10 +472,10 @@ void C_HLTVCamera::CalcFixedView(Vector& eyeOrigin, QAngle& eyeAngles, float& fo
 	eyeAngles = m_aCamAngle;
 	fov = m_flFOV;
 
-	if ( m_iTraget1 == 0 )
+	if ( m_iTarget1 == 0 )
 		return;
 
- 	C_BaseEntity * target = ClientEntityList().GetBaseEntity( m_iTraget1 );
+ 	C_BaseEntity * target = ClientEntityList().GetBaseEntity( m_iTarget1 );
 	
 	if ( target && target->IsAlive() )
 	{
@@ -559,18 +559,18 @@ void C_HLTVCamera::SetMode(int iMode)
 	{
 		event->SetInt( "oldmode", iOldMode );
 		event->SetInt( "newmode", m_nCameraMode );
-		event->SetInt( "obs_target", m_iTraget1 );
+		event->SetInt( "obs_target", m_iTarget1 );
 		gameeventmanager->FireEventClientSide( event );
 	}
 }
 
 void C_HLTVCamera::SetPrimaryTarget( int nEntity ) 
 {
- 	if ( m_iTraget1 == nEntity )
+ 	if ( m_iTarget1 == nEntity )
 		return;
 
-	int iOldTarget = m_iTraget1;
-	m_iTraget1 = nEntity;
+	int iOldTarget = m_iTarget1;
+	m_iTarget1 = nEntity;
 
 	if ( GetMode() == OBS_MODE_ROAMING )
 	{
@@ -582,7 +582,7 @@ void C_HLTVCamera::SetPrimaryTarget( int nEntity )
 	}
 	else if ( GetMode() == OBS_MODE_CHASE )
 	{
-		C_BaseEntity* target = ClientEntityList().GetEnt( m_iTraget1 );
+		C_BaseEntity* target = ClientEntityList().GetEnt( m_iTarget1 );
 		if ( target )
 		{
 			QAngle eyeAngle = target->EyeAngles();
@@ -598,7 +598,7 @@ void C_HLTVCamera::SetPrimaryTarget( int nEntity )
 	{
 		event->SetInt( "mode", m_nCameraMode );
 		event->SetInt( "old_target", iOldTarget );
-		event->SetInt( "obs_target", m_iTraget1 );
+		event->SetInt( "obs_target", m_iTarget1 );
 		gameeventmanager->FireEventClientSide( event );
 	}
 }
@@ -607,8 +607,8 @@ void C_HLTVCamera::SpecNextPlayer( bool bInverse )
 {
 	int start = 1;
 
-	if ( m_iTraget1 > 0 && m_iTraget1 <= gpGlobals->maxClients )
-		start = m_iTraget1;
+	if ( m_iTarget1 > 0 && m_iTarget1 <= gpGlobals->maxClients )
+		start = m_iTarget1;
 
 	int index = start;
 
@@ -765,7 +765,7 @@ void C_HLTVCamera::FireGameEvent( IGameEvent * event)
 
 		SetPrimaryTarget( event->GetInt( "target" ) );
 
-		if ( m_iTraget1 == 0 )
+		if ( m_iTarget1 == 0 )
 		{
 			SetCameraAngle( angle );
 		}
@@ -788,7 +788,7 @@ void C_HLTVCamera::FireGameEvent( IGameEvent * event)
 
 		m_iCameraMan  = 0;
 				
-		m_iTraget2		= event->GetInt( "target2" );
+		m_iTarget2		= event->GetInt( "target2" );
 		m_flDistance	= event->GetFloat( "distance", m_flDistance );
 		m_flOffset		= event->GetFloat( "offset", m_flOffset );
 		m_flTheta		= event->GetFloat( "theta", m_flTheta );

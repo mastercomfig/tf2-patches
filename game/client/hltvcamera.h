@@ -59,8 +59,8 @@ protected:
 	int			m_iCameraMan; // camera man entindex or 0
 	Vector		m_vCamOrigin;  //current camera origin
 	QAngle		m_aCamAngle;   //current camera angle
-	int			m_iTraget1;	// first tracked target or 0
-	int			m_iTraget2; // second tracked target or 0
+	int			m_iTarget1;	// first tracked target or 0
+	int			m_iTarget2; // second tracked target or 0
 	float		m_flFOV; // current FOV
 	float		m_flOffset;  // z-offset from target origin
 	float		m_flDistance; // distance to target origin+offset
