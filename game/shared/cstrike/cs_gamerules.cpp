@@ -3794,15 +3794,15 @@ ConVar cl_autohelp(
 		if (iNumToSwap > 3) // Don't swap more than 3 players at a time.. This is a naive method of avoiding infinite loops.
 			iNumToSwap = 3;
 
-		int iTragetTeam = TEAM_UNASSIGNED;
+		int iTargetTeam = TEAM_UNASSIGNED;
 
 		if ( iTeamToSwap == TEAM_CT )
 		{
-			iTragetTeam = TEAM_TERRORIST;
+			iTargetTeam = TEAM_TERRORIST;
 		}
 		else if ( iTeamToSwap == TEAM_TERRORIST )
 		{
-			iTragetTeam = TEAM_CT;
+			iTargetTeam = TEAM_CT;
 		}
 		else
 		{
@@ -3824,7 +3824,7 @@ ConVar cl_autohelp(
 			CCSPlayer *pPlayerToSwap = NULL;
 
 			// check if target team is full, exit if so
-			if ( TeamFull(iTragetTeam) )
+			if ( TeamFull(iTargetTeam) )
 				break;
 
 			// search for player with highest UserID = most recently joined to switch over
@@ -3854,7 +3854,7 @@ ConVar cl_autohelp(
 			{
 				traitors.AddRecipient( pPlayerToSwap );
 				loyalists.RemoveRecipient( pPlayerToSwap );
-				pPlayerToSwap->SwitchTeam( iTragetTeam );
+				pPlayerToSwap->SwitchTeam( iTargetTeam );
 			}
 		}
 

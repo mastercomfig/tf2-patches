@@ -431,14 +431,14 @@ bool CKnife::SwingOrStab( bool bStab )
 
 			if ( pEntity && pEntity->IsPlayer() )
 			{
-				Vector vTragetForward;
+				Vector vTargetForward;
 
-				AngleVectors( pEntity->GetAbsAngles(), &vTragetForward );
+				AngleVectors( pEntity->GetAbsAngles(), &vTargetForward );
 				
 				Vector2D vecLOS = (pEntity->GetAbsOrigin() - pPlayer->GetAbsOrigin()).AsVector2D();
 				Vector2DNormalize( vecLOS );
 
-				float flDot = vecLOS.Dot( vTragetForward.AsVector2D() );
+				float flDot = vecLOS.Dot( vTargetForward.AsVector2D() );
 
 				//Triple the damage if we are stabbing them in the back.
 				if ( flDot > 0.80f )
