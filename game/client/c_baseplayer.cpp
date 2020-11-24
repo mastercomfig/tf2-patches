@@ -1717,7 +1717,7 @@ void C_BasePlayer::CalcInEyeCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 		return;
 	}
 
-	fov = GetFOV();	// TODO use tragets FOV
+	fov = GetFOV();	// TODO use targets FOV
 
 	m_flObserverChaseDistance = 0.0;
 

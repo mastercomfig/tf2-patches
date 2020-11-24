@@ -2051,7 +2051,7 @@ public:
 	//
 	
 	// -----------------------------
-	//  Debuging Fields and Methods
+	//  Debugging Fields and Methods
 	// -----------------------------
 	const char*			m_failText;					// Text of why it failed
 	const char*			m_interruptText;			// Text of why schedule interrupted

@@ -115,7 +115,7 @@ enum
 
 #define	svc_SetView			18		// sets entity as point of view
 #define	svc_FixAngle		19		// sets/corrects players viewangle
-#define	svc_CrosshairAngle	20		// adjusts crosshair in auto aim mode to lock on traget
+#define	svc_CrosshairAngle	20		// adjusts crosshair in auto aim mode to lock on target
 
 #define	svc_BSPDecal		21		// add a static decal to the worl BSP
 // NOTE: This is now unused!

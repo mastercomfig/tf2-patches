@@ -479,7 +479,7 @@ protected:
 // DATA
 	int				m_iObserverMode;	// if in spectator mode != 0
 	EHANDLE			m_hObserverTarget;	// current observer target
-	float			m_flObserverChaseDistance; // last distance to observer traget
+	float			m_flObserverChaseDistance; // last distance to observer target
 	Vector			m_vecFreezeFrameStart;
 	float			m_flFreezeFrameStartTime;	// Time at which we entered freeze frame observer mode
 	float			m_flFreezeFrameDistance;

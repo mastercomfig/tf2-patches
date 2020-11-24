@@ -1206,7 +1206,7 @@ bool CTraceFilterMelee::ShouldHitEntity( IHandleEntity *pHandleEntity, int conte
 //------------------------------------------------------------------------------
 CBaseEntity *CBaseCombatCharacter::CheckTraceHullAttack( const Vector &vStart, const Vector &vEnd, const Vector &mins, const Vector &maxs, int iDamage, int iDmgType, float flForceScale, bool bDamageAnyNPC )
 {
-	// Handy debuging tool to visualize HullAttack trace
+	// Handy debugging tool to visualize HullAttack trace
 	if ( ai_show_hull_attacks.GetBool() )
 	{
 		float length	 = (vEnd - vStart ).Length();

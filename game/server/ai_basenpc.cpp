@@ -8858,7 +8858,7 @@ void CAI_BaseNPC::DrawDebugGeometryOverlays(void)
 						g = 0;
 						b = 0;
 					}
-					// Current traget drawn in magenta
+					// Current target drawn in magenta
 					else if (npcEnemy == GetTarget())
 					{
 						r = 255;
