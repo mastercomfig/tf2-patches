@@ -14,7 +14,7 @@
 - [ ] This PR does not introduce any regressions.
 - [ ] I certify that this PR is my own entirely original work, or I have permission from and have attributed the relevant authors.
 - [ ] I have agreed to and signed this project's [Contributor License Agreement](https://cla-assistant.io/mastercomfig/team-comtress-2).
-- [ ] This PR only contains changes to the engine and/or core game framework
+- [ ] This PR only contains changes to the engine and/or core game framework.
 - [ ] This PR targets the `community` branch.
 
 <!-- You do NOT have to answer "yes" to the following, but please mark them if relevant -->
@@ -22,7 +22,6 @@
 - [ ] This change has been filed as an issue.
 - [ ] No other PRs address this.
 - [ ] This PR is as minimal as possible.
-- [ ] This PR does not introduce any regressions.
 - [ ] This PR has been built and locally tested on at least one platform.
 - [ ] This PR has been tested on all platforms, on both a dedicated server and on a listen server.
 
