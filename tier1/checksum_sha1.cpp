@@ -23,12 +23,14 @@
 
 #if !defined(_MINIMUM_BUILD_)
 #include "checksum_sha1.h"
+#include "strtools.h"
 #else
 //
 //	This path is build in the CEG/DRM projects where we require that no CRT references are made !
 //
 #include <intrin.h>				// memcpy, memset etc... will be inlined.
 #include "tier1/checksum_sha1.h"
+#include "tier1/strtools.h"
 #endif
 
 #define MAX_FILE_READ_BUFFER 8000
@@ -238,8 +240,8 @@ void CSHA1::Final()
 	i = 0;
 	memset(m_buffer, 0, sizeof(m_buffer) );
 	memset(m_state, 0, sizeof(m_state) );
-	memset(m_count, 0, sizeof(m_count) );
-	memset(finalcount, 0, sizeof( finalcount) );
+	V_SecureClean(m_count, sizeof(m_count) );
+	V_SecureClean(finalcount, sizeof(finalcount) );
 
 	Transform(m_state, m_buffer);
 }
