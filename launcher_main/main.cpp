@@ -135,7 +135,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		return 0;
 	}
 
-	LauncherMain_t main = (LauncherMain_t)GetProcAddress( launcher, "LauncherMain" );
+	auto main = reinterpret_cast<LauncherMain_t>(GetProcAddress( launcher, "LauncherMain" ));
 	return main( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
 }
 
