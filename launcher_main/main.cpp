@@ -88,6 +88,7 @@ enum class ErrorCode : int
 {
 	None = 0,
 	CantGetModuleFileName,
+	CantUpdatePathEnvVariable,
 	CantLoadLauncherDll,
 	CantFindLauncherMainInLauncherDll
 };
@@ -112,7 +113,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	wchar_t moduleName[ MAX_PATH ];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
-		return ShowErrorBoxAndExitWithCode( L"Failed calling GetModuleFileName", ErrorCode::CantGetModuleFileName );
+		return ShowErrorBoxAndExitWithCode( L"Failed calling GetModuleFileName.", ErrorCode::CantGetModuleFileName );
 	}
 
 	// Get the root directory the .exe is in
@@ -124,13 +125,15 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		L""
 #endif
 		;
-	// Must add 'bin' to the path....
+	// Must add 'bin' to the path...
 	const wchar_t* oldPathEnv{ _wgetenv(L"PATH") };
 
 	wchar_t newPathEnv[4096];
 	swprintf_s( newPathEnv, L"PATH=%s\\bin%s\\;%s", rootDir, binDirPath, oldPathEnv );
-
-	_wputenv( newPathEnv );
+	if ( _wputenv( newPathEnv ) == -1 )
+	{
+		return ShowErrorBoxAndExitWithCode( L"Failed to update PATH env variable.", ErrorCode::CantUpdatePathEnvVariable );
+	}
 
 	// Assemble the full path to our "launcher.dll"
 	swprintf_s( newPathEnv, L"%s\\bin%s\\launcher.dll", rootDir, binDirPath );
