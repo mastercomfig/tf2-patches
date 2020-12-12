@@ -91,7 +91,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	wchar_t moduleName[ MAX_PATH ];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
-		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK );
+		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK | MB_ICONERROR );
 		return 0;
 	}
 
@@ -127,7 +127,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		wchar_t szBuf[1024];
 		swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
-		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK );
+		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR );
 
 		LocalFree(pszError);
 		return 0;
