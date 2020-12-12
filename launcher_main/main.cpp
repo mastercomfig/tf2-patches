@@ -96,7 +96,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 
 	// Get the root directory the .exe is in
-	const wchar_t* pRootDir{ GetBaseDir(moduleName) };
+	const wchar_t* pRootDir{ GetBaseDir( moduleName ) };
 
 	constexpr wchar_t szBinPath[] =
 #ifdef _WIN64
@@ -108,7 +108,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	wchar_t szBuffer[4096];
 #ifdef _DEBUG
-	int len = 
+	const int len = 
 #endif
 	swprintf_s( szBuffer, L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
 	assert( len < ARRAYSIZE( szBuffer ) );
@@ -119,22 +119,29 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	swprintf_s( szBuffer, L"%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
 
 	// STEAM OK ... filesystem not mounted yet
-	const HINSTANCE launcher{ LoadLibraryExW(szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH) };
-	if ( !launcher )
+	const HINSTANCE launcher{ LoadLibraryExW( szBuffer, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
+	if ( launcher )
 	{
-		wchar_t *pszError;
-		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&pszError, 0, NULL);
+		const auto main = reinterpret_cast<LauncherMain_t>(GetProcAddress( launcher, "LauncherMain" ));
+		if ( main )
+		{
+			return main( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+		}
 
-		wchar_t szBuf[1024];
-		swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
-		LocalFree(pszError);
-
-		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR );
-		return 2;
+		MessageBoxW(0, L"Failed to get \"LauncherMain\" entry point in the launcher DLL.", L"Launcher Error", MB_OK | MB_ICONERROR);
+		return 3;
 	}
 
-	auto main = reinterpret_cast<LauncherMain_t>(GetProcAddress( launcher, "LauncherMain" ));
-	return main( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+	wchar_t* pszError;
+	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&pszError, 0, nullptr);
+
+	wchar_t szBuf[1024];
+	swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
+	LocalFree(pszError);
+
+	MessageBoxW(0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR);
+	return 2;
 }
 
 #elif defined (POSIX)
