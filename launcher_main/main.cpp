@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <direct.h>
+#include <system_error>
 #endif
 #if defined( _X360 )
 #define _XBOX
@@ -146,13 +147,10 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					ErrorCode::CantFindLauncherMainInLauncherDll );
 	}
 
-	wchar_t* systemErrorText;
-	FormatMessageW( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&systemErrorText, 0, nullptr );
+	const auto lastErrorText = std::system_category().message( GetLastError() );
 
 	wchar_t userErrorText[1024];
-	swprintf_s( userErrorText, L"Failed to load the launcher DLL:\n\n%s", systemErrorText );
-	LocalFree( systemErrorText );
+	swprintf_s( userErrorText, L"Failed to load the launcher DLL:\n\n%S", lastErrorText.c_str() );
 
 	return ShowErrorBoxAndExitWithCode( userErrorText, ErrorCode::CantLoadLauncherDll );
 }
