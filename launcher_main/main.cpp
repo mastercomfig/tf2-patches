@@ -53,7 +53,7 @@ extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 
 namespace {
 
 //-----------------------------------------------------------------------------
-// Purpose: Return the directory where this .exe is running from
+// Purpose: Return the directory where this .exe is running from.
 // Output : wchar_t
 //-----------------------------------------------------------------------------
 template<size_t bufferSize>
@@ -82,7 +82,7 @@ template<size_t bufferSize>
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Error codes
+// Purpose: Error codes.
 //-----------------------------------------------------------------------------
 enum class ErrorCode : int
 {
@@ -109,15 +109,15 @@ enum class ErrorCode : int
 
 int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
-	// Use the .EXE name to determine the root directory
+	// Use the .EXE name to determine the root directory.
 	wchar_t moduleName[ MAX_PATH ];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
 		return ShowErrorBoxAndExitWithCode( L"Failed calling GetModuleFileName.", ErrorCode::CantGetModuleFileName );
 	}
 
-	// Get the root directory the .exe is in
-	const wchar_t* rootDir{ GetBaseDir( moduleName ) };
+	// Get the root directory the .exe is in.
+	const wchar_t* rootDirPath{ GetBaseDir( moduleName ) };
 	constexpr wchar_t binDirPath[] =
 #ifdef _WIN64
 		L"\\x64"
@@ -128,18 +128,18 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	// Must add 'bin' to the path...
 	const wchar_t* oldPathEnv{ _wgetenv(L"PATH") };
 
-	wchar_t newPathEnv[4096];
-	swprintf_s( newPathEnv, L"PATH=%s\\bin%s\\;%s", rootDir, binDirPath, oldPathEnv );
-	if ( _wputenv( newPathEnv ) == -1 )
+	wchar_t buffer[4096];
+	swprintf_s( buffer, L"PATH=%s\\bin%s\\;%s", rootDirPath, binDirPath, oldPathEnv );
+	if ( _wputenv( buffer ) == -1 )
 	{
 		return ShowErrorBoxAndExitWithCode( L"Failed to update PATH env variable.", ErrorCode::CantUpdatePathEnvVariable );
 	}
 
-	// Assemble the full path to our "launcher.dll"
-	swprintf_s( newPathEnv, L"%s\\bin%s\\launcher.dll", rootDir, binDirPath );
+	// Assemble the full path to our "launcher.dll".
+	swprintf_s( buffer, L"%s\\bin%s\\launcher.dll", rootDirPath, binDirPath );
 
-	// STEAM OK ... filesystem not mounted yet
-	const HINSTANCE launcher{ LoadLibraryExW( newPathEnv, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
+	// STEAM OK ... filesystem not mounted yet.
+	const HINSTANCE launcher{ LoadLibraryExW( buffer, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
 	if ( launcher )
 	{
 		const auto main = reinterpret_cast<LauncherMain_t>( GetProcAddress( launcher, "LauncherMain" ));
