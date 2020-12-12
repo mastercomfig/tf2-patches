@@ -48,23 +48,23 @@ extern "C" { _declspec( dllexport ) DWORD NvOptimusEnablement = 0x00000001; }
 extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 1; }
 #endif
 
+#if !defined( _X360 )
+namespace {
 
 //-----------------------------------------------------------------------------
 // Purpose: Return the directory where this .exe is running from
 // Output : wchar_t
 //-----------------------------------------------------------------------------
-#if !defined( _X360 )
-
 template<size_t bufferSize>
-static wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
+[[nodiscard]] const wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 {
 	static wchar_t basedir[ MAX_PATH ];
 	wcscpy_s( basedir, szBuffer );
 
-	wchar_t* pBuffer = wcsrchr( basedir,'\\' );
+	wchar_t* pBuffer{ wcsrchr( basedir, L'\\' ) };
 	if ( pBuffer )
 	{
-		*(pBuffer+1) = '\0';
+		*(pBuffer+1) = L'\0';
 	}
 
 	const size_t j = wcslen( basedir );
@@ -80,19 +80,41 @@ static wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 	return basedir;
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: Error codes
+//-----------------------------------------------------------------------------
+enum class ErrorCode : int
+{
+	None = 0,
+	CantGetModuleFileName,
+	CantLoadLauncherDll,
+	CantFindLauncherMainInLauncherDll
+};
+
+//-----------------------------------------------------------------------------
+// Purpose: Shows error box and returns error code.
+// Output : int
+//-----------------------------------------------------------------------------
+[[nodiscard]] int ShowErrorBoxAndExitWithCode( const wchar_t* szError, ErrorCode errorCode )
+{
+	MessageBoxW( 0, szError, L"Launcher Error", MB_OK | MB_ICONERROR );
+	return static_cast<int>( errorCode );
+}
+
+}  // namespace
+
 #ifdef WIN32
 
 int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
 	// Must add 'bin' to the path....
-	const wchar_t* pPath{ _wgetenv(L"PATH") };
+	const wchar_t* pPath{ _wgetenv( L"PATH" ) };
 
 	// Use the .EXE name to determine the root directory
 	wchar_t moduleName[ MAX_PATH ];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
-		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK | MB_ICONERROR );
-		return 1;
+		return ShowErrorBoxAndExitWithCode( L"Failed calling GetModuleFileName", ErrorCode::CantGetModuleFileName );
 	}
 
 	// Get the root directory the .exe is in
@@ -108,7 +130,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	wchar_t szBuffer[4096];
 #ifdef _DEBUG
-	const int len = 
+	const int len =
 #endif
 	swprintf_s( szBuffer, L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
 	assert( len < ARRAYSIZE( szBuffer ) );
@@ -122,14 +144,12 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	const HINSTANCE launcher{ LoadLibraryExW( szBuffer, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
 	if ( launcher )
 	{
-		const auto main = reinterpret_cast<LauncherMain_t>(GetProcAddress( launcher, "LauncherMain" ));
-		if ( main )
-		{
-			return main( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-		}
+		const auto main = reinterpret_cast<LauncherMain_t>( GetProcAddress( launcher, "LauncherMain" ));
 
-		MessageBoxW(0, L"Failed to get \"LauncherMain\" entry point in the launcher DLL.", L"Launcher Error", MB_OK | MB_ICONERROR);
-		return 3;
+		return main 
+			? main( hInstance, hPrevInstance, lpCmdLine, nCmdShow )
+			: ShowErrorBoxAndExitWithCode( L"Failed to get \"LauncherMain\" entry point in the launcher DLL.",
+					ErrorCode::CantFindLauncherMainInLauncherDll );
 	}
 
 	wchar_t* pszError;
@@ -140,8 +160,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
 	LocalFree(pszError);
 
-	MessageBoxW(0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR);
-	return 2;
+	return ShowErrorBoxAndExitWithCode( szBuf, ErrorCode::CantLoadLauncherDll );
 }
 
 #elif defined (POSIX)
