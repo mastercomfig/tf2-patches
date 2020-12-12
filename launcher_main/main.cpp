@@ -92,7 +92,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
 		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK | MB_ICONERROR );
-		return 0;
+		return 1;
 	}
 
 	// Get the root directory the .exe is in
@@ -127,10 +127,10 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		wchar_t szBuf[1024];
 		swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
-		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR );
-
 		LocalFree(pszError);
-		return 0;
+
+		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK | MB_ICONERROR );
+		return 2;
 	}
 
 	auto main = reinterpret_cast<LauncherMain_t>(GetProcAddress( launcher, "LauncherMain" ));
