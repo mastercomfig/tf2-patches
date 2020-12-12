@@ -66,7 +66,7 @@ $Configuration
 									"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\default.pdb $SRCDIR" "\n" \
 									"copy $(TargetPath) $OUTBINDIR\hl2.exe" "\n"					\
 									"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
-									"copy $(TargetDir)\default.pdb $OUTBINDIR\default.pdb" "\n"					\
+									"copy $(TargetDir)default.pdb $OUTBINDIR\default.pdb" "\n"					\
 									"if ERRORLEVEL 1 goto BuildEventFailed" "\n" \
 									"if exist $(TargetDir)$(TargetName).map copy $(TargetDir)$(TargetName).map $OUTBINDIR\hl2.map" "\n" \
 									"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTBINDIR\hl2.dat $SRCDIR" "\n"								\
