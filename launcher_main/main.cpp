@@ -46,7 +46,6 @@ extern "C" { _declspec( dllexport ) DWORD NvOptimusEnablement = 0x00000001; }
 
 // same thing for AMD GPUs using v13.35 or newer drivers
 extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 1; }
-
 #endif
 
 
@@ -105,16 +104,24 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	// Get the root directory the .exe is in
 	char* pRootDir = GetBaseDir( moduleName );
 
+	constexpr char szBinPath[] =
+#ifdef _WIN64
+		"\\x64"
+#else
+		""
+#endif
+		;
+
 #ifdef _DEBUG
 	int len = 
 #endif
-	_snprintf( szBuffer, sizeof( szBuffer ), "PATH=%s\\bin\\;%s", pRootDir, pPath );
+	_snprintf( szBuffer, sizeof( szBuffer ), "PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
 	szBuffer[sizeof( szBuffer ) - 1] = '\0';
 	assert( len < sizeof( szBuffer ) );
 	_putenv( szBuffer );
 
 	// Assemble the full path to our "launcher.dll"
-	_snprintf( szBuffer, sizeof( szBuffer ), "%s\\bin\\launcher.dll", pRootDir );
+	_snprintf( szBuffer, sizeof( szBuffer ), "%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
 	szBuffer[sizeof( szBuffer ) - 1] = '\0';
 
 	// STEAM OK ... filesystem not mounted yet
