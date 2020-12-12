@@ -120,11 +120,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	szBuffer[sizeof( szBuffer ) - 1] = '\0';
 
 	// STEAM OK ... filesystem not mounted yet
-#if defined(_X360)
-	HINSTANCE launcher = LoadLibrary( szBuffer );
-#else
 	HINSTANCE launcher = LoadLibraryEx( szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
-#endif
 	if ( !launcher )
 	{
 		char *pszError;
