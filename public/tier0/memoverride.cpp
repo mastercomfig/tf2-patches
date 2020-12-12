@@ -198,7 +198,7 @@ extern "C"
 
 // 64-bit
 #ifdef _WIN64
-void* __cdecl _malloc_base( size_t nSize )
+ALLOC_CALL void* _malloc_base( size_t nSize )
 {
 	return AllocUnattributed( nSize );
 }
