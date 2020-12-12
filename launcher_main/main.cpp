@@ -55,30 +55,25 @@ extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 
 //-----------------------------------------------------------------------------
 #if !defined( _X360 )
 
-static char *GetBaseDir( const char *pszBuffer )
+template<size_t bufferSize>
+static char *GetBaseDir( const char (&szBuffer)[bufferSize] )
 {
 	static char	basedir[ MAX_PATH ];
-	char szBuffer[ MAX_PATH ];
-	size_t j;
-	char *pBuffer = NULL;
+	strcpy( basedir, szBuffer );
 
-	strcpy( szBuffer, pszBuffer );
-
-	pBuffer = strrchr( szBuffer,'\\' );
+	char* pBuffer = strrchr( basedir,'\\' );
 	if ( pBuffer )
 	{
 		*(pBuffer+1) = '\0';
 	}
 
-	strcpy( basedir, szBuffer );
-
-	j = strlen( basedir );
+	const size_t j = strlen( basedir );
 	if (j > 0)
 	{
-		if ( ( basedir[ j-1 ] == '\\' ) || 
-			 ( basedir[ j-1 ] == '/' ) )
+		char &lastChar = basedir[j-1];
+		if ( lastChar == '\\' || lastChar == '/' )
 		{
-			basedir[ j-1 ] = 0;
+			lastChar = '\0';
 		}
 	}
 
