@@ -58,8 +58,8 @@ extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 
 template<size_t bufferSize>
 static wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 {
-	static wchar_t	basedir[ MAX_PATH ];
-	wcscpy( basedir, szBuffer );
+	static wchar_t basedir[ MAX_PATH ];
+	wcscpy_s( basedir, szBuffer );
 
 	wchar_t* pBuffer = wcsrchr( basedir,'\\' );
 	if ( pBuffer )
@@ -85,11 +85,10 @@ static wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
 	// Must add 'bin' to the path....
-	const wchar_t* pPath = _wgetenv(L"PATH");
+	const wchar_t* pPath{ _wgetenv(L"PATH") };
 
 	// Use the .EXE name to determine the root directory
 	wchar_t moduleName[ MAX_PATH ];
-	wchar_t szBuffer[4096];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
 		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK );
@@ -97,7 +96,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 
 	// Get the root directory the .exe is in
-	wchar_t* pRootDir = GetBaseDir( moduleName );
+	const wchar_t* pRootDir{ GetBaseDir(moduleName) };
 
 	constexpr wchar_t szBinPath[] =
 #ifdef _WIN64
@@ -107,28 +106,27 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 #endif
 		;
 
+	wchar_t szBuffer[4096];
 #ifdef _DEBUG
 	int len = 
 #endif
-	_snwprintf( szBuffer, ARRAYSIZE( szBuffer ), L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
-	szBuffer[ARRAYSIZE( szBuffer ) - 1] = L'\0';
+	swprintf_s( szBuffer, L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
 	assert( len < ARRAYSIZE( szBuffer ) );
+
 	_wputenv( szBuffer );
 
 	// Assemble the full path to our "launcher.dll"
-	_snwprintf( szBuffer, ARRAYSIZE( szBuffer ), L"%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
-	szBuffer[ARRAYSIZE( szBuffer ) - 1] = '\0';
+	swprintf_s( szBuffer, L"%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
 
 	// STEAM OK ... filesystem not mounted yet
-	HINSTANCE launcher = LoadLibraryExW( szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
+	const HINSTANCE launcher{ LoadLibraryExW(szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH) };
 	if ( !launcher )
 	{
 		wchar_t *pszError;
 		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&pszError, 0, NULL);
 
 		wchar_t szBuf[1024];
-		_snwprintf(szBuf, ARRAYSIZE( szBuf ), L"Failed to load the launcher DLL:\n\n%s", pszError);
-		szBuf[ARRAYSIZE( szBuf ) - 1] = L'\0';
+		swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
 		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK );
 
 		LocalFree(pszError);
