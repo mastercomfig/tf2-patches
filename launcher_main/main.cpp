@@ -107,9 +107,6 @@ enum class ErrorCode : int
 
 int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
-	// Must add 'bin' to the path....
-	const wchar_t* pPath{ _wgetenv( L"PATH" ) };
-
 	// Use the .EXE name to determine the root directory
 	wchar_t moduleName[ MAX_PATH ];
 	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
@@ -118,49 +115,46 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 
 	// Get the root directory the .exe is in
-	const wchar_t* pRootDir{ GetBaseDir( moduleName ) };
-
-	constexpr wchar_t szBinPath[] =
+	const wchar_t* rootDir{ GetBaseDir( moduleName ) };
+	constexpr wchar_t binDirPath[] =
 #ifdef _WIN64
 		L"\\x64"
 #else
 		L""
 #endif
 		;
+	// Must add 'bin' to the path....
+	const wchar_t* oldPathEnv{ _wgetenv(L"PATH") };
 
-	wchar_t szBuffer[4096];
-#ifdef _DEBUG
-	const int len =
-#endif
-	swprintf_s( szBuffer, L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
-	assert( len < ARRAYSIZE( szBuffer ) );
+	wchar_t newPathEnv[4096];
+	swprintf_s( newPathEnv, L"PATH=%s\\bin%s\\;%s", rootDir, binDirPath, oldPathEnv );
 
-	_wputenv( szBuffer );
+	_wputenv( newPathEnv );
 
 	// Assemble the full path to our "launcher.dll"
-	swprintf_s( szBuffer, L"%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
+	swprintf_s( newPathEnv, L"%s\\bin%s\\launcher.dll", rootDir, binDirPath );
 
 	// STEAM OK ... filesystem not mounted yet
-	const HINSTANCE launcher{ LoadLibraryExW( szBuffer, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
+	const HINSTANCE launcher{ LoadLibraryExW( newPathEnv, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
 	if ( launcher )
 	{
 		const auto main = reinterpret_cast<LauncherMain_t>( GetProcAddress( launcher, "LauncherMain" ));
 
-		return main 
+		return main
 			? main( hInstance, hPrevInstance, lpCmdLine, nCmdShow )
 			: ShowErrorBoxAndExitWithCode( L"Failed to get \"LauncherMain\" entry point in the launcher DLL.",
 					ErrorCode::CantFindLauncherMainInLauncherDll );
 	}
 
-	wchar_t* pszError;
-	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&pszError, 0, nullptr);
+	wchar_t* systemErrorText;
+	FormatMessageW( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&systemErrorText, 0, nullptr );
 
-	wchar_t szBuf[1024];
-	swprintf_s(szBuf, L"Failed to load the launcher DLL:\n\n%s", pszError);
-	LocalFree(pszError);
+	wchar_t userErrorText[1024];
+	swprintf_s( userErrorText, L"Failed to load the launcher DLL:\n\n%s", systemErrorText );
+	LocalFree( systemErrorText );
 
-	return ShowErrorBoxAndExitWithCode( szBuf, ErrorCode::CantLoadLauncherDll );
+	return ShowErrorBoxAndExitWithCode( userErrorText, ErrorCode::CantLoadLauncherDll );
 }
 
 #elif defined (POSIX)
