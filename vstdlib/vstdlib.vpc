@@ -95,9 +95,10 @@ $Project "vstdlib"
                 $CustomBuildStep
                 {
                     // General
-                    $CommandLine                "$QUOTE$(VCInstallDir)Tools\MSVC\14.26.28801\bin\Hostx64\x64\ml64.exe$QUOTE /nologo /c /Fo$QUOTE$(IntDir)\$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE"
-                    $Description                "Compiling GetStackPtr64.masm"
-                    $Outputs                    "$(IntDir)\$(InputName).obj"
+                    // $CommandLine should be %comspec% /c ""$(VCInstallDir)Auxiliary\Build\vcvars64.bat" & ml64.exe /nologo /c /Fo"$(IntDir)%(Filename).obj" "%(FullPath)""
+                    $CommandLine                "%comspec% /c $QUOTE$QUOTE$(VCInstallDir)Auxiliary\Build\vcvars64.bat$QUOTE & ml64.exe /nologo /c /Fo$QUOTE$(IntDir)$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE$QUOTE"
+                    $Description                "Compiling $(InputName).masm"
+                    $Outputs                    "$(IntDir)$(InputName).obj"
                 }       
             }           
         }
@@ -108,9 +109,10 @@ $Project "vstdlib"
 				$CustomBuildStep
 				{
 					// General
-					$CommandLine                "$QUOTE$(VCInstallDir)Tools\MSVC\14.26.28801\bin\Hostx64\x64\ml64.exe$QUOTE /c /Fo$QUOTE$(IntDir)\$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE"
-					$Description                "Compiling coroutine_win64.masm"
-					$Outputs                    "$(IntDir)\$(InputName).obj"
+					// $CommandLine should be %comspec% /c ""$(VCInstallDir)Auxiliary\Build\vcvars64.bat" & ml64.exe /nologo /c /Fo"$(IntDir)%(Filename).obj" "%(FullPath)""
+					$CommandLine                "%comspec% /c $QUOTE$QUOTE$(VCInstallDir)Auxiliary\Build\vcvars64.bat$QUOTE & ml64.exe /nologo /c /Fo$QUOTE$(IntDir)$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE$QUOTE"
+					$Description                "Compiling $(InputName).masm"
+					$Outputs                    "$(IntDir)$(InputName).obj"
 				}
 			}
 		}
