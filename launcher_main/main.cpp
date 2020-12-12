@@ -31,10 +31,10 @@
 #include "tier0/basetypes.h"
 
 #ifdef WIN32
-typedef int (*LauncherMain_t)( HINSTANCE hInstance, HINSTANCE hPrevInstance, 
-							  LPSTR lpCmdLine, int nCmdShow );
+using LauncherMain_t = int (*)( HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine, int nCmdShow );
 #elif POSIX
-typedef int (*LauncherMain_t)( int argc, char **argv );
+using LauncherMain_t = int (*)( int argc, char **argv );
 #else
 #error
 #endif
