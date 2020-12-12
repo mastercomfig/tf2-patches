@@ -51,29 +51,29 @@ extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 
 
 //-----------------------------------------------------------------------------
 // Purpose: Return the directory where this .exe is running from
-// Output : char
+// Output : wchar_t
 //-----------------------------------------------------------------------------
 #if !defined( _X360 )
 
 template<size_t bufferSize>
-static char *GetBaseDir( const char (&szBuffer)[bufferSize] )
+static wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 {
-	static char	basedir[ MAX_PATH ];
-	strcpy( basedir, szBuffer );
+	static wchar_t	basedir[ MAX_PATH ];
+	wcscpy( basedir, szBuffer );
 
-	char* pBuffer = strrchr( basedir,'\\' );
+	wchar_t* pBuffer = wcsrchr( basedir,'\\' );
 	if ( pBuffer )
 	{
 		*(pBuffer+1) = '\0';
 	}
 
-	const size_t j = strlen( basedir );
+	const size_t j = wcslen( basedir );
 	if (j > 0)
 	{
-		char &lastChar = basedir[j-1];
+		wchar_t &lastChar = basedir[j-1];
 		if ( lastChar == '\\' || lastChar == '/' )
 		{
-			lastChar = '\0';
+			lastChar = L'\0';
 		}
 	}
 
@@ -85,51 +85,51 @@ static char *GetBaseDir( const char (&szBuffer)[bufferSize] )
 int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
 	// Must add 'bin' to the path....
-	char* pPath = getenv("PATH");
+	const wchar_t* pPath = _wgetenv(L"PATH");
 
 	// Use the .EXE name to determine the root directory
-	char moduleName[ MAX_PATH ];
-	char szBuffer[4096];
-	if ( !GetModuleFileName( hInstance, moduleName, MAX_PATH ) )
+	wchar_t moduleName[ MAX_PATH ];
+	wchar_t szBuffer[4096];
+	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
-		MessageBox( 0, "Failed calling GetModuleFileName", "Launcher Error", MB_OK );
+		MessageBoxW( 0, L"Failed calling GetModuleFileName", L"Launcher Error", MB_OK );
 		return 0;
 	}
 
 	// Get the root directory the .exe is in
-	char* pRootDir = GetBaseDir( moduleName );
+	wchar_t* pRootDir = GetBaseDir( moduleName );
 
-	constexpr char szBinPath[] =
+	constexpr wchar_t szBinPath[] =
 #ifdef _WIN64
-		"\\x64"
+		L"\\x64"
 #else
-		""
+		L""
 #endif
 		;
 
 #ifdef _DEBUG
 	int len = 
 #endif
-	_snprintf( szBuffer, sizeof( szBuffer ), "PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
-	szBuffer[sizeof( szBuffer ) - 1] = '\0';
-	assert( len < sizeof( szBuffer ) );
-	_putenv( szBuffer );
+	_snwprintf( szBuffer, ARRAYSIZE( szBuffer ), L"PATH=%s\\bin%s\\;%s", pRootDir, szBinPath, pPath );
+	szBuffer[ARRAYSIZE( szBuffer ) - 1] = L'\0';
+	assert( len < ARRAYSIZE( szBuffer ) );
+	_wputenv( szBuffer );
 
 	// Assemble the full path to our "launcher.dll"
-	_snprintf( szBuffer, sizeof( szBuffer ), "%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
-	szBuffer[sizeof( szBuffer ) - 1] = '\0';
+	_snwprintf( szBuffer, ARRAYSIZE( szBuffer ), L"%s\\bin%s\\launcher.dll", pRootDir, szBinPath );
+	szBuffer[ARRAYSIZE( szBuffer ) - 1] = '\0';
 
 	// STEAM OK ... filesystem not mounted yet
-	HINSTANCE launcher = LoadLibraryEx( szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
+	HINSTANCE launcher = LoadLibraryExW( szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
 	if ( !launcher )
 	{
-		char *pszError;
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&pszError, 0, NULL);
+		wchar_t *pszError;
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&pszError, 0, NULL);
 
-		char szBuf[1024];
-		_snprintf(szBuf, sizeof( szBuf ), "Failed to load the launcher DLL:\n\n%s", pszError);
-		szBuf[sizeof( szBuf ) - 1] = '\0';
-		MessageBox( 0, szBuf, "Launcher Error", MB_OK );
+		wchar_t szBuf[1024];
+		_snwprintf(szBuf, ARRAYSIZE( szBuf ), L"Failed to load the launcher DLL:\n\n%s", pszError);
+		szBuf[ARRAYSIZE( szBuf ) - 1] = L'\0';
+		MessageBoxW( 0, szBuf, L"Launcher Error", MB_OK );
 
 		LocalFree(pszError);
 		return 0;
