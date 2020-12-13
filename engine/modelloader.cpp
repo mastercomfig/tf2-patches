@@ -4331,7 +4331,7 @@ public:
 		m_pShared = pBrush->brush.pShared;
 		m_count = 0;
 	}
-	bool EnumerateLeaf( int leaf, int )
+	bool EnumerateLeaf( int leaf, intptr_t )
 	{
 		// garymcthack - need to test identity brush models
 		int flags = ( m_pShared->leafs[leaf].leafWaterDataID == -1 ) ? SURFDRAW_ABOVEWATER : SURFDRAW_UNDERWATER;
@@ -4378,7 +4378,7 @@ static void MarkBrushModelWaterSurfaces( model_t* world,
 	model_t* pTemp = host_state.worldmodel;
 	CBrushBSPIterator brushIterator( world, brush );
 	host_state.SetWorldModel( world );
-	g_pToolBSPTree->EnumerateLeavesInBox( mins, maxs, &brushIterator, (int)brush );
+	g_pToolBSPTree->EnumerateLeavesInBox( mins, maxs, &brushIterator, reinterpret_cast<intptr_t>(brush) );
 	brushIterator.CheckSurfaces();
 	host_state.SetWorldModel( pTemp );
 }

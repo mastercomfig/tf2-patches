@@ -41,10 +41,10 @@ public:
 	}
 
 	// ISpatialLeafEnumerator
-	bool EnumerateLeaf( int ndxLeaf, int context ); 
+	bool EnumerateLeaf( int ndxLeaf, intptr_t context ); 
 
 	// IBSPTreeDataEnumerator
-	bool FASTCALL EnumerateElement( int userId, int context );
+	bool FASTCALL EnumerateElement( int userId, intptr_t context );
 
 public:
 
@@ -61,10 +61,10 @@ class CBSPDispRayEnumerator : public ISpatialLeafEnumerator, public IBSPTreeData
 {
 public:
 	// ISpatialLeafEnumerator
-	bool EnumerateLeaf( int ndxLeaf, int context );
+	bool EnumerateLeaf( int ndxLeaf, intrpt_t context );
 
 	// IBSPTreeDataEnumerator
-	bool FASTCALL EnumerateElement( int userId, int context );
+	bool FASTCALL EnumerateElement( int userId, intptr_t context );
 };
 
 //=============================================================================
@@ -127,12 +127,12 @@ public:
 	//
 	// Enumeration Methods
 	//
-	bool DispRay_EnumerateLeaf( int ndxLeaf, int context );
-	bool DispRay_EnumerateElement( int userId, int context );
+	bool DispRay_EnumerateLeaf( int ndxLeaf, intptr_t context );
+	bool DispRay_EnumerateElement( int userId, intptr_t context );
 	bool DispRayDistance_EnumerateElement( int userId, CBSPDispRayDistanceEnumerator* pEnum );
 
-	bool DispFaceList_EnumerateLeaf( int ndxLeaf, int context );
-	bool DispFaceList_EnumerateElement( int userId, int context );
+	bool DispFaceList_EnumerateLeaf( int ndxLeaf, intptr_t context );
+	bool DispFaceList_EnumerateElement( int userId, intptr_t context );
 
 private:
 
@@ -215,13 +215,13 @@ IVRadDispMgr *StaticDispMgr( void )
 // Displacement/Face List
 //
 // ISpatialLeafEnumerator
-bool CBSPDispFaceListEnumerator::EnumerateLeaf( int ndxLeaf, int context ) 
+bool CBSPDispFaceListEnumerator::EnumerateLeaf( int ndxLeaf, intptr_t context )
 { 
 	return s_DispMgr.DispFaceList_EnumerateLeaf( ndxLeaf, context );
 }
 
 // IBSPTreeDataEnumerator
-bool FASTCALL CBSPDispFaceListEnumerator::EnumerateElement( int userId, int context )
+bool FASTCALL CBSPDispFaceListEnumerator::EnumerateElement( int userId, intptr_t context )
 {
 	return s_DispMgr.DispFaceList_EnumerateElement( userId, context );
 }
@@ -231,12 +231,12 @@ bool FASTCALL CBSPDispFaceListEnumerator::EnumerateElement( int userId, int cont
 //
 // RayEnumerator
 //
-bool CBSPDispRayEnumerator::EnumerateLeaf( int ndxLeaf, int context )
+bool CBSPDispRayEnumerator::EnumerateLeaf( int ndxLeaf, intptr_t context )
 {
 	return s_DispMgr.DispRay_EnumerateLeaf( ndxLeaf, context );
 }
 
-bool FASTCALL CBSPDispRayEnumerator::EnumerateElement( int userId, int context )
+bool FASTCALL CBSPDispRayEnumerator::EnumerateElement( int userId, intptr_t context )
 {
 	return s_DispMgr.DispRay_EnumerateElement( userId, context );
 }
@@ -252,7 +252,7 @@ public:
 	CBSPDispRayDistanceEnumerator() : m_Distance(1.0f), m_pSurface(0) {}
 
 	// IBSPTreeDataEnumerator
-	bool FASTCALL EnumerateElement( int userId, int context )
+	bool FASTCALL EnumerateElement( int userId, intptr_t context )
 	{
 		return s_DispMgr.DispRayDistance_EnumerateElement( userId, this );
 	}
@@ -669,7 +669,7 @@ void CVRadDispMgr::GetDispSurf( int ndxFace, CVRADDispColl **ppDispTree )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CVRadDispMgr::DispRay_EnumerateLeaf( int ndxLeaf, int context )
+bool CVRadDispMgr::DispRay_EnumerateLeaf( int ndxLeaf, intptr_t context )
 {
 	return m_pBSPTreeData->EnumerateElementsInLeaf( ndxLeaf, &m_EnumDispRay, context );
 }
@@ -677,7 +677,7 @@ bool CVRadDispMgr::DispRay_EnumerateLeaf( int ndxLeaf, int context )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CVRadDispMgr::DispRay_EnumerateElement( int userId, int context )
+bool CVRadDispMgr::DispRay_EnumerateElement( int userId, intptr_t context )
 {
 	DispCollTree_t &dispTree = m_DispTrees[userId];
 	EnumContext_t *pCtx = ( EnumContext_t* )context;
@@ -766,7 +766,7 @@ float CVRadDispMgr::ClipRayToDisp( Ray_t const &ray, int dispinfo )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CVRadDispMgr::DispFaceList_EnumerateLeaf( int ndxLeaf, int context )
+bool CVRadDispMgr::DispFaceList_EnumerateLeaf( int ndxLeaf, intptr_t context )
 {
 	//
 	// add the faces found in this leaf to the face list
@@ -799,7 +799,7 @@ bool CVRadDispMgr::DispFaceList_EnumerateLeaf( int ndxLeaf, int context )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CVRadDispMgr::DispFaceList_EnumerateElement( int userId, int context )
+bool CVRadDispMgr::DispFaceList_EnumerateElement( int userId, intptr_t context )
 {
 	DispCollTree_t &dispTree = m_DispTrees[userId];
 	CVRADDispColl  *pDispTree = dispTree.m_pDispTree;
