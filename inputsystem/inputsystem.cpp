@@ -146,6 +146,7 @@ InitReturnVal_t CInputSystem::Init()
 		return INIT_FAILED;
 #endif
 
+#if !defined( NO_STEAM )
 	// Initialize the input system copy of the steam API context, for use by controller stuff (don't do this if we're a dedicated server).
 	if ( !m_bSkipControllerInitialization && SteamAPI_InitSafe() )
 	{
@@ -161,6 +162,7 @@ InitReturnVal_t CInputSystem::Init()
 			}
 		}
 	}
+#endif
 
 	ButtonCode_InitKeyTranslationTable();
 	ButtonCode_UpdateScanCodeLayout();
