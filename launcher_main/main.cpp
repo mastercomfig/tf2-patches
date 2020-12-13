@@ -125,14 +125,17 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		L""
 #endif
 		;
-	// Must add 'bin' to the path...
-	const wchar_t* oldPathEnv{ _wgetenv(L"PATH") };
 
 	wchar_t buffer[4096];
-	swprintf_s( buffer, L"PATH=%s\\bin%s\\;%s", rootDirPath, binDirPath, oldPathEnv );
-	if ( _wputenv( buffer ) == -1 )
+	// Must add 'bin' to the path...
+	const wchar_t* oldPathEnv{ _wgetenv( L"PATH" ) };
+	if ( oldPathEnv )
 	{
-		return ShowErrorBoxAndExitWithCode( L"Failed to update PATH env variable.", ErrorCode::CantUpdatePathEnvVariable );
+		swprintf_s( buffer, L"PATH=%s\\bin%s\\;%s", rootDirPath, binDirPath, oldPathEnv );
+		if ( _wputenv( buffer ) == -1 )
+		{
+			return ShowErrorBoxAndExitWithCode( L"Failed to update PATH env variable.", ErrorCode::CantUpdatePathEnvVariable );
+		}
 	}
 
 	// Assemble the full path to our "launcher.dll".
