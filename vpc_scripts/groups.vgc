@@ -195,6 +195,7 @@ $Group "game"
 	"vtf"
 	"coroutine_osx"
     "zlib"
+	"jpeglib"
 }
 
 $Group "everything"

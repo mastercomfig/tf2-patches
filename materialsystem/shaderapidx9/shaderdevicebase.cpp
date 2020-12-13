@@ -978,7 +978,7 @@ static VD3DHWND GetTopmostParentWindow( VD3DHWND hWnd )
 
 static BOOL CALLBACK EnumChildWindowsProc( VD3DHWND hWnd, LPARAM lParam )
 {
-	int windowId = GetWindowLongPtr( hWnd, GWLP_USERDATA );
+	LONG_PTR windowId = GetWindowLongPtr( hWnd, GWLP_USERDATA );
 	if (windowId == MATERIAL_SYSTEM_WINDOW_ID)
 	{
 		COPYDATASTRUCT copyData;
