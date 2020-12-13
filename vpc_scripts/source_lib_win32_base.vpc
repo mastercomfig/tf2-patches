@@ -12,8 +12,8 @@ $MacroRequired				"OUTLIBDIR"
 
 $Macro LIBPUBLIC	"$SRCDIR\lib\public$PLATSUBDIR"
 $Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR" [!$VS2015]
-$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WIN32]
-$Macro LIBCOMMON	"$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WIN32]
+$Macro LIBCOMMON	"$SRCDIR\lib\common$PLATSUBDIR\2015\release" [$VS2015&&!$WINDOWS]
+$Macro LIBCOMMON	"$SRCDIR\lib\common\win32\2015\release" [$VS2015&&$WINDOWS]
 
 $Include "$SRCDIR\vpc_scripts\source_lib_win32_debug.vpc"
 $Include "$SRCDIR\vpc_scripts\source_lib_win32_release.vpc"
@@ -45,20 +45,20 @@ $Configuration
 	
 	$PreBuildEvent
 	{
-		$CommandLine		"if EXIST $OUTLIBDIR\$(TargetName).lib ( for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
-							") else ( if not EXIST $OUTLIBDIR mkdir $OUTLIBDIR )" "\n" \
+		$CommandLine		"if EXIST $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE ( for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
+							") else ( if not EXIST $QUOTE$OUTLIBDIR$QUOTE mkdir $QUOTE$OUTLIBDIR$QUOTE )" "\n" \
 							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
 							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE (" "\n" \
-							"    attrib -r $OUTLIBDIR\$(TargetName).lib" "\n" \
-							"    $SRCDIR\devtools\bin\gnu\touch.exe -d $QUOTE1999-01-01$QUOTE $OUTLIBDIR\$(TargetName).lib" "\n" \
-							"    attrib +r $OUTLIBDIR\$(TargetName).lib" "\n" \
+							"    attrib -r $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE" "\n" \
+							"    $QUOTE$SRCDIR\devtools\bin\gnu\touch.exe$QUOTE -d $QUOTE1999-01-01$QUOTE $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE" "\n" \
+							"    attrib +r $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE" "\n" \
 							")" "\n" \
 							"$CRCCHECK" "\n" 			
 	}
 
 	$PreLinkEvent [!$ANALYZE && !$SOURCESDK]
 	{
-		$CommandLine		"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $OUTLIBDIR\$(TargetName).lib $SRCDIR" 
+		$CommandLine		"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$OUTLIBDIR\$(TargetName).lib$QUOTE $QUOTE$SRCDIR$QUOTE" 
 	}
 
 	$Librarian

@@ -996,12 +996,11 @@ inline T QWordSwapC( T dw )
 // The typically used methods.
 //-------------------------------------
 
-#if defined(__i386__) && !defined(VALVE_LITTLE_ENDIAN)
-#define VALVE_LITTLE_ENDIAN 1
-#endif
-
-#if defined( _SGI_SOURCE ) || defined( _X360 )
+// x86-64 port from CS:GO
+#if defined( _SGI_SOURCE ) || defined( _X360 ) || defined( _PS3 )
 #define	VALVE_BIG_ENDIAN 1
+#else
+#define VALVE_LITTLE_ENDIAN 1
 #endif
 
 // If a swapped float passes through the fpu, the bytes may get changed.

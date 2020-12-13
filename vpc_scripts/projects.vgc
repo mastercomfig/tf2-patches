@@ -711,7 +711,7 @@ $Project "networktest"
 
 $Project "newdat"
 {
-	"utils\newdat\newdat.vpc" [$WIN32]
+	"utils\newdat\newdat.vpc" [$WINDOWS]
 }
 
 $Project "normal2ssbump"

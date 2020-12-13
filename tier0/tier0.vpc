@@ -55,7 +55,7 @@ $Configuration
 
 	$PreLinkEvent [$WINDOWS]
 	{
-		$CommandLine	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $LIBPUBLIC\$(TargetName).lib $SRCDIR" "\n" \
+		$CommandLine	"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$LIBPUBLIC\$(TargetName).lib$QUOTE $QUOTE$SRCDIR$QUOTE" "\n" \
 						"$BASE"
 	}
 	
