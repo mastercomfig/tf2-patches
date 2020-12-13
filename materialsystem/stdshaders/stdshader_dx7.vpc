@@ -37,7 +37,6 @@ $Configuration
 	$Compiler
 	{
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DX7_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
-		$AdditionalIncludeDirectories	"$BASE;..\..\dx9sdk\include"
 	}
 
 	$Linker

@@ -36,7 +36,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;..\..\dx9sdk\include"
+		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9"
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DX8_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
 	}
 
@@ -126,7 +126,6 @@ $Project "stdshader_dx8"
 
 	$Folder	"Link Libraries"
 	{
-		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"
 		$Lib mathlib
 		$Lib shaderlib
 	}

@@ -7,7 +7,6 @@
 
 #include "BaseVSShader.h"
 #include "convar.h"
-#include "d3dx.h"
 
 DEFINE_FALLBACK_SHADER( Portal, Portal_DX60 )
 

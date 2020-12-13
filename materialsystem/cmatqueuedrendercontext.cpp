@@ -24,7 +24,7 @@ ConVar mat_report_queue_status( "mat_report_queue_status", "0", FCVAR_MATERIAL_S
 // 
 //-----------------------------------------------------------------------------
 
-#if defined( _WIN32 )
+#if defined( _WIN32 ) && !defined( _WIN64 )
 void FastCopy( byte *pDest, const byte *pSrc, size_t nBytes )
 {
 	if ( !nBytes )

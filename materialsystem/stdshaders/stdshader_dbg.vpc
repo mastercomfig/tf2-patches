@@ -42,14 +42,14 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;..\..\dx9sdk\include"	[$WIN32]
+		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9"	[$WINDOWS]
 		$AdditionalIncludeDirectories	"$BASE;fxctmp9_360;vshtmp9_360"					[$X360]
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DBG_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
 	}
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WIN32]
+		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WINDOWS]
 		$ModuleDefinitionFile			"xbox\xbox_dbg.def"				[$X360]
 	}
 }
@@ -66,7 +66,7 @@ $Project "stdshader_dbg"
 		$File	"debugtangentspace.cpp"
 		$File	"fillrate.cpp"
 
-		$Folder	"Remove me when VAC2 is out" [$WIN32]
+		$Folder	"Remove me when VAC2 is out" [$WINDOWS]
 		{
 			$File	"..\shader_dll_verify.cpp"
 			$File	"..\shader_dll_verify.h"
@@ -86,7 +86,6 @@ $Project "stdshader_dbg"
 
 	$Folder	"Link Libraries"
 	{
-		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"			[$WIN32]
 		$Lib mathlib
 		$Lib shaderlib
 	}
