@@ -49,9 +49,10 @@ $Project "bitmap"
 		$File	"$SRCDIR\thirdparty\stb\stb_dxt.h"
 	}
 
-	$Folder "Link Libraries" [$WIN32]
+	$Folder "Link Libraries" [$WINDOWS]
 	{
-		$Lib nvtc
+		$Lib nvtc [$WIN32]
+		$Lib nvtc64 [$WIN64]
 		$Lib ATI_Compress_MT_VC10
 	}
 }
