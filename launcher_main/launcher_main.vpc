@@ -24,6 +24,9 @@ $Macro OUTBINNAME	"hl2_linux" [$LINUX32]
 $Macro OUTBINNAME	"hl2_linux64" [$LINUX64]
 
 $Include "$SRCDIR\vpc_scripts\source_exe_base.vpc"
+$Include "$SRCDIR\tier0\tier0_exclude.vpc" [$WINDOWS]
+$Include "$SRCDIR\tier1\tier1_exclude.vpc" [$WINDOWS]
+$Include "$SRCDIR\vstdlib\vstdlib_exclude.vpc" [$WINDOWS]
 
 $Configuration
 {
@@ -85,21 +88,6 @@ $Configuration
 									"del /q $QUOTE$(TargetPath)$QUOTE" "\n" \
 									"exit 1" "\n" "\n" \
 									":BuildEventOK" "\n"
-	}
-}
-
-$Project
-{
-	$Folder	"Source Files"
-	{
-		-$File	"$SRCDIR\public\tier0\memoverride.cpp"
-	}
-
-	$Folder	"Link Libraries" 
-	{
-		-$Lib tier0 [$WINDOWS]
-		-$Lib tier1 [$WINDOWS]
-		-$ImpLib vstdlib [$WINDOWS]
 	}
 }
 
