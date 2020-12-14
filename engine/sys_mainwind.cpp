@@ -161,7 +161,7 @@ public:
 	void			SetMainWindow( SDL_Window* window );
 #else
 #ifdef WIN32
-	int				WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	LRESULT				WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif
 	void			SetMainWindow( HWND window );
 #endif
@@ -513,7 +513,7 @@ void VCR_HandlePlaybackMessages(
 // FIXME: It would be nice to remove the need for this, which we can do
 // if we can make unicode work when running inside hammer.
 //-----------------------------------------------------------------------------
-static LONG WINAPI CallDefaultWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+static LRESULT WINAPI CallDefaultWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	if ( unicode )
 		return unicode->DefWindowProcW( hWnd, uMsg, wParam, lParam );
@@ -574,10 +574,10 @@ void XBX_HandleInvite( DWORD nUserId )
 //-----------------------------------------------------------------------------
 // Main windows procedure
 //-----------------------------------------------------------------------------
-int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 {
-	LONG			lRet = 0;
+	LRESULT			lRet = 0;
 	HDC				hdc;
 	PAINTSTRUCT		ps;
 
@@ -705,7 +705,7 @@ int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			rcWindow.right = rcWindow.left + m_rcLastRestoredClientRect.right;
 			rcWindow.bottom = rcWindow.top + m_rcLastRestoredClientRect.bottom;
 
-			::AdjustWindowRect( &rcWindow, ::GetWindowLong( hWnd, GWL_STYLE ), FALSE );
+			::AdjustWindowRect( &rcWindow, ::GetWindowLongPtr( hWnd, GWL_STYLE ), FALSE );
 			::MoveWindow( hWnd, rcWindow.left, rcWindow.top,
 				rcWindow.right - rcWindow.left, rcWindow.bottom - rcWindow.top, FALSE );
 #endif
@@ -847,7 +847,7 @@ int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //-----------------------------------------------------------------------------
 // Creates the game window 
 //-----------------------------------------------------------------------------
-static LONG WINAPI HLEngineWindowProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam )
+static LRESULT WINAPI HLEngineWindowProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam )
 {
 	return g_Game.WindowProc( hWnd, uMsg, wParam, lParam );
 }
@@ -1133,8 +1133,8 @@ void CGame::AttachToWindow()
 	if ( !m_hWindow )
 		return;
 #if !defined( USE_SDL )
-	m_ChainedWindowProc = (WNDPROC)GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC );
-	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, (LONG_PTR)HLEngineWindowProc );
+	m_ChainedWindowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC ));
+	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HLEngineWindowProc) );
 #endif
 #endif // WIN32
     
@@ -1186,8 +1186,8 @@ void CGame::DetachFromWindow()
 	}
 
 #if defined( WIN32 ) && !defined( USE_SDL )
-	Assert( (WNDPROC)GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC ) == HLEngineWindowProc );
-	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_ChainedWindowProc );
+	Assert( reinterpret_cast<WNDPROC>(GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC )) == HLEngineWindowProc );
+	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_ChainedWindowProc) );
 #endif
 }
 
