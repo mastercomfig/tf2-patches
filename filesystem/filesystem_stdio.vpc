@@ -4,7 +4,10 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
-$macro SRCDIR		".."
+$MacroRequired "PLATSUBDIR"
+
+$Macro SRCDIR		".."
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
@@ -14,8 +17,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		"Debug_Stdio"     [$WINDOWS]
-		$IntermediateDirectory	"Debug_Stdio"     [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_Stdio"     [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_Stdio"     [$WINDOWS]
 		$OutputDirectory		"Debug_Stdio_360" [$X360]
 		$IntermediateDirectory	"Debug_Stdio_360" [$X360]
 	}
@@ -25,8 +28,8 @@ $Configuration	"Release"
 {
 	$General
 	{
-		$OutputDirectory		"Release_Stdio"     [$WINDOWS]
-		$IntermediateDirectory	"Release_Stdio"     [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_Stdio"     [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_Stdio"     [$WINDOWS]
 		$OutputDirectory		"Release_Stdio_360" [$X360]
 		$IntermediateDirectory	"Release_Stdio_360" [$X360]
 	}
@@ -36,8 +39,8 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE" [$WIN64]
-		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE;_USE_32BIT_TIME_T" [!$WIN64]
+		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE" [$WINDOWS]
+		$PreprocessorDefinitions	"$BASE;_USE_32BIT_TIME_T" [$WIN32]
 
 		// Add VPK support
 		$PreprocessorDefinitions	"$BASE;SUPPORT_PACKED_STORE" [!$WIN64]
