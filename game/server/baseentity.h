@@ -1092,7 +1092,8 @@ public:
 	// Ugly code to lookup all functions to make sure they are in the table when set.
 #ifdef _DEBUG
 
-#ifdef GNUC
+// x64: ENTITYFUNCPTR_SIZE is 8 bytes.
+#if defined(GNUC) || defined(PLATFORM_64BITS)
 #define ENTITYFUNCPTR_SIZE	8
 #else
 #define ENTITYFUNCPTR_SIZE	4
