@@ -301,8 +301,8 @@ void CInputSystem::AttachToWindow( void* hWnd )
 	}
 
 #if defined( PLATFORM_WINDOWS )
-	m_ChainedWndProc = (WNDPROC)GetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC );
-	SetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC, (LONG_PTR)InputSystemWindowProc );
+	m_ChainedWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC ));
+	SetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(InputSystemWindowProc) );
 #endif
 
 	m_hAttachedHWnd = (HWND)hWnd;
@@ -357,8 +357,8 @@ void CInputSystem::DetachFromWindow( )
 #if defined( PLATFORM_WINDOWS )
 	if ( m_ChainedWndProc )
 	{
-		SetWindowLongPtrW( m_hAttachedHWnd, GWLP_WNDPROC, (LONG_PTR)m_ChainedWndProc );
-		m_ChainedWndProc = 0;
+		SetWindowLongPtrW( m_hAttachedHWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_ChainedWndProc) );
+		m_ChainedWndProc = nullptr;
 	}
 #endif
 
@@ -554,7 +554,7 @@ void CInputSystem::ProcessEvent( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	// To prevent subtle input timing bugs, all button events must be fed 
 	// through the window proc once per frame, same as the keyboard and mouse.
 	HWND hWnd = GetFocus();
-	WNDPROC windowProc = (WNDPROC)GetWindowLongPtrW(hWnd, GWLP_WNDPROC );
+	WNDPROC windowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hWnd, GWLP_WNDPROC ));
 	if ( windowProc )
 	{
 		windowProc( hWnd, uMsg, wParam, lParam );
