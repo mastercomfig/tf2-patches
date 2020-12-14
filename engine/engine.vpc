@@ -1123,7 +1123,8 @@ $Project "engine"
 		// http://code.google.com/p/gperftools/wiki/GooglePerformanceTools
 		$File	"$SRCDIR/thirdparty/gperftools-2.0/.libs/libprofiler.so" [$GPROFILER]
 
-		$Lib	"$LIBCOMMON/binkw32"					[$WINDOWS&&!$QUICKTIME_WIN32]
+		$Lib	"$LIBCOMMON\binkw32"					[$WIN32&&!$QUICKTIME_WIN32]
+		$Lib	"$LIBCOMMON\binkw64"					[$WIN64&&!$QUICKTIME_WIN32]
 		$File   "$LIBCOMMON\quicktime\QTMLClient"       [$WINDOWS&&$QUICKTIME_WIN32]
 		$ImpLib	"SDL2" [$SDL]
 		$File	"$SRCDIR\dx9sdk\lib$PLATSUBDIR\dsound.lib" [$WINDOWS]
