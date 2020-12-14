@@ -13,12 +13,13 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions			"$BASE;VERSION_SAFE_STEAM_API_INTERFACES;SERVERBROWSER_EXPORTS;GAME_SRC;_USE_32BIT_TIME_T"
+		$PreprocessorDefinitions			"$BASE;VERSION_SAFE_STEAM_API_INTERFACES;SERVERBROWSER_EXPORTS;GAME_SRC;_USE_32BIT_TIME_T" [$WIN32]
+		$PreprocessorDefinitions			"$BASE;VERSION_SAFE_STEAM_API_INTERFACES;SERVERBROWSER_EXPORTS;GAME_SRC" [$WIN64]
 	}
 
 	$Linker
 	{
-		$AdditionalDependencies				"$BASE Advapi32.lib wsock32.lib Ws2_32.lib User32.lib" [$WIN32]
+		$AdditionalDependencies				"$BASE Advapi32.lib wsock32.lib Ws2_32.lib User32.lib" [$WINDOWS]
 		$AdditionalDependencies				"$BASE Xonline.lib" [$X360]
 		$SystemLibraries                                                        "iconv" [$OSXALL]
 	}
