@@ -4,7 +4,10 @@
 //	Project Base Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $Macro OUTBINNAME	"server"
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\$GAMENAME\bin"
 $Macro DEVKITBINDIR	"$GAMENAME\bin"							[$X360]
 // It's important to include $GAMENAME in the generated_proto directory
@@ -47,8 +50,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		".\Debug_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory	".\Debug_$GAMENAME" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory		".\Debug_$GAMENAME_360"		[$X360]
 		$IntermediateDirectory	".\Debug_$GAMENAME_360"		[$X360]
@@ -60,8 +63,8 @@ $Configuration	"Release"
 	$General
 	{
 		// Windows generator doesn't sandbox these directories per configuration but others do :-/
-		$OutputDirectory		".\Release_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory	".\Release_$GAMENAME" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory		".\Release_$GAMENAME_360"	[$X360]
 		$IntermediateDirectory	".\Release_$GAMENAME_360"	[$X360]

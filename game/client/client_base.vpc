@@ -4,8 +4,14 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $Macro OUTBINNAME	"client"
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\$GAMENAME\bin"
+// This is main launcher binary dir, like 'game'. Workaround for x64 builds, as $OUTBINDIR
+// always has $PLATSUBDIR appended and that is not we really want.
+$Macro MAINOUTBINDIR	"$OUTBINDIR\.."
 $Macro DEVKITBINDIR	"$GAMENAME\bin"							[$X360]
 // It's important to include $GAMENAME in the generated_proto directory
 // to avoid race conditions when multiple games are in one solution.
@@ -49,8 +55,8 @@ $Configuration
 
 	$Debugging
 	{
-		$Command "$OUTBINDIR\hl2.exe" [$WINDOWS]
-		$WorkingDirectory "$OUTBINDIR" [$WINDOWS]
+		$Command "$MAINOUTBINDIR\hl2.exe" [$WINDOWS]
+		$WorkingDirectory "$MAINOUTBINDIR" [$WINDOWS]
 	}
 }
 
@@ -58,16 +64,11 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory			".\Debug_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory		".\Debug_$GAMENAME" [$WINDOWS]
+		$OutputDirectory			"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory		"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory			".\Debug_$GAMENAME_360"		[$X360]
 		$IntermediateDirectory		".\Debug_$GAMENAME_360"		[$X360]
-	}
-
-	$Debugging
-	{
-		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug -condebug" [$WINDOWS]
 	}
 }
 
@@ -76,16 +77,11 @@ $Configuration	"Release"
 	$General
 	{
 		// Windows generator doesn't sandbox these directories per configuration but others do :-/
-		$OutputDirectory			".\Release_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory		".\Release_$GAMENAME" [$WINDOWS]
+		$OutputDirectory			"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory		"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory			".\Release_$GAMENAME_360"	[$X360]
 		$IntermediateDirectory		".\Release_$GAMENAME_360"	[$X360]
-	}
-
-	$Debugging
-	{
-		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug" [$WINDOWS]
 	}
 }
 

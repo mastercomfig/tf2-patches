@@ -28,6 +28,22 @@ $Configuration
 	}
 }
 
+$Configuration	"Debug"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug -condebug" [$WINDOWS]
+	}
+}
+
+$Configuration	"Release"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug" [$WINDOWS]
+	}
+}
+
 $Project "Client (TF)"
 {
 	$Folder "Source Files"
