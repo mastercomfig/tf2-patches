@@ -92,6 +92,7 @@ void FastCopy( byte *pDest, const byte *pSrc, size_t nBytes )
 #endif
 }
 #else
+// x64: No inline asm. Also this is fast on modern compilers with SSE2/3+ enabled.
 #define FastCopy memcpy
 #endif
 

@@ -867,7 +867,9 @@ bool ConvertToATIxN(  const uint8 *src, ImageFormat srcImageFormat,
 
 	return true;
 #else
+	// x64: Looks like these formats are optional, skip for now.
 	Assert( 0 );
+	Warning("Implement ConvertToATIxN image format convertor");
 	return false;
 #endif
 }
@@ -946,7 +948,9 @@ bool ConvertToDXTLegacy(  const uint8 *src, ImageFormat srcImageFormat,
 	S3TCencode( &descIn, NULL, &descOut, dst, dwEncodeType, weight );
 	return true;
 #else
+	// x64: Looks like these formats are optional, skip for now.
 	Assert( 0 );
+	Warning("Implement ConvertToDXTLegacy image format convertor");
 	return false;
 #endif
 }

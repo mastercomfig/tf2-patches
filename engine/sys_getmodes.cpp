@@ -1385,7 +1385,7 @@ void CVideoMode_Common::AdjustWindow( int nWidth, int nHeight, int nBPP, bool bW
 
 		// remove topmost flag
 		exStyle &= ~WS_EX_TOPMOST;
-    SetWindowLongPtr( (HWND)game->GetMainWindow(), GWL_EXSTYLE, exStyle );
+		SetWindowLongPtr( (HWND)game->GetMainWindow(), GWL_EXSTYLE, exStyle );
 	}
 	else
 	{
@@ -1393,7 +1393,7 @@ void CVideoMode_Common::AdjustWindow( int nWidth, int nHeight, int nBPP, bool bW
 		style &= ~WS_OVERLAPPEDWINDOW;
 	}
 
-  SetWindowLongPtr( (HWND)game->GetMainWindow(), GWL_STYLE, style );
+	SetWindowLongPtr( (HWND)game->GetMainWindow(), GWL_STYLE, style );
 
 	// Compute rect needed for that size client area based on window style
 	AdjustWindowRectEx( &WindowRect, style, FALSE, exStyle );

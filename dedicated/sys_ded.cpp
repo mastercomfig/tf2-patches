@@ -470,6 +470,7 @@ bool CDedicatedSteamApplication::Create( )
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+	// x64: CS:GO relies on platform-specific FPU state, so we do.
 #if !defined(POSIX) && !defined(PLATFORM_64BITS)
 	_asm
 	{

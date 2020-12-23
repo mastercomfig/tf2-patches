@@ -1175,7 +1175,7 @@ InitReturnVal_t CEngineAPI::Init()
 	m_bRunningSimulation = false;
 
 	// Initialize the FPU control word
-	// x64: Looks like doesn't needed anymore, as per CS:GO sources
+	// x64: CS:GO relies on platform-specific FPU state, so we do.
 #if defined(WIN32) && !defined( SWDS ) && !defined( _X360 ) && !defined(PLATFORM_64BITS)
 	_asm
 	{

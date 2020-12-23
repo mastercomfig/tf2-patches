@@ -868,6 +868,7 @@ static matrix3x4_t *ComputeSkinMatrixSSE( mstudioboneweight_t &boneweights, matr
 #endif
 	}
 #elif POSIX || defined(_WIN64)
+	// x64: No inline asm. Fallback to C++ version. If hotspot, will be rewritten with intrinsics.
 #pragma message ("WARN: ComputeSkinMatrixSSE C++ implementation only")
 	return ComputeSkinMatrix( boneweights, pPoseToWorld, result );
 #elif defined( _X360 )

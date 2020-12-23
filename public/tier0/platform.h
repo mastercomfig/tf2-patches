@@ -996,7 +996,7 @@ inline T QWordSwapC( T dw )
 // The typically used methods.
 //-------------------------------------
 
-// x86-64 port from CS:GO
+// x64: Port from CS:GO.
 #if defined( _SGI_SOURCE ) || defined( _X360 ) || defined( _PS3 )
 #define	VALVE_BIG_ENDIAN 1
 #else

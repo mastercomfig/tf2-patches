@@ -40,6 +40,7 @@ $Configuration
 	$Compiler
 	{
 		$PreprocessorDefinitions	"$BASE;FILESYSTEM_STDIO_EXPORTS;DONT_PROTECT_FILEIO_FUNCTIONS;PROTECTED_THINGS_ENABLE" [$WINDOWS]
+		// x64: _USE_32BIT_TIME_T is not allowed in x64 mode.
 		$PreprocessorDefinitions	"$BASE;_USE_32BIT_TIME_T" [$WIN32]
 
 		// Add VPK support

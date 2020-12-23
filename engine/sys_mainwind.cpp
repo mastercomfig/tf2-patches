@@ -832,14 +832,10 @@ LRESULT CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // return 0 if handled message, 1 if not
     return lRet;
 }
-#elif defined(OSX)
-
-#elif defined(LINUX)
-
-#elif defined(_WIN32)
+#elif defined(OSX) || defined(LINUX) || defined(_WIN32)
 
 #else
-#error
+#error Please, implement window proc for your os in engine/sys_mainwind.cpp
 #endif
 
 

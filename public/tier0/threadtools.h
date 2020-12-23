@@ -385,6 +385,7 @@ private:
 	public:
 		CThreadLocal()
 		{
+			// x64: We store T inside pointer, so <= is enough.
 			COMPILE_TIME_ASSERT( sizeof(T) <= sizeof(void *) );
 		}
 

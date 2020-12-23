@@ -146,6 +146,7 @@ InitReturnVal_t CInputSystem::Init()
 		return INIT_FAILED;
 #endif
 
+	// x64: No sense in Steam controller without Steam, as it requires Steam.
 #if !defined( NO_STEAM )
 	// Initialize the input system copy of the steam API context, for use by controller stuff (don't do this if we're a dedicated server).
 	if ( !m_bSkipControllerInitialization && SteamAPI_InitSafe() )
