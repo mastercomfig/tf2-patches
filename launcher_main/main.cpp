@@ -72,7 +72,7 @@ template<size_t bufferSize>
 	if (j > 0)
 	{
 		wchar_t &lastChar = basedir[j-1];
-		if ( lastChar == '\\' || lastChar == '/' )
+		if ( lastChar == L'\\' || lastChar == L'/' )
 		{
 			lastChar = L'\0';
 		}
@@ -118,6 +118,7 @@ int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// Get the root directory the .exe is in.
 	const wchar_t* rootDirPath{ GetBaseDir( moduleName ) };
+	// x64: Use subdir as CS:GO does. Allows to have both x86/x86-64 binaries and choose game bitness.
 	constexpr wchar_t binDirPath[] =
 #ifdef _WIN64
 		L"\\x64"
