@@ -4,7 +4,10 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $macro SRCDIR		"..\.."
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 // shader_dll_verify.cpp defines a function called _ftol3. This means that we can't
@@ -17,8 +20,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		"Debug_dbg" [$WINDOWS]
-		$IntermediateDirectory	"Debug_dbg" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_dbg" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_dbg" [$WINDOWS]
 
 		$OutputDirectory		"Debug_dbg_360"		[$X360]
 		$IntermediateDirectory	"Debug_dbg_360"		[$X360]
@@ -29,8 +32,8 @@ $Configuration	"Release"
 {
 	$General
 	{
-		$OutputDirectory		"Release_dbg" [$WINDOWS]
-		$IntermediateDirectory	"Release_dbg" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_dbg" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_dbg" [$WINDOWS]
 
 		$OutputDirectory		"Release_dbg_360"	[$X360]
 		$IntermediateDirectory	"Release_dbg_360"	[$X360]
