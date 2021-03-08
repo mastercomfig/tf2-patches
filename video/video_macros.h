@@ -21,9 +21,6 @@
 // ------------------------------------------------------------------------
 
 #define nullchar	( (char) 0x00 )
-#ifndef nullptr
-#define nullptr		( 0 )
-#endif
 
 #define ZeroVar( var )				V_memset( &var, nullchar, sizeof( var ) )
 #define ZeroVarPtr( pVar )			V_memset( pVar, nullchar, sizeof( *pVar) ) 

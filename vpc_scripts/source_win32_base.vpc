@@ -37,13 +37,6 @@ $Configuration
 	{
 		$MultiProcessorCompilation "True"
 
-		// warning C4316: object allocated on the heap may not be aligned 16
-		$DisableSpecificWarnings	"$BASE;4316" [$AT_LEAST_VS2013]
-
-		// following are needed for VS2015 using old Windows SDK. Would like to move to each include location
-		$DisableSpecificWarnings			"$BASE;4577;4091"	[$WINDOWS && $AT_LEAST_VS2015]
-
-
 		// Having lots of warnings makes it harder to notice new, and possibly
 		// important warnings, both on buildbot and in the output window. Lots
 		// of warnings also makes it harder to skip through errors in the output
