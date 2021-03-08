@@ -61,7 +61,7 @@ class CBSPDispRayEnumerator : public ISpatialLeafEnumerator, public IBSPTreeData
 {
 public:
 	// ISpatialLeafEnumerator
-	bool EnumerateLeaf( int ndxLeaf, intrpt_t context );
+	bool EnumerateLeaf( int ndxLeaf, intptr_t context );
 
 	// IBSPTreeDataEnumerator
 	bool FASTCALL EnumerateElement( int userId, intptr_t context );
