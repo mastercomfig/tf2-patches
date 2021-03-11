@@ -187,7 +187,7 @@ CAssertDisable* IgnoreAssertsNearby( int nRange )
 {
 	CAssertDisable *pDisable = CreateNewAssertDisable( g_Info.m_pFilename );
 	pDisable->m_LineMin = g_Info.m_iLine - nRange;
-	pDisable->m_LineMax = g_Info.m_iLine - nRange;
+	pDisable->m_LineMax = g_Info.m_iLine + nRange;
 	return pDisable;
 }
 
