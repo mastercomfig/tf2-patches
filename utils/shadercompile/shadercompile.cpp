@@ -689,7 +689,7 @@ static void FlushCombos( size_t *pnTotalFlushedSize, CUtlBuffer *pDynamicComboBu
 		// Nothing to do here
 		return;
 
-	size_t nCompressedSize;
+	unsigned nCompressedSize;
 	uint8 *pCompressedShader = LZMA_OpportunisticCompress( reinterpret_cast<uint8 *> ( pDynamicComboBuffer->Base() ),
 	                                                       pDynamicComboBuffer->TellPut(),
 	                                                       &nCompressedSize );
@@ -1311,8 +1311,6 @@ size_t CopyWorkerReplyPackage( CfgProcessor::CfgEntryInfo const *pEntry, uint64 
 template < typename TMutexType >
 class CWorkerAccumState : public CParallelProcessorBase < CWorkerAccumState < TMutexType > >
 {
-	friend ThisParallelProcessorBase_t;
-
 private:
 	static bool & DisconnectState() { static bool sb = false; return sb; }
 	static void Special_DisconnectHandler( int procID, const char *pReason ) { DisconnectState() = true; }
@@ -1337,7 +1335,7 @@ public:
 	void HandleCommandResponse( CfgProcessor::ComboHandle hCombo, CmdSink::IResponse *pResponse );
 
 public:
-	using ThisParallelProcessorBase_t::Run;
+	using CParallelProcessorBase::ThisParallelProcessorBase_t::Run;
 
 public:
 	bool OnProcess();
