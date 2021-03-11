@@ -19,7 +19,7 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies				"$BASE Ws2_32.lib odbc32.lib odbccp32.lib" [$WIN32]
+		$AdditionalDependencies				"$BASE Ws2_32.lib odbc32.lib odbccp32.lib" [$WINDOWS]
 		$SystemLibraries                    "iconv" [$OSXALL]
 	}
 }
