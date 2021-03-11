@@ -214,7 +214,10 @@ INT_PTR CALLBACK AssertDialogProc(
 			SetDlgItemInt( hDlg, IDC_LINE_CONTROL, g_Info.m_iLine, false );
 			SetDlgItemInt( hDlg, IDC_IGNORE_NUMLINES, g_iLastLineRange, false );
 			SetDlgItemInt( hDlg, IDC_IGNORE_NUMTIMES, g_nLastIgnoreNumTimes, false );
-		
+
+			HANDLE hExeIcon = LoadImageW( GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( 101 ), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE );
+			SendMessage( hDlg, WM_SETICON, ICON_BIG, (LPARAM)hExeIcon );
+
 			// Center the dialog.
 			RECT rcDlg, rcDesktop;
 			GetWindowRect( hDlg, &rcDlg );
