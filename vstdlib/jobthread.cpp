@@ -18,6 +18,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/generichash.h"
 #include "tier0/vprof.h"
+#include "tier0/memalloc.h"
 
 #if defined( _X360 )
 #include "xbox/xbox_win32stubs.h"
@@ -47,7 +48,7 @@ inline void ServiceJobAndRelease( CJob *pJob, int iThread = -1 )
 
 //-----------------------------------------------------------------------------
 
-class ALIGN16 CJobQueue
+class ALIGN16 CJobQueue : CAlignedNewDelete<16>
 {
 public:
 	CJobQueue() :
@@ -186,7 +187,7 @@ private:
 //
 //-----------------------------------------------------------------------------
 
-class CThreadPool : public CRefCounted1<IThreadPool, CRefCountServiceMT>
+class CThreadPool : public CAlignedNewDelete<16, CRefCounted1<IThreadPool, CRefCountServiceMT>>
 {
 public:
 	CThreadPool();
@@ -334,7 +335,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-class CJobThread : public CWorkerThread
+class CJobThread : public CAlignedNewDelete<16, CWorkerThread>
 {
 public:
 	CJobThread( CThreadPool *pOwner, int iThread ) : 

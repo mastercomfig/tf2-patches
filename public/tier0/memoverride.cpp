@@ -417,6 +417,11 @@ void *__cdecl operator new( size_t nSize )
 	return AllocUnattributed( nSize );
 }
 
+void* __cdecl operator new ( std::size_t nSize, std::align_val_t align )
+{
+	return MemAlloc_AllocAligned(nSize, static_cast<size_t>(align));
+}
+
 void *__cdecl operator new( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
 {
 	return g_pMemAlloc->Alloc(nSize, pFileName, nLine);
@@ -429,6 +434,11 @@ void __cdecl operator delete( void *pMem )
 #endif
 {
 	g_pMemAlloc->Free( pMem );
+}
+
+void __cdecl operator delete ( void* pMem, std::align_val_t align ) noexcept
+{
+	MemAlloc_FreeAligned( pMem );
 }
 
 #ifdef OSX
@@ -449,6 +459,11 @@ void *__cdecl operator new[]( size_t nSize )
 	return AllocUnattributed( nSize );
 }
 
+void* __cdecl operator new[]( std::size_t nSize, std::align_val_t align )
+{
+	return MemAlloc_AllocAligned(nSize, static_cast<size_t>(align));
+}
+
 void *__cdecl operator new[] ( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
 {
 	return g_pMemAlloc->Alloc(nSize, pFileName, nLine);
@@ -461,6 +476,11 @@ void __cdecl operator delete[]( void *pMem )
 #endif
 {
 	g_pMemAlloc->Free( pMem );
+}
+
+void operator delete[]( void* ptr, std::align_val_t align ) noexcept 
+{
+	MemAlloc_FreeAligned(ptr);
 }
 #endif
 
