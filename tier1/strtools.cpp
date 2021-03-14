@@ -3216,6 +3216,15 @@ int V_StrTrim( char *pStr )
 	return pDest - pStart;
 }
 
+// Prevent compiler from inlining memset and further removal if V_SecureClean buffer
+// is not accessed later.
+static volatile auto memset_func = memset;
+
+void V_SecureClean( void *pBuf, size_t len )
+{
+	memset_func( pBuf, 0, len );
+}
+
 #ifdef _WIN32
 int64 V_strtoi64( const char *nptr, char **endptr, int base )
 {

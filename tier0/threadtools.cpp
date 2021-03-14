@@ -2047,6 +2047,7 @@ CThread::CThread()
 #endif
 	m_threadId( 0 ),
 	m_result( 0 ),
+	m_pStackBase( nullptr ),
 	m_flags( 0 )
 {
 	m_szName[0] = 0;

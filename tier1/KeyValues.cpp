@@ -534,7 +534,8 @@ const char *KeyValues::GetName( void ) const
 //-----------------------------------------------------------------------------
 // Purpose: Read a single token from buffer (0 terminated)
 //-----------------------------------------------------------------------------
-#pragma warning (disable:4706)
+#pragma warning( push )
+#pragma warning( disable: 4706 )
 const char *KeyValues::ReadToken( CUtlBuffer &buf, bool &wasQuoted, bool &wasConditional )
 {
 	wasQuoted = false;
@@ -618,7 +619,7 @@ const char *KeyValues::ReadToken( CUtlBuffer &buf, bool &wasQuoted, bool &wasCon
 	s_pTokenBuf[ nCount ] = 0;
 	return s_pTokenBuf;
 }
-#pragma warning (default:4706)
+#pragma warning( pop )
 
 	
 
