@@ -3818,10 +3818,18 @@ void Host_InitProcessor( void )
 	// Remove the trailing space.  There will always be one.
 	szFeatureString[Q_strlen(szFeatureString)-1] = '\0';
 
+	constexpr char cpuBitnessMode[] =
+#ifdef PLATFORM_64BITS
+		"x86-64";
+#else
+		"x86";
+#endif
+
 	// Dump CPU information:
 	if( pi.m_nLogicalProcessors == 1 )
 	{
-		ConDMsg( "1 CPU, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "1 %s CPU, Frequency: %.01f %s,  Features: %s\n", 
+			cpuBitnessMode,
 			fFrequency,
 			szFrequencyDenomination,
 			szFeatureString
@@ -3835,8 +3843,9 @@ void Host_InitProcessor( void )
 			Q_snprintf(buffer, sizeof( buffer ), " (%i physical)", (int) pi.m_nPhysicalProcessors );
 		}
 
-		ConDMsg( "%i CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "%i %s CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
 			(int)pi.m_nLogicalProcessors,
+			cpuBitnessMode,
 			buffer,
 			fFrequency,
 			szFrequencyDenomination,

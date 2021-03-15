@@ -913,19 +913,25 @@ bool CGame::CreateGameWindow( void )
 		V_strcat( windowName, p, sizeof( windowName ) );
 	}
 
+	// x64: Easier to reason about current client bitness.
+#ifdef PLATFORM_64BITS
+	V_strcat(windowName, " [64 bits]", sizeof(windowName));
+#else
+	V_strcat(windowName, " [32 bits]", sizeof(windowName));
+#endif
+
 #if defined( WIN32 ) && !defined( USE_SDL )
 #ifndef SWDS
 #if !defined( _X360 )
-	WNDCLASSW wc;
+	WNDCLASSW wc = {0};
 #else
-	WNDCLASS wc;
+	WNDCLASS wc = { 0 };
 #endif
-	memset( &wc, 0, sizeof( wc ) );
 
-    wc.style         = CS_OWNDC | CS_DBLCLKS;
-    wc.lpfnWndProc   = CallDefaultWindowProc;
-    wc.hInstance     = m_hInstance;
-    wc.lpszClassName = CLASSNAME;
+	wc.style         = CS_OWNDC | CS_DBLCLKS;
+	wc.lpfnWndProc   = CallDefaultWindowProc;
+	wc.hInstance     = m_hInstance;
+	wc.lpszClassName = CLASSNAME;
 
 	// find the icon file in the filesystem
 	if ( IsPC() )
