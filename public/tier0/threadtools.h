@@ -668,7 +668,13 @@ public:
 	CThreadMutex &operator=( const CThreadMutex & ) = delete;
 
 private:
+#ifdef _WIN32
+	std::mutex m_Mutex;
+#elif defined(POSIX)
+	// Under POSIX recursive one is used.
 	std::recursive_mutex m_Mutex;
+#endif
+	
 #ifdef _DEBUG
 #ifdef _WIN32
 	std::atomic<unsigned long> m_ownerID{0};
@@ -1577,10 +1583,10 @@ inline void CThreadMutex::Lock()
 inline void CThreadMutex::Unlock()
 {
 	Assert(AssertOwnedByCurrentThread());
-	m_Mutex.unlock();
 #ifdef _DEBUG
 	m_ownerID = 0;
 #endif
+	m_Mutex.unlock();
 }
 
 //---------------------------------------------------------
