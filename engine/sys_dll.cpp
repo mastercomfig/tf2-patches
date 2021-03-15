@@ -62,6 +62,7 @@
 #ifdef _WIN32
 #if !defined( _X360 )
 #include <io.h>
+#include <system_error>
 #endif
 #endif
 #include "toolframework/itoolframework.h"
@@ -580,54 +581,23 @@ void Sys_InitMemory( void )
 	host_parms.memsize = 0;
 
 #ifdef _WIN32
-#if (_MSC_VER > 1200)
-	// MSVC 6.0 doesn't support GlobalMemoryStatusEx()
-	if ( IsPC() )
-	{
-		OSVERSIONINFOEX osvi;
-		ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-
-		if ( GetVersionEx ((OSVERSIONINFO *)&osvi) )
-		{
-			if ( osvi.dwPlatformId >= VER_PLATFORM_WIN32_NT && osvi.dwMajorVersion >= 5 )
-			{
-				MEMORYSTATUSEX	memStat;
-				ZeroMemory(&memStat, sizeof(MEMORYSTATUSEX));
-				memStat.dwLength = sizeof(MEMORYSTATUSEX);
-				if ( GlobalMemoryStatusEx( &memStat ) )
-				{
-					if ( memStat.ullTotalPhys > 0xFFFFFFFFUL )
-					{
-						host_parms.memsize = 0xFFFFFFFFUL;
-					}
-					else
-					{
-						host_parms.memsize = memStat.ullTotalPhys;
-					}
-				}
-			}
-		}
-	}
-#endif // (_MSC_VER > 1200)
-
 	if ( !IsX360() )
 	{
-		if ( host_parms.memsize == 0 )
+		MEMORYSTATUSEX	memStat = { sizeof(memStat) };
+		if (GlobalMemoryStatusEx(&memStat))
 		{
-			MEMORYSTATUS lpBuffer;
-			// Get OS Memory status
-			lpBuffer.dwLength = sizeof(MEMORYSTATUS);
-			GlobalMemoryStatus( &lpBuffer );
-
-			if ( lpBuffer.dwTotalPhys <= 0 )
+			if (memStat.ullTotalPhys > 0xFFFFFFFFUL)
 			{
-				host_parms.memsize = MAXIMUM_WIN_MEMORY;
+				host_parms.memsize = 0xFFFFFFFFUL;
 			}
 			else
 			{
-				host_parms.memsize = lpBuffer.dwTotalPhys;
-			}	
+				host_parms.memsize = memStat.ullTotalPhys;
+			}
+		}
+		else 
+		{
+			host_parms.memsize = MAXIMUM_WIN_MEMORY;
 		}
 		if ( host_parms.memsize < ONE_HUNDRED_TWENTY_EIGHT_MB )
 		{
@@ -1595,13 +1565,21 @@ CON_COMMAND( star_memory, "Dump memory stats" )
 #elif OSX
 	struct mstats memstats = mstats( );
 	Msg( "Available %.2f MB, Used: %.2f MB, #mallocs = %lu\n",
-		 memstats.bytes_free / ( 1024.0 * 1024.0), memstats.bytes_used / ( 1024.0 * 1024.0 ), memstats.chunks_used );
+		 memstats.bytes_free / ( 1024.0 * 1024.0 ), memstats.bytes_used / ( 1024.0 * 1024.0 ), memstats.chunks_used );
 #else
-	MEMORYSTATUS stat;
-	GlobalMemoryStatus( &stat );
-	Msg( "Available: %.2f MB, Used: %.2f MB, Free: %.2f MB\n", 
-		stat.dwTotalPhys/( 1024.0f*1024.0f ) - 32.0f,
-		( stat.dwTotalPhys - stat.dwAvailPhys )/( 1024.0f*1024.0f ) - 32.0f, 
-		stat.dwAvailPhys/( 1024.0f*1024.0f ) );
+	MEMORYSTATUSEX stat = { sizeof(stat) };
+	if ( GlobalMemoryStatusEx( &stat ) )
+	{
+		Msg( "Available: %.2f MiB, Used: %.2f MiB, Free: %.2f MiB\n",
+			stat.ullTotalPhys / ( 1024.0f * 1024.0f ) - 32.0f,
+			( stat.ullTotalPhys - stat.ullAvailPhys ) / ( 1024.0f * 1024.0f ) - 32.0f,
+			stat.ullAvailPhys / ( 1024.0f * 1024.0f ) );
+	}
+	else
+	{
+		const auto lastErrorText = std::system_category().message( GetLastError() );
+		Msg( "Memory status not available: %s\n", lastErrorText.c_str() );
+	}
+
 #endif
 }

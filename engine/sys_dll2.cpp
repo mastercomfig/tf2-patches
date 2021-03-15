@@ -492,30 +492,27 @@ public:
 	void BuildCommentMemStatus()
 	{
 #ifdef _WIN32
-		const double MbDiv = 1024.0 * 1024.0;
+		constexpr double MibDiv = 1024.0 * 1024.0;
 
-		MEMORYSTATUSEX	memStat;
-		ZeroMemory( &memStat, sizeof( MEMORYSTATUSEX ) );
-		memStat.dwLength = sizeof( MEMORYSTATUSEX );
-
+		MEMORYSTATUSEX	memStat = { sizeof(memStat) };
 		if ( GlobalMemoryStatusEx( &memStat ) )
 		{
-			CommentPrintf( "\nMemory\nmemusage( %d %% )\ntotalPhysical Mb(%.2f)\nfreePhysical Mb(%.2f)\ntotalPaging Mb(%.2f)\nfreePaging Mb(%.2f)\ntotalVirtualMem Mb(%.2f)\nfreeVirtualMem Mb(%.2f)\nextendedVirtualFree Mb(%.2f)\n",
+			CommentPrintf( "\nMemory\nmemusage( %d %% )\ntotalPhysical Mib(%.2f)\nfreePhysical Mib(%.2f)\ntotalPaging Mib(%.2f)\nfreePaging Mib(%.2f)\ntotalVirtualMem Mib(%.2f)\nfreeVirtualMem Mib(%.2f)\nextendedVirtualFree Mib(%.2f)\n",
 				memStat.dwMemoryLoad,
-				(double)memStat.ullTotalPhys / MbDiv,
-				(double)memStat.ullAvailPhys / MbDiv,
-				(double)memStat.ullTotalPageFile / MbDiv,
-				(double)memStat.ullAvailPageFile / MbDiv,
-				(double)memStat.ullTotalVirtual / MbDiv,
-				(double)memStat.ullAvailVirtual / MbDiv,
-				(double)memStat.ullAvailExtendedVirtual / MbDiv);
+				memStat.ullTotalPhys / MibDiv,
+				memStat.ullAvailPhys / MibDiv,
+				memStat.ullTotalPageFile / MibDiv,
+				memStat.ullAvailPageFile / MibDiv,
+				memStat.ullTotalVirtual / MibDiv,
+				memStat.ullAvailVirtual / MibDiv,
+				memStat.ullAvailExtendedVirtual / MibDiv);
 		}
 
 		HINSTANCE hInst = LoadLibrary( "Psapi.dll" );
 		if ( hInst )
 		{
-			typedef BOOL (WINAPI *GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
-			GetProcessMemoryInfoFn fn = (GetProcessMemoryInfoFn)GetProcAddress( hInst, "GetProcessMemoryInfo" );
+			using GetProcessMemoryInfoFn = BOOL (WINAPI *)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+			auto fn = (GetProcessMemoryInfoFn)GetProcAddress( hInst, "GetProcessMemoryInfo" );
 			if ( fn )
 			{
 				PROCESS_MEMORY_COUNTERS counters;
@@ -526,10 +523,10 @@ public:
 				if ( fn( GetCurrentProcess(), &counters, sizeof( PROCESS_MEMORY_COUNTERS ) ) )
 				{
 					CommentPrintf( "\nProcess Memory\nWorkingSetSize Mb(%.2f)\nQuotaPagedPoolUsage Mb(%.2f)\nQuotaNonPagedPoolUsage: Mb(%.2f)\nPagefileUsage: Mb(%.2f)\n",
-						(double)counters.WorkingSetSize / MbDiv,
-						(double)counters.QuotaPagedPoolUsage / MbDiv,
-						(double)counters.QuotaNonPagedPoolUsage / MbDiv,
-						(double)counters.PagefileUsage / MbDiv );
+						(double)counters.WorkingSetSize / MibDiv,
+						(double)counters.QuotaPagedPoolUsage / MibDiv,
+						(double)counters.QuotaNonPagedPoolUsage / MibDiv,
+						(double)counters.PagefileUsage / MibDiv );
 				}
 			}
 

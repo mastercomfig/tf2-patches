@@ -1727,9 +1727,9 @@ void CStdMemAlloc::GlobalMemoryStatus( size_t *pUsedMemory, size_t *pFreeMemory 
 #if defined ( _X360 )
 
 	// GlobalMemoryStatus tells us how much physical memory is free
-	MEMORYSTATUS stat;
-	::GlobalMemoryStatus( &stat );
-	*pFreeMemory = stat.dwAvailPhys;
+	MEMORYSTATUSEX stat = { sizeof(stat) };
+	::GlobalMemoryStatusEx( &stat );
+	*pFreeMemory = stat.ullAvailPhys;
 
 	// NOTE: we do not count free memory inside our small block heaps, as this could be misleading
 	//       (even with lots of SBH memory free, a single allocation over 2kb can still fail)
@@ -1744,7 +1744,7 @@ void CStdMemAlloc::GlobalMemoryStatus( size_t *pUsedMemory, size_t *pFreeMemory 
 #endif
 
 	// Used is total minus free (discount the 32MB system reservation)
-	*pUsedMemory = ( stat.dwTotalPhys - 32*1024*1024 ) - *pFreeMemory;
+	*pUsedMemory = ( stat.ullTotalPhys - 32*1024*1024 ) - *pFreeMemory;
 
 #else
 

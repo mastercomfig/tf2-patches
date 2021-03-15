@@ -309,14 +309,11 @@ bool GetMemoryInformation( MemoryInformation *pOutMemoryInfo )
 	if ( !pOutMemoryInfo ) 
 		return false;
 
-	MEMORYSTATUSEX	memStat;
-	ZeroMemory( &memStat, sizeof( MEMORYSTATUSEX ) );
-	memStat.dwLength = sizeof( MEMORYSTATUSEX );
-
+	MEMORYSTATUSEX	memStat = { sizeof(memStat) };
 	if ( !GlobalMemoryStatusEx( &memStat ) ) 
 		return false;
 
-	const uint cOneMb = 1024 * 1024;
+	constexpr uint cOneMb = 1024 * 1024;
 
 	switch ( pOutMemoryInfo->m_nStructVersion )
 	{
