@@ -3926,7 +3926,7 @@ static LRESULT CALLBACK staticProc(HWND hwnd,UINT msg,WPARAM wparam,LPARAM lpara
 		}
 		case WM_MOUSEWHEEL:
 		{
-			g_pInput->InternalMouseWheeled(((short)HIWORD(wparam))/WHEEL_DELTA);
+			g_pInput->InternalMouseWheeled(GET_WHEEL_DELTA_WPARAM(wparam)/WHEEL_DELTA);
 			break;
 		}
 		case WM_KEYDOWN:
