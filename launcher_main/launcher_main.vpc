@@ -47,6 +47,12 @@ $Configuration
 		$FixedBaseAddress			"Generate a relocation section (/FIXED:NO)"
 	}
 
+	$ManifestTool
+	{
+		// Input And Output
+		$AdditionalManifestFiles			"$BASE;launcher_main.manifest.xml" [!$SOURCESDK]
+	}
+
 	$Xbox360ImageConversion	[$X360]
 	{
 		// General
