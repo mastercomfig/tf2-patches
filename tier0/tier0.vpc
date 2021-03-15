@@ -45,7 +45,7 @@ $Configuration
 
 		$ImportLibrary					"$LIBPUBLIC\$_IMPLIB_PREFIX$OUTBINNAME$_IMPLIB_EXT"	[$POSIX]
 
-
+		$DelayLoadedDLLs				"PowrProf.dll"
 
 		// 360 will auto generate a def file for this import library
 		$ModuleDefinitionFile			" "										[$X360]

@@ -440,41 +440,16 @@ void CMatSystemSurface::Shutdown( void )
 	m_PaintStateStack.Purge();
 
 #if defined( WIN32 ) && !defined( _X360 )
- 	// release any custom font files
-	// use newer function if possible
-	HMODULE gdiModule = ::LoadLibrary( "gdi32.dll" );
-	typedef int (WINAPI *RemoveFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-	RemoveFontResourceExProc pRemoveFontResourceEx = NULL;
-	if ( gdiModule )
-	{
-		pRemoveFontResourceEx = (RemoveFontResourceExProc)::GetProcAddress(gdiModule, "RemoveFontResourceExA");
-	}
-
-	for (int i = 0; i < m_CustomFontFileNames.Count(); i++)
+	for (auto &fontName : m_CustomFontFileNames)
  	{
-		if (pRemoveFontResourceEx)
+		// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
+		// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
+		// when we load the font next time we get the real font instead of Ariel.
+		int nRetries = 0;
+		while (RemoveFontResourceExA(fontName.String(), FR_PRIVATE, nullptr) && (nRetries < 10))
 		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( (*pRemoveFontResourceEx)(m_CustomFontFileNames[i].String(), 0x10, NULL) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
-		}
-		else
-		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( ::RemoveFontResource(m_CustomFontFileNames[i].String()) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
+			nRetries++;
+			Msg("Removing font resource %s: attempt %d.\n", fontName.String(), nRetries);
 		}
  	}
 #endif
@@ -484,13 +459,6 @@ void CMatSystemSurface::Shutdown( void )
 	m_BitmapFontFileMapping.RemoveAll();
 
 	Cursor_ClearUserCursors();
-
-#if defined( WIN32 ) && !defined( _X360 )
-	if ( gdiModule )
-	{
-		::FreeLibrary(gdiModule);
-	}
-#endif
 
 	BaseClass::Shutdown();
 }
@@ -1897,25 +1865,8 @@ bool CMatSystemSurface::AddCustomFontFile( const char *fontName, const char *fon
 	// try and use the optimal custom font loader, will makes sure fonts are unloaded properly
 	// this function is in a newer version of the gdi library (win2k+), so need to try get it directly
 #if defined( WIN32 ) && !defined( _X360 )
-	bool successfullyAdded = false;
-	HMODULE gdiModule = ::LoadLibrary("gdi32.dll");
-	if (gdiModule)
-	{
-		typedef int (WINAPI *AddFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-		AddFontResourceExProc pAddFontResourceEx = (AddFontResourceExProc)::GetProcAddress(gdiModule, "AddFontResourceExA");
-		if (pAddFontResourceEx)
-		{
-			int result = (*pAddFontResourceEx)(fullPath, 0x10, NULL);
-			if (result > 0)
-			{
-				successfullyAdded = true;
-			}
-		}
-		::FreeLibrary(gdiModule);
-	}
-
 	// add to windows
-	bool success = successfullyAdded || (::AddFontResource(fullPath) > 0);
+	bool success = AddFontResourceExA(fullPath, FR_PRIVATE, nullptr) > 0;
 	if ( !success )
 	{
 		Msg( "Failed to load custom font file '%s'\n", fullPath );

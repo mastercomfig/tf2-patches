@@ -508,29 +508,14 @@ public:
 				memStat.ullAvailExtendedVirtual / MibDiv);
 		}
 
-		HINSTANCE hInst = LoadLibrary( "Psapi.dll" );
-		if ( hInst )
+		PROCESS_MEMORY_COUNTERS counters = { sizeof(counters) };
+		if (GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters)))
 		{
-			using GetProcessMemoryInfoFn = BOOL (WINAPI *)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
-			auto fn = (GetProcessMemoryInfoFn)GetProcAddress( hInst, "GetProcessMemoryInfo" );
-			if ( fn )
-			{
-				PROCESS_MEMORY_COUNTERS counters;
-
-				ZeroMemory( &counters, sizeof( PROCESS_MEMORY_COUNTERS ) );
-				counters.cb = sizeof( PROCESS_MEMORY_COUNTERS );
-
-				if ( fn( GetCurrentProcess(), &counters, sizeof( PROCESS_MEMORY_COUNTERS ) ) )
-				{
-					CommentPrintf( "\nProcess Memory\nWorkingSetSize Mb(%.2f)\nQuotaPagedPoolUsage Mb(%.2f)\nQuotaNonPagedPoolUsage: Mb(%.2f)\nPagefileUsage: Mb(%.2f)\n",
-						(double)counters.WorkingSetSize / MibDiv,
-						(double)counters.QuotaPagedPoolUsage / MibDiv,
-						(double)counters.QuotaNonPagedPoolUsage / MibDiv,
-						(double)counters.PagefileUsage / MibDiv );
-				}
-			}
-
-			FreeLibrary( hInst );
+			CommentPrintf("\nProcess Memory\nWorkingSetSize Mib(%.2f)\nQuotaPagedPoolUsage Mib(%.2f)\nQuotaNonPagedPoolUsage: Mib(%.2f)\nPagefileUsage: Mib(%.2f)\n",
+				(double)counters.WorkingSetSize / MibDiv,
+				(double)counters.QuotaPagedPoolUsage / MibDiv,
+				(double)counters.QuotaNonPagedPoolUsage / MibDiv,
+				(double)counters.PagefileUsage / MibDiv);
 		}
 
 #elif defined( OSX )
@@ -1291,21 +1276,10 @@ void CEngineAPI::ActivateSimulation( bool bActive )
 static void MoveConsoleWindowToFront()
 {
 #ifdef _WIN32
-	// Move the window to the front.
-	HINSTANCE hInst = LoadLibrary( "kernel32.dll" );
-	if ( hInst )
-	{
-		typedef HWND (*GetConsoleWindowFn)();
-		GetConsoleWindowFn fn = (GetConsoleWindowFn)GetProcAddress( hInst, "GetConsoleWindow" );
-		if ( fn )
-		{
-			HWND hwnd = fn();
-			ShowWindow( hwnd, SW_SHOW );
-			UpdateWindow( hwnd );
-			SetWindowPos( hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW );
-		}
-		FreeLibrary( hInst );
-	}
+	HWND hwnd = GetConsoleWindow();
+	ShowWindow(hwnd, SW_SHOW);
+	UpdateWindow(hwnd);
+	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 #endif
 }
 

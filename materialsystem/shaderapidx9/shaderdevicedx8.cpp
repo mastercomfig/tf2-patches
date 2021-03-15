@@ -155,30 +155,22 @@ bool CShaderDeviceMgrDx8::Connect( CreateInterfaceFn factory )
 								( CommandLine()->ParmValue( "-dxlevel", 100 ) < 90 );
 
 	bool bD3D9ExAvailable = false;
-	if ( HMODULE hMod = ::LoadLibraryA ( "d3d9.dll" ) )
+	IDirect3D9Ex* pD3D9Ex = nullptr;
+	if ( Direct3DCreate9Ex(D3D_SDK_VERSION, &pD3D9Ex) == S_OK && pD3D9Ex )
 	{
-		typedef HRESULT ( WINAPI *CreateD3D9ExFunc_t )( UINT, IUnknown** );
-		if ( CreateD3D9ExFunc_t pfnCreateD3D9Ex = (CreateD3D9ExFunc_t) ::GetProcAddress( hMod, "Direct3DCreate9Ex" ) )
+		bD3D9ExAvailable = true;
+		if (bD3D9ExForceDisable)
 		{
-			IUnknown *pD3D9Ex = NULL;
-			if ( (*pfnCreateD3D9Ex)( D3D_SDK_VERSION, &pD3D9Ex ) == S_OK && pD3D9Ex )
-			{
-				bD3D9ExAvailable = true;
-				if ( bD3D9ExForceDisable )
-				{
-					pD3D9Ex->Release();
-				}
-				else
-				{
-					g_ShaderDeviceUsingD3D9Ex = true;
-					// The following is more "correct" but incompatible with the Steam overlay:
-					//pD3D9Ex->QueryInterface( IID_IDirect3D9, (void**) &m_pD3D );
-					//pD3D9Ex->Release();
-					m_pD3D = static_cast< IDirect3D9* >( pD3D9Ex );
-				}
-			}
+			pD3D9Ex->Release();
 		}
-		::FreeLibrary( hMod );
+		else
+		{
+			g_ShaderDeviceUsingD3D9Ex = true;
+			// The following is more "correct" but incompatible with the Steam overlay:
+			//pD3D9Ex->QueryInterface( IID_IDirect3D9, (void**) &m_pD3D );
+			//pD3D9Ex->Release();
+			m_pD3D = static_cast<IDirect3D9*>(pD3D9Ex);
+		}
 	}
 
 	if ( !m_pD3D )

@@ -411,27 +411,16 @@ void VCR_EnterPausedState()
 	g_bVCRSingleStep = false;
 
 #ifdef WIN32
-	// This is cheesy, but GetAsyncKeyState is blocked (in protected_things.h) 
-	// from being accidentally used, so we get it through it by getting its pointer directly.
-	static HINSTANCE hInst = LoadLibrary( "user32.dll" );
-	if ( !hInst )
-		return;
-
-	typedef SHORT (WINAPI *GetAsyncKeyStateFn)( int vKey );
-	static GetAsyncKeyStateFn pfn = (GetAsyncKeyStateFn)GetProcAddress( hInst, "GetAsyncKeyState" );
-	if ( !pfn )
-		return;
-
 	// In this mode, we enter a wait state where we only pay attention to R and Q.
 	while ( 1 )
 	{
-		if ( pfn( 'R' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'R' ) & 0x8000 )
 			break;
 
-		if ( pfn( 'Q' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'Q' ) & 0x8000 )
 			TerminateProcess( GetCurrentProcess(), 1 );
 
-		if ( pfn( 'S' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'S' ) & 0x8000 )
 		{
 			if ( !g_bWaitingForStepKeyUp )
 			{
