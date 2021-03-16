@@ -577,6 +577,13 @@ void CInput::AccumulateMouse( void )
 		return;
 	}
 
+	int w, h;
+	engine->GetScreenSize( w, h );
+
+	// x,y = screen center
+	int x = w >> 1;
+	int y = h >> 1;
+
 	//only accumulate mouse if we are not moving the camera with the mouse
 	if ( !m_fCameraInterceptingMouse && vgui::surface()->IsCursorLocked() )
 	{
@@ -607,12 +614,6 @@ void CInput::AccumulateMouse( void )
 		int ox, oy;
 		GetMousePos( ox, oy );
 
-		int w, h;
-		engine->GetScreenSize(w, h);
-
-		// x,y = screen center
-		int x = w >> 1;
-		int y = h >> 1;
 		int ox_new = clamp( ox, 0, w - 1 );
 		int oy_new = clamp( oy, 0, h - 1 );
 
@@ -727,7 +728,7 @@ void CInput::GetFullscreenMousePos( int *mx, int *my, int *unclampedx /*=NULL*/,
 
 	int w, h;
 	vgui::surface()->GetScreenSize( w, h );
-	current_posx += w  / 2;
+	current_posx += w / 2;
 	current_posy += h / 2;
 
 	if ( unclampedx )
