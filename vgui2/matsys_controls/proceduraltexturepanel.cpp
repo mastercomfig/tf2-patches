@@ -53,12 +53,11 @@ bool CProceduralTexturePanel::Init( int nWidth, int nHeight, bool bAllocateImage
 	char pTemp[512];
 	Q_snprintf( pTemp, 512, "__%s", GetName() );
 
-	ITexture *pTex = MaterialSystem()->CreateProceduralTexture( pTemp, TEXTURE_GROUP_VGUI,
-			m_nWidth, m_nHeight, IMAGE_FORMAT_BGRX8888, 
-			TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT | TEXTUREFLAGS_NOMIP | 
-			TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_PROCEDURAL | TEXTUREFLAGS_SINGLECOPY );
-	pTex->SetTextureRegenerator( this );
-	m_ProceduralTexture.Init( pTex );
+	m_ProceduralTexture.InitProceduralTexture( pTemp, TEXTURE_GROUP_VGUI,
+		m_nWidth, m_nHeight, IMAGE_FORMAT_BGRX8888,
+		TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT | TEXTUREFLAGS_NOMIP |
+		TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_PROCEDURAL | TEXTUREFLAGS_SINGLECOPY );
+	m_ProceduralTexture->SetTextureRegenerator( this );
 
 	KeyValues *pVMTKeyValues = new KeyValues( "UnlitGeneric" );
 	pVMTKeyValues->SetString( "$basetexture", pTemp );
