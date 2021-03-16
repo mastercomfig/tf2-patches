@@ -3798,6 +3798,21 @@ void Host_InitProcessor( void )
 		if( MathLib_SSE2Enabled() ) Q_strncat(szFeatureString, "SSE2 ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
 		else					   Q_strncat(szFeatureString, "(SSE2) ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
 	}
+	
+	if (pi.m_bSSE3)
+	{
+		Q_strncat(szFeatureString, "(SSE3) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE41)
+	{
+		Q_strncat(szFeatureString, "(SSE4.1) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE42)
+	{
+		Q_strncat(szFeatureString, "(SSE4.2) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
 
 	if( pi.m_bMMX )
 	{

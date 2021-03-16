@@ -168,12 +168,6 @@ bool CheckSSE42Technology(void)
 #if defined( _X360 ) || defined( _PS3 )
 	return false;
 #else
-	// SSE4.2 is an Intel-only feature
-
-	const char *pchVendor = GetProcessorVendorId();
-	if ( 0 != V_tier0_stricmp( pchVendor, "GenuineIntel" ) )
-		return false;
-
 	unsigned long eax,ebx,edx,ecx;
 	if( !cpuid(1,eax,ebx,ecx,edx) )
 		return false;
