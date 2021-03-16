@@ -166,7 +166,8 @@ bool VoiceRecord_DSound::Init(int sampleRate)
 	};
 	
 	// Load the DSound DLL.
-	m_hInstDS = LoadLibrary("dsound.dll");
+	// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+	m_hInstDS = LoadLibraryExW(L"dsound.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 	if(m_hInstDS)
 	{
 		createFn = (DirectSoundCaptureCreateFn)GetProcAddress(m_hInstDS, "DirectSoundCaptureCreate");

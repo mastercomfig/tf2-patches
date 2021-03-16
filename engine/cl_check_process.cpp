@@ -122,7 +122,8 @@ int CheckOtherInstancesWithEnumProcess( const char *thisProcessNameShort )
 	NtQuerySystemInformation1 NtQuerySystemInformation;
 
 	//PVOID Info;
-	HMODULE hModule = LoadLibrary( "ntdll.dll" );
+	// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+	HMODULE hModule = LoadLibraryExW( L"ntdll.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32 );
 	if (!hModule)   
 	{
 		iProcessCount = CHECK_PROCESS_UNSUPPORTED;

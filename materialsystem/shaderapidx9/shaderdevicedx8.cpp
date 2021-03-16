@@ -199,7 +199,8 @@ bool CShaderDeviceMgrDx8::Connect( CreateInterfaceFn factory )
 	// So dynamically load d3d9.dll and get the address of these exported functions.
 	if ( !m_hD3D9 )
 	{
-		m_hD3D9 = LoadLibraryA("d3d9.dll");
+		// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+		m_hD3D9 = LoadLibraryExW("d3d9.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 	}
 	if ( m_hD3D9 )
 	{
