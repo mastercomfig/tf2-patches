@@ -449,8 +449,8 @@ void CMatSystemSurface::Shutdown( void )
 		while (RemoveFontResourceExA(fontName.String(), FR_PRIVATE, nullptr) && (nRetries < 10))
 		{
 			nRetries++;
-			Msg("Removing font resource %s: attempt %d.\n", fontName.String(), nRetries);
 		}
+		Msg("Removed font resource %s on attempt %d.\n", fontName.String(), nRetries);
  	}
 #endif
 
