@@ -577,13 +577,6 @@ void CInput::AccumulateMouse( void )
 		return;
 	}
 
-	int w, h;
-	engine->GetScreenSize( w, h );
-
-	// x,y = screen center
-	int x = w >> 1;	x;
-	int y = h >> 1;	y;
-
 	//only accumulate mouse if we are not moving the camera with the mouse
 	if ( !m_fCameraInterceptingMouse && vgui::surface()->IsCursorLocked() )
 	{
@@ -613,9 +606,20 @@ void CInput::AccumulateMouse( void )
 		// Clamp
 		int ox, oy;
 		GetMousePos( ox, oy );
-		ox = clamp( ox, 0, w - 1 );
-		oy = clamp( oy, 0, h - 1 );
-		SetMousePos( ox, oy );
+
+		int w, h;
+		engine->GetScreenSize(w, h);
+
+		// x,y = screen center
+		int x = w >> 1;
+		int y = h >> 1;
+		int ox_new = clamp( ox, 0, w - 1 );
+		int oy_new = clamp( oy, 0, h - 1 );
+
+		if ( ox_new != ox || oy_new != oy )
+		{
+			SetMousePos( ox, oy );
+		}
 	}
 
 
@@ -684,7 +688,7 @@ void CInput::MouseMove( CUserCmd *cmd )
 		ApplyMouse( viewangles, cmd, mouse_x, mouse_y );
 
 		// Re-center the mouse.
-		//ResetMouse();
+		ResetMouse();
 	}
 
 	// Store out the new viewangles.
