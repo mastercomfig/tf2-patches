@@ -4157,6 +4157,11 @@ void Host_Init( bool bDedicated )
 	TRACEINIT( Key_Init(), Key_Shutdown() );
 #endif
 
+	extern void InitMixerControls();
+	extern void ShutdownMixerControls();
+
+	TRACEINIT( InitMixerControls(), ShutdownMixerControls() );
+
 	// Check for special -dev flag
 	if ( CommandLine()->FindParm( "-dev" ) || ( CommandLine()->FindParm( "-allowdebug" ) && !CommandLine()->FindParm( "-nodev" ) ) )
 	{
