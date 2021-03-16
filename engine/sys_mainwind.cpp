@@ -1427,19 +1427,6 @@ bool CGame::Init( void *pvInstance )
 	m_bExternallySuppliedWindow = false;
 
 #if defined( WIN32 ) && !defined( USE_SDL )
-	OSVERSIONINFO	vinfo;
-	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
-
-	if ( !GetVersionEx( &vinfo ) )
-	{
-		return false;
-	}
-
-	if ( vinfo.dwPlatformId == VER_PLATFORM_WIN32s )
-	{
-		return false;
-	}
-
 	m_hInstance = (HINSTANCE)pvInstance;
 #endif
 	return true;

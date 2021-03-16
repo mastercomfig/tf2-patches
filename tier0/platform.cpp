@@ -357,9 +357,6 @@ void Plat_SetWatchdogHandlerFunction( Plat_WatchDogHandlerFunction_t function )
 
 bool Is64BitOS()
 {
-	typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-	static LPFN_ISWOW64PROCESS pfnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress( GetModuleHandle("kernel32"), "IsWow64Process" );
-
 	static BOOL bIs64bit = FALSE;
 	static bool bInitialized = false;
 	if ( bInitialized ) 
@@ -367,7 +364,7 @@ bool Is64BitOS()
 	else
 	{
 		bInitialized = true;
-		return pfnIsWow64Process && pfnIsWow64Process(GetCurrentProcess(), &bIs64bit) && bIs64bit;
+		return IsWow64Process(GetCurrentProcess(), &bIs64bit) && bIs64bit;
 	}
 }
 

@@ -1824,7 +1824,7 @@ void ReserveBottomMemory()
 	// up adding almost 4 GB to the working set, which is a significant problem if
 	// you run many processes in parallel. Therefore, if vfbasics.dll (part of AppVerifier)
 	// is loaded, don't do the reservation.
-	HMODULE vfBasicsDLL = GetModuleHandle( "vfbasics.dll" );
+	HMODULE vfBasicsDLL = GetModuleHandleW( L"vfbasics.dll" );
 	if ( vfBasicsDLL )
 		return;
 

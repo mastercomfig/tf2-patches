@@ -42,8 +42,6 @@ PME* PME::Instance()
 //---------------------------------------------------------------------------
 HRESULT PME::Init( void )
 {
-    OSVERSIONINFO	OS;
-
     if ( bDriverOpen )
         return E_DRIVER_ALREADY_OPEN;
 
@@ -60,24 +58,13 @@ HRESULT PME::Init( void )
     //-----------------------------------------------------------------------
     // Get the operating system version
     //-----------------------------------------------------------------------
-    OS.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
+    OSVERSIONINFO	OS = { sizeof(OS) };
     GetVersionEx( &OS );
 
     if ( OS.dwPlatformId == VER_PLATFORM_WIN32_NT )
     {
         hFile = CreateFile(						// WINDOWS NT
             "\\\\.\\GDPERF",
-            GENERIC_READ,
-            0,
-            NULL,
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            NULL);
-    }
-    else
-    {
-        hFile = CreateFile(						// WINDOWS 95
-            "\\\\.\\GDPERF.VXD",
             GENERIC_READ,
             0,
             NULL,
@@ -128,11 +115,11 @@ HRESULT PME::Close(void)
 
     bDriverOpen = false;
 
-	if (hFile)					// if we have no driver handle, return FALSE
+	if (hFile != INVALID_HANDLE_VALUE)					// if we have no driver handle, return FALSE
 	{
         BOOL result = CloseHandle(hFile);
 
-        hFile = NULL;
+        hFile = INVALID_HANDLE_VALUE;
 		return result ? S_OK : HRESULT_FROM_WIN32( GetLastError() );
 	}  
     else

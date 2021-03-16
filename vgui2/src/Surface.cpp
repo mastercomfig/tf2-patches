@@ -410,8 +410,6 @@ private:
 	Dar<VPANEL> _popupList;			// list of panels that have their own win32 window
 	HICON _currentCursor;
 
-	OSVERSIONINFO m_WindowsVersion;
-	bool m_bSupportsUnicode;
 	CUtlVector<CUtlSymbol> m_CustomFontFileNames;
 
 	// current font info
@@ -773,18 +771,6 @@ CWin32Surface::CWin32Surface() : m_VGuiSurfaceTextures(0, 128, TextureLessFunc)
 	if (FAILED(hr = CoInitialize(NULL)))
 	{
 		// failed
-	}
-
-	// get our version info
-	m_WindowsVersion.dwOSVersionInfoSize = sizeof(m_WindowsVersion);
-	GetVersionEx(&m_WindowsVersion);
-	if (m_WindowsVersion.dwMajorVersion >= 5)
-	{
-		m_bSupportsUnicode = true;
-	}
-	else
-	{
-		m_bSupportsUnicode = false;
 	}
 
 	m_TextPos[0] = m_TextPos[1] = 0;
@@ -1461,16 +1447,7 @@ void CWin32Surface::DrawUnicodeChar(wchar_t wch, FontDrawType_t drawType /*= FON
 		m_pActiveFont = winFont;
 	}
 
-	if (m_bSupportsUnicode)
-	{
-		ExtTextOutW(PLAT(_currentContextPanel)->hdc, 0, 0, 0, NULL, &wch, 1, NULL);
-	}
-	else
-	{
-		char mbcs[6] = { 0 };
-		::WideCharToMultiByte(CP_ACP, 0, &wch, 1, mbcs, sizeof(mbcs), NULL, NULL);
-		ExtTextOutA(PLAT(_currentContextPanel)->hdc, 0, 0, 0, NULL, mbcs, strlen(mbcs), NULL);
-	}
+	ExtTextOutW(PLAT(_currentContextPanel)->hdc, 0, 0, 0, NULL, &wch, 1, NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -2360,16 +2337,7 @@ void CWin32Surface::SetTitle(VPANEL panel, const wchar_t *title)
 	panel = GetContextPanelForChildPanel(panel);
 	if (panel)
 	{
-		if (m_bSupportsUnicode)
-		{
-			SetWindowTextW(PLAT(panel)->hwnd, title);
-		}
-		else
-		{
-			char mbcs[512];
-			::WideCharToMultiByte(CP_ACP, 0, title, -1, mbcs, sizeof(mbcs), NULL, NULL);
-			SetWindowTextA(PLAT(panel)->hwnd, mbcs);
-		}
+		SetWindowTextW(PLAT(panel)->hwnd, title);
 	}
 }
 
