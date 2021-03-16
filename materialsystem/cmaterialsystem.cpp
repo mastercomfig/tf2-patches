@@ -456,7 +456,12 @@ void CMaterialSystem::CleanUpCompositorMaterials()
 			continue;
 
 		m_pCompositorMaterials[ i ]->DecrementReferenceCount();
-		RemoveMaterial( m_pCompositorMaterials[ i ] );
+
+		// Remove only loaded material, as nothing to remove + warning for not loaded one.
+		if ( !m_pCompositorMaterials[i]->IsErrorMaterial() )
+		{
+			RemoveMaterial(m_pCompositorMaterials[i]);
+		}
 	}
 
 	m_pCompositorMaterials.RemoveAll();
@@ -1985,7 +1990,6 @@ static const char *pConvarsAllowedInDXSupport[]={
 	"cl_blobbyshadows",
 	"r_flex",
 	"r_drawropes",
-	"props_break_max_pieces",
 	"cl_ragdoll_fade_time",
 	"cl_ragdoll_forcefade",
 	"tf_impactwatertimeenable",
