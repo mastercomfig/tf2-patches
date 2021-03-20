@@ -1276,7 +1276,7 @@ FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 	}
 	return nRet;
 #else // PLATFORM_WINDOWS_PC64
-	unsigned char nResult[8];
+	alignas(unsigned long) unsigned char nResult[8];
 
 	#if defined( _WIN32 )
 		__asm
