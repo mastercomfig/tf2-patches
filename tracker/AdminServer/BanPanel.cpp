@@ -386,7 +386,7 @@ void CBanPanel::OnFileSelected(const char *fullpath)
 	// we don't use filesystem() here becuase we want to let the user pick
 	// a file from anywhere on their filesystem... so we use stdio
 	FILE *f = fopen(fullpath,"rb");
-	while (!feof(f) && fgets(line, 255, f))
+	while (f && !feof(f) && fgets(line, 255, f))
 	{	
 		// parse each line of the config file adding the ban
 		tok.SetLine(line);
