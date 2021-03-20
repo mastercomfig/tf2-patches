@@ -394,6 +394,8 @@ struct FileHash_t
 	FileHash_t()
 	{
 		m_eFileHashType = FileHash_t::k_EFileHashTypeUnknown;
+		m_crcIOSequence = 0;
+		m_md5contents.Zero();
 		m_cbFileLen = 0;
 		m_PackFileID = 0;
 		m_nPackFileNumber = 0;
