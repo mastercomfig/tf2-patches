@@ -402,7 +402,7 @@ typedef void * HINSTANCE;
 #define MAX_UNICODE_PATH MAX_PATH
 #endif
 
-#define MAX_UNICODE_PATH_IN_UTF8 MAX_UNICODE_PATH*4
+#define MAX_UNICODE_PATH_IN_UTF8 (MAX_UNICODE_PATH*4)
 
 #if !defined( offsetof )
 	#ifdef __GNUC__
@@ -413,7 +413,7 @@ typedef void * HINSTANCE;
 #endif // !defined( offsetof )
 
 
-#define ALIGN_VALUE( val, alignment ) ( ( val + alignment - 1 ) & ~( alignment - 1 ) ) //  need macro for constant expression
+#define ALIGN_VALUE( val, alignment ) ( ( (val) + (alignment) - 1 ) & ~( (alignment) - 1 ) ) //  need macro for constant expression
 
 // Used to step into the debugger
 #if defined( _WIN32 ) && !defined( _X360 )
