@@ -938,7 +938,7 @@ void CMDLPicker::GenerateBackpackIcons( void )
 	vTexArgv[ vTexArgc++ ] = "-p4skip";
 	vTexArgv[ vTexArgc++ ] = "-outdir";
 	vTexArgv[ vTexArgc++ ] = pOutputPathGame;
-	vTexArgv[ vTexArgc++ ] = (char *)pLargeTGAName;
+	vTexArgv[ vTexArgc++ ] = pLargeTGAName;
 
 	g_pVTex->VTex( MdlPickerFSFactory, pOutputPathGame, vTexArgc, vTexArgv );
 
@@ -1035,7 +1035,7 @@ void CMDLPicker::GenerateBackpackIcons( void )
 	vTexArgv[ vTexArgc++ ] = "-p4skip";
 	vTexArgv[ vTexArgc++ ] = "-outdir";
 	vTexArgv[ vTexArgc++ ] = pOutputPathGame;
-	vTexArgv[ vTexArgc++ ] = (char *)pSmallTGAName;
+	vTexArgv[ vTexArgc++ ] = pSmallTGAName;
 	g_pVTex->VTex( MdlPickerFSFactory, pOutputPathGame, vTexArgc, vTexArgv );
 
 

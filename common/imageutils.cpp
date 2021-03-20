@@ -1499,7 +1499,7 @@ ConversionErrorType ImgUtl_ConvertTGAToVTF(const char *tgaPath, int nMaxWidth/*=
 	vtfParams[0] = "";
 	vtfParams[1] = "-quiet";
 	vtfParams[2] = "-dontusegamedir";
-	vtfParams[3] = (char *)tgaPath;
+	vtfParams[3] = tgaPath;
 
 	// call vtex to do the conversion.
 	vtex->VTex(4, vtfParams);  // how do we know this works?

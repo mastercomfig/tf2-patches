@@ -2219,7 +2219,7 @@ void SetupPaths( int argc, char **argv )
 	_mkdir( g_WorkerTempPath );
 //	printf( "g_WorkerTempPath: \"%s\"\n", g_WorkerTempPath );
 
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
 	g_pShaderPath = CommandLine()->ParmValue( "-shaderpath", "" );
 
 	g_bVerbose = CommandLine()->FindParm("-verbose") != 0;

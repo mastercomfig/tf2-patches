@@ -39,7 +39,7 @@ static void PrintFReportHandler(char const *job_name, int total_units_to_do, int
 void InitCommandLineProgram( int argc, char **argv )
 {
 	MathLib_Init( 1,1,1,0,false,true,true,true);
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
 	InitDefaultFileSystem();
 	InstallProgressReportHandler( PrintFReportHandler );
 
