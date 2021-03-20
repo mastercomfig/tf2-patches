@@ -39,7 +39,8 @@
 #endif
 
 #define __STDC_LIMIT_MACROS
-#include <stdint.h>
+#include <cstdint>
+#include <utility>  // forward
 
 #include "wchartypes.h"
 #include "basetypes.h"
@@ -71,10 +72,8 @@
 #endif
 
 #include <malloc.h>
+#include <cstring>  // memset
 #include <new>
-
-// need this for memset
-#include <string.h>
 
 #include "tier0/valve_minmax_on.h"	// GCC 4.2.2 headers screw up our min/max defs.
 
@@ -1413,37 +1412,13 @@ inline const char *GetPlatformExt( void )
 template <class T>
 inline T* Construct( T* pMemory )
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T);
+	return reinterpret_cast<T*>(::new( pMemory ) T); //-V572
 }
 
-template <class T, typename ARG1>
-inline T* Construct( T* pMemory, ARG1 a1 )
+template <class T, class... Args>
+inline T* Construct(T* pMemory, Args&&... args)
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1 ));
-}
-
-template <class T, typename ARG1, typename ARG2>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3, typename ARG4>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3, ARG4 a4 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3, a4 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3, ARG4 a4, ARG5 a5 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3, a4, a5 ));
+	return reinterpret_cast<T*>(::new( pMemory ) T{ std::forward<Args>(args)... });
 }
 
 template <class T, class P>
@@ -1467,7 +1442,7 @@ inline void ConstructThreeArg( T* pMemory, P1 const& arg1, P2 const& arg2, P3 co
 template <class T>
 inline T* CopyConstruct( T* pMemory, T const& src )
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T(src));
+	return reinterpret_cast<T*>(::new( pMemory ) T(src)); //-V572
 }
 
 template <class T>
