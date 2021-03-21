@@ -412,8 +412,7 @@ public:
 			::FreeLibrary( m_hNTDllDll );
 #endif
 
-		if( m_szPDBSearchPath != NULL )
-			delete []m_szPDBSearchPath;
+		delete []m_szPDBSearchPath;
 	}
 
 	static BOOL CALLBACK UnloadSymbolsCallback( PSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext )
@@ -451,8 +450,7 @@ public:
 	{
 		AUTO_LOCK( m_Mutex );
 
-		if( m_szPDBSearchPath != NULL )
-			delete []m_szPDBSearchPath;
+		delete []m_szPDBSearchPath;
 
 		if( szSemicolonSeparatedList == NULL )
 		{
@@ -1514,10 +1512,7 @@ CStackTop_CopyParentStack::~CStackTop_CopyParentStack( void )
 	Assert( (CStackTop_Base *)g_StackTop == this );
 	g_StackTop = m_pPrevTop;
 
-	if( m_pParentStackTrace != NULL )
-	{
-		delete []m_pParentStackTrace;
-	}
+	delete[]m_pParentStackTrace;
 #endif
 }
 
