@@ -103,7 +103,7 @@ void VCR_Debug( const char *pMsg, ... )
 	EnterCriticalSection( &g_DebugFileCS );
 
 	if ( !g_pDebugFile )
-		g_pDebugFile = fopen( "c:\\vcrdebug.txt", "wt" );
+		g_pDebugFile = fopen( "vcrdebug.txt", "wt" );
 
 	if ( g_pDebugFile )
 	{
