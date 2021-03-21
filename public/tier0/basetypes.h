@@ -192,7 +192,7 @@ inline bool IsFinite( vec_t f )
 
 inline unsigned long FloatAbsBits( vec_t f )
 {
-	return FloatBits(f) & 0x7FFFFFFF;
+	return FloatBits(f) & 0x7FFFFFFFUL; //-V112
 }
 
 // Given today's processors, I cannot think of any circumstance
