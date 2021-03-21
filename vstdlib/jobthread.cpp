@@ -498,7 +498,8 @@ IThreadPool *g_pThreadPool = &g_ThreadPool;
 CThreadPool::CThreadPool() :
 	m_nIdleThreads( 0 ),
 	m_nJobs( 0 ),
-	m_nSuspend( 0 )
+	m_nSuspend( 0 ),
+	m_bExecOnThreadPoolThreadsOnly( false )
 {
 }
 
@@ -1187,14 +1188,13 @@ public:
 		if ( bDoWork )
 		{
 			byte pMemory[1024];
-			int i;
-			for ( i = 0; i < 1024; i++ )
+			for ( auto& b : pMemory )
 			{
-				pMemory[i] = rand();
+				b = rand();
 			}
-			for ( i = 0; i < 50; i++ )
+			for ( int i = 0; i < 50; i++ )
 			{
-				sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0 );
+				[[maybe_unused]] volatile float f = sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0F );
 			}
 			bDoWork = false;
 		}
@@ -1294,14 +1294,13 @@ public:
 	virtual JobStatus_t DoExecute()
 	{
 		byte pMemory[1024];
-		int i;
-		for ( i = 0; i < 1024; i++ )
+		for ( auto& b : pMemory )
 		{
-			pMemory[i] = rand();
+			b = rand();
 		}
-		for ( i = 0; i < 50; i++ )
+		for ( int i = 0; i < 50; i++ )
 		{
-			sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0 );
+			[[maybe_unused]] volatile float f = sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0F );
 		}
 		if ( AccessEvent()->Check() || IsFinished() )
 		{
