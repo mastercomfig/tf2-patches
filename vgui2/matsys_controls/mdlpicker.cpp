@@ -1086,7 +1086,7 @@ void CMDLPicker::SaveCaps( const char *szFileName )
 	m_pBackgroundColor = ( CColorPickerButton * )m_pScreenCapsPage->FindChildByName( "BackgroundColor" );
 	Color	color = m_pBackgroundColor->GetColor();
 
-	sprintf( temp, "%d %d %d %d", color.r(), color.g(), color.b(), color.a() );
+	sprintf( temp, "%u %u %u %u", color.r(), color.g(), color.b(), color.a() );
 	CaptureData->SetString( "BackgroundColor", temp );
 
 	TextEntry	*pTempValue;
