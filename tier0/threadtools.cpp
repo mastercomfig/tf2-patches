@@ -2025,7 +2025,7 @@ void CThreadSpinRWLock::UnlockWrite()
 	// X360TBD: Serious Perf implications, not yet. __sync();
 #endif
 	ThreadInterlockedExchange64(  (int64 *)&m_lockInfo, *((int64 *)&newValue) );
-	m_nWriters--;
+	--m_nWriters;
 }
 
 

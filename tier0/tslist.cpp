@@ -52,13 +52,13 @@ class CQueueOps : public CTestOps
 	void Push( int item )
 	{
 		g_TestQueue.PushItem( item );
-		g_nPushes++;
+		++g_nPushes;
 	}
 	bool Pop( int *pResult )
 	{
 		if ( g_TestQueue.PopItem( pResult ) )
 		{
-			g_nPops++;
+			++g_nPops;
 			return true;
 		}
 		return false;
@@ -78,13 +78,13 @@ class CListOps : public CTestOps
 	void Push( int item )
 	{
 		g_TestList.PushItem( item );
-		g_nPushes++;
+		++g_nPushes;
 	}
 	bool Pop( int *pResult )
 	{
 		if ( g_TestList.PopItem( pResult ) )
 		{
-			g_nPops++;
+			++g_nPops;
 			return true;
 		}
 		return false;
@@ -138,8 +138,8 @@ void ValidateBuckets()
 unsigned PopThreadFunc( void *)
 {
 	ThreadSetDebugName( "PopThread" );
-	g_nPopThreads++;
-	g_nThreads++;
+	++g_nPopThreads;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
 		ThreadSleepEx();
@@ -160,16 +160,16 @@ unsigned PopThreadFunc( void *)
 			}
 		}
 	}
-	g_nThreads--;
-	g_nPopThreads--;
+	--g_nThreads;
+	--g_nPopThreads;
 	return 0;
 }
 
 unsigned PushThreadFunc( void * )
 {
 	ThreadSetDebugName( "PushThread" );
-	g_nPushThreads++;
-	g_nThreads++;
+	++g_nPushThreads;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
 		ThreadSleepEx();
@@ -178,10 +178,10 @@ unsigned PushThreadFunc( void * )
 	while ( g_nTested < NUM_TEST )
 	{
 		g_pTestOps->Push( g_nTested );
-		g_nTested++;
+		++g_nTested;
 	}
-	g_nThreads--;
-	g_nPushThreads--;
+	--g_nThreads;
+	--g_nPushThreads;
 	return 0;
 }
 
@@ -309,13 +309,13 @@ void PushPopInterleavedTest()
 unsigned PushPopInterleavedTestThreadFunc( void * )
 {
 	ThreadSetDebugName( "PushPopThread" );
-	g_nThreads++;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
 		ThreadSleepEx();
 	}
 	PushPopInterleavedTestGuts();
-	g_nThreads--;
+	--g_nThreads;
 	return 0;
 }
 

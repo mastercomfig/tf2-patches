@@ -863,7 +863,7 @@ public:
 
 		FinishPush( pNode, oldTail ); // This can fail if another thread pushed between the sequence and node grabs above. Later pushes or pops corrects
 
-		m_Count++;
+		++m_Count;
 
 		return oldTail.value.pNode;
 	}
@@ -934,7 +934,7 @@ public:
 			}
 		}
 
-		m_Count--;
+		--m_Count;
 		head.value.pNode->elem = elem;
 		return head.value.pNode;
 	}
