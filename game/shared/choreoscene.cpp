@@ -2680,7 +2680,7 @@ void CChoreoScene::Think( float curtime )
 	}
 
 	// Events are sorted start time and then by channel and actor slot or by name if those aren't equal
-	bool dump = false;
+	constexpr bool dump = false;
 
 	i = pending.FirstInorder();
 	while (i != pending.InvalidIndex())
@@ -2689,7 +2689,7 @@ void CChoreoScene::Think( float curtime )
 
 		Assert(entry->e);
 
-		if (dump)
+		if constexpr (dump)
 		{
 			Msg("%f == %s starting at %f (actor %p channel %p)\n",
 				m_flCurrentTime, entry->e->GetName(), entry->e->GetStartTime(),
@@ -2739,7 +2739,7 @@ void CChoreoScene::Think( float curtime )
 		i = pending.NextInorder(i);
 	}
 
-	if (dump)
+	if constexpr (dump)
 	{
 		Msg("\n");
 	}
