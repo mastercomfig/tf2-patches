@@ -2598,10 +2598,7 @@ public:
 		{	
 			if ( m_pSequenceTuples != NULL )
 			{
-				if ( m_pSequenceTuples->pActivityModifiers != NULL )
-				{
-					delete[] m_pSequenceTuples->pActivityModifiers;
-				}
+				delete[] m_pSequenceTuples->pActivityModifiers;
 				delete[] m_pSequenceTuples;
 			}
 		}
