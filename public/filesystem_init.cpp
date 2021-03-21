@@ -964,8 +964,9 @@ bool DoesPathExistAlready( const char *pPathEnvVar, const char *pTestPath )
 
 	Q_strncpy( correctedTestPath, pTestPath, sizeof( correctedTestPath ) );
 	Q_FixSlashes( correctedTestPath );
-	if ( strlen( correctedTestPath ) > 0 && PATHSEPARATOR( correctedTestPath[strlen(correctedTestPath)-1] ) )
-		correctedTestPath[ strlen(correctedTestPath) - 1 ] = 0;
+	const size_t correctTestPathLen = strlen(correctedTestPath) - 1;
+	if ( correctedTestPath[0] && PATHSEPARATOR( correctedTestPath[ correctTestPathLen ] ) )
+		correctedTestPath[ correctTestPathLen ] = 0;
 
 	pTestPath = correctedTestPath;
 
