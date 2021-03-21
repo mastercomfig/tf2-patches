@@ -542,7 +542,7 @@ void TryToLoadSteamOverlayDLL()
 				char rgchSteamPath[MAX_PATH];
 				V_ComposeFileName( pchSteamInstallPath, "GameOverlayRenderer" DLL_EXT_STRING, rgchSteamPath, Q_ARRAYSIZE(rgchSteamPath) );
 				// This could fail, but we can't fix it if it does so just ignore failures
-				LoadLibrary( rgchSteamPath );
+				[[maybe_unused]] HMODULE hRenderer{ LoadLibraryEx( rgchSteamPath, 0, LOAD_WITH_ALTERED_SEARCH_PATH ) };
 			
 			}
 
