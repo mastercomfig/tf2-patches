@@ -54,7 +54,7 @@
 #endif
 
 #ifdef _WIN32
-typedef void *HANDLE;
+typedef void *HANDLE; //-V677
 #endif
 
 // Start thread running  - error if already running

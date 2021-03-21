@@ -1932,10 +1932,10 @@ inline const mstudio_modelvertexdata_t * mstudiomodel_t::GetVertexData( void *pM
 	}
 
 	vertexdata.pVertexData  = pVertexHdr->GetVertexData();
-	vertexdata.pTangentData = pVertexHdr->GetTangentData();
-
-	if ( !vertexdata.pVertexData )
+	if (!vertexdata.pVertexData)
 		return NULL;
+
+	vertexdata.pTangentData = pVertexHdr->GetTangentData();
 
 	return &vertexdata;
 }
