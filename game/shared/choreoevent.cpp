@@ -409,6 +409,7 @@ CFlexAnimationTrack::CFlexAnimationTrack( CChoreoEvent *event )
 	m_bActive			= false;
 	m_bCombo			= false;
 	m_bServerSide		= false;
+	m_bInverted = false;
 	m_nFlexControllerIndex[ 0 ] = m_nFlexControllerIndex[ 1 ] = -1;
 	m_nFlexControllerIndexRaw[ 0 ] = m_nFlexControllerIndexRaw[ 1 ] = LocalFlexController_t(-1);
 
