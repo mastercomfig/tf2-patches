@@ -1418,7 +1418,7 @@ inline T* Construct( T* pMemory )
 template <class T, class... Args>
 inline T* Construct(T* pMemory, Args&&... args)
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T{ std::forward<Args>(args)... });
+	return reinterpret_cast<T*>(::new( pMemory ) T{ std::forward<Args>(args)... }); //-V572
 }
 
 template <class T, class P>

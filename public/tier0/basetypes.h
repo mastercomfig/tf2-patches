@@ -133,12 +133,12 @@ T Max( T const &val1, T const &val2 )
 
 
 #ifndef DONT_DEFINE_BOOL // Needed for Cocoa stuff to compile.
-typedef int BOOL;
+typedef int BOOL; //-V677
 #endif
 
 typedef int qboolean;
-typedef unsigned long ULONG;
-typedef unsigned char BYTE;
+typedef unsigned long ULONG; //-V677
+typedef unsigned char BYTE; //-V677
 typedef unsigned char byte;
 typedef unsigned short word;
 #ifdef _WIN32
