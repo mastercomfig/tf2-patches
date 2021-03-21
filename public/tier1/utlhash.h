@@ -558,6 +558,7 @@ template<class Data, class HashFuncs> CUtlHashFast<Data,HashFuncs>::~CUtlHashFas
 //-----------------------------------------------------------------------------
 template<class Data, class HashFuncs> inline void CUtlHashFast<Data,HashFuncs>::Purge( void )
 {
+	m_uiBucketMask = 0;
 	m_aBuckets.Purge();
 	m_aDataPool.Purge();
 }
