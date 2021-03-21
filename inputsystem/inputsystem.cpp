@@ -300,14 +300,6 @@ void CInputSystem::AttachToWindow( void* hWnd )
 
 	m_hAttachedHWnd = (HWND)hWnd;
 
-#if 0 && defined( PLATFORM_WINDOWS )
-	POINT pt;
-	pt.x = 0; pt.y = 0;
-	ClientToScreen((HWND)m_hAttachedHWnd, &pt);
-	m_windowOffsetX = pt.x;
-	m_windowOffsetY = pt.y;
-#endif
-
 #if defined( PLATFORM_WINDOWS_PC ) && !defined( USE_SDL )
 	// NVNT inform novint devices of window
 	AttachWindowToNovintDevices( hWnd );
