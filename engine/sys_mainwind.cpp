@@ -18,6 +18,7 @@
 #if defined( WIN32 ) && !defined( _X360 ) && !defined( DX_TO_GL_ABSTRACTION )
 #include "winlite.h"
 #include "xbox/xboxstubs.h"
+#include "windows_shortcut_keys_toggler.h"
 #endif
 
 #if defined( IS_WINDOWS_PC ) && !defined( USE_SDL )
@@ -170,7 +171,8 @@ public:
 	virtual void	DispatchAllStoredGameMessages();
 private:
 	void			AppActivate( bool fActive );
-	void			PlayVideoAndWait( const char *filename, bool bNeedHealthWarning = false); // plays a video file and waits till it's done to return. Can be interrupted by user.
+	// plays a video file and waits till it's done to return. Can be interrupted by user.
+	void			PlayVideoAndWait( const char *filename, bool bNeedHealthWarning = false);
 	
 private:
 	void AttachToWindow();
@@ -208,9 +210,14 @@ private:
 
 	bool			m_bCanPostActivateEvents;
 	int				m_iDesktopWidth, m_iDesktopHeight, m_iDesktopRefreshRate;
+
+#if defined( IS_WINDOWS_PC )
+	source::windows::WindowsShortcutKeysToggler m_windowsShortcutKeysToggler;
+#endif
+
 	void			UpdateDesktopInformation();
 #ifdef WIN32
-	void			UpdateDesktopInformation( WPARAM wParam, LPARAM lParam );
+	void			UpdateDesktopInformation(WPARAM wParam, LPARAM lParam);
 #endif
 };
 
@@ -1382,14 +1389,27 @@ void CGame::PlayVideoAndWait( const char *filename, bool bNeedHealthWarning )
 
 }
 
-
+// Enable Windows shortcut keys when app is inactive or in windowed mode.
+bool ShouldEnableWindowsShortcutKeys() noexcept
+{
+	return !game->IsActiveApp() || videomode && videomode->IsWindowedMode();
+}
 
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CGame::CGame()
+#if defined( IS_WINDOWS_PC )
+	: m_windowsShortcutKeysToggler{ ::GetModuleHandleW( L"engine.dll" ), ShouldEnableWindowsShortcutKeys }
+#endif
 {
+	if ( m_windowsShortcutKeysToggler.errno_code() )
+	{
+		const auto lastErrorText = m_windowsShortcutKeysToggler.errno_code().message();
+		Warning("Can't disable Windows keys for full screen mode: %s\n", lastErrorText.c_str() );
+	}
+
 #if defined( USE_SDL )
 	m_pSDLWindow = 0;
 #endif

@@ -12,6 +12,7 @@
 
 #if defined( _WIN32 ) && !defined( _X360 )
 #include "winlite.h"
+#include "accessibility_shortcut_keys_toggler.h"
 #elif defined(POSIX)
 typedef void *HDC;
 #endif
@@ -151,6 +152,8 @@ protected:
     vmode_t&            DefaultVideoMode();
     vmode_t&            RequestedWindowVideoMode();
 
+    virtual void        SetWindowedMode(bool windowed);
+
 private:
     // Purpose: Loads the startup graphic
     void                SetupStartupGraphic();
@@ -238,6 +241,14 @@ inline vmode_t& CVideoMode_Common::RequestedWindowVideoMode()
 }
 
 
+void CVideoMode_Common::SetWindowedMode(bool windowed)
+{
+  if (windowed == IsWindowedMode()) return;
+
+  m_bWindowed = windowed;
+}
+
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -259,7 +270,7 @@ CVideoMode_Common::CVideoMode_Common( void )
     m_bClientViewRectDirty = false;
     m_pBackgroundTexture   = NULL;
     m_pLoadingTexture      = NULL;
-    m_bWindowed            = false;
+    SetWindowedMode(false);
     m_nModeWidth           = IsPC() ? 1024 : 640;
     m_nModeHeight          = IsPC() ? 768 : 480;
 	m_bVROverride = false;
@@ -521,7 +532,7 @@ void CVideoMode_Common::ResetCurrentModeForNewResolution( int nWidth, int nHeigh
     vmode_t *pMode = GetMode( nGameMode );
 
 	// default to non-VR values
-	m_bWindowed = bWindowed;
+	SetWindowedMode(bWindowed);
 	m_nModeWidth = pMode->width;
 	m_nModeHeight = pMode->height;
 	m_nUIWidth = pMode->width;
@@ -543,7 +554,7 @@ void CVideoMode_Common::ResetCurrentModeForNewResolution( int nWidth, int nHeigh
 			RequestedWindowVideoMode().width = m_nModeWidth = vrBounds.nWidth;
 			RequestedWindowVideoMode().height = m_nModeHeight = vrBounds.nHeight;
 			m_bVROverride = true;
-			m_bWindowed = vr_force_windowed.GetBool();
+			SetWindowedMode(vr_force_windowed.GetBool());
 
 
 			// This is the smallest size the the UI in source games can handle.
@@ -574,7 +585,7 @@ void CVideoMode_Common::ResetCurrentModeForNewResolution( int nWidth, int nHeigh
 	{
 		// if we aren't in VR mode but we do have a VR mode adapter set, we must not be full
 		// screen because that would show up on the HMD
-		m_bWindowed = true;
+		SetWindowedMode(true);
 	}
 }
 
@@ -1586,7 +1597,7 @@ void CVideoMode_Common::CenterEngineWindow( void *hWndCenter, int width, int hei
 
         int cxScreen = 0, cyScreen = 0, refreshRate = 0;
 
-        if ( !( WS_EX_TOPMOST & ::GetWindowLongPtr( (HWND)hWndCenter, GWL_EXSTYLE ) ) && m_bWindowed )
+        if ( !( WS_EX_TOPMOST & ::GetWindowLongPtr( (HWND)hWndCenter, GWL_EXSTYLE ) ) && IsWindowedMode() )
         {
             game->GetDesktopInfo( cxScreen, cyScreen, refreshRate );
         }
@@ -2246,11 +2257,17 @@ private:
     virtual void        ReleaseFullScreen( void );
     virtual void        ChangeDisplaySettingsToFullscreen( int nWidth, int nHeight, int nBPP );
 
+    void SetWindowedMode(bool windowed) override;
+
 #ifdef WIN32
 	int m_nLastCDSWidth;
 	int m_nLastCDSHeight;
 	int m_nLastCDSBPP;
 	int m_nLastCDSFreq;
+#endif
+
+#if defined(IS_WINDOWS_PC)
+	source::windows::AccessibilityShortcutKeysToggler m_accessibilityShortcutKeysToggler;
 #endif
 };
 
@@ -2493,7 +2510,7 @@ void CVideoMode_MaterialSystem::SetGameWindow( void *hWnd )
     // In editor mode, the mode width + height is equal to the desktop width + height
     MaterialVideoMode_t mode;
     materials->GetDisplayMode( mode );
-    m_bWindowed = true;
+    SetWindowedMode(true);
     m_nModeWidth = mode.m_Width;
     m_nModeHeight = mode.m_Height;
 
@@ -2609,7 +2626,7 @@ void CVideoMode_MaterialSystem::ChangeDisplaySettingsToFullscreen( int nWidth, i
 	m_nLastCDSBPP = nBPP;
 	m_nLastCDSFreq = freq;
 
-    ChangeDisplaySettingsEx( materials->GetDisplayDeviceName(),  &dm, NULL, CDS_FULLSCREEN, NULL );
+	ChangeDisplaySettingsEx( materials->GetDisplayDeviceName(),  &dm, NULL, CDS_FULLSCREEN, NULL );
 #elif defined( USE_SDL )
 	g_pLauncherMgr->SetWindowFullScreen( true, nWidth, nHeight );
 #else
@@ -2617,6 +2634,17 @@ void CVideoMode_MaterialSystem::ChangeDisplaySettingsToFullscreen( int nWidth, i
 	{
 		Assert( !"Impl me" );
 	}
+#endif
+}
+
+void CVideoMode_MaterialSystem::SetWindowedMode(bool windowed) 
+{
+  CVideoMode_Common::SetWindowedMode( windowed );
+
+#if defined(IS_WINDOWS_PC)
+  // Disable accessibility shortcut keys when app is active and in full screen mode.
+  // If app is inactive or in windowed mode - restore accessibility shortcut keys to original state.
+  m_accessibilityShortcutKeysToggler.Toggle( !game->IsActiveApp() || IsWindowedMode() );
 #endif
 }
 
