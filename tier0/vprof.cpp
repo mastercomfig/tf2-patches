@@ -1545,7 +1545,7 @@ static int g_ColorLookup[4] =
 	COLORMIN+((COLORMAX-COLORMIN)*2)/3, 
 };
 
-#define GET_BIT( val, bitnum ) ( ( val >> bitnum ) & 0x1 )
+#define GET_BIT( val, bitnum ) ( ( (val) >> (bitnum) ) & 0x1 )
 
 void CVProfile::GetBudgetGroupColor( int budgetGroupID, int &r, int &g, int &b, int &a )
 {
