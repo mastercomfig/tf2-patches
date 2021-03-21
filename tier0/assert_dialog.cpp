@@ -231,7 +231,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				0,
 				SWP_NOSIZE );
 		}
-		return true;
+		return TRUE;
 
 		case WM_COMMAND:
 		{
@@ -241,7 +241,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					IgnoreAssertsInCurrentFile();
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				// Ignore this assert N times.
@@ -257,7 +257,7 @@ INT_PTR CALLBACK AssertDialogProc(
 					}
 
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				// Always ignore this assert.
@@ -265,7 +265,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					IgnoreAssertsNearby( 0 );
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 				
 				case IDC_IGNORE_NEARBY:
@@ -273,25 +273,25 @@ INT_PTR CALLBACK AssertDialogProc(
 					BOOL bTranslated = false;
 					UINT value = GetDlgItemInt( hDlg, IDC_IGNORE_NUMLINES, &bTranslated, false );
 					if ( !bTranslated || value < 1 )
-						return true;
+						return TRUE;
 
 					IgnoreAssertsNearby( value );
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				case IDC_IGNORE_ALL:
 				{
 					g_bAssertsEnabled = false;
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				case IDC_BREAK:
 				{
 					g_bBreak = true;
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 			}
 
@@ -302,12 +302,11 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					// Ignore this assert.
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 			}
-					
 		}
-		return true;
+		return TRUE;
 	}
 
 	return FALSE;
