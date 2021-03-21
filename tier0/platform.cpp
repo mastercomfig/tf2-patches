@@ -359,13 +359,11 @@ bool Is64BitOS()
 {
 	static BOOL bIs64bit = FALSE;
 	static bool bInitialized = false;
-	if ( bInitialized ) 
-		return bIs64bit == (BOOL)TRUE;
-	else
-	{
-		bInitialized = true;
-		return IsWow64Process(GetCurrentProcess(), &bIs64bit) && bIs64bit;
-	}
+	if ( bInitialized )
+		return bIs64bit != FALSE;
+	
+	bInitialized = true;
+	return ::IsWow64Process(::GetCurrentProcess(), &bIs64bit) && bIs64bit != FALSE;
 }
 
 
