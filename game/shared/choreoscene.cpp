@@ -162,7 +162,6 @@ CChoreoScene& CChoreoScene::operator=( const CChoreoScene& src )
 	m_flSoundSystemLatency = src.m_flSoundSystemLatency;
 	m_pfnPrint = src.m_pfnPrint;
 	m_flLastActiveTime = src.m_flLastActiveTime;
-	m_pTokenizer = src.m_pTokenizer;
 	m_bSubScene = src.m_bSubScene;
 	m_nSceneFPS = src.m_nSceneFPS;
 	m_bUseFrameSnap = src.m_bUseFrameSnap;
