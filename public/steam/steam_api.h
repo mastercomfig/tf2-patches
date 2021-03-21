@@ -522,6 +522,7 @@ inline void CSteamAPIContext::Clear()
 	m_pSteamMusicRemote= NULL;
 	m_pSteamHTMLSurface = NULL;
 	m_pSteamInventory = NULL;
+	m_pSteamVideo = NULL;
 #ifdef _PS3
 	m_pSteamPS3OverlayRender = NULL;
 #endif
