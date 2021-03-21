@@ -805,7 +805,7 @@ private:
 class ALIGN128 CAlignedThreadFastMutex : public CThreadFastMutex
 {
 public:
-	CAlignedThreadFastMutex()
+	CAlignedThreadFastMutex() //-V730
 	{
 		Assert( (size_t)this % 128 == 0 && sizeof(*this) == 128 );
 	}
