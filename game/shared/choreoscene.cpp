@@ -2594,7 +2594,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 	// Start time equal, go to order in channel
 	if ( !a0 || !a1 || a0 != a1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	CChoreoChannel *c0 = event0->GetChannel();
@@ -2602,7 +2602,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 
 	if ( !c0 || !c1 || c0 != c1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	// Go by slot within channel
