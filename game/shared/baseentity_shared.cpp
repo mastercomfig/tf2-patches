@@ -761,7 +761,8 @@ BASEPTR	CBaseEntity::ThinkSet( BASEPTR func, float thinkTime, const char *szCont
 {
 #if !defined( CLIENT_DLL )
 #ifdef _DEBUG
-#ifdef GNUC
+// x64: func is pointer, size was changed.
+#if defined(GNUC) || defined(PLATFORM_64BITS)
 	COMPILE_TIME_ASSERT( sizeof(func) == 8 );
 #else
 	COMPILE_TIME_ASSERT( sizeof(func) == 4 );

@@ -15,6 +15,6 @@ $Project
 	$Folder	"Link Libraries"
 	{
 		-$File "$SRCDIR\lib\$PLATFORM\tier1$_STATICLIB_EXT" [!$WINDOWS]
-		-$File "$SRCDIR\lib\public\tier1$_STATICLIB_EXT" [$WINDOWS]
+		-$File "$SRCDIR\lib\public$PLATSUBDIR\tier1$_STATICLIB_EXT" [$WINDOWS]
 	}
 }

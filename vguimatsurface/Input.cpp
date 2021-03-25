@@ -110,7 +110,7 @@ static LRESULT CALLBACK MatSurfaceWindowProc( HWND hwnd, UINT uMsg, WPARAM wPara
 		// Handle close messages
 		{
 			LONG_PTR wndProc = GetWindowLongPtrW( hwnd, GWLP_WNDPROC );
-			if ( wndProc == (LONG_PTR)MatSurfaceWindowProc )
+			if ( wndProc == reinterpret_cast<LONG_PTR>(MatSurfaceWindowProc) )
 			{
 				event.m_nType = IE_Close;
 				g_pInputSystem->PostUserEvent( event );
@@ -311,8 +311,8 @@ void EnableInput( bool bEnable )
 void InputAttachToWindow(void *hwnd)
 {
 #if !defined( USE_SDL )
-	s_ChainedWindowProc = (WNDPROC)GetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC );
-	SetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)MatSurfaceWindowProc );
+	s_ChainedWindowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC ));
+	SetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(MatSurfaceWindowProc) );
 #endif
 }
 
@@ -322,7 +322,7 @@ void InputDetachFromWindow(void *hwnd)
 		return;
 	if ( s_ChainedWindowProc )
 	{
-		SetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC, (LONG_PTR) s_ChainedWindowProc );
+		SetWindowLongPtrW( (HWND)hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_ChainedWindowProc) );
 		s_ChainedWindowProc = NULL;
 	}
 }

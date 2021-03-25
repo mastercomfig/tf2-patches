@@ -262,6 +262,7 @@ public:
 		m_pStackHigh = m_pStackLow = NULL;
 		m_cubSavedStack = 0;
 		m_pFunc = NULL;
+		m_pvParam = NULL;
 		m_pchName = "(none)";
 		m_iJumpCode = 0;
 		m_pchDebugMsg = NULL;

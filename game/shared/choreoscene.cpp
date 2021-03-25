@@ -162,7 +162,6 @@ CChoreoScene& CChoreoScene::operator=( const CChoreoScene& src )
 	m_flSoundSystemLatency = src.m_flSoundSystemLatency;
 	m_pfnPrint = src.m_pfnPrint;
 	m_flLastActiveTime = src.m_flLastActiveTime;
-	m_pTokenizer = src.m_pTokenizer;
 	m_bSubScene = src.m_bSubScene;
 	m_nSceneFPS = src.m_nSceneFPS;
 	m_bUseFrameSnap = src.m_bUseFrameSnap;
@@ -2594,7 +2593,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 	// Start time equal, go to order in channel
 	if ( !a0 || !a1 || a0 != a1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	CChoreoChannel *c0 = event0->GetChannel();
@@ -2602,7 +2601,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 
 	if ( !c0 || !c1 || c0 != c1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	// Go by slot within channel
@@ -2681,7 +2680,7 @@ void CChoreoScene::Think( float curtime )
 	}
 
 	// Events are sorted start time and then by channel and actor slot or by name if those aren't equal
-	bool dump = false;
+	constexpr bool dump = false;
 
 	i = pending.FirstInorder();
 	while (i != pending.InvalidIndex())
@@ -2690,7 +2689,7 @@ void CChoreoScene::Think( float curtime )
 
 		Assert(entry->e);
 
-		if (dump)
+		if constexpr (dump)
 		{
 			Msg("%f == %s starting at %f (actor %p channel %p)\n",
 				m_flCurrentTime, entry->e->GetName(), entry->e->GetStartTime(),
@@ -2740,7 +2739,7 @@ void CChoreoScene::Think( float curtime )
 		i = pending.NextInorder(i);
 	}
 
-	if (dump)
+	if constexpr (dump)
 	{
 		Msg("\n");
 	}

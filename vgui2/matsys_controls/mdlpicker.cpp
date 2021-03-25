@@ -938,7 +938,7 @@ void CMDLPicker::GenerateBackpackIcons( void )
 	vTexArgv[ vTexArgc++ ] = "-p4skip";
 	vTexArgv[ vTexArgc++ ] = "-outdir";
 	vTexArgv[ vTexArgc++ ] = pOutputPathGame;
-	vTexArgv[ vTexArgc++ ] = (char *)pLargeTGAName;
+	vTexArgv[ vTexArgc++ ] = pLargeTGAName;
 
 	g_pVTex->VTex( MdlPickerFSFactory, pOutputPathGame, vTexArgc, vTexArgv );
 
@@ -1035,7 +1035,7 @@ void CMDLPicker::GenerateBackpackIcons( void )
 	vTexArgv[ vTexArgc++ ] = "-p4skip";
 	vTexArgv[ vTexArgc++ ] = "-outdir";
 	vTexArgv[ vTexArgc++ ] = pOutputPathGame;
-	vTexArgv[ vTexArgc++ ] = (char *)pSmallTGAName;
+	vTexArgv[ vTexArgc++ ] = pSmallTGAName;
 	g_pVTex->VTex( MdlPickerFSFactory, pOutputPathGame, vTexArgc, vTexArgv );
 
 
@@ -1086,7 +1086,7 @@ void CMDLPicker::SaveCaps( const char *szFileName )
 	m_pBackgroundColor = ( CColorPickerButton * )m_pScreenCapsPage->FindChildByName( "BackgroundColor" );
 	Color	color = m_pBackgroundColor->GetColor();
 
-	sprintf( temp, "%d %d %d %d", color.r(), color.g(), color.b(), color.a() );
+	sprintf( temp, "%u %u %u %u", color.r(), color.g(), color.b(), color.a() );
 	CaptureData->SetString( "BackgroundColor", temp );
 
 	TextEntry	*pTempValue;

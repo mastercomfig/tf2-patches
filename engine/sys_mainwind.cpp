@@ -18,6 +18,7 @@
 #if defined( WIN32 ) && !defined( _X360 ) && !defined( DX_TO_GL_ABSTRACTION )
 #include "winlite.h"
 #include "xbox/xboxstubs.h"
+#include "windows_shortcut_keys_toggler.h"
 #endif
 
 #if defined( IS_WINDOWS_PC ) && !defined( USE_SDL )
@@ -54,10 +55,6 @@
 #include "sys_dll.h"
 #include "inputsystem/iinputsystem.h"
 #include "inputsystem/ButtonCode.h"
-#ifdef WIN32
-#undef WIN32_LEAN_AND_MEAN
-  #include "unicode/unicode.h"
-#endif
 #include "GameUI/IGameUI.h"
 #include "matchmaking.h"
 #include "sv_main.h"
@@ -108,12 +105,6 @@ enum GameInputEventType_t
 	IE_AppActivated,
 };
 
-
-
-#ifdef WIN32
-static 	IUnicodeWindows *unicode = NULL;
-#endif
-
 //-----------------------------------------------------------------------------
 // Purpose: Main game interface, including message pump and window creation
 //-----------------------------------------------------------------------------
@@ -161,14 +152,11 @@ public:
 	void			SetMainWindow( SDL_Window* window );
 #else
 #ifdef WIN32
-	int				WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	LRESULT				WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif
 	void			SetMainWindow( HWND window );
 #endif
 	void			SetActiveApp( bool active );
-
-	bool			LoadUnicode();
-	void			UnloadUnicode();
 
 // Message handlers.
 public:
@@ -183,7 +171,8 @@ public:
 	virtual void	DispatchAllStoredGameMessages();
 private:
 	void			AppActivate( bool fActive );
-	void			PlayVideoAndWait( const char *filename, bool bNeedHealthWarning = false); // plays a video file and waits till it's done to return. Can be interrupted by user.
+	// plays a video file and waits till it's done to return. Can be interrupted by user.
+	void			PlayVideoAndWait( const char *filename, bool bNeedHealthWarning = false);
 	
 private:
 	void AttachToWindow();
@@ -218,13 +207,17 @@ private:
 	int				m_width;
 	int				m_height;
 	bool			m_bActiveApp;
-	CSysModule		*m_hUnicodeModule;
 
 	bool			m_bCanPostActivateEvents;
 	int				m_iDesktopWidth, m_iDesktopHeight, m_iDesktopRefreshRate;
+
+#if defined( IS_WINDOWS_PC )
+	source::windows::WindowsShortcutKeysToggler m_windowsShortcutKeysToggler;
+#endif
+
 	void			UpdateDesktopInformation();
 #ifdef WIN32
-	void			UpdateDesktopInformation( WPARAM wParam, LPARAM lParam );
+	void			UpdateDesktopInformation(WPARAM wParam, LPARAM lParam);
 #endif
 };
 
@@ -425,27 +418,16 @@ void VCR_EnterPausedState()
 	g_bVCRSingleStep = false;
 
 #ifdef WIN32
-	// This is cheesy, but GetAsyncKeyState is blocked (in protected_things.h) 
-	// from being accidentally used, so we get it through it by getting its pointer directly.
-	static HINSTANCE hInst = LoadLibrary( "user32.dll" );
-	if ( !hInst )
-		return;
-
-	typedef SHORT (WINAPI *GetAsyncKeyStateFn)( int vKey );
-	static GetAsyncKeyStateFn pfn = (GetAsyncKeyStateFn)GetProcAddress( hInst, "GetAsyncKeyState" );
-	if ( !pfn )
-		return;
-
 	// In this mode, we enter a wait state where we only pay attention to R and Q.
 	while ( 1 )
 	{
-		if ( pfn( 'R' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'R' ) & 0x8000 )
 			break;
 
-		if ( pfn( 'Q' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'Q' ) & 0x8000 )
 			TerminateProcess( GetCurrentProcess(), 1 );
 
-		if ( pfn( 'S' ) & 0x8000 )
+		if ( GetAsyncKeyState( 'S' ) & 0x8000 )
 		{
 			if ( !g_bWaitingForStepKeyUp )
 			{
@@ -513,11 +495,13 @@ void VCR_HandlePlaybackMessages(
 // FIXME: It would be nice to remove the need for this, which we can do
 // if we can make unicode work when running inside hammer.
 //-----------------------------------------------------------------------------
-static LONG WINAPI CallDefaultWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+static LRESULT WINAPI CallDefaultWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-	if ( unicode )
-		return unicode->DefWindowProcW( hWnd, uMsg, wParam, lParam );
+#if !defined( _X360 )
+	return DefWindowProcW( hWnd, uMsg, wParam, lParam );
+#else
 	return DefWindowProc( hWnd, uMsg, wParam, lParam );
+#endif
 }
 #endif
 
@@ -574,10 +558,10 @@ void XBX_HandleInvite( DWORD nUserId )
 //-----------------------------------------------------------------------------
 // Main windows procedure
 //-----------------------------------------------------------------------------
-int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 {
-	LONG			lRet = 0;
+	LRESULT			lRet = 0;
 	HDC				hdc;
 	PAINTSTRUCT		ps;
 
@@ -705,7 +689,7 @@ int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			rcWindow.right = rcWindow.left + m_rcLastRestoredClientRect.right;
 			rcWindow.bottom = rcWindow.top + m_rcLastRestoredClientRect.bottom;
 
-			::AdjustWindowRect( &rcWindow, ::GetWindowLong( hWnd, GWL_STYLE ), FALSE );
+			::AdjustWindowRect( &rcWindow, ::GetWindowLongPtr( hWnd, GWL_STYLE ), FALSE );
 			::MoveWindow( hWnd, rcWindow.left, rcWindow.top,
 				rcWindow.right - rcWindow.left, rcWindow.bottom - rcWindow.top, FALSE );
 #endif
@@ -832,14 +816,10 @@ int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // return 0 if handled message, 1 if not
     return lRet;
 }
-#elif defined(OSX)
-
-#elif defined(LINUX)
-
-#elif defined(_WIN32)
+#elif defined(OSX) || defined(LINUX) || defined(_WIN32)
 
 #else
-#error
+#error Please, implement window proc for your os in engine/sys_mainwind.cpp
 #endif
 
 
@@ -847,7 +827,7 @@ int CGame::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //-----------------------------------------------------------------------------
 // Creates the game window 
 //-----------------------------------------------------------------------------
-static LONG WINAPI HLEngineWindowProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam )
+static LRESULT WINAPI HLEngineWindowProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM  lParam )
 {
 	return g_Game.WindowProc( hWnd, uMsg, wParam, lParam );
 }
@@ -929,27 +909,25 @@ bool CGame::CreateGameWindow( void )
 		V_strcat( windowName, p, sizeof( windowName ) );
 	}
 
+	// x64: Easier to reason about current client bitness.
+#ifdef PLATFORM_64BITS
+	V_strcat(windowName, " [64 bits]", sizeof(windowName));
+#else
+	V_strcat(windowName, " [32 bits]", sizeof(windowName));
+#endif
+
 #if defined( WIN32 ) && !defined( USE_SDL )
 #ifndef SWDS
-	if ( IsPC() )
-	{
-		if ( !LoadUnicode() )
-		{
-			return false;
-		}
-	}
-
 #if !defined( _X360 )
-	WNDCLASSW wc;
+	WNDCLASSW wc = {0};
 #else
-	WNDCLASS wc;
+	WNDCLASS wc = { 0 };
 #endif
-	memset( &wc, 0, sizeof( wc ) );
 
-    wc.style         = CS_OWNDC | CS_DBLCLKS;
-    wc.lpfnWndProc   = CallDefaultWindowProc;
-    wc.hInstance     = m_hInstance;
-    wc.lpszClassName = CLASSNAME;
+	wc.style         = CS_OWNDC | CS_DBLCLKS;
+	wc.lpfnWndProc   = CallDefaultWindowProc;
+	wc.hInstance     = m_hInstance;
+	wc.lpszClassName = CLASSNAME;
 
 	// find the icon file in the filesystem
 	if ( IsPC() )
@@ -984,9 +962,9 @@ bool CGame::CreateGameWindow( void )
 	// Oops, we didn't clean up the class registration from last cycle which
 	// might mean that the wndproc pointer is bogus
 #ifndef _X360
-	unicode->UnregisterClassW( CLASSNAME, m_hInstance );
+	UnregisterClassW( CLASSNAME, m_hInstance );
 	// Register it again
-    unicode->RegisterClassW( &wc );
+	RegisterClassW( &wc );
 #else
 	RegisterClass( &wc );
 #endif
@@ -1022,7 +1000,7 @@ bool CGame::CreateGameWindow( void )
 	}
 
 #if !defined( _X360 )
-	HWND hwnd = unicode->CreateWindowExW( exFlags, CLASSNAME, uc, style, 
+	HWND hwnd = CreateWindowExW( exFlags, CLASSNAME, uc, style, 
 		0, 0, w, h, NULL, NULL, m_hInstance, NULL );
 	// NOTE: On some cards, CreateWindowExW slams the FPU control word
 	SetupFPUControlWord();
@@ -1094,8 +1072,7 @@ void CGame::DestroyGameWindow()
 		}
 
 #if !defined( _X360 )
-		unicode->UnregisterClassW( CLASSNAME, m_hInstance );
-		UnloadUnicode();
+		UnregisterClassW( CLASSNAME, m_hInstance );
 #else
 		UnregisterClass( CLASSNAME, m_hInstance );
 #endif
@@ -1133,8 +1110,8 @@ void CGame::AttachToWindow()
 	if ( !m_hWindow )
 		return;
 #if !defined( USE_SDL )
-	m_ChainedWindowProc = (WNDPROC)GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC );
-	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, (LONG_PTR)HLEngineWindowProc );
+	m_ChainedWindowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC ));
+	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HLEngineWindowProc) );
 #endif
 #endif // WIN32
     
@@ -1186,8 +1163,8 @@ void CGame::DetachFromWindow()
 	}
 
 #if defined( WIN32 ) && !defined( USE_SDL )
-	Assert( (WNDPROC)GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC ) == HLEngineWindowProc );
-	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, (LONG_PTR)m_ChainedWindowProc );
+	Assert( reinterpret_cast<WNDPROC>(GetWindowLongPtrW( m_hWindow, GWLP_WNDPROC )) == HLEngineWindowProc );
+	SetWindowLongPtrW( m_hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_ChainedWindowProc) );
 #endif
 }
 
@@ -1412,22 +1389,33 @@ void CGame::PlayVideoAndWait( const char *filename, bool bNeedHealthWarning )
 
 }
 
-
+// Enable Windows shortcut keys when app is inactive or in windowed mode.
+bool ShouldEnableWindowsShortcutKeys() noexcept
+{
+	return !game->IsActiveApp() || videomode && videomode->IsWindowedMode();
+}
 
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CGame::CGame()
+#if defined( IS_WINDOWS_PC )
+	: m_windowsShortcutKeysToggler{ ::GetModuleHandleW( L"engine.dll" ), ShouldEnableWindowsShortcutKeys }
+#endif
 {
+	if ( m_windowsShortcutKeysToggler.errno_code() )
+	{
+		const auto lastErrorText = m_windowsShortcutKeysToggler.errno_code().message();
+		Warning("Can't disable Windows keys for full screen mode: %s\n", lastErrorText.c_str() );
+	}
+
 #if defined( USE_SDL )
 	m_pSDLWindow = 0;
 #endif
 
 #if defined( WIN32 )
 #if !defined( USE_SDL )
-	unicode = NULL;
-	m_hUnicodeModule = NULL;
 	m_hInstance = 0;
 	m_ChainedWindowProc = NULL;
 #endif
@@ -1459,19 +1447,6 @@ bool CGame::Init( void *pvInstance )
 	m_bExternallySuppliedWindow = false;
 
 #if defined( WIN32 ) && !defined( USE_SDL )
-	OSVERSIONINFO	vinfo;
-	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
-
-	if ( !GetVersionEx( &vinfo ) )
-	{
-		return false;
-	}
-
-	if ( vinfo.dwPlatformId == VER_PLATFORM_WIN32s )
-	{
-		return false;
-	}
-
 	m_hInstance = (HINSTANCE)pvInstance;
 #endif
 	return true;
@@ -1484,47 +1459,6 @@ bool CGame::Shutdown( void )
 	m_hInstance = 0;
 #endif
 	return true;
-}
-
-bool CGame::LoadUnicode( void )
-{
-#ifdef WIN32
-	m_hUnicodeModule = Sys_LoadModule( "unicode" );
-	if ( !m_hUnicodeModule )
-	{
-		Error( "Unable to load unicode.dll" );
-		return false;
-	}
-
-	CreateInterfaceFn factory = Sys_GetFactory( m_hUnicodeModule );
-	if ( !factory )
-	{
-		Error( "Unable to get factory from unicode.dll" );
-		return false;
-	}
-
-	unicode = ( IUnicodeWindows * )factory( VENGINE_UNICODEINTERFACE_VERSION, NULL );
-	if ( !unicode )
-	{
-		Error( "Unable to load interface '%s' from unicode.dll", VENGINE_UNICODEINTERFACE_VERSION );
-		return false;
-	}
-#endif
-
-	return true;
-}
-
-void CGame::UnloadUnicode()
-{
-#ifdef WIN32
-	unicode = NULL;
-
-	if ( m_hUnicodeModule )
-	{
-		Sys_UnloadModule( m_hUnicodeModule );
-		m_hUnicodeModule = NULL;
-	}
-#endif
 }
 
 void *CGame::GetMainWindow( void )

@@ -309,14 +309,11 @@ bool GetMemoryInformation( MemoryInformation *pOutMemoryInfo )
 	if ( !pOutMemoryInfo ) 
 		return false;
 
-	MEMORYSTATUSEX	memStat;
-	ZeroMemory( &memStat, sizeof( MEMORYSTATUSEX ) );
-	memStat.dwLength = sizeof( MEMORYSTATUSEX );
-
+	MEMORYSTATUSEX	memStat = { sizeof(memStat) };
 	if ( !GlobalMemoryStatusEx( &memStat ) ) 
 		return false;
 
-	const uint cOneMb = 1024 * 1024;
+	constexpr uint cOneMb = 1024 * 1024;
 
 	switch ( pOutMemoryInfo->m_nStructVersion )
 	{
@@ -360,18 +357,13 @@ void Plat_SetWatchdogHandlerFunction( Plat_WatchDogHandlerFunction_t function )
 
 bool Is64BitOS()
 {
-	typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-	static LPFN_ISWOW64PROCESS pfnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress( GetModuleHandle("kernel32"), "IsWow64Process" );
-
 	static BOOL bIs64bit = FALSE;
 	static bool bInitialized = false;
-	if ( bInitialized ) 
-		return bIs64bit == (BOOL)TRUE;
-	else
-	{
-		bInitialized = true;
-		return pfnIsWow64Process && pfnIsWow64Process(GetCurrentProcess(), &bIs64bit) && bIs64bit;
-	}
+	if ( bInitialized )
+		return bIs64bit != FALSE;
+	
+	bInitialized = true;
+	return ::IsWow64Process(::GetCurrentProcess(), &bIs64bit) && bIs64bit != FALSE;
 }
 
 

@@ -558,6 +558,7 @@ template<class Data, class HashFuncs> CUtlHashFast<Data,HashFuncs>::~CUtlHashFas
 //-----------------------------------------------------------------------------
 template<class Data, class HashFuncs> inline void CUtlHashFast<Data,HashFuncs>::Purge( void )
 {
+	m_uiBucketMask = 0;
 	m_aBuckets.Purge();
 	m_aDataPool.Purge();
 }
@@ -618,9 +619,9 @@ template<class Data, class HashFuncs> inline UtlHashFastHandle_t CUtlHashFast<Da
 {
 	// Get a new element from the pool.
 	int iHashData = m_aDataPool.Alloc( true );
-	HashFastData_t *pHashData = &m_aDataPool[iHashData];
-	if ( !pHashData )
+	if ( iHashData == m_aDataPool.InvalidIndex() )
 		return InvalidHandle();
+	HashFastData_t *pHashData = &m_aDataPool[iHashData];
 
 	// Add data to new element.
 	pHashData->m_uiKey = uiKey;

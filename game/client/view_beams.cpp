@@ -723,6 +723,14 @@ void CViewRenderBeams::SetupBeam( Beam_t *pBeam, const BeamInfo_t &beamInfo )
 
 	VectorCopy( beamInfo.m_vecStart, pBeam->attachment[0] );
 	VectorCopy( beamInfo.m_vecEnd, pBeam->attachment[1] );
+
+	if ( beamInfo.m_pStartEnt || beamInfo.m_pEndEnt )
+	{
+		// No m_vecStart or m_vecEnd, as they will be based on entity(ies).
+		// Skip the rest as m_vecStart or m_vecEnd will be computed later with attachment and segments.
+		return;
+	}
+
 	VectorSubtract( beamInfo.m_vecEnd, beamInfo.m_vecStart, pBeam->delta );
 	Assert( pBeam->delta.IsValid() );
 

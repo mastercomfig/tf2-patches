@@ -245,7 +245,7 @@ bool R_CullBoxSkipNear( const Vector& mins, const Vector& maxs, const Frustum_t 
 
 struct matrix3x4_t
 {
-	matrix3x4_t() {}
+	matrix3x4_t() {} //-V730
 	matrix3x4_t( 
 		float m00, float m01, float m02, float m03,
 		float m10, float m11, float m12, float m13,
@@ -1276,7 +1276,7 @@ FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 	}
 	return nRet;
 #else // PLATFORM_WINDOWS_PC64
-	unsigned char nResult[8];
+	alignas(unsigned long) unsigned char nResult[8];
 
 	#if defined( _WIN32 )
 		__asm

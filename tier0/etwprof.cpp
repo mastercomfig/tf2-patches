@@ -21,26 +21,11 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-// These are defined in evntrace.h but you need a Vista+ Windows
-// SDK to have them available, so I define them here.
-#define EVENT_CONTROL_CODE_DISABLE_PROVIDER 0
-#define EVENT_CONTROL_CODE_ENABLE_PROVIDER  1
-#define EVENT_CONTROL_CODE_CAPTURE_STATE    2
 
-// EVNTAPI is used in evntprov.h which is included by ValveETWProviderEvents.h
-// We define EVNTAPI without the DECLSPEC_IMPORT specifier so that
-// we can implement these functions locally instead of using the import library,
-// and can therefore still run on Windows XP.
-#define EVNTAPI __stdcall
 // Include the event register/write/unregister macros compiled from the manifest file.
 // Note that this includes evntprov.h which requires a Vista+ Windows SDK
 // which we don't currently have, so evntprov.h is checked in.
 #include "ValveETWProviderEvents.h"
-
-// Typedefs for use with GetProcAddress
-typedef ULONG (__stdcall *tEventRegister)( LPCGUID ProviderId, PENABLECALLBACK EnableCallback, PVOID CallbackContext, PREGHANDLE RegHandle);
-typedef ULONG (__stdcall *tEventWrite)( REGHANDLE RegHandle, PCEVENT_DESCRIPTOR EventDescriptor, ULONG UserDataCount, PEVENT_DATA_DESCRIPTOR UserData);
-typedef ULONG (__stdcall *tEventUnregister)( REGHANDLE RegHandle );
 
 // Helper class to dynamically load Advapi32.dll, find the ETW functions, 
 // register the providers if possible, and get the performance counter frequency.
@@ -51,37 +36,27 @@ public:
 	{
 		QueryPerformanceFrequency( &m_frequency );
 
-		// Find Advapi32.dll. This should always succeed.
-		HMODULE pAdvapiDLL = LoadLibraryW( L"Advapi32.dll" );
-		if ( pAdvapiDLL )
-		{
-			// Try to find the ETW functions. This will fail on XP.
-			m_pEventRegister = ( tEventRegister )GetProcAddress( pAdvapiDLL, "EventRegister" );
-			m_pEventWrite = ( tEventWrite )GetProcAddress( pAdvapiDLL, "EventWrite" );
-			m_pEventUnregister = ( tEventUnregister )GetProcAddress( pAdvapiDLL, "EventUnregister" );
+		// Register two ETW providers. If registration fails then the event logging calls will fail.
+		// On XP these calls will do nothing.
+		// On Vista and above, if these providers have been enabled by xperf or logman then
+		// the VALVE_FRAMERATE_Context and VALVE_MAIN_Context globals will be modified
+		// like this:
+		//     MatchAnyKeyword: 0xffffffffffffffff
+		//     IsEnabled: 1
+		//     Level: 255
+		// In other words, fully enabled.
 
-			// Register two ETW providers. If registration fails then the event logging calls will fail.
-			// On XP these calls will do nothing.
-			// On Vista and above, if these providers have been enabled by xperf or logman then
-			// the VALVE_FRAMERATE_Context and VALVE_MAIN_Context globals will be modified
-			// like this:
-			//     MatchAnyKeyword: 0xffffffffffffffff
-			//     IsEnabled: 1
-			//     Level: 255
-			// In other words, fully enabled.
+		EventRegisterValve_FrameRate();
+		EventRegisterValve_ServerFrameRate();
+		EventRegisterValve_Main();
+		EventRegisterValve_Input();
+		EventRegisterValve_Network();
 
-			EventRegisterValve_FrameRate();
-			EventRegisterValve_ServerFrameRate();
-			EventRegisterValve_Main();
-			EventRegisterValve_Input();
-			EventRegisterValve_Network();
-
-			// Emit the thread ID for the main thread. This also indicates that
-			// the main provider is initialized.
-			EventWriteThread_ID( GetCurrentThreadId(), "Main thread" );
-			// Emit an input system event so we know that it is active.
-			EventWriteKey_down( "Valve input provider initialized.", 0, 0 );
-		}
+		// Emit the thread ID for the main thread. This also indicates that
+		// the main provider is initialized.
+		EventWriteThread_ID( GetCurrentThreadId(), "Main thread" );
+		// Emit an input system event so we know that it is active.
+		EventWriteKey_down( "Valve input provider initialized.", 0, 0 );
 	}
 	~CETWRegister()
 	{
@@ -93,41 +68,11 @@ public:
 		EventUnregisterValve_FrameRate();
 	}
 
-	tEventRegister m_pEventRegister;
-	tEventWrite m_pEventWrite;
-	tEventUnregister m_pEventUnregister;
-
 	// QPC frequency
 	LARGE_INTEGER m_frequency;
 
 } g_ETWRegister;
 
-// Redirector function for EventRegister. Called by macros in ValveETWProviderEvents.h
-ULONG EVNTAPI EventRegister( LPCGUID ProviderId, PENABLECALLBACK EnableCallback, PVOID CallbackContext, PREGHANDLE RegHandle )
-{
-	if ( g_ETWRegister.m_pEventRegister )
-		return g_ETWRegister.m_pEventRegister( ProviderId, EnableCallback, CallbackContext, RegHandle );
-
-	// RegHandle is an _Out_ parameter and must always be initialized.
-	*RegHandle = 0;
-	return 0;
-}
-
-// Redirector function for EventWrite. Called by macros in ValveETWProviderEvents.h
-ULONG EVNTAPI EventWrite( REGHANDLE RegHandle, PCEVENT_DESCRIPTOR EventDescriptor, ULONG UserDataCount, PEVENT_DATA_DESCRIPTOR UserData )
-{
-	if ( g_ETWRegister.m_pEventWrite )
-		return g_ETWRegister.m_pEventWrite( RegHandle, EventDescriptor, UserDataCount, UserData );
-	return 0;
-}
-
-// Redirector function for EventUnregister. Called by macros in ValveETWProviderEvents.h
-ULONG EVNTAPI EventUnregister( REGHANDLE RegHandle )
-{
-	if ( g_ETWRegister.m_pEventUnregister )
-		return g_ETWRegister.m_pEventUnregister( RegHandle );
-	return 0;
-}
 
 // Call QueryPerformanceCounter
 static int64 GetQPCTime()

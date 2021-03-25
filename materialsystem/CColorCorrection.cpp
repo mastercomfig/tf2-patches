@@ -386,8 +386,8 @@ ColorCorrectionHandle_t CColorCorrectionSystem::AddLookup( const char *pName )
 	{
 //		Warning( "Cannot have 2 lookups referencing the same name %s\n", pName );
 
-		// NOTE: Cannot use 0xFFFFFFFF because that's the default handle
-		return (ColorCorrectionHandle_t)0xFFFFFFFE;
+		// NOTE: Cannot use (ColorCorrectionHandle_t)-1 because that's the default handle
+		return (ColorCorrectionHandle_t)(-1) - 1;
 	}
 
 	lookup = new ColorCorrectionLookup_t( handle );

@@ -3798,6 +3798,21 @@ void Host_InitProcessor( void )
 		if( MathLib_SSE2Enabled() ) Q_strncat(szFeatureString, "SSE2 ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
 		else					   Q_strncat(szFeatureString, "(SSE2) ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
 	}
+	
+	if (pi.m_bSSE3)
+	{
+		Q_strncat(szFeatureString, "(SSE3) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE41)
+	{
+		Q_strncat(szFeatureString, "(SSE4.1) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE42)
+	{
+		Q_strncat(szFeatureString, "(SSE4.2) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
 
 	if( pi.m_bMMX )
 	{
@@ -3818,10 +3833,18 @@ void Host_InitProcessor( void )
 	// Remove the trailing space.  There will always be one.
 	szFeatureString[Q_strlen(szFeatureString)-1] = '\0';
 
+	constexpr char cpuBitnessMode[] =
+#ifdef PLATFORM_64BITS
+		"x86-64";
+#else
+		"x86";
+#endif
+
 	// Dump CPU information:
 	if( pi.m_nLogicalProcessors == 1 )
 	{
-		ConDMsg( "1 CPU, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "1 %s CPU, Frequency: %.01f %s,  Features: %s\n", 
+			cpuBitnessMode,
 			fFrequency,
 			szFrequencyDenomination,
 			szFeatureString
@@ -3835,8 +3858,9 @@ void Host_InitProcessor( void )
 			Q_snprintf(buffer, sizeof( buffer ), " (%i physical)", (int) pi.m_nPhysicalProcessors );
 		}
 
-		ConDMsg( "%i CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "%i %s CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
 			(int)pi.m_nLogicalProcessors,
+			cpuBitnessMode,
 			buffer,
 			fFrequency,
 			szFrequencyDenomination,
@@ -4147,6 +4171,11 @@ void Host_Init( bool bDedicated )
 #ifndef SWDS
 	TRACEINIT( Key_Init(), Key_Shutdown() );
 #endif
+
+	extern void InitMixerControls();
+	extern void ShutdownMixerControls();
+
+	TRACEINIT( InitMixerControls(), ShutdownMixerControls() );
 
 	// Check for special -dev flag
 	if ( CommandLine()->FindParm( "-dev" ) || ( CommandLine()->FindParm( "-allowdebug" ) && !CommandLine()->FindParm( "-nodev" ) ) )

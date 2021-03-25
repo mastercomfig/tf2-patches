@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		"..\.."
+$Macro OUTLIBNAME		"libjpeg"
 $Macro OUTLIBDIR	"$LIBCOMMON"
 $Include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
 

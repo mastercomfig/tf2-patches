@@ -210,7 +210,7 @@ bool CImportVMF::SerializeEntityEditorKey( CUtlBuffer &buf, DmElementHandle_t hE
 		if ( pAttribute )
 		{
 			Color c = pAttribute->GetValue<Color>();
-			buf.Printf( "\"color\" \"%d %d %d\"\n", c.r(), c.g(), c.b() );
+			buf.Printf( "\"color\" \"%u %u %u\"\n", c.r(), c.g(), c.b() );
 		}
 	}
 	PrintIntAttribute( pEditorElement, buf, "id" ); // FIXME - id is a DmObjectId_t!!! This should never print anything!

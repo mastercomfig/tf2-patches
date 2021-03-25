@@ -52,7 +52,8 @@ typedef enum {SIS_SUCCESS, SIS_FAILURE, SIS_NOTAVAIL} sndinitstat;
 #define DSSPEAKER_5POINT1_SURROUND 9
 #endif
 
-HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS, IUnknown FAR *pUnkOuter);
+using DirectSoundCreateFunction = decltype(&DirectSoundCreate);
+DirectSoundCreateFunction pDirectSoundCreate;
 
 extern void ReleaseSurround(void);
 extern bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int volume[CCHANVOLUMES], int mixchans );
@@ -723,14 +724,15 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 	
 	if (!m_hInstDS)
 	{
-		m_hInstDS = LoadLibrary("dsound.dll");
+		// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+		m_hInstDS = LoadLibraryExW(L"dsound.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 		if (m_hInstDS == NULL)
 		{
 			Warning( "Couldn't load dsound.dll\n");
 			return SIS_FAILURE;
 		}
 
-		pDirectSoundCreate = (long (__stdcall *)(struct _GUID *,struct IDirectSound ** ,struct IUnknown *))GetProcAddress(m_hInstDS,"DirectSoundCreate");
+		pDirectSoundCreate = (DirectSoundCreateFunction)GetProcAddress(m_hInstDS,"DirectSoundCreate");
 		if (!pDirectSoundCreate)
 		{
 			Warning( "Couldn't get DS proc addr\n");

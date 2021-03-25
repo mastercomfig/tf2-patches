@@ -223,6 +223,7 @@ CFSSearchPathsInit::CFSSearchPathsInit()
 {
 	m_pDirectoryName = NULL;
 	m_pLanguage = NULL;
+	m_pFileSystem = NULL;
 	m_ModPath[0] = 0;
 	m_bMountHDContent = m_bLowViolence = false;
 }
@@ -234,13 +235,16 @@ CFSSteamSetupInfo::CFSSteamSetupInfo()
 	m_bOnlyUseDirectoryName = false;
 	m_bSteam = false;
 	m_bToolsMode = true;
+	m_bSetSteamDLLPath = false;
 	m_bNoGameInfo = false;
+	m_GameInfoPath[0] = 0;
 }
 
 
 CFSLoadModuleInfo::CFSLoadModuleInfo()
 {
 	m_pFileSystemDLLName = NULL;
+	m_ConnectFactory = NULL;
 	m_pFileSystem = NULL;
 	m_pModule = NULL;
 }
@@ -576,7 +580,7 @@ FSReturnCode_t FileSystem_LoadSearchPaths( CFSSearchPathsInit &initInfo )
 
 		if ( Q_stristr( pLocation, GAMEINFOPATH_TOKEN ) == pLocation )
 		{
-			pLocation += strlen( GAMEINFOPATH_TOKEN );
+			pLocation += std::size( GAMEINFOPATH_TOKEN ) - 1;
 			pszBaseDir = initInfo.m_pDirectoryName;
 		}
 		else if ( Q_stristr( pLocation, BASESOURCEPATHS_TOKEN ) == pLocation )
@@ -589,7 +593,7 @@ FSReturnCode_t FileSystem_LoadSearchPaths( CFSSearchPathsInit &initInfo )
 			// We need a special identifier in the gameinfo.txt here because the base hl2 folder exists in different places.
 			// In the case of a game or a Steam-launched dedicated server, all the necessary prior engine content is mapped in with the Steam depots,
 			// so we can just use the path as-is.
-			pLocation += strlen( BASESOURCEPATHS_TOKEN );
+			pLocation += std::size( BASESOURCEPATHS_TOKEN ) - 1;
 		}
 
 		CUtlStringList vecFullLocationPaths;
@@ -960,8 +964,9 @@ bool DoesPathExistAlready( const char *pPathEnvVar, const char *pTestPath )
 
 	Q_strncpy( correctedTestPath, pTestPath, sizeof( correctedTestPath ) );
 	Q_FixSlashes( correctedTestPath );
-	if ( strlen( correctedTestPath ) > 0 && PATHSEPARATOR( correctedTestPath[strlen(correctedTestPath)-1] ) )
-		correctedTestPath[ strlen(correctedTestPath) - 1 ] = 0;
+	const size_t correctTestPathLen = strlen(correctedTestPath) - 1;
+	if ( correctedTestPath[0] && PATHSEPARATOR( correctedTestPath[ correctTestPathLen ] ) )
+		correctedTestPath[ correctTestPathLen ] = 0;
 
 	pTestPath = correctedTestPath;
 

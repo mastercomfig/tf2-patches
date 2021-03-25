@@ -76,7 +76,7 @@ class frame_buf_window
 
 	static LRESULT CALLBACK static_window_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		frame_buf_window* pApp = reinterpret_cast<frame_buf_window*>(GetWindowLong(hWnd, 0));
+		frame_buf_window* pApp = reinterpret_cast<frame_buf_window*>(GetWindowLongPtr(hWnd, 0));
 		if (!pApp)
 			pApp = frame_buf_window::m_pCur_app;
 
@@ -222,7 +222,7 @@ void frame_buf_window::create_window(const char* pTitle)
         WS_OVERLAPPEDWINDOW, 
         m_orig_x, m_orig_y, rect.right, rect.bottom, 0, 0, 0, 0);
 
-    SetWindowLong(m_window, 0, reinterpret_cast<LONG>(this));
+    SetWindowLongPtr(m_window, 0, reinterpret_cast<LONG_PTR>(this));
       
     m_pCur_app = NULL;
 

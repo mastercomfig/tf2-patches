@@ -158,7 +158,7 @@ $Project "MaterialSystem"
 		$File	"itextureinternal.h"
 		$File	"materialsystem_global.h"
 		$File	"occlusionquerymgr.h"
-		$File	"shader_dll_verify.h"		[$WIN32]
+		$File	"shader_dll_verify.h"		[$WINDOWS]
 		$File	"shadersystem.h"
 		$File	"texturemanager.h"
 	}

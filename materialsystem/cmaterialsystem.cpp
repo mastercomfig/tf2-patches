@@ -435,7 +435,7 @@ void CMaterialSystem::CreateCompositorMaterials()
 
 		IMaterialInternal *pMatqf = assert_cast< IMaterialInternal* >( FindMaterial( pszMaterial, TEXTURE_GROUP_RUNTIME_COMPOSITE ) );
 		Assert( pMatqf );
-		Assert( !pMatqf->IsErrorMaterial() );
+		AssertMsg( !pMatqf->IsErrorMaterial(), "Material %s is missed", pszMaterial );
 		IMaterialInternal *pMatrt = pMatqf->GetRealTimeVersion();
 		Assert( pMatrt );
 		pMatrt->IncrementReferenceCount(); // Hold a ref.
@@ -456,7 +456,12 @@ void CMaterialSystem::CleanUpCompositorMaterials()
 			continue;
 
 		m_pCompositorMaterials[ i ]->DecrementReferenceCount();
-		RemoveMaterial( m_pCompositorMaterials[ i ] );
+
+		// Remove only loaded material, as nothing to remove + warning for not loaded one.
+		if ( !m_pCompositorMaterials[i]->IsErrorMaterial() )
+		{
+			RemoveMaterial(m_pCompositorMaterials[i]);
+		}
 	}
 
 	m_pCompositorMaterials.RemoveAll();
@@ -1985,7 +1990,6 @@ static const char *pConvarsAllowedInDXSupport[]={
 	"cl_blobbyshadows",
 	"r_flex",
 	"r_drawropes",
-	"props_break_max_pieces",
 	"cl_ragdoll_fade_time",
 	"cl_ragdoll_forcefade",
 	"tf_impactwatertimeenable",

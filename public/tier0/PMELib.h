@@ -105,7 +105,7 @@ protected:
 
     PME()
     {
-        hFile = NULL;
+        hFile = INVALID_HANDLE_VALUE;
         bDriverOpen = FALSE;
         m_CPUClockSpeed = 0;
         Init(); 

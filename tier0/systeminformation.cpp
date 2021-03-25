@@ -237,9 +237,7 @@ SYSTEM_CALL_RESULT_t Plat_GetPagedPoolInfo( PAGED_POOL_INFO_t *pPPI )
 	if ( !s_bOsVersionValid )
 	{
 		s_bOsVersionValid = true;
-		OSVERSIONINFO osver;
-		memset( &osver, 0, sizeof( osver ) );
-		osver.dwOSVersionInfoSize = sizeof( osver );
+		OSVERSIONINFO osver = { sizeof(osver) };
 		GetVersionEx( &osver );
 
 		// We should run it only on Windows XP or Windows 2003
@@ -252,16 +250,9 @@ SYSTEM_CALL_RESULT_t Plat_GetPagedPoolInfo( PAGED_POOL_INFO_t *pPPI )
 		}
 
 		// Don't care for 64-bit Windows
-		CSysCallCacheEntry_FindModule wow64( _T((char*)"kernel32.dll" ), (char*)"IsWow64Process" );
-		if ( wow64.CallResult() == SYSCALL_SUCCESS )
+		if ( Is64BitOS() )
 		{
-			typedef BOOL ( WINAPI * PFNWOW64 )( HANDLE, PBOOL );
-			BOOL b64 = FALSE;
-			if ( ( wow64.GetFunction< PFNWOW64 >() )( GetCurrentProcess(), &b64 ) &&
-				 b64 )
-			{
-				qsi.SetFailed( SYSCALL_UNSUPPORTED );
-			}
+			qsi.SetFailed( SYSCALL_UNSUPPORTED );
 		}
 		
 		if ( qsi.CallResult() != SYSCALL_SUCCESS )

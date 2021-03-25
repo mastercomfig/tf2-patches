@@ -184,7 +184,7 @@ public:
 	{
 		tchar b[128];
 
-		_stprintf(b, _T("%d.%d.%d %s XVersion(%d.%d)"), 
+		_stprintf(b, _T("%u.%u.%u %s XVersion(%u.%u)"), 
 			version.Family, version.Model, version.Stepping, type_text(), version.XFamily, version.XModel);
 
 		return tstring(b);

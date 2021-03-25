@@ -142,14 +142,14 @@ InitReturnVal_t	CSourceVirtualReality::Init()
 
 	// if our tracker expects to use the texture base distortion shader,
 	// make the procedural textures for that shader now
-	m_pDistortionTextureLeft.Init( materials->CreateProceduralTexture( "vr_distort_map_left", TEXTURE_GROUP_PIXEL_SHADERS,
+	m_pDistortionTextureLeft.InitProceduralTexture( "vr_distort_map_left", TEXTURE_GROUP_PIXEL_SHADERS,
 		distortionTextureSize, distortionTextureSize, IMAGE_FORMAT_RGBA16161616,
 		TEXTUREFLAGS_NOMIP | TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_NODEBUGOVERRIDE |
-		TEXTUREFLAGS_SINGLECOPY | TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT ) );
-	m_pDistortionTextureRight.Init( materials->CreateProceduralTexture( "vr_distort_map_right", TEXTURE_GROUP_PIXEL_SHADERS,
+		TEXTUREFLAGS_SINGLECOPY | TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT );
+	m_pDistortionTextureRight.InitProceduralTexture( "vr_distort_map_right", TEXTURE_GROUP_PIXEL_SHADERS,
 		distortionTextureSize, distortionTextureSize, IMAGE_FORMAT_RGBA16161616,
 		TEXTUREFLAGS_NOMIP | TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_NODEBUGOVERRIDE |
-		TEXTUREFLAGS_SINGLECOPY | TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT ) );
+		TEXTUREFLAGS_SINGLECOPY | TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT );
 	m_pDistortionTextureLeft->SetTextureRegenerator( &m_textureGeneratorLeft );
 	m_pDistortionTextureRight->SetTextureRegenerator( &m_textureGeneratorRight );
 

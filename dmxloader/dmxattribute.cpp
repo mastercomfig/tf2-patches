@@ -73,8 +73,14 @@ struct CSizeTest
 		COMPILE_TIME_ASSERT( sizeof( QAngle )		== 12 );
 		COMPILE_TIME_ASSERT( sizeof( Quaternion )	== 16 );
 		COMPILE_TIME_ASSERT( sizeof( VMatrix )		== 64 );
+#ifndef PLATFORM_64BITS
 		COMPILE_TIME_ASSERT( sizeof( CUtlString )	== 4 );
 		COMPILE_TIME_ASSERT( sizeof( CUtlBinaryBlock ) == 16 );
+#else
+		// x64: These types are wrappers around pointers, so sizes are different.
+		COMPILE_TIME_ASSERT( sizeof( CUtlString ) == 8 );
+		COMPILE_TIME_ASSERT( sizeof( CUtlBinaryBlock ) == 24 );
+#endif
 		COMPILE_TIME_ASSERT( sizeof( DmObjectId_t )	== 16 );
 	};
 };

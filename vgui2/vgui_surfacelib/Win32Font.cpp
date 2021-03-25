@@ -21,10 +21,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static OSVERSIONINFO s_OsVersionInfo;
-static bool s_bOsVersionInitialized = false;
-bool s_bSupportsUnicode = false;
-
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
@@ -51,24 +47,6 @@ CWin32Font::CWin32Font() : m_ExtendedABCWidthsCache(256, 0, &ExtendedABCWidthsCa
 	Q_memset( m_ABCWidthsCache, 0, sizeof( m_ABCWidthsCache ) );
 
 	m_ExtendedABCWidthsCache.EnsureCapacity( 128 );
-
-	if ( !s_bOsVersionInitialized )
-	{
-		// get the operating system version
-		s_bOsVersionInitialized = true;
-		memset(&s_OsVersionInfo, 0, sizeof(s_OsVersionInfo));
-		s_OsVersionInfo.dwOSVersionInfoSize = sizeof(s_OsVersionInfo);
-		GetVersionEx(&s_OsVersionInfo);
-
-		if (s_OsVersionInfo.dwMajorVersion >= 5)
-		{
-			s_bSupportsUnicode = true;
-		}
-		else
-		{
-			s_bSupportsUnicode = false;
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -289,21 +267,6 @@ void CWin32Font::GetCharRGBA(wchar_t ch, int rgbaWide, int rgbaTall, unsigned ch
 	{
 		bShouldAntialias = false;
 	}
-	if ( !s_bSupportsUnicode )
-	{
-		// win98 hack, don't antialias some characters that ::GetGlyphOutline() produces bad results for
-		if (ch == 'I' || ch == '1')
-		{
-			bShouldAntialias = false;
-		}
-
-		// don't antialias big fonts at all (since win98 often produces bad results)
-		if (m_iHeight >= 13)
-		{
-			bShouldAntialias = false;
-		}
-	}
-
 
 	// only antialias latin characters, since it essentially always fails for asian characters
 	if (bShouldAntialias)
@@ -394,26 +357,12 @@ void CWin32Font::GetCharRGBA(wchar_t ch, int rgbaWide, int rgbaTall, unsigned ch
 		// render the character
 		wchar_t wch = (wchar_t)ch;
 		
-		if (s_bSupportsUnicode)
-		{
-			// clear the background first
-			RECT rect = { 0, 0, wide, tall};
-			::ExtTextOutW( m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL );
+		// clear the background first
+		RECT rect = { 0, 0, wide, tall};
+		::ExtTextOutW( m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL );
 
-			// just use the unicode renderer
-			::ExtTextOutW( m_hDC, 0, 0, 0, NULL, &wch, 1, NULL );
-		}
-		else
-		{
-			// clear the background first (it may not get done automatically in win98/ME
-			RECT rect = { 0, 0, wide, tall};
-			::ExtTextOut(m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
-
-			// convert the character using the current codepage
-			char mbcs[6] = { 0 };
-			::WideCharToMultiByte(CP_ACP, 0, &wch, 1, mbcs, sizeof(mbcs), NULL, NULL);
-			::ExtTextOutA(m_hDC, 0, 0, 0, NULL, mbcs, strlen(mbcs), NULL);
-		}
+		// just use the unicode renderer
+		::ExtTextOutW( m_hDC, 0, 0, 0, NULL, &wch, 1, NULL );
 
 		::SetBkMode(m_hDC, TRANSPARENT);
 

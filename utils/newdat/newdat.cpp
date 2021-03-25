@@ -2,145 +2,96 @@
 //
 // Purpose: Makes .DAT files
 //
-// $Workfile:     $
-// $Date:         $
-//
-//-----------------------------------------------------------------------------
-// $Log: $
-//
-// $NoKeywords: $
-//=============================================================================//
+//========================================================================//
 
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#define _FILE_OFFSET_BITS 64
+#include <iostream>
+#include <cstdio>
 #include "basetypes.h"
 #include "checksum_md5.h"
 #include "tier1/strtools.h"
 
-void Sys_Error( char *fmt, ... );
-extern void Con_Printf( char *fmt, ... );
-
-// So we can link CRC
-int LittleLongFn( int l );
-int (*LittleLong)(int l) = LittleLongFn;
-
-
-// So we can link CRC
-void Sys_Error( char *fmt, ... )
+namespace {
+long long fseek64( FILE *f, long long off, int orig) noexcept
 {
-	va_list args;
-	va_start( args, fmt );
-	vprintf( fmt, args );
-	exit(0);
+#ifdef _WIN32
+	return _fseeki64( f, off, orig );
+#else
+	return fseeko( f, off, orig );
+#endif
 }
 
-// So we can link CRC
-int COM_FindFile( char *filename, FILE **file )
+long long ftell64( FILE *f ) noexcept
 {
-	if ( file )
+#ifdef _WIN32
+	return _ftelli64( f );
+#else
+	return ftello( f );
+#endif
+}
+
+bool MD5_Hash_File( byte (&digest)[MD5_DIGEST_LENGTH], const char *fileName, std::ostream &err )
+{
+	FILE* fp{ fopen( fileName, "rb" ) };
+	if (!fp)
 	{
-		*file = fopen( filename, "rb" );
-		if ( *file )
-			return 1;
+		const auto rc = errno;
+		err << "Can't open file " << fileName << " to md5: " << strerror(rc) << '.\n';
+		return false;
 	}
-	return 0;
-}
 
-// So we can link CRC
-int LittleLongFn( int l )
-{
-	return l;
-}
+	fseek64( fp, 0, SEEK_END );
+	long long nSize{ ftell64(fp) };
+	if (nSize <= 0)
+	{
+		const auto rc = errno;
+		err << "Can't read file " << fileName << " size to md5: " << strerror(rc) << '.\n';
+		fclose( fp );
+		return false;
+	}
 
-// So we can link CRC
-void Con_Printf( char *fmt, ... )
-{
-	va_list args;
-	va_start( args, fmt );
-	vprintf( fmt, args );
-}
+	fseek64( fp, 0, SEEK_SET );
 
-bool MD5_Hash_File(unsigned char digest[16], char *pszFileName, bool bUsefopen /* = FALSE */, bool bSeed /* = FALSE */, unsigned int seed[4] /* = NULL */)
-{
-	FILE *fp;
-	byte chunk[1024];
-	int nBytesRead;
 	MD5Context_t ctx;
-	
-	int nSize;
+	memset( &ctx, 0, sizeof(ctx) );
+	MD5Init( &ctx );
 
-	if (!bUsefopen)
-	{
-		nSize = COM_FindFile(pszFileName, &fp);
-		if ( !fp || ( nSize == -1 ) )
-			return false;
-	}
-	else
-	{
-		fp = fopen( pszFileName, "rb" );
-		if ( !fp )
-			return false;
-
-		fseek ( fp, 0, SEEK_END );
-		nSize = ftell ( fp );
-		fseek ( fp, 0, SEEK_SET );
-
-		if ( nSize <= 0 )
-		{
-			fclose ( fp );
-			return false;
-		}
-	}
-
-	memset(&ctx, 0, sizeof(MD5Context_t));
-
-	MD5Init(&ctx);
-
-	if (bSeed)
-	{
-		// Seed the hash with the seed value
-		MD5Update( &ctx, (const unsigned char *)&seed[0], 16 );
-	}
-
-	// Now read in 1K chunks
+	byte chunk[1024];
+	// Now read in 1K chunks.
 	while (nSize > 0)
 	{
-		if (nSize > 1024)
-			nBytesRead = fread(chunk, 1, 1024, fp);
-		else
-			nBytesRead = fread(chunk, 1, nSize, fp);
-
+		const size_t nBytesRead{ fread(chunk, 1, min(std::size(chunk), nSize), fp) };
 		// If any data was received, CRC it.
 		if (nBytesRead > 0)
 		{
 			nSize -= nBytesRead;
-			MD5Update(&ctx, chunk, nBytesRead);
+			MD5Update( &ctx, chunk, nBytesRead );
 		}
 
-		// We we are end of file, break loop and return
+		// We we are end of file, break loop and return.
 		if ( feof( fp ) )
 		{
 			fclose( fp );
-			fp = NULL;
+			fp = nullptr;
 			break;
 		}
-		// If there was a disk error, indicate failure.
 		else if ( ferror(fp) )
 		{
+			err << "Can't read file " << fileName << " to md5: read error occured.\n";
+			// If there was a disk error, indicate failure.
 			if ( fp )
-				fclose(fp);
-			return FALSE;
+				fclose( fp );
+			return false;
 		}
-	}	
+	}
 
 	if ( fp )
-		fclose(fp);
+		fclose( fp );
 
-	MD5Final(digest, &ctx);
+	MD5Final( digest, &ctx );
 
-	return TRUE;
+	return true;
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -151,34 +102,49 @@ bool MD5_Hash_File(unsigned char digest[16], char *pszFileName, bool bUsefopen /
 //-----------------------------------------------------------------------------
 int main( int argc, char *argv[] )
 {
-	char out[512], datFile[512];
-	unsigned char digest[16];
-
 	if ( argc < 2 )
 	{
-		printf("USAGE: newdat <filename>\n" );
+		std::cerr << "USAGE: newdat <filename>\n";
 		return 1;
 	}
 
-
+	char fileName[MAX_PATH];
 	// Get the filename without the extension
-	Q_StripExtension( argv[1], out, sizeof( out ) );
-	sprintf( datFile, "%s.dat", out );
+	Q_StripExtension( argv[1], fileName, std::size( fileName ) );
 
+	char datFileName[MAX_PATH];
+	sprintf( datFileName, "%s.dat", fileName );
+
+	byte digest[MD5_DIGEST_LENGTH];
 	// Build the MD5 hash for the .EXE file
-	MD5_Hash_File( digest, argv[1], TRUE, FALSE, NULL );
+	if ( !MD5_Hash_File( digest, argv[1], std::cerr ) )
+	{
+		std::cerr << "Can't md5 file " << argv[1] << ".\n";
+		return 2;
+	}
 
 	// Write the first 4 bytes of the MD5 hash as the signature ".dat" file
-	FILE *fp = fopen( datFile, "wb" );
+	FILE* fp{ fopen( datFileName, "wb" ) };
 	if ( fp )
 	{
-		fwrite( digest, sizeof(int), 1, fp );
-		fclose( fp );
-		printf("Wrote %s\n", datFile );
-		return 0;
-	}
-	else
-		printf("Can't open %s\n", datFile );
+		if ( fwrite( digest, sizeof(int), 1, fp ) != 1 )
+		{
+			std::cerr << "Can't write md5 " << sizeof(int) << " bytes to " << datFileName << ".\n";
+			fclose( fp );
+			return 3;
+		}
 
-	return 1;
+		if ( fclose( fp ) != EOF )
+		{
+			std::cout << "Wrote md5 of " << argv[1] << " to " << datFileName << ".\n";
+			return 0;
+		}
+
+		std::cerr << "Can't close " << datFileName << " to write md5 of " << argv[1] << " to: file may be not written.\n";
+		return 4;
+	}
+
+	const auto rc = errno;
+	std::cerr << "Can't open " << datFileName << " to write md5 of " << argv[1] << " to: " << strerror( rc ) << ".\n";
+	return 5;
 }

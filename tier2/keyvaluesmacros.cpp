@@ -130,7 +130,7 @@ static KeyValues *HandleKeyValuesMacro_Insert( KeyValues *pkvInsert, KeyValues *
 	}
 
 	const char *pszInsert = pkvInsert->GetString();
-	if ( !pszInsert && *pszInsert == '\0' )
+	if ( !pszInsert || *pszInsert == '\0' )
 	{
 		// Invalid, value is empty string
 		Msg( "Error: #insert on key with empty string value, can only do #insert with simple key/value with string value\n" );

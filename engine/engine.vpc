@@ -4,7 +4,9 @@
 //	Project Script 
 //-----------------------------------------------------------------------------
 
-$macro SRCDIR		".."
+$MacroRequired "PLATSUBDIR"
+
+$Macro SRCDIR		".."
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
@@ -37,8 +39,8 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE dinput8.lib winmm.lib wsock32.lib ws2_32.lib wininet.lib vfw32.lib Rpcrt4.lib" [$WINDOWS]
-		$AdditionalLibraryDirectories	"$BASE;$SRCDIR\lib\common\vc7;$SRCDIR\dx9sdk\lib" [$WINDOWS]
+		$AdditionalDependencies			"$BASE winmm.lib wsock32.lib ws2_32.lib wininet.lib vfw32.lib Rpcrt4.lib" [$WINDOWS]
+		$AdditionalLibraryDirectories	"$BASE;$SRCDIR\lib\common\vc7" [$WINDOWS]
 		$SystemFrameworks				"Carbon;AppKit;OpenAL;CoreAudio;AudioToolbox;SystemConfiguration;Quicktime;AudioUnit" [$OSXALL]
 		$SystemLibraries				"iconv" [$OSXALL]
 		$SystemLibraries				"rt;openal;curl-gnutls" [$LINUXALL]
@@ -496,16 +498,16 @@ $Project "engine"
 			$File	"audio\public\soundservice.h"
 			$File	"audio\public\voice.h"
 			$File	"audio\public\vox.h"
-			$File	"audio\private\MPAFile.h"							[$WIN32]
-			$File	"audio\private\MPAHeader.h"							[$WIN32]
-			$File	"audio\private\VBRHeader.h"							[$WIN32]
+			$File	"audio\private\MPAFile.h"							[$WINDOWS]
+			$File	"audio\private\MPAHeader.h"							[$WINDOWS]
+			$File	"audio\private\VBRHeader.h"							[$WINDOWS]
 			$File	"audio\private\circularbuffer.h"
 			$File	"audio\private\eax.h"
 			$File	"audio\private\snd_channels.h"
 			$File	"audio\private\snd_convars.h"
 			$File	"audio\private\snd_dev_common.h"
-			$File	"audio\private\snd_dev_direct.h"					[$WIN32]
-			$File	"audio\private\snd_dev_wave.h"						[$WIN32]
+			$File	"audio\private\snd_dev_direct.h"					[$WINDOWS]
+			$File	"audio\private\snd_dev_wave.h"						[$WINDOWS]
 			$File	"audio\private\snd_dev_xaudio.h"
 			$File	"audio\private\snd_dma.h"
 			$File	"audio\private\snd_env_fx.h"
@@ -586,6 +588,7 @@ $Project "engine"
 
 	$Folder	"Header Files"
 	{
+		$File	"accessibility_shortcut_keys_toggler.h"	[$WINDOWS]
 		$File	"baseclient.h"
 		$File	"baseclientstate.h"
 		$File	"baseserver.h"
@@ -781,6 +784,7 @@ $Project "engine"
 		$File	"sbar.h"
 		$File	"$SRCDIR\public\scratchpad3d.h"
 		$File	"screen.h"
+		$File	"scoped_windows_hook.h"	[$WINDOWS]
 		$File	"server.h"
 		$File	"Session.h"
 		$File	"shadowmgr.h"
@@ -829,6 +833,7 @@ $Project "engine"
 		$File	"view.h"
 		$File	"vprof_engine.h"
 		$File	"vprof_record.h"
+		$File	"windows_shortcut_keys_toggler.h"	[$WINDOWS]
 		$File	"world.h"
 		$File	"zone.h"
 		$File	"baseautocompletefilelist.h"
@@ -903,7 +908,6 @@ $Project "engine"
 		$File	"$SRCDIR\public\vgui\Dar.h"
 		$File	"$SRCDIR\public\datamap.h"
 		$File	"$SRCDIR\public\tier0\dbg.h"
-		$File	"$SRCDIR\dx9sdk\include\dinput.h"
 		$File	"$SRCDIR\public\disp_vertindex.h"
 		$File	"$SRCDIR\public\dlight.h"
 		$File	"$SRCDIR\public\dt_utlvector_recv.h"
@@ -1059,7 +1063,6 @@ $Project "engine"
 		$File	"$SRCDIR\public\vgui_controls\Tooltip.h"
 		$File	"$SRCDIR\public\vgui_controls\TreeView.h"
 		$File	"$SRCDIR\public\vgui_controls\TreeViewListControl.h"
-		$File	"$SRCDIR\public\unicode\unicode.h"
 		$File	"$SRCDIR\public\tier1\utlbidirectionalset.h"
 		$File	"$SRCDIR\public\tier1\utlbuffer.h"
 		$File	"$SRCDIR\public\UtlCachedFileData.h"
@@ -1096,7 +1099,7 @@ $Project "engine"
 
 	$Folder	"Link libraries"
 	{
-		$Lib	socketlib [$WIN32]
+		$Lib	socketlib [$WINDOWS]
 
 		$Lib	appframework
 		$Lib	bitmap
@@ -1122,10 +1125,11 @@ $Project "engine"
 		// http://code.google.com/p/gperftools/wiki/GooglePerformanceTools
 		$File	"$SRCDIR/thirdparty/gperftools-2.0/.libs/libprofiler.so" [$GPROFILER]
 
-		$Lib	"$LIBCOMMON/binkw32"					[$WIN32&&!$QUICKTIME_WIN32]
-		$File   "$LIBCOMMON\quicktime\QTMLClient"       [$WIN32&&$QUICKTIME_WIN32]
+		$Lib	"$LIBCOMMON\binkw32"					[$WIN32&&!$QUICKTIME_WIN32]
+		$Lib	"$LIBCOMMON\binkw64"					[$WIN64&&!$QUICKTIME_WIN32]
+		$File   "$LIBCOMMON\quicktime\QTMLClient"       [$WINDOWS&&$QUICKTIME_WIN32]
 		$ImpLib	"SDL2" [$SDL]
-		$File	"$SRCDIR\DX9SDK\lib\dsound.lib" [$WIN32]
-		$File	"$SRCDIR\DX9SDK\lib\dxguid.lib" [$WIN32]
+		$File	"$SRCDIR\dx9sdk\lib$PLATSUBDIR\dsound.lib" [$WINDOWS]
+		$File	"$SRCDIR\dx9sdk\lib$PLATSUBDIR\dxguid.lib" [$WINDOWS]
 	}	
 }

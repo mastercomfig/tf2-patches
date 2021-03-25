@@ -526,7 +526,7 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT>::DoI
 	if ( idx == (handle_t) -1 )
 	{
 		idx = (handle_t) DoInsertUnconstructed( h, true );
-		ConstructOneArg( m_table[ idx ].Raw(), k );
+		Construct( m_table[ idx ].Raw(), k );
 	}
 	return idx;
 }
@@ -540,7 +540,7 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT>::DoI
 	if ( idx == (handle_t) -1 )
 	{
 		idx = (handle_t) DoInsertUnconstructed( h, true );
-		ConstructTwoArg( m_table[ idx ].Raw(), k, v );
+		Construct( m_table[ idx ].Raw(), k, v );
 		if ( pDidInsert ) *pDidInsert = true;
 	}
 	else
@@ -557,7 +557,7 @@ UtlHashHandle_t CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT>::DoI
 {
 	Assert( DoLookup<KeyParamT>( k, h, NULL ) == (handle_t) -1 );
 	handle_t idx = (handle_t) DoInsertUnconstructed( h, true );
-	ConstructTwoArg( m_table[ idx ].Raw(), k, v );
+	Construct( m_table[ idx ].Raw(), k, v );
 	return idx;
 }
 
@@ -965,7 +965,7 @@ inline UtlHashHandle_t CUtlStableHashtable<K,V,H,E,S,A>::DoInsert( KeyArgumentT 
 		return m_table[ h ].m_index;
 
 	int idx = m_data.AddToTailUnconstructed();
-	ConstructOneArg( &m_data[idx], k );
+	Construct( &m_data[idx], k );
 	m_table.template DoInsertNoCheck<IndirectIndex>( IndirectIndex( idx ), empty_t(), hash );
 	return idx;
 }
@@ -980,7 +980,7 @@ inline UtlHashHandle_t CUtlStableHashtable<K,V,H,E,S,A>::DoInsert( KeyArgumentT 
 		return m_table[ h ].m_index;
 
 	int idx = m_data.AddToTailUnconstructed();
-	ConstructTwoArg( &m_data[idx], k, v );
+	Construct( &m_data[idx], k, v );
 	m_table.template DoInsertNoCheck<IndirectIndex>( IndirectIndex( idx ), empty_t(), hash );
 	return idx;
 }

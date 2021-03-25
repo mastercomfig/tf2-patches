@@ -12,6 +12,8 @@
 #pragma once
 #endif
 
+#include <cstdint>  // uintptr_t
+
 #define null 0L
 
 #ifndef NULL
@@ -50,7 +52,7 @@ namespace vgui
 {
 // handle to an internal vgui panel
 // this is the only handle to a panel that is valid across dll boundaries
-typedef unsigned int VPANEL;
+typedef uintptr_t VPANEL;
 
 // handles to vgui objects
 // NULL values signify an invalid value

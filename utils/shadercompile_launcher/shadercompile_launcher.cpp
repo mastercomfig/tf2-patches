@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 	char dllName[512];
 
 	Pause();	
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
 
 	char fullPath[512], redirectFilename[512];
 	MakeFullPath( argv[0], fullPath, sizeof( fullPath ) );

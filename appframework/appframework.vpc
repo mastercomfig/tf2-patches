@@ -27,8 +27,8 @@ $Project "appframework"
 	{
 		$File	"AppSystemGroup.cpp"
 		$File	"$SRCDIR\public\filesystem_init.cpp"
-		$File	"vguimatsysapp.cpp"	[$WIN32]
-		$File	"winapp.cpp"		[$WIN32]
+		$File	"vguimatsysapp.cpp"	[$WINDOWS]
+		$File	"winapp.cpp"		[$WINDOWS]
 		$File	"posixapp.cpp"		[$POSIX]
 		$File	"sdlmgr.cpp"		[$SDL]
 		$File	"glmrendererinfo_osx.mm"		[$OSXALL]

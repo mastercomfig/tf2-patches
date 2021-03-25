@@ -440,42 +440,17 @@ void CMatSystemSurface::Shutdown( void )
 	m_PaintStateStack.Purge();
 
 #if defined( WIN32 ) && !defined( _X360 )
- 	// release any custom font files
-	// use newer function if possible
-	HMODULE gdiModule = ::LoadLibrary( "gdi32.dll" );
-	typedef int (WINAPI *RemoveFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-	RemoveFontResourceExProc pRemoveFontResourceEx = NULL;
-	if ( gdiModule )
-	{
-		pRemoveFontResourceEx = (RemoveFontResourceExProc)::GetProcAddress(gdiModule, "RemoveFontResourceExA");
-	}
-
-	for (int i = 0; i < m_CustomFontFileNames.Count(); i++)
+	for (auto &fontName : m_CustomFontFileNames)
  	{
-		if (pRemoveFontResourceEx)
+		// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
+		// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
+		// when we load the font next time we get the real font instead of Ariel.
+		int nRetries = 0;
+		while (RemoveFontResourceExA(fontName.String(), FR_PRIVATE, nullptr) && (nRetries < 10))
 		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( (*pRemoveFontResourceEx)(m_CustomFontFileNames[i].String(), 0x10, NULL) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
+			nRetries++;
 		}
-		else
-		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( ::RemoveFontResource(m_CustomFontFileNames[i].String()) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
-		}
+		Msg("Removed font resource %s on attempt %d.\n", fontName.String(), nRetries);
  	}
 #endif
 
@@ -484,13 +459,6 @@ void CMatSystemSurface::Shutdown( void )
 	m_BitmapFontFileMapping.RemoveAll();
 
 	Cursor_ClearUserCursors();
-
-#if defined( WIN32 ) && !defined( _X360 )
-	if ( gdiModule )
-	{
-		::FreeLibrary(gdiModule);
-	}
-#endif
 
 	BaseClass::Shutdown();
 }
@@ -1897,25 +1865,8 @@ bool CMatSystemSurface::AddCustomFontFile( const char *fontName, const char *fon
 	// try and use the optimal custom font loader, will makes sure fonts are unloaded properly
 	// this function is in a newer version of the gdi library (win2k+), so need to try get it directly
 #if defined( WIN32 ) && !defined( _X360 )
-	bool successfullyAdded = false;
-	HMODULE gdiModule = ::LoadLibrary("gdi32.dll");
-	if (gdiModule)
-	{
-		typedef int (WINAPI *AddFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-		AddFontResourceExProc pAddFontResourceEx = (AddFontResourceExProc)::GetProcAddress(gdiModule, "AddFontResourceExA");
-		if (pAddFontResourceEx)
-		{
-			int result = (*pAddFontResourceEx)(fullPath, 0x10, NULL);
-			if (result > 0)
-			{
-				successfullyAdded = true;
-			}
-		}
-		::FreeLibrary(gdiModule);
-	}
-
 	// add to windows
-	bool success = successfullyAdded || (::AddFontResource(fullPath) > 0);
+	bool success = AddFontResourceExA(fullPath, FR_PRIVATE, nullptr) > 0;
 	if ( !success )
 	{
 		Msg( "Failed to load custom font file '%s'\n", fullPath );
@@ -2126,7 +2077,7 @@ void CMatSystemSurface::ClearTemporaryFontCache( void )
 //-----------------------------------------------------------------------------
 void CMatSystemSurface::PrecacheFontCharacters( HFont font, const wchar_t *pCharacterString )
 {
-	wchar_t *pCommonChars = (wchar_t*)L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.!:-/%";
+	wchar_t pCommonChars[] = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.!:-/%";
 	MAT_FUNC;
 
 	if ( !pCharacterString || !pCharacterString[0] )
@@ -4108,7 +4059,6 @@ void CMatSystemSurface::CalculateMouseVisible()
 	int c = surface()->GetPopupCount();
 
 	VPANEL modalSubTree = input()->GetModalSubTree();
-	VPanel* p = nullptr;
 
 	if ( modalSubTree )
 	{
@@ -4120,7 +4070,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 				continue;
 
 			bool isVisible=pop->IsVisible();
-			p= pop->GetParent();
+			VPanel* p = pop->GetParent();
 
 			while (p && isVisible)
 			{
@@ -4150,7 +4100,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 			VPanel *pop = (VPanel *)surface()->GetPopup(i) ;
 			
 			bool isVisible=pop->IsVisible();
-			p= pop->GetParent();
+			VPanel* p = pop->GetParent();
 
 			while (p && isVisible)
 			{
@@ -4187,27 +4137,6 @@ void CMatSystemSurface::CalculateMouseVisible()
 	}
 	else
 	{
-#ifdef PLATFORM_WINDOWS
-		if (!IsCursorLocked() && p)
-		{
-			VPanel* contextPanel = p;
-			while (contextPanel->GetParent() && !contextPanel->Plat())
-			{
-				contextPanel = contextPanel->GetParent();
-			}
-			int absThis[4];
-			contextPanel->GetAbsPos(absThis[0], absThis[1]);
-			contextPanel->GetSize(absThis[2], absThis[3]);
-			absThis[2] += absThis[0];
-			absThis[3] += absThis[1];
-			RECT rect;
-			rect.left = absThis[0];
-			rect.top = absThis[1];
-			rect.right = absThis[2];
-			rect.bottom = absThis[3];
-			::ClipCursor(&rect);
-		}
-#endif
 		SetCursor(vgui::dc_none);
 		LockCursor();
 	}
