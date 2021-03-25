@@ -1414,7 +1414,7 @@ bool ConvertImageFormat( const uint8 *src, ImageFormat srcImageFormat,
 				ConvertFromDXT1( src, ( BGRA5551_t * )dst, width, height );
 				return true;
 			}
-			if ( dstImageFormat == IMAGE_FORMAT_BGRA4444 )
+			if ( dstImageFormat == IMAGE_FORMAT_BGRA4444 ) //-V547
 			{
 				ConvertFromDXT1( src, ( BGRA4444_t * )dst, width, height );
 				return true;
@@ -1470,7 +1470,7 @@ bool ConvertImageFormat( const uint8 *src, ImageFormat srcImageFormat,
 				ConvertFromDXT5( src, ( BGRA5551_t * )dst, width, height );
 				return true;
 			}
-			if ( dstImageFormat == IMAGE_FORMAT_BGRA4444 )
+			if ( dstImageFormat == IMAGE_FORMAT_BGRA4444 ) //-V547
 			{
 				ConvertFromDXT5( src, ( BGRA4444_t * )dst, width, height );
 				return true;
