@@ -287,6 +287,7 @@ int GetNumMipMapLevels( int width, int height, int depth )
 }
 
 // Turn off warning about FOURCC formats below...
+#pragma warning (push)
 #pragma warning (disable:4063)
 
 #ifdef DX_TO_GL_ABSTRACTION
@@ -520,7 +521,7 @@ D3DFORMAT ImageFormatToD3DFormat( ImageFormat format )
 	return D3DFMT_UNKNOWN;
 }
 
-#pragma warning (default:4063)
+#pragma warning (pop)
 
 } // ImageLoader namespace ends
 
