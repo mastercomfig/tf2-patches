@@ -752,7 +752,7 @@ ButtonCode_t ButtonCode_StringToButtonCode( const char *pString, bool bXControll
 		int nIndex = atoi( &pString[3] );
 		if ( nIndex < 29 )
 			return JOYSTICK_BUTTON( 0, nIndex );
-		if ( ( nIndex >= 29 ) && ( nIndex <= 32 ) )
+		if ( nIndex <= 32 )
 			return JOYSTICK_POV_BUTTON( 0, nIndex - 29 );
 		return BUTTON_CODE_INVALID;
 	}
