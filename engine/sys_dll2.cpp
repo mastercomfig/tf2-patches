@@ -492,48 +492,30 @@ public:
 	void BuildCommentMemStatus()
 	{
 #ifdef _WIN32
-		const double MbDiv = 1024.0 * 1024.0;
+		constexpr double MibDiv = 1024.0 * 1024.0;
 
-		MEMORYSTATUSEX	memStat;
-		ZeroMemory( &memStat, sizeof( MEMORYSTATUSEX ) );
-		memStat.dwLength = sizeof( MEMORYSTATUSEX );
-
+		MEMORYSTATUSEX	memStat = { sizeof(memStat) };
 		if ( GlobalMemoryStatusEx( &memStat ) )
 		{
-			CommentPrintf( "\nMemory\nmemusage( %d %% )\ntotalPhysical Mb(%.2f)\nfreePhysical Mb(%.2f)\ntotalPaging Mb(%.2f)\nfreePaging Mb(%.2f)\ntotalVirtualMem Mb(%.2f)\nfreeVirtualMem Mb(%.2f)\nextendedVirtualFree Mb(%.2f)\n",
+			CommentPrintf( "\nMemory\nmemusage( %d %% )\ntotalPhysical Mib(%.2f)\nfreePhysical Mib(%.2f)\ntotalPaging Mib(%.2f)\nfreePaging Mib(%.2f)\ntotalVirtualMem Mib(%.2f)\nfreeVirtualMem Mib(%.2f)\nextendedVirtualFree Mib(%.2f)\n",
 				memStat.dwMemoryLoad,
-				(double)memStat.ullTotalPhys / MbDiv,
-				(double)memStat.ullAvailPhys / MbDiv,
-				(double)memStat.ullTotalPageFile / MbDiv,
-				(double)memStat.ullAvailPageFile / MbDiv,
-				(double)memStat.ullTotalVirtual / MbDiv,
-				(double)memStat.ullAvailVirtual / MbDiv,
-				(double)memStat.ullAvailExtendedVirtual / MbDiv);
+				memStat.ullTotalPhys / MibDiv,
+				memStat.ullAvailPhys / MibDiv,
+				memStat.ullTotalPageFile / MibDiv,
+				memStat.ullAvailPageFile / MibDiv,
+				memStat.ullTotalVirtual / MibDiv,
+				memStat.ullAvailVirtual / MibDiv,
+				memStat.ullAvailExtendedVirtual / MibDiv);
 		}
 
-		HINSTANCE hInst = LoadLibrary( "Psapi.dll" );
-		if ( hInst )
+		PROCESS_MEMORY_COUNTERS counters = { sizeof(counters) };
+		if (GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters)))
 		{
-			typedef BOOL (WINAPI *GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
-			GetProcessMemoryInfoFn fn = (GetProcessMemoryInfoFn)GetProcAddress( hInst, "GetProcessMemoryInfo" );
-			if ( fn )
-			{
-				PROCESS_MEMORY_COUNTERS counters;
-
-				ZeroMemory( &counters, sizeof( PROCESS_MEMORY_COUNTERS ) );
-				counters.cb = sizeof( PROCESS_MEMORY_COUNTERS );
-
-				if ( fn( GetCurrentProcess(), &counters, sizeof( PROCESS_MEMORY_COUNTERS ) ) )
-				{
-					CommentPrintf( "\nProcess Memory\nWorkingSetSize Mb(%.2f)\nQuotaPagedPoolUsage Mb(%.2f)\nQuotaNonPagedPoolUsage: Mb(%.2f)\nPagefileUsage: Mb(%.2f)\n",
-						(double)counters.WorkingSetSize / MbDiv,
-						(double)counters.QuotaPagedPoolUsage / MbDiv,
-						(double)counters.QuotaNonPagedPoolUsage / MbDiv,
-						(double)counters.PagefileUsage / MbDiv );
-				}
-			}
-
-			FreeLibrary( hInst );
+			CommentPrintf("\nProcess Memory\nWorkingSetSize Mib(%.2f)\nQuotaPagedPoolUsage Mib(%.2f)\nQuotaNonPagedPoolUsage: Mib(%.2f)\nPagefileUsage: Mib(%.2f)\n",
+				(double)counters.WorkingSetSize / MibDiv,
+				(double)counters.QuotaPagedPoolUsage / MibDiv,
+				(double)counters.QuotaNonPagedPoolUsage / MibDiv,
+				(double)counters.PagefileUsage / MibDiv);
 		}
 
 #elif defined( OSX )
@@ -1175,7 +1157,8 @@ InitReturnVal_t CEngineAPI::Init()
 	m_bRunningSimulation = false;
 
 	// Initialize the FPU control word
-#if defined(WIN32) && !defined( SWDS ) && !defined( _X360 )
+	// x64: CS:GO relies on platform-specific FPU state, so we do.
+#if defined(WIN32) && !defined( SWDS ) && !defined( _X360 ) && !defined(PLATFORM_64BITS)
 	_asm
 	{
 		fninit
@@ -1293,21 +1276,10 @@ void CEngineAPI::ActivateSimulation( bool bActive )
 static void MoveConsoleWindowToFront()
 {
 #ifdef _WIN32
-	// Move the window to the front.
-	HINSTANCE hInst = LoadLibrary( "kernel32.dll" );
-	if ( hInst )
-	{
-		typedef HWND (*GetConsoleWindowFn)();
-		GetConsoleWindowFn fn = (GetConsoleWindowFn)GetProcAddress( hInst, "GetConsoleWindow" );
-		if ( fn )
-		{
-			HWND hwnd = fn();
-			ShowWindow( hwnd, SW_SHOW );
-			UpdateWindow( hwnd );
-			SetWindowPos( hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW );
-		}
-		FreeLibrary( hInst );
-	}
+	HWND hwnd = GetConsoleWindow();
+	ShowWindow(hwnd, SW_SHOW);
+	UpdateWindow(hwnd);
+	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 #endif
 }
 

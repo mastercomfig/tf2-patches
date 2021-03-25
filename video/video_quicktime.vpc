@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		".."
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
@@ -36,8 +37,8 @@ $Configuration  "Debug"
 {
         $General
         {
-                $OutputDirectory                        "Debug_Video_Quicktime" [$WINDOWS]
-                $IntermediateDirectory                  "Debug_Video_Quicktime" [$WINDOWS]
+                $OutputDirectory                        "$TARGETBUILDDIR\Debug_Video_Quicktime" [$WINDOWS]
+                $IntermediateDirectory                  "$TARGETBUILDDIR\Debug_Video_Quicktime" [$WINDOWS]
         }
 }
 
@@ -45,8 +46,8 @@ $Configuration  "Release"
 {
         $General
         {
-                $OutputDirectory                        "Release_Video_Quicktime" [$WINDOWS]
-                $IntermediateDirectory                  "Release_Video_Quicktime" [$WINDOWS]
+                $OutputDirectory                        "$TARGETBUILDDIR\Release_Video_Quicktime" [$WINDOWS]
+                $IntermediateDirectory                  "$TARGETBUILDDIR\Release_Video_Quicktime" [$WINDOWS]
         }
 }
 
@@ -76,8 +77,8 @@ $Project "video_quicktime"
 	{
 		$Lib tier2
 		$File   "$SRCDIR\lib\common\quicktime\QTMLClient.lib"		[$WIN32]
-		$File	"$SRCDIR\DX9SDK\lib\dsound.lib"						[$WIN32]
-		$File	"$SRCDIR\DX9SDK\lib\dxguid.lib"						[$WIN32]
+		$File	"$SRCDIR\dx9sdk\lib$PLATSUBDIR\dsound.lib"						[$WINDOWS]
+		$File	"$SRCDIR\dx9sdk\lib$PLATSUBDIR\dxguid.lib"						[$WINDOWS]
 		
 	}
 }

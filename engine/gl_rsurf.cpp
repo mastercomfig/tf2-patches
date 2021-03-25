@@ -4956,7 +4956,7 @@ struct EnumLeafBoxInfo_t
 	VectorAligned m_vecBoxCenter;
 	VectorAligned m_vecBoxHalfDiagonal;
 	ISpatialLeafEnumerator *m_pIterator;
-	int	m_nContext;
+	intptr_t	m_nContext;
 };
 
 struct EnumLeafSphereInfo_t
@@ -4966,7 +4966,7 @@ struct EnumLeafSphereInfo_t
 	Vector m_vecBoxCenter;
 	Vector m_vecBoxHalfDiagonal;
 	ISpatialLeafEnumerator *m_pIterator;
-	int	m_nContext;
+	intptr_t	m_nContext;
 };
 
 struct ListLeafBoxInfo_t
@@ -5328,7 +5328,7 @@ bool EnumerateLeafInSphere_R( mnode_t *node, EnumLeafSphereInfo_t& info, int nTe
 //-----------------------------------------------------------------------------
 
 static bool EnumerateLeavesAlongRay_R( mnode_t *node, Ray_t const& ray, 
-	float start, float end, ISpatialLeafEnumerator* pEnum, int context )
+	float start, float end, ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	// no polygons in solid nodes (don't report these leaves either)
 	if (node->contents == CONTENTS_SOLID)
@@ -5387,7 +5387,7 @@ static bool EnumerateLeavesAlongRay_R( mnode_t *node, Ray_t const& ray,
 //-----------------------------------------------------------------------------
 
 static bool EnumerateLeavesAlongExtrudedRay_R( mnode_t *node, Ray_t const& ray, 
-	float start, float end, ISpatialLeafEnumerator* pEnum, int context )
+	float start, float end, ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	// no polygons in solid nodes (don't report these leaves either)
 	if (node->contents == CONTENTS_SOLID)
@@ -5510,10 +5510,10 @@ public:
 	int LeafCount() const;
 
 	// Enumerates the leaves along a ray, box, etc.
-	bool EnumerateLeavesAtPoint( const Vector& pt, ISpatialLeafEnumerator* pEnum, int context );
-	bool EnumerateLeavesInBox( const Vector& mins, const Vector& maxs, ISpatialLeafEnumerator* pEnum, int context );
-	bool EnumerateLeavesInSphere( const Vector& center, float radius, ISpatialLeafEnumerator* pEnum, int context );
-	bool EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, int context );
+	bool EnumerateLeavesAtPoint( const Vector& pt, ISpatialLeafEnumerator* pEnum, intptr_t context );
+	bool EnumerateLeavesInBox( const Vector& mins, const Vector& maxs, ISpatialLeafEnumerator* pEnum, intptr_t context );
+	bool EnumerateLeavesInSphere( const Vector& center, float radius, ISpatialLeafEnumerator* pEnum, intptr_t context );
+	bool EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, intptr_t context );
 
 	int ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax);
 };
@@ -5540,7 +5540,7 @@ int CEngineBSPTree::LeafCount() const
 //-----------------------------------------------------------------------------
 
 bool CEngineBSPTree::EnumerateLeavesAtPoint( const Vector& pt, 
-									ISpatialLeafEnumerator* pEnum, int context )
+									ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	int leaf = CM_PointLeafnum( pt );
 	return pEnum->EnumerateLeaf( leaf, context );
@@ -5551,7 +5551,7 @@ static ConVar opt_ListLeavesFastAlgorithm( "opt_ListLeavesFastAlgorithm", "1", F
 
 
 bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& maxs, 
-									ISpatialLeafEnumerator* pEnum, int context )
+									ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	if ( !host_state.worldmodel )
 		return false;
@@ -5568,7 +5568,7 @@ bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& max
 
 
 bool CEngineBSPTree::EnumerateLeavesInSphere( const Vector& center, float radius, 
-									ISpatialLeafEnumerator* pEnum, int context )
+									ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	EnumLeafSphereInfo_t info;
 	info.m_vecCenter = center;
@@ -5582,7 +5582,7 @@ bool CEngineBSPTree::EnumerateLeavesInSphere( const Vector& center, float radius
 }
 
 
-bool CEngineBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, int context )
+bool CEngineBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnumerator* pEnum, intptr_t context )
 {
 	if (!ray.m_IsSwept)
 	{

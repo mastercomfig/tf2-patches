@@ -106,8 +106,6 @@ int CheckOtherInstancesWithEnumProcess( const char *thisProcessNameShort )
 	PSYSTEM_HANDLE_INFORMATION pHandleInfo = NULL;
 	char otherProcessName[ MAX_PATH ];
 	char otherProcessNameShort[ MAX_PATH ];
-	
-	HINSTANCE hInst = NULL;
 
 	//  Start with a count of zero, since we will find ourselves too.
 	int iProcessCount = 0;
@@ -124,7 +122,8 @@ int CheckOtherInstancesWithEnumProcess( const char *thisProcessNameShort )
 	NtQuerySystemInformation1 NtQuerySystemInformation;
 
 	//PVOID Info;
-	HMODULE hModule = LoadLibrary( "ntdll.dll" );
+	// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+	HMODULE hModule = LoadLibraryExW( L"ntdll.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32 );
 	if (!hModule)   
 	{
 		iProcessCount = CHECK_PROCESS_UNSUPPORTED;
@@ -182,22 +181,6 @@ int CheckOtherInstancesWithEnumProcess( const char *thisProcessNameShort )
 	//  will have to be altered to keep a list of process IDs already seen.
 	//
 
-	// Check for the presence of GetModuleFileNameEx
-	hInst = LoadLibrary( "Psapi.dll" );
-	if ( !hInst )
-		return CHECK_PROCESS_UNSUPPORTED;
-
-	typedef DWORD (WINAPI *GetProcessImageFileNameFn)(HANDLE, LPTSTR, DWORD);
-	GetProcessImageFileNameFn fn = (GetProcessImageFileNameFn)GetProcAddress( hInst,
-#ifdef  UNICODE
-		"GetProcessImageFileNameW");
-#else
-		"GetProcessImageFileNameA");
-#endif
-
-	if ( !fn )
-		return CHECK_PROCESS_UNSUPPORTED;
-
 	nLastProcess = 0;
 	
 	for ( i = 0; i < pHandleInfo->HandleCount; i++ )
@@ -221,7 +204,7 @@ int CheckOtherInstancesWithEnumProcess( const char *thisProcessNameShort )
 				//  fails, we ignore this process.
 				nLength = MAX_PATH;
 	
-				bStatus = fn( process, otherProcessName, nLength );
+				bStatus = GetProcessImageFileName( process, otherProcessName, nLength );
 				
 				if ( bStatus )
 				{
@@ -251,11 +234,6 @@ Cleanup:
 		free( pHandleInfo );
 	}
 
-	if ( hInst != NULL )
-	{
-		FreeLibrary( hInst );
-	}
-
 	if ( hModule != NULL )
 	{
 		FreeLibrary( hModule );
@@ -269,29 +247,12 @@ int CheckOtherInstancesRunning( void )
 {
 #ifdef IS_WINDOWS_PC
 
-	BOOL bStatus = 0;
 	DWORD nLength = MAX_PATH;
 	char thisProcessName[ MAX_PATH ];
 	char thisProcessNameShort[ MAX_PATH ];
 
 	// Load the pspapi to get our current process' name
-	HINSTANCE hInst = LoadLibrary( "Psapi.dll" );
-	if ( hInst )
-	{
-		typedef DWORD (WINAPI *GetProcessImageFileNameFn)(HANDLE, LPTSTR, DWORD);
-		GetProcessImageFileNameFn fn = (GetProcessImageFileNameFn)GetProcAddress( hInst,
-#ifdef  UNICODE
-			"GetProcessImageFileNameW");
-#else
-			"GetProcessImageFileNameA");
-#endif
-		if ( fn )
-		{
-			bStatus = fn( GetCurrentProcess(), thisProcessName, nLength );
-		}
-
-		FreeLibrary( hInst );
-	}
+	BOOL bStatus = GetProcessImageFileName(GetCurrentProcess(), thisProcessName, nLength);
 
 	if ( !bStatus )
 	{

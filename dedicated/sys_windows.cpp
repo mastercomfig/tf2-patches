@@ -5,11 +5,8 @@
 // $NoKeywords: $
 //
 //=============================================================================//
-#include <windows.h> 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <eh.h>
+#include <windows.h>
+#include <VersionHelpers.h>
 #include "isys.h"
 #include "console/conproc.h"
 #include "dedicated.h"
@@ -366,17 +363,11 @@ void MiniDumpFunction( unsigned int nExceptionCode, EXCEPTION_POINTERS *pExcepti
 
 extern "C" __declspec(dllexport) int DedicatedMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
-	SetAppInstance( hInstance );
-
 	// Check that we are running on Win32
-	OSVERSIONINFO	vinfo;
-	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
-
-	if ( !GetVersionEx ( &vinfo ) )
+	if ( !IsWindowsVistaOrGreater() )
 		return -1;
 
-	if ( vinfo.dwPlatformId == VER_PLATFORM_WIN32s )
-		return -1;
+	SetAppInstance( hInstance );
 
 	int argc, iret = -1;
 	LPWSTR * argv= CommandLineToArgvW(GetCommandLineW(),&argc);

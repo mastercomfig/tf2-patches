@@ -29,6 +29,7 @@
 CAppSystemGroup::CAppSystemGroup( CAppSystemGroup *pAppSystemParent ) : m_SystemDict(false, 0, 16)
 {
 	m_pParentAppSystem = pAppSystemParent;
+	m_nErrorStage = NONE;
 }
 
 

@@ -18,6 +18,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/generichash.h"
 #include "tier0/vprof.h"
+#include "tier0/memalloc.h"
 
 #if defined( _X360 )
 #include "xbox/xbox_win32stubs.h"
@@ -47,7 +48,7 @@ inline void ServiceJobAndRelease( CJob *pJob, int iThread = -1 )
 
 //-----------------------------------------------------------------------------
 
-class ALIGN16 CJobQueue
+class ALIGN16 CJobQueue : CAlignedNewDelete<16>
 {
 public:
 	CJobQueue() :
@@ -186,7 +187,7 @@ private:
 //
 //-----------------------------------------------------------------------------
 
-class CThreadPool : public CRefCounted1<IThreadPool, CRefCountServiceMT>
+class CThreadPool : public CAlignedNewDelete<16, CRefCounted1<IThreadPool, CRefCountServiceMT>>
 {
 public:
 	CThreadPool();
@@ -334,7 +335,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-class CJobThread : public CWorkerThread
+class CJobThread : public CAlignedNewDelete<16, CWorkerThread>
 {
 public:
 	CJobThread( CThreadPool *pOwner, int iThread ) : 
@@ -497,7 +498,8 @@ IThreadPool *g_pThreadPool = &g_ThreadPool;
 CThreadPool::CThreadPool() :
 	m_nIdleThreads( 0 ),
 	m_nJobs( 0 ),
-	m_nSuspend( 0 )
+	m_nSuspend( 0 ),
+	m_bExecOnThreadPoolThreadsOnly( false )
 {
 }
 
@@ -1051,31 +1053,22 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable, bool bFullC
 			{
 #if defined( IS_WINDOWS_PC )
 				// no affinity table, distribution is cycled across all available
-				HINSTANCE hInst = LoadLibrary( "kernel32.dll" );
-				if ( hInst )
+				auto hMainThread = (HANDLE)ThreadGetCurrentHandle();
+				SetThreadIdealProcessor(hMainThread, 0);
+
+				static int iProc = ci.m_nLogicalProcessors > 2 ? 2 : 0;
+				for (auto *t : m_Threads)
 				{
-					typedef DWORD (WINAPI *SetThreadIdealProcessorFn)(ThreadHandle_t hThread, DWORD dwIdealProcessor);
-					SetThreadIdealProcessorFn Thread_SetIdealProcessor = (SetThreadIdealProcessorFn)GetProcAddress( hInst, "SetThreadIdealProcessor" );
-					if ( Thread_SetIdealProcessor )
+					iProc += nHwThreadsPer;
+					if (iProc >= ci.m_nLogicalProcessors)
 					{
-						ThreadHandle_t hMainThread = ThreadGetCurrentHandle();
-						Thread_SetIdealProcessor( hMainThread, 0 );
-						static int iProc = ci.m_nLogicalProcessors > 2 ? 2 : 0;
-						for ( int i = 0; i < m_Threads.Count(); i++ )
+						iProc %= ci.m_nLogicalProcessors;
+						if (iProc < 2 && ci.m_nLogicalProcessors > 2)
 						{
-							iProc += nHwThreadsPer;
-							if ( iProc >= ci.m_nLogicalProcessors )
-							{
-								iProc %= ci.m_nLogicalProcessors;
-								if (iProc < 2 && ci.m_nLogicalProcessors > 2)
-								{
-									iProc = 2;
-								}
-							}
-							Thread_SetIdealProcessor((ThreadHandle_t)m_Threads[i]->GetThreadHandle(), iProc);
+							iProc = 2;
 						}
 					}
-					FreeLibrary( hInst );
+					SetThreadIdealProcessor(t->GetThreadHandle(), iProc);
 				}
 #else
 				// no affinity table, distribution is cycled across all available
@@ -1195,14 +1188,13 @@ public:
 		if ( bDoWork )
 		{
 			byte pMemory[1024];
-			int i;
-			for ( i = 0; i < 1024; i++ )
+			for ( auto& b : pMemory )
 			{
-				pMemory[i] = rand();
+				b = rand();
 			}
-			for ( i = 0; i < 50; i++ )
+			for ( int i = 0; i < 50; i++ )
 			{
-				sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0 );
+				[[maybe_unused]] volatile float f = sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0F );
 			}
 			bDoWork = false;
 		}
@@ -1302,14 +1294,13 @@ public:
 	virtual JobStatus_t DoExecute()
 	{
 		byte pMemory[1024];
-		int i;
-		for ( i = 0; i < 1024; i++ )
+		for ( auto& b : pMemory )
 		{
-			pMemory[i] = rand();
+			b = rand();
 		}
-		for ( i = 0; i < 50; i++ )
+		for ( int i = 0; i < 50; i++ )
 		{
-			sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0 );
+			[[maybe_unused]] volatile float f = sqrt( (float)HashBlock( pMemory, 1024 ) + HashBlock( pMemory, 1024 ) + 10.0F );
 		}
 		if ( AccessEvent()->Check() || IsFinished() )
 		{

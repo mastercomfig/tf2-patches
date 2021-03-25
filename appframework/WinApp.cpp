@@ -97,7 +97,7 @@ int AppMain( int argc, char **argv, CAppSystemGroup *pAppSystemGroup )
 //	g_pDefaultLoggingListener = &s_SimpleLoggingListener;
 	s_HInstance = NULL;
 #if !defined( _X360 )
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
 #else
 	SetupEnvironment360();
 #endif
@@ -130,7 +130,7 @@ int AppStartup( int argc, char **argv, CAppSystemGroup *pAppSystemGroup )
 //	g_pDefaultLoggingListener = &s_SimpleLoggingListener;
 	s_HInstance = NULL;
 #if !defined( _X360 )
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
 #else
 	SetupEnvironment360();
 #endif

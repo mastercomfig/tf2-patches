@@ -631,14 +631,14 @@ inline const matrix3x4_t& VMatrix::As3x4() const
 
 inline void VMatrix::CopyFrom3x4( const matrix3x4_t &m3x4 )
 {
-	memcpy( m, m3x4.Base(), sizeof( matrix3x4_t ) );
+	memcpy( m, m3x4.Base(), sizeof( matrix3x4_t ) ); //-V512
 	m[3][0] = m[3][1] = m[3][2] = 0;
 	m[3][3] = 1;
 }
 
 inline void	VMatrix::Set3x4( matrix3x4_t& matrix3x4 ) const
 {
-	memcpy(matrix3x4.Base(), m, sizeof( matrix3x4_t ) );
+	memcpy(matrix3x4.Base(), m, sizeof( matrix3x4_t ) ); //-V512
 }
 
 

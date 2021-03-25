@@ -38,13 +38,13 @@ $Configuration
 
 		// Windows PC, without Quicktime, and with Quicktime
 
-		$PreprocessorDefinitions		"$BASE;BINK_VIDEO;AVI_VIDEO;WMV_VIDEO"							[$WIN32&&!$QUICKTIME_WIN32]
-		$PreprocessorDefinitions		"$BASE;AVI_VIDEO;WMV_VIDEO;QUICKTIME_VIDEO"		[$WIN32&&$QUICKTIME_WIN32]
+		$PreprocessorDefinitions		"$BASE;BINK_VIDEO;AVI_VIDEO;WMV_VIDEO"							[$WINDOWS&&!$QUICKTIME_WIN32]
+		$PreprocessorDefinitions		"$BASE;AVI_VIDEO;WMV_VIDEO;QUICKTIME_VIDEO"		[$WINDOWS&&$QUICKTIME_WIN32]
 		$PreprocessorDefinitions		"$BASE;BINK_VIDEO"							[$X360]
 		$PreprocessorDefinitions		"$BASE;BINK_VIDEO"							[$LINUXALL]
 		
 		$PreprocessorDefinitions		"$BASE;GL_GLEXT_PROTOTYPES;DX_TO_GL_ABSTRACTION"			[$GL]
 		$PreprocessorDefinitions		"$BASE;USE_SDL"										[$SDL]
-                $AdditionalIncludeDirectories		"$BASE;$SRCDIR\thirdparty\SDL2"					[$SDL || $DEDICATED]
+		$AdditionalIncludeDirectories		"$BASE;$SRCDIR\thirdparty\SDL2"					[$SDL || $DEDICATED]
 	}
 }

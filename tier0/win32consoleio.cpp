@@ -58,12 +58,7 @@ bool SetupWin32ConsoleIO()
 
 	if ( GetFileType( GetStdHandle( STD_OUTPUT_HANDLE ) ) == FILE_TYPE_UNKNOWN )
 	{
-
-		HINSTANCE hInst = ::LoadLibrary( "kernel32.dll" );
-		typedef BOOL ( WINAPI * pAttachConsole_t )( DWORD );
-		pAttachConsole_t pAttachConsole( ( BOOL ( _stdcall * )( DWORD ) )GetProcAddress( hInst, "AttachConsole" ) );
-
-		if ( !( pAttachConsole && (*pAttachConsole)( ( DWORD ) - 1 ) ) )
+		if ( !AttachConsole( ATTACH_PARENT_PROCESS ) )
 		{
 			newConsole = true;
 			AllocConsole();

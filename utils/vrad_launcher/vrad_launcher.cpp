@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 {
 	char dllName[512];
 
-	CommandLine()->CreateCmdLine( argc, argv );
+	CommandLine()->CreateCmdLine( argc, const_cast<const char **>(argv) );
 
 	// check whether they used the -both switch. If this is specified, vrad will be run
 	// twice, once with -hdr and once without

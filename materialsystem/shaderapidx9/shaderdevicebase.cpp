@@ -20,6 +20,7 @@
 #include "shaderapi/ishadershadow.h"
 #include "shaderapi_global.h"
 #include "winutils.h"
+#include <system_error>
 
 #ifdef _X360
 #include "xbox/xbox_win32stubs.h"
@@ -696,14 +697,22 @@ void CShaderDeviceMgrBase::LoadConfig( KeyValues *pKeyValues, KeyValues *pConfig
 //-----------------------------------------------------------------------------
 static unsigned long GetRam()
 {
-	MEMORYSTATUS stat;
-	GlobalMemoryStatus( &stat );
-	
 	char buf[256];
-	V_snprintf( buf, sizeof( buf ), "GlobalMemoryStatus: %llu\n", (uint64)(stat.dwTotalPhys) );
-	Plat_DebugString( buf );
 
-	return (stat.dwTotalPhys / (1024 * 1024));
+	MEMORYSTATUSEX stat = { sizeof(stat) };
+	if ( GlobalMemoryStatusEx( &stat ) )
+	{
+		V_snprintf( buf, sizeof(buf), "Total physical memory: %.2f MiB\n", stat.ullTotalPhys / (1024.0F * 1024.0F) );
+	}
+	else
+	{
+		const auto lastErrorText = std::system_category().message(GetLastError());
+		V_snprintf( buf, sizeof(buf), "Total physical memory N/A: %s\n", lastErrorText.c_str() );
+	}
+
+	Plat_DebugString(buf);
+
+	return stat.ullTotalPhys / (1024 * 1024);
 }
 
 
@@ -978,7 +987,7 @@ static VD3DHWND GetTopmostParentWindow( VD3DHWND hWnd )
 
 static BOOL CALLBACK EnumChildWindowsProc( VD3DHWND hWnd, LPARAM lParam )
 {
-	int windowId = GetWindowLongPtr( hWnd, GWLP_USERDATA );
+	LONG_PTR windowId = GetWindowLongPtr( hWnd, GWLP_USERDATA );
 	if (windowId == MATERIAL_SYSTEM_WINDOW_ID)
 	{
 		COPYDATASTRUCT copyData;

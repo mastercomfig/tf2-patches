@@ -54,7 +54,7 @@
 #endif
 
 #ifdef _WIN32
-typedef void *HANDLE;
+typedef void *HANDLE; //-V677
 #endif
 
 // Start thread running  - error if already running
@@ -385,7 +385,8 @@ private:
 	public:
 		CThreadLocal()
 		{
-			COMPILE_TIME_ASSERT( sizeof(T) == sizeof(void *) );
+			// x64: We store T inside pointer, so <= is enough.
+			COMPILE_TIME_ASSERT( sizeof(T) <= sizeof(void *) );
 		}
 
 		T Get() const
@@ -667,7 +668,13 @@ public:
 	CThreadMutex &operator=( const CThreadMutex & ) = delete;
 
 private:
+#ifdef _WIN32
+	std::mutex m_Mutex;
+#elif defined(POSIX)
+	// Under POSIX recursive one is used.
 	std::recursive_mutex m_Mutex;
+#endif
+	
 #ifdef _DEBUG
 #ifdef _WIN32
 	std::atomic<unsigned long> m_ownerID{0};
@@ -798,7 +805,7 @@ private:
 class ALIGN128 CAlignedThreadFastMutex : public CThreadFastMutex
 {
 public:
-	CAlignedThreadFastMutex()
+	CAlignedThreadFastMutex() //-V730
 	{
 		Assert( (size_t)this % 128 == 0 && sizeof(*this) == 128 );
 	}
@@ -1576,10 +1583,10 @@ inline void CThreadMutex::Lock()
 inline void CThreadMutex::Unlock()
 {
 	Assert(AssertOwnedByCurrentThread());
-	m_Mutex.unlock();
 #ifdef _DEBUG
 	m_ownerID = 0;
 #endif
+	m_Mutex.unlock();
 }
 
 //---------------------------------------------------------
@@ -1664,10 +1671,10 @@ inline bool CThreadSpinRWLock::TryLockForWrite( const uint32 threadId )
 
 inline bool CThreadSpinRWLock::TryLockForWrite()
 {
-	m_nWriters++;
+	++m_nWriters;
 	if ( !TryLockForWrite( ThreadGetCurrentId() ) )
 	{
-		m_nWriters--;
+		--m_nWriters;
 		return false;
 	}
 	return true;
@@ -1702,7 +1709,7 @@ inline void CThreadSpinRWLock::LockForWrite()
 {
 	const uint32 threadId = ThreadGetCurrentId();
 
-	m_nWriters++;
+	++m_nWriters;
 
 	if ( !TryLockForWrite( threadId ) )
 	{

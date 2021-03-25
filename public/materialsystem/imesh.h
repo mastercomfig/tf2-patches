@@ -1148,19 +1148,12 @@ inline void CVertexBuilder::FastAdvanceNVertices( int n )
 	m_nVertexCount = m_nCurrentVertex;
 }
 
-
-
-#ifndef COMPILER_MSVC64
-// Implement for 64-bit Windows if needed.
-//-----------------------------------------------------------------------------
-// Fast Vertex! No need to call advance vertex, and no random access allowed
-//-----------------------------------------------------------------------------
 inline void CVertexBuilder::FastVertex( const ModelVertexDX7_t &vertex )
 {
 	Assert( m_CompressionType == VERTEX_COMPRESSION_NONE ); // FIXME: support compressed verts if needed
 	Assert( m_nCurrentVertex < m_nMaxVertexCount );
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) && !defined( _X360 ) && !defined( _M_X64 )
 	const void *pRead = &vertex;
 	void *pCurrPos = m_pCurrPosition;
 
@@ -1204,6 +1197,7 @@ inline void CVertexBuilder::FastVertex( const ModelVertexDX7_t &vertex )
 						  "emms\n"
 						  :: "r" (pRead), "r" (pCurrPos) : "memory");
 #else
+	// x64: No inline asm. Also likely not used in hardware processing.
 	Error( "Implement CMeshBuilder::FastVertex(dx7) ");
 #endif
 
@@ -1221,7 +1215,7 @@ inline void CVertexBuilder::FastVertexSSE( const ModelVertexDX7_t &vertex )
 	Assert( m_CompressionType == VERTEX_COMPRESSION_NONE ); // FIXME: support compressed verts if needed
 	Assert( m_nCurrentVertex < m_nMaxVertexCount );
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) && !defined( _X360 ) && !defined( _M_X64 )
 	const void *pRead = &vertex;
 	void *pCurrPos = m_pCurrPosition;
 	__asm
@@ -1247,6 +1241,7 @@ inline void CVertexBuilder::FastVertexSSE( const ModelVertexDX7_t &vertex )
 	_mm_stream_ps( (float *)(pCurrPos + 16), m2 );
 	_mm_stream_ps( (float *)(pCurrPos + 32), m3 );
 #else
+	// x64: No inline asm. Also likely not used in hardware processing.
 	Error( "Implement CMeshBuilder::FastVertexSSE(dx7)" );
 #endif
 
@@ -1268,7 +1263,7 @@ inline void CVertexBuilder::Fast4VerticesSSE(
 	Assert( m_CompressionType == VERTEX_COMPRESSION_NONE ); // FIXME: support compressed verts if needed
 	Assert( m_nCurrentVertex < m_nMaxVertexCount-3 );
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) && !defined( _X360 ) && !defined( _M_X64 )
 	void *pCurrPos = m_pCurrPosition;
 	__asm
 	{
@@ -1311,6 +1306,7 @@ inline void CVertexBuilder::Fast4VerticesSSE(
 
 	}
 #else
+	// x64: No inline asm. Also likely not used in hardware processing.
 	Error( "Implement CMeshBuilder::Fast4VerticesSSE\n");
 #endif
 	IncrementFloatPointer( m_pCurrPosition, 4*m_VertexSize_Position );
@@ -1326,7 +1322,7 @@ inline void CVertexBuilder::FastVertex( const ModelVertexDX8_t &vertex )
 	Assert( m_CompressionType == VERTEX_COMPRESSION_NONE ); // FIXME: support compressed verts if needed
 	Assert( m_nCurrentVertex < m_nMaxVertexCount );
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) && !defined( _X360 ) && !defined( _M_X64 )
 	const void *pRead = &vertex;
 	void *pCurrPos = m_pCurrPosition;
 	__asm
@@ -1377,6 +1373,7 @@ inline void CVertexBuilder::FastVertex( const ModelVertexDX8_t &vertex )
 						  "emms\n"
 						  :: "r" (pRead), "r" (pCurrPos) : "memory");
 #else
+	// x64: No inline asm. Also likely not used in hardware processing.
 	Error( "Implement CMeshBuilder::FastVertex(dx8)" );
 #endif
 
@@ -1394,7 +1391,7 @@ inline void CVertexBuilder::FastVertexSSE( const ModelVertexDX8_t &vertex )
 	Assert( m_CompressionType == VERTEX_COMPRESSION_NONE ); // FIXME: support compressed verts if needed
 	Assert( m_nCurrentVertex < m_nMaxVertexCount );
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) && !defined( _X360 ) && !defined( _M_X64 )
 	const void *pRead = &vertex;
 	void *pCurrPos = m_pCurrPosition;
 	__asm
@@ -1426,6 +1423,7 @@ inline void CVertexBuilder::FastVertexSSE( const ModelVertexDX8_t &vertex )
 						  "movntps %%xmm3, 48(%1)\n"						  
 						  :: "r" (pRead), "r" (pCurrPos) : "memory");
 #else
+	// x64: No inline asm. Also likely not used in hardware processing.
 	Error( "Implement CMeshBuilder::FastVertexSSE((dx8)" );
 #endif
 
@@ -1437,7 +1435,6 @@ inline void CVertexBuilder::FastVertexSSE( const ModelVertexDX8_t &vertex )
 	m_bWrittenUserData = false;
 #endif
 }
-#endif // COMPILER_MSVC64
 
 
 //-----------------------------------------------------------------------------

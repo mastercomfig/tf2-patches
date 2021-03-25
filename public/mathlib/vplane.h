@@ -81,9 +81,8 @@ inline VPlane::VPlane()
 {
 }
 
-inline VPlane::VPlane(const Vector &vNormal, vec_t dist)
+inline VPlane::VPlane(const Vector &vNormal, vec_t dist) : m_Normal{ vNormal }
 {
-	m_Normal = vNormal;
 	m_Dist = dist;
 }
 

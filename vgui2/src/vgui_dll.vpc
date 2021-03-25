@@ -22,7 +22,7 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE Imm32.lib Shlwapi.lib odbc32.lib odbccp32.lib winmm.lib" [$WIN32]
+		$AdditionalDependencies			"$BASE Imm32.lib Shlwapi.lib odbc32.lib odbccp32.lib winmm.lib" [$WINDOWS]
 		$SystemLibraries				"iconv" [$OSXALL] //||$LINUXALL]
 		$SystemFrameworks				"Carbon" [$OSXALL]
 	}
@@ -45,7 +45,7 @@ $Project "vgui2"
 		$File	"Memorybitmap.h"
 		$File	"MessageListener.cpp"
 		$File	"Scheme.cpp"
-		$File	"Surface.cpp"					[$WIN32]
+		$File	"Surface.cpp"					[$WINDOWS]
 		$File	"System.cpp"					[$WINDOWS||$X360]
 		$File	"system_posix.cpp" [$POSIX]
 		$File	"$SRCDIR\public\UnicodeFileHelpers.cpp"

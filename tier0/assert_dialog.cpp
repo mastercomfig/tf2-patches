@@ -187,7 +187,7 @@ CAssertDisable* IgnoreAssertsNearby( int nRange )
 {
 	CAssertDisable *pDisable = CreateNewAssertDisable( g_Info.m_pFilename );
 	pDisable->m_LineMin = g_Info.m_iLine - nRange;
-	pDisable->m_LineMax = g_Info.m_iLine - nRange;
+	pDisable->m_LineMax = g_Info.m_iLine + nRange;
 	return pDisable;
 }
 
@@ -214,7 +214,10 @@ INT_PTR CALLBACK AssertDialogProc(
 			SetDlgItemInt( hDlg, IDC_LINE_CONTROL, g_Info.m_iLine, false );
 			SetDlgItemInt( hDlg, IDC_IGNORE_NUMLINES, g_iLastLineRange, false );
 			SetDlgItemInt( hDlg, IDC_IGNORE_NUMTIMES, g_nLastIgnoreNumTimes, false );
-		
+
+			HANDLE hExeIcon = LoadImageW( GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( 101 ), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE );
+			SendMessage( hDlg, WM_SETICON, ICON_BIG, (LPARAM)hExeIcon );
+
 			// Center the dialog.
 			RECT rcDlg, rcDesktop;
 			GetWindowRect( hDlg, &rcDlg );
@@ -228,7 +231,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				0,
 				SWP_NOSIZE );
 		}
-		return true;
+		return TRUE;
 
 		case WM_COMMAND:
 		{
@@ -238,7 +241,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					IgnoreAssertsInCurrentFile();
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				// Ignore this assert N times.
@@ -254,7 +257,7 @@ INT_PTR CALLBACK AssertDialogProc(
 					}
 
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				// Always ignore this assert.
@@ -262,7 +265,7 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					IgnoreAssertsNearby( 0 );
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 				
 				case IDC_IGNORE_NEARBY:
@@ -270,25 +273,25 @@ INT_PTR CALLBACK AssertDialogProc(
 					BOOL bTranslated = false;
 					UINT value = GetDlgItemInt( hDlg, IDC_IGNORE_NUMLINES, &bTranslated, false );
 					if ( !bTranslated || value < 1 )
-						return true;
+						return TRUE;
 
 					IgnoreAssertsNearby( value );
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				case IDC_IGNORE_ALL:
 				{
 					g_bAssertsEnabled = false;
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 
 				case IDC_BREAK:
 				{
 					g_bBreak = true;
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 			}
 
@@ -299,12 +302,11 @@ INT_PTR CALLBACK AssertDialogProc(
 				{
 					// Ignore this assert.
 					EndDialog( hDlg, 0 );
-					return true;
+					return TRUE;
 				}
 			}
-					
 		}
-		return true;
+		return TRUE;
 	}
 
 	return FALSE;

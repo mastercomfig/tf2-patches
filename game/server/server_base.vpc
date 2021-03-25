@@ -4,7 +4,10 @@
 //	Project Base Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $Macro OUTBINNAME	"server"
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\$GAMENAME\bin"
 $Macro DEVKITBINDIR	"$GAMENAME\bin"							[$X360]
 // It's important to include $GAMENAME in the generated_proto directory
@@ -38,7 +41,7 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE winmm.lib" [$WIN32]
+		$AdditionalDependencies			"$BASE winmm.lib" [$WINDOWS]
 		$SystemLibraries                                                        "iconv" [$OSXALL]
 	}
 }
@@ -47,8 +50,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		".\Debug_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory	".\Debug_$GAMENAME" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory		".\Debug_$GAMENAME_360"		[$X360]
 		$IntermediateDirectory	".\Debug_$GAMENAME_360"		[$X360]
@@ -60,8 +63,8 @@ $Configuration	"Release"
 	$General
 	{
 		// Windows generator doesn't sandbox these directories per configuration but others do :-/
-		$OutputDirectory		".\Release_$GAMENAME" [$WINDOWS]
-		$IntermediateDirectory	".\Release_$GAMENAME" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_$GAMENAME" [$WINDOWS]
 
 		$OutputDirectory		".\Release_$GAMENAME_360"	[$X360]
 		$IntermediateDirectory	".\Release_$GAMENAME_360"	[$X360]
@@ -665,7 +668,7 @@ $Project
 		$File	"$SRCDIR\game\server\vote_controller.cpp"
 		//Haptics
 		$File	"$SRCDIR\public\haptics\haptic_msgs.cpp"
-		$File	"$SRCDIR\public\haptics\haptic_utils.cpp"	[$WIN32]
+		$File	"$SRCDIR\public\haptics\haptic_utils.cpp"	[$WINDOWS]
 
 		// Not using precompiled header cbase.h
 
@@ -998,7 +1001,7 @@ $Project
 		$File	"$SRCDIR\game\shared\mp_shareddefs.h"
 		$File	"$SRCDIR\game\shared\econ\ihasowner.h"
 		//Haptics
-		$File	"$SRCDIR\public\haptics\haptic_utils.h"	[$WIN32]
+		$File	"$SRCDIR\public\haptics\haptic_utils.h"	[$WINDOWS]
 	}
 
 	$Folder	"Tools Framework"

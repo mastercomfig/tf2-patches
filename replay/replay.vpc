@@ -24,7 +24,7 @@ $Configuration
 		// REPLAY_ENABLED is set here for netmessages.h
 		$PreprocessorDefinitions		"$BASE;REPLAY_DLL;REPLAY_ENABLED"
 		$PreprocessorDefinitions		"$BASE;DEDICATED;SWDS" [$DEDICATED]
-		$PreprocessorDefinitions		"$BASE;CURL_STATICLIB" [$WIN32]
+		$PreprocessorDefinitions		"$BASE;CURL_STATICLIB" [$WINDOWS]
 	}
 	
 	$Linker
@@ -206,8 +206,8 @@ $Project "replay"
 
 		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
 
-		$Lib	"$LIBCOMMON\libcurl" [$WIN32&&!$VS2015]
-		$Lib   "libz" [$WIN32]
+		$Lib	"$LIBCOMMON\libcurl" [$WINDOWS&&!$VS2015]
+		$Lib   "libz" [$WINDOWS]
 
 		$Libexternal	libz [$LINUXALL]
 	}

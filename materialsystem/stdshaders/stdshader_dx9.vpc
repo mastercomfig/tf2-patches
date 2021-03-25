@@ -4,7 +4,10 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $Macro SRCDIR		"..\.."
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 // shader_dll_verify.cpp defines a function called _ftol3. This means that we can't
@@ -17,8 +20,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		"Debug_dx9" [$WINDOWS]
-		$IntermediateDirectory	"Debug_dx9" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_dx9" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_dx9" [$WINDOWS]
 
 		$OutputDirectory		"Debug_dx9_360"		[$X360]
 		$IntermediateDirectory	"Debug_dx9_360"		[$X360]
@@ -29,8 +32,8 @@ $Configuration	"Release"
 {
 	$General
 	{
-		$OutputDirectory		"Release_dx9" [$WINDOWS]
-		$IntermediateDirectory	"Release_dx9" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_dx9" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_dx9" [$WINDOWS]
 
 		$OutputDirectory		"Release_dx9_360"	[$X360]
 		$IntermediateDirectory	"Release_dx9_360"	[$X360]
@@ -42,16 +45,15 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;"	[$WIN32||$POSIX]
-		$AdditionalIncludeDirectories	"$BASE;..\..\dx9sdk\include"	[$WIN32]
+		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;"	[$WINDOWS||$POSIX]
 		$AdditionalIncludeDirectories	"$BASE;fxctmp9_360;vshtmp9_360"					[$X360]
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DX9_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
-		$PreprocessorDefinitions		"$BASE;USE_ACTUAL_DX" [($WIN32||$X360) && !$GL]
+		$PreprocessorDefinitions		"$BASE;USE_ACTUAL_DX" [($WINDOWS||$X360) && !$GL]
 	}
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WIN32]
+		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WINDOWS]
 		$ModuleDefinitionFile			"xbox\xbox_dx9.def"				[$X360]
 		$SystemLibraries                                                        "iconv" [$OSXALL]
 	}
@@ -81,7 +83,7 @@ $Project "stdshader_dx9"
 		$File	"core_dx9.cpp"
 		$File	"color_projection.cpp"
 		$File	"debugmrttexture.cpp"
-		$File	"debugmorphaccumulator_dx9.cpp"					[$WIN32]
+		$File	"debugmorphaccumulator_dx9.cpp"					[$WINDOWS]
 		$File	"DebugTextureView.cpp"
 		$File	"DecalBaseTimesLightmapAlphaBlendSelfIllum_dx9.cpp"
 		$File	"DecalModulate_dx9.cpp"
@@ -113,8 +115,8 @@ $Project "stdshader_dx9"
 		$File	"lightmappedreflective.cpp"
 		$File	"modulate_dx9.cpp"
 		$File	"MonitorScreen_dx9.cpp"
-		$File	"morphaccumulate_dx9.cpp"					[$WIN32]
-		$File	"morphweight_dx9.cpp"						[$WIN32]
+		$File	"morphaccumulate_dx9.cpp"					[$WINDOWS]
+		$File	"morphweight_dx9.cpp"						[$WINDOWS]
 		$File	"motion_blur_dx9.cpp"
 		$File	"occlusion_dx9.cpp"
 		$File	"particlelitgeneric_dx9.cpp"
@@ -168,7 +170,7 @@ $Project "stdshader_dx9"
 		$File	"writez_dx9.cpp"
 		$File	"writestencil_dx9.cpp"
 
-		$Folder	"Remove me when VAC2 is out" [$WIN32]
+		$Folder	"Remove me when VAC2 is out" [$WINDOWS]
 		{
 			$File	"$SRCDIR\tier1\checksum_crc.cpp"
 			$File	"$SRCDIR\tier1\checksum_md5.cpp"
@@ -216,11 +218,6 @@ $Project "stdshader_dx9"
 		$File	"vortwarp_vs20_helper.h"
 		$File	"worldvertextransition_dx8_helper.h"
 		$File	"water_ps2x_helper.h"
-	}
-
-	$Folder	"Link Libraries" [$WIN32]
-	{
-		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"
 	}
 
 	$Folder "Link Libraries" 

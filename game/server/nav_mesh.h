@@ -198,9 +198,20 @@ public:
 
 	unsigned int operator()( const NavVisPair_t &item ) const
 	{
+#ifndef PLATFORM_64BITS
 		COMPILE_TIME_ASSERT( sizeof(CNavArea *) == 4 );
 		int key[2] = { (int)item.pAreas[0] + (int)item.pAreas[1]->GetID(), (int)item.pAreas[1] + (int)item.pAreas[0]->GetID() };
 		return Hash8( key );
+#else
+		// x64: Compute hash for 2 x uint64 correctly.
+		COMPILE_TIME_ASSERT( sizeof(CNavArea *) == 8 );
+		uintptr_t key[2] = { 
+			reinterpret_cast<uintptr_t>(item.pAreas[0]) + static_cast<uintptr_t>(item.pAreas[1]->GetID()),
+			reinterpret_cast<uintptr_t>(item.pAreas[1]) + static_cast<uintptr_t>(item.pAreas[0]->GetID())
+		};
+		// Hash16 uses 4 x uint32 values of the key buffer, that's why we need it instead of Hash8 (2 x uint32).
+		return Hash16( key );
+#endif
 	}
 };
 

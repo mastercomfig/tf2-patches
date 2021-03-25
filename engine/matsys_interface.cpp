@@ -1294,6 +1294,7 @@ void ShutdownWellKnownRenderTargets( void )
 	pRenderContext->SetNonInteractiveTempFullscreenBuffer( NULL, MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD );
 
 	g_FullFrameDepth.Shutdown();
+	g_ResolvedFullFrameDepth.Shutdown();
 	if( IsPC() )
 	{
 		materials->RemoveTextureAlias( "_rt_FullFrameDepth" );

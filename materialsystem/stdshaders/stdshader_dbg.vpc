@@ -4,7 +4,10 @@
 //	Project Script
 //-----------------------------------------------------------------------------
 
+$MacroRequired "PLATSUBDIR"
+
 $macro SRCDIR		"..\.."
+$Macro TARGETBUILDDIR		".\$PLATSUBDIR"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin"
 
 // shader_dll_verify.cpp defines a function called _ftol3. This means that we can't
@@ -17,8 +20,8 @@ $Configuration	"Debug"
 {
 	$General
 	{
-		$OutputDirectory		"Debug_dbg" [$WINDOWS]
-		$IntermediateDirectory	"Debug_dbg" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Debug_dbg" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Debug_dbg" [$WINDOWS]
 
 		$OutputDirectory		"Debug_dbg_360"		[$X360]
 		$IntermediateDirectory	"Debug_dbg_360"		[$X360]
@@ -29,8 +32,8 @@ $Configuration	"Release"
 {
 	$General
 	{
-		$OutputDirectory		"Release_dbg" [$WINDOWS]
-		$IntermediateDirectory	"Release_dbg" [$WINDOWS]
+		$OutputDirectory		"$TARGETBUILDDIR\Release_dbg" [$WINDOWS]
+		$IntermediateDirectory	"$TARGETBUILDDIR\Release_dbg" [$WINDOWS]
 
 		$OutputDirectory		"Release_dbg_360"	[$X360]
 		$IntermediateDirectory	"Release_dbg_360"	[$X360]
@@ -42,14 +45,14 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9;..\..\dx9sdk\include"	[$WIN32]
+		$AdditionalIncludeDirectories	"$BASE;fxctmp9;vshtmp9"	[$WINDOWS]
 		$AdditionalIncludeDirectories	"$BASE;fxctmp9_360;vshtmp9_360"					[$X360]
 		$PreprocessorDefinitions		"$BASE;STDSHADER_DBG_DLL_EXPORT;FAST_MATERIALVAR_ACCESS"
 	}
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WIN32]
+		$AdditionalDependencies			"$BASE version.lib winmm.lib"	[$WINDOWS]
 		$ModuleDefinitionFile			"xbox\xbox_dbg.def"				[$X360]
 	}
 }
@@ -66,7 +69,7 @@ $Project "stdshader_dbg"
 		$File	"debugtangentspace.cpp"
 		$File	"fillrate.cpp"
 
-		$Folder	"Remove me when VAC2 is out" [$WIN32]
+		$Folder	"Remove me when VAC2 is out" [$WINDOWS]
 		{
 			$File	"..\shader_dll_verify.cpp"
 			$File	"..\shader_dll_verify.h"
@@ -86,7 +89,6 @@ $Project "stdshader_dbg"
 
 	$Folder	"Link Libraries"
 	{
-		$File	"$SRCDIR\dx9sdk\lib\d3dx9.lib"			[$WIN32]
 		$Lib mathlib
 		$Lib shaderlib
 	}

@@ -12,6 +12,8 @@
 #pragma once
 #endif
 
+#include <cstdint>  // uintptr_t
+
 #include "tier1/utlvector.h"
 
 // more flexible than default pointers to members code required for casting member function pointers
@@ -46,7 +48,7 @@ class __virtual_inheritance Panel;
 #else
 class Panel;
 #endif
-typedef unsigned int VPANEL;
+typedef uintptr_t VPANEL;
 
 typedef void (Panel::*MessageFunc_t)(void);
 

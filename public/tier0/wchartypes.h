@@ -35,7 +35,7 @@ typedef char char8;
 // uint8 is equivalent to byte (but is preferred over byte for clarity).  Use this
 // whenever you mean a byte (for example, one byte of a network packet).
 typedef unsigned char uint8;
-typedef unsigned char BYTE;
+typedef unsigned char BYTE; //-V677
 typedef unsigned char byte;
 
 // wchar

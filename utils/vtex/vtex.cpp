@@ -2584,7 +2584,7 @@ static SpewRetval_t VTexOutputFunc( SpewType_t spewType, char const *pMsg )
 class CVTex : public CTier2AppSystem< IVTex >, public ILaunchableDLL
 {
 public:
-	int VTex( int argc, char **argv );
+	int VTex( int argc, const char **argv );
 
 	// ILaunchableDLL, used by vtex.exe.
 	virtual int main( int argc, char **argv )
@@ -2595,7 +2595,7 @@ public:
 		CUtlString strOrigCmdLine( CommandLine()->GetCmdLine() );
 
 		// Run the vtex logic
-		int iResult = VTex( argc, argv );
+		int iResult = VTex( argc, const_cast<const char**>(argv) );
 
 		// Restore command line
 		CommandLine()->CreateCmdLine( strOrigCmdLine.Get() );
@@ -2603,7 +2603,7 @@ public:
 		return iResult;
 	}
 
-	virtual int VTex( CreateInterfaceFn fsFactory, const char *pGameDir, int argc, char **argv )
+	virtual int VTex( CreateInterfaceFn fsFactory, const char *pGameDir, int argc, const char **argv )
 	{
 		g_pFileSystem = g_pFullFileSystem = (IFileSystem*)fsFactory( FILESYSTEM_INTERFACE_VERSION, NULL );
 		if ( !g_pFileSystem )
@@ -2663,7 +2663,7 @@ bool CSuggestGameDirHelper::MySuggestFn( CFSSteamSetupInfo const *pFsSteamSetupI
 	return false;
 }
 
-int CVTex::VTex( int argc, char **argv )
+int CVTex::VTex( int argc, const char **argv )
 {
 	CommandLine()->CreateCmdLine( argc, argv );
 

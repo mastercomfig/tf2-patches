@@ -61,6 +61,6 @@ $Project "matsys_controls"
 
 	$Folder	"Link Libraries"
 	{
-		$Lib bitmap [$WIN32]
+		$Lib bitmap [$WINDOWS]
 	}
 }

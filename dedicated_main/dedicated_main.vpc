@@ -5,23 +5,66 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		".."
-$Macro OUTBINDIR	"$SRCDIR\..\game"
-$Macro OUTBINNAME	"srcds" [$WINDOWS||$X360]
-$Macro OUTBINNAME	"srcds_osx" [$OSXALL]
-$Macro OUTBINNAME	"srcds_linux" [$LINUXALL]
+// This is binaries dir, like 'game\bin', 'game\bin\x64', 'game\bin\linux64', 'game\bin\osx64'
+$Macro OUTBINDIR	"$SRCDIR\..\game\bin"
+// This is main launcher binary dir, like 'game'. Workaround for x64 builds, as $OUTBINDIR
+// always has $PLATSUBDIR appended and that is not we really want.
+$Macro MAINOUTBINDIR	"$OUTBINDIR\.."
+
+$Macro OUTBINNAME	"srcds" [$WIN32||$X360]
+$Macro OUTBINNAME	"srcds_win64" [$WIN64]
+$Macro OUTBINNAME	"srcds_osx" [$OSX32]
+$Macro OUTBINNAME	"srcds_osx64" [$OSX64]
+$Macro OUTBINNAME	"srcds_linux" [$LINUX32]
+$Macro OUTBINNAME	"srcds_linux64" [$LINUX64]
 
 $Include "$SRCDIR\vpc_scripts\source_exe_base.vpc"
-$Include "$SRCDIR\tier0\tier0_exclude.vpc"
+$Include "$SRCDIR\tier0\tier0_exclude.vpc" [$WINDOWS]
 $Include "$SRCDIR\tier1\tier1_exclude.vpc" [$WINDOWS]
 $Include "$SRCDIR\vstdlib\vstdlib_exclude.vpc" [$WINDOWS]
 
 $Configuration
 {
+	$General
+	{
+		$AdditionalProjectDependencies "$BASE;newdat" [$WINDOWS && !$ANALYZE]
+	}
+
 	$Linker [$WINDOWS]
 	{
 		$AdditionalDependencies				"$BASE Advapi32.lib"
-		$EnableLargeAddresses		"Support Addresses Larger Than 2 Gigabytes (/LARGEADDRESSAWARE)"
-		$FixedBaseAddress			"Generate a relocation section (/FIXED:NO)"
+		$EnableLargeAddresses		"Support Addresses Larger Than 2 Gigabytes (/LARGEADDRESSAWARE)" [$WIN32]
+		$FixedBaseAddress			"Generate a relocation section (/FIXED:NO)" [$WIN32]
+	}
+
+	$PreBuildEvent [$WINDOWS]
+	{
+		$CommandLine		"if EXIST $QUOTE$MAINOUTBINDIR\$OUTBINNAME.exe$QUOTE for /f $QUOTEdelims=$QUOTE %%A in ('attrib $QUOTE$MAINOUTBINDIR\$OUTBINNAME.exe$QUOTE') do set valveTmpIsReadOnly=$QUOTE%%A$QUOTE" "\n" \
+							"set valveTmpIsReadOnlyLetter=%valveTmpIsReadOnly:~6,1%" "\n" \
+							"if $QUOTE%valveTmpIsReadOnlyLetter%$QUOTE==$QUOTER$QUOTE del /q $QUOTE$(TargetDir)$(TargetFileName)$QUOTE" "\n" \
+							"$CRCCHECK"
+	}
+
+	$PostBuildEvent	[$WINDOWS && !$ANALYZE]
+	{
+		// override with specific behavior
+		$CommandLine				"if not exist $QUOTE$MAINOUTBINDIR$QUOTE mkdir $QUOTE$MAINOUTBINDIR$QUOTE" "\n" \
+									"if ERRORLEVEL 1 goto BuildEventFailed" "\n" "\n" \
+									"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.exe$QUOTE $QUOTE$SRCDIR$QUOTE" "\n" \
+									"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.pdb$QUOTE $QUOTE$SRCDIR$QUOTE" "\n" \
+									"copy $QUOTE$(TargetPath)$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.exe$QUOTE /Y" "\n" \
+									"if ERRORLEVEL 1 goto BuildEventFailed" "\n" "\n" \
+									"if exist $QUOTE$(TargetDir)$(TargetName).map$QUOTE copy $QUOTE$(TargetDir)$(TargetName).map$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.map$QUOTE /Y" "\n" \
+									"copy /B /Y $QUOTE$(TargetDir)$(TargetName).pdb$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.pdb$QUOTE" "\n" \
+									"if ERRORLEVEL 1 goto BuildEventFailed" "\n" "\n" \
+									"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.dat$QUOTE $QUOTE$SRCDIR$QUOTE" "\n" \
+									"$QUOTE$OUTBINDIR\newdat$QUOTE $QUOTE$MAINOUTBINDIR\$OUTBINNAME.exe$QUOTE" "\n" \
+									"goto BuildEventOK" "\n" "\n" \
+									":BuildEventFailed" "\n" \
+									"echo *** ERROR! PostBuildStep FAILED for $(ProjectName)! EXE or DLL is probably running. ***" "\n" \
+									"del /q $QUOTE$(TargetPath)$QUOTE" "\n" \
+									"exit 1" "\n" "\n" \
+									":BuildEventOK" "\n"
 	}
 }
 
@@ -30,14 +73,16 @@ $Project "Dedicated_main"
 	$Folder	"Source Files"
 	{
 		$File	"main.cpp"
-		$File	"$SRCDIR\common\SteamAppStartup.cpp"
-		$File	"$SRCDIR\common\SteamAppStartup.h"
 	}
 
-	$Folder	"Resources"
+	$Folder	"Resources" [$WINDOWS]
 	{
 		$File	"$SRCDIR\launcher\res\launcher.ico"
 		$File	"dedicated_main.rc"
 	}
 
+	$Folder	"Link Libraries"
+	{
+		-$Lib tier0 [$WINDOWS]
+	}
 }

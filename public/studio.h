@@ -1932,10 +1932,10 @@ inline const mstudio_modelvertexdata_t * mstudiomodel_t::GetVertexData( void *pM
 	}
 
 	vertexdata.pVertexData  = pVertexHdr->GetVertexData();
-	vertexdata.pTangentData = pVertexHdr->GetTangentData();
-
-	if ( !vertexdata.pVertexData )
+	if (!vertexdata.pVertexData)
 		return NULL;
+
+	vertexdata.pTangentData = pVertexHdr->GetTangentData();
 
 	return &vertexdata;
 }
@@ -2598,10 +2598,7 @@ public:
 		{	
 			if ( m_pSequenceTuples != NULL )
 			{
-				if ( m_pSequenceTuples->pActivityModifiers != NULL )
-				{
-					delete[] m_pSequenceTuples->pActivityModifiers;
-				}
+				delete[] m_pSequenceTuples->pActivityModifiers;
 				delete[] m_pSequenceTuples;
 			}
 		}

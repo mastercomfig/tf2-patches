@@ -12,7 +12,7 @@
 #if !defined( _X360 )
 #include "dsound.h"
 #endif
-#include <assert.h>
+#include <VersionHelpers.h>
 #include "voice.h"
 #include "tier0/vcrmode.h"
 #include "ivoicerecord.h"
@@ -146,23 +146,6 @@ void VoiceRecord_DSound::RecordStop()
 {
 }
 
-static bool IsRunningWindows7()
-{
-	if ( IsPC() )
-	{
-		OSVERSIONINFOEX osvi;
-		ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-
-		if ( GetVersionEx ((OSVERSIONINFO *)&osvi) )
-		{
-			if ( osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 1) )
-				return true;
-		}
-	}
-	return false;
-}
-
 bool VoiceRecord_DSound::Init(int sampleRate)
 {
 	HRESULT hr;
@@ -183,17 +166,14 @@ bool VoiceRecord_DSound::Init(int sampleRate)
 	};
 	
 	// Load the DSound DLL.
-	m_hInstDS = LoadLibrary("dsound.dll");
+	// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+	m_hInstDS = LoadLibraryExW(L"dsound.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 	if(m_hInstDS)
 	{
 		createFn = (DirectSoundCaptureCreateFn)GetProcAddress(m_hInstDS, "DirectSoundCaptureCreate");
 		if (createFn)
 		{
-			const GUID FAR* pGuid = &DSDEVID_DefaultVoiceCapture;
-			if (IsRunningWindows7())
-			{
-				pGuid = NULL;
-			}
+			const GUID FAR* pGuid = IsWindows7OrGreater() ? nullptr : &DSDEVID_DefaultVoiceCapture;
 			hr = createFn(pGuid, &m_pCapture, NULL);
 			if (!FAILED(hr))
 			{
@@ -293,7 +273,7 @@ int VoiceRecord_DSound::GetRecordedData( short *pOut, int nSamples )
 {
 	if(!m_pCaptureBuffer)
 	{
-		assert(false);
+		Assert(false);
 		return 0;
 	}
 
@@ -340,7 +320,7 @@ int VoiceRecord_DSound::GetRecordedData( short *pOut, int nSamples )
 	// Hopefully we didn't get too much data back!
 	if((dataLen[0]+dataLen[1]) > nBytesWanted )
 	{
-		assert(false);
+		Assert(false);
 		m_pCaptureBuffer->Unlock(pData[0], dataLen[0], pData[1], dataLen[1]);
 		return 0;
 	}
