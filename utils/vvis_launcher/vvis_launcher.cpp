@@ -9,71 +9,44 @@
 //
 
 #include "stdafx.h"
-#include <direct.h>
+#include <system_error>
 #include "tier1/strtools.h"
 #include "tier0/icommandline.h"
 #include "ilaunchabledll.h"
 
-
-
-char* GetLastErrorString()
-{
-	static char err[2048];
-	
-	LPVOID lpMsgBuf;
-	FormatMessage( 
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-		FORMAT_MESSAGE_FROM_SYSTEM | 
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR) &lpMsgBuf,
-		0,
-		NULL 
-	);
-
-	strncpy( err, (char*)lpMsgBuf, sizeof( err ) );
-	LocalFree( lpMsgBuf );
-
-	err[ sizeof( err ) - 1 ] = 0;
-
-	return err;
-}
-
+extern "C" __declspec(dllimport) unsigned long __stdcall GetLastError(void);
 
 int main(int argc, char* argv[])
 {
-	CommandLine()->CreateCmdLine( argc, argv );
-	const char *pDLLName = "vvis_dll.dll";
+	CommandLine()->CreateCmdLine( argc, const_cast<const char**>(argv) );
+	constexpr char pDLLName[]{ "vvis_dll.dll" };
 	
-	CSysModule *pModule = Sys_LoadModule( pDLLName );
+	CSysModule* pModule{ Sys_LoadModule(pDLLName) };
 	if ( !pModule )
 	{
-		printf( "vvis launcher error: can't load %s\n%s", pDLLName, GetLastErrorString() );
+		const auto error = std::system_category().message(static_cast<int>(::GetLastError()));
+		fprintf( stderr, "vvis launcher error: can't load %s\n%s", pDLLName, error.c_str() );
 		return 1;
 	}
 
-	CreateInterfaceFn fn = Sys_GetFactory( pModule );
+	CreateInterfaceFn fn{ Sys_GetFactory(pModule) };
 	if( !fn )
 	{
-		printf( "vvis launcher error: can't get factory from %s\n", pDLLName );
+		fprintf( stderr, "vvis launcher error: can't get factory from %s\n", pDLLName );
 		Sys_UnloadModule( pModule );
 		return 2;
 	}
 
-	int retCode = 0;
-	ILaunchableDLL *pDLL = (ILaunchableDLL*)fn( LAUNCHABLE_DLL_INTERFACE_VERSION, &retCode );
+	auto *pDLL = static_cast<ILaunchableDLL*>( fn( LAUNCHABLE_DLL_INTERFACE_VERSION, nullptr ) );
 	if( !pDLL )
 	{
-		printf( "vvis launcher error: can't get IVVisDLL interface from %s\n", pDLLName );
+		fprintf( stderr, "vvis launcher error: can't get IVVisDLL interface from %s\n", pDLLName );
 		Sys_UnloadModule( pModule );
 		return 3;
 	}
 
-	pDLL->main( argc, argv );
+	const int rc{ pDLL->main(argc, argv) };
 	Sys_UnloadModule( pModule );
 
-	return 0;
+	return rc;
 }
-
