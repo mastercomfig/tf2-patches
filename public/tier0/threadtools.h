@@ -14,9 +14,11 @@
 #include "tier0/type_traits.h"
 
 #include <limits.h>
+#include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <list>
+
 
 
 
@@ -988,7 +990,6 @@ public:
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
 	bool m_bSignaled = false;
-	bool m_bAutoReset = false;
 	std::mutex m_Mutex;
 
 protected:
@@ -1009,41 +1010,43 @@ class CThreadSafeQueue
 {
 public:
 	CThreadSafeQueue()
+		: q()
+		, m()
 	{}
 
 	~CThreadSafeQueue()
 	{}
 
-	void PushItem(T& t)
+	void PushItem(T t)
 	{
 		std::scoped_lock<std::mutex> lock(m);
-		q.push_back(t);
+		q.push(t);
+	}
+
+	T Pop()
+	{
+		std::unique_lock<std::mutex> lock(m);
+		if (q.empty())
+		{
+			return NULL;
+		}
+		T val = q.front();
+		q.pop();
+		return val;
 	}
 
 	bool PopItem(T& pResult)
 	{
-		std::scoped_lock<std::mutex> lock(m);
 		if (q.empty())
 			return false;
-		pResult = q.front();
-		q.pop_front();
+		T pItem = Pop();
+		pResult = pItem;
 		return true;
 	}
 
-	void RemoveItem(T& pItem)
-	{
-		std::scoped_lock<std::mutex> lock(m);
-		q.remove(pItem);
-	}
-
-	size_t Size()
-	{
-		return q.size();
-	}
-
 private:
-	std::list<T> q;
-	std::mutex m;
+	std::queue<T> q;
+	mutable std::mutex m;
 };
 
 class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
@@ -1067,10 +1070,7 @@ public:
 
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
-	void AddListener(std::shared_ptr<std::condition_variable_any>& condition);
-	void AddListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
-	void RemoveListener(std::shared_ptr<std::condition_variable_any>& condition);
-	void RemoveListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
+	void AddListener(std::shared_ptr<std::condition_variable_any> condition);
 
 private:
 	CThreadEvent( const CThreadEvent & ) = delete;
@@ -1119,7 +1119,177 @@ private:
 	std::tuple<_Mutexes&...> m_Mutexes;
 };
 
-PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
+inline int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE)
+{
+	Assert(nEvents > 0);
+	if (nEvents == 1)
+	{
+		if (pEvents[0]->Wait(timeout))
+			return 0;
+		return TW_TIMEOUT;
+	}
+	bool bRet;
+	std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+	for (int i = 0; i < nEvents; i++)
+	{
+		pEvents[i]->AddListener(condition);
+	}
+	if (bWaitAll)
+	{
+		// FIXME(mastercoms): god there HAS to be a better way to do this, right C++?
+        switch (nEvents)
+        {
+		case 2:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);;
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+			}
+			break;
+		}
+		case 3:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+			}
+			break;
+		}
+		case 4:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+			}
+			break;
+		}
+		case 5:
+		{
+			CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+				bRet = true;
+			}
+			else
+			{
+				bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+			}
+			break;
+		}
+		default:
+		{
+		    Assert(0);
+		    bRet = false;
+		    break;
+		}
+        }
+	}
+	else
+	{
+	    std::mutex mutex;
+	    std::unique_lock<std::mutex> lock(mutex);
+	    if (timeout == TT_INFINITE)
+	    {
+		    condition->wait(lock, [nEvents, &pEvents]
+		    {
+				for (int i = 0; i < nEvents; i++)
+				{
+					if (pEvents[i]->m_bSignaled)
+					{
+						return true;
+					}
+				}
+				return false;
+		    });
+		    bRet = true;
+	    }
+	    else
+	    {
+		    bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
+	    }
+	}
+	condition.reset();
+	if (bRet)
+	{
+		return 0;
+	}
+	return TW_TIMEOUT;
+	
+#if 0
+	int iLoops = 0;
+	do
+	{
+		int WaitStatus;
+		bool bWaitedAll = true;
+		for (int i = 0; i < nEvents; i++)
+		{
+			if (bWaitAll)
+			{
+				if (!pEvents[i]->m_bSignaled)
+				{
+					bWaitedAll = false;
+					break;
+				}
+			}
+			else
+			{
+				if (pEvents[i]->m_bSignaled)
+				{
+					WaitStatus = i;
+					DevMsg("Loops: %d\n", iLoops);
+					return WaitStatus;
+				}
+			}
+		}
+		if (bWaitAll && bWaitedAll)
+		{
+			DevMsg("Loops: %d\n", iLoops);
+			return 0;
+		}
+		if (timeout == 0 || timeout != TT_INFINITE && (Plat_MSTime() - StartTime) >= timeout)
+		{
+			DevMsg("Loops: %d\n", iLoops);
+			return TW_TIMEOUT;
+		}
+		if (iLoops > 90000 || iLoops % 1000 == 0)
+		{
+			// If we've been busy waiting for quite a while, we are probably idle, so sleep for 1ms constantly.
+			// Otherwise, do a full sleep once in a while to throttle the busy wait.
+			ThreadSleepEx(1);
+		}
+		else if (iLoops % 20 == 0)
+		{
+			// Yield to OS more frequently, so we can get some throttling to the busy wait without increasing latency too much.
+			ThreadSleepEx();
+		}
+		else
+		{
+			// Pause on any other loop, so we don't inefficiently busy wait.
+			ThreadPause();
+		}
+		++iLoops;
+	} while (true);
+#endif
+}
 
 //-----------------------------------------------------------------------------
 //

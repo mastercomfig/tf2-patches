@@ -333,6 +333,32 @@ bool CCurrencyPack::MyTouch( CBasePlayer *pPlayer )
 			 ( !pTFTouchPlayer->m_Shared.IsStealthed() && !pTFTouchPlayer->m_Shared.InCond( TF_COND_STEALTHED_BLINK ) && !pTFTouchPlayer->m_Shared.InCond( TF_COND_DISGUISED ) ) )
 		{
 			pTFTouchPlayer->SpeakConceptIfAllowed(m_blinkCount > 0 ? MP_CONCEPT_MVM_ENCOURAGE_MONEY : MP_CONCEPT_MVM_MONEY_PICKUP);
+			int iConcept = MP_CONCEPT_MVM_MONEY_PICKUP;
+
+			// HACK(comtress): combine the two concepts used for money
+			switch (pTFTouchPlayer->GetPlayerClass()->GetClassIndex()) {
+			case TF_CLASS_HEAVYWEAPONS:
+			case TF_CLASS_ENGINEER:
+				/* no normal response; unused response(s) exist; so 100% chance to use the unused ones */
+				iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				break;
+			case TF_CLASS_SOLDIER:
+				/* 2 normal responses; 2 unused responses; so 50% chance to use the unused ones */
+				if (RandomInt(0, 3) < 2) {
+					iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				}
+				break;
+			case TF_CLASS_MEDIC:
+				/* 1 normal response; 3 unused responses; so 75% chance to use the unused ones */
+				if (RandomInt(0, 3) < 3) {
+					iConcept = MP_CONCEPT_MVM_ENCOURAGE_MONEY;
+				}
+				break;
+			default:
+				break;
+			}
+
+			pTFTouchPlayer->SpeakConceptIfAllowed(iConcept);
 		}
 
 		pTFTouchPlayer->SetLastObjectiveTime( gpGlobals->curtime );

@@ -22,9 +22,8 @@
 #include <xmmintrin.h>
 #endif
 
+#ifdef PLATFORM_WINDOWS_PC
 #define USE_DIRECTX_MATH
-
-#ifdef USE_DIRECTX_MATH
 #include "../thirdparty/DirectXMath-apr2020/Inc/DirectXMath.h"
 #define VectorLoad( Ptr ) DirectX::XMLoadFloat4( (const DirectX::XMFLOAT4*)(Ptr) )
 #define VectorStore( Vec, Ptr )	DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)(Ptr), Vec )

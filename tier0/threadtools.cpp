@@ -624,17 +624,23 @@ bool CThreadEvent::Set()
 #ifdef THREADS_DEBUG
 	AssertUseable();
 #endif
-	// Lock because we want to sync m_bSignaled and m_listeningConditions
-	std::unique_lock<std::mutex> lock(m_Mutex);
 
-	if (m_bSignaled)
-	{
-#if defined(THREADS_DEBUG)
-		// We could let Set fallthrough here if the event is signaled, but it would mask race conditions.
-		return true;
-	}
-	m_bSignaled = true;
-#else
+    {
+        std::unique_lock<std::mutex> lock(m_Mutex);
+		if (m_bSignaled)
+		{
+			return true;
+		}
+		m_bSignaled = true;
+		std::shared_ptr<std::condition_variable_any> condition;
+		while (m_listeningConditions.PopItem(condition))
+		{
+			if (condition)
+			{
+				condition->notify_one();
+			}
+			condition.reset();
+		}
     }
 	else
 	{
@@ -757,28 +763,9 @@ bool CThreadEvent::Wait( uint32 dwTimeout )
 	return CThreadSyncObject::Wait( dwTimeout );
 }
 
-void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any>& condition)
+void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any> condition)
 {
-	// Lock because we want to sync m_listeningConditions
-	std::scoped_lock<std::mutex> lock(m_Mutex);
-	AddListenerNoLock(condition);
-}
-
-void CThreadEvent::AddListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition)
-{
-    m_listeningConditions.PushItem(condition);
-}
-
-void CThreadEvent::RemoveListener(std::shared_ptr<std::condition_variable_any>& condition)
-{
-	// Lock because we want to sync m_listeningConditions
-	std::scoped_lock<std::mutex> lock(m_Mutex);
-	RemoveListenerNoLock(condition);
-}
-
-void CThreadEvent::RemoveListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition)
-{
-	m_listeningConditions.RemoveItem(condition);
+	m_listeningConditions.PushItem(condition);
 }
 
 //-----------------------------------------------------------------------------

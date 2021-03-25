@@ -45,8 +45,6 @@ $Configuration
 
 		$ImportLibrary					"$LIBPUBLIC\$_IMPLIB_PREFIX$OUTBINNAME$_IMPLIB_EXT"	[$POSIX]
 
-		$DelayLoadedDLLs				"PowrProf.dll"
-
 		// 360 will auto generate a def file for this import library
 		$ModuleDefinitionFile			" "										[$X360]
 		$AdditionalOptions				"$BASE /AUTODEF:xbox\xbox.def"			[$X360]
@@ -55,7 +53,7 @@ $Configuration
 
 	$PreLinkEvent [$WINDOWS]
 	{
-		$CommandLine	"call $QUOTE$SRCDIR\vpc_scripts\valve_p4_edit.cmd$QUOTE $QUOTE$LIBPUBLIC\$(TargetName).lib$QUOTE $QUOTE$SRCDIR$QUOTE" "\n" \
+		$CommandLine	"call $SRCDIR\vpc_scripts\valve_p4_edit.cmd $LIBPUBLIC\$(TargetName).lib $SRCDIR" "\n" \
 						"$BASE"
 	}
 	
@@ -128,10 +126,9 @@ $Project "tier0"
 				$CustomBuildStep
 				{
 					// General
-					// $CommandLine should be %comspec% /c ""$(VCInstallDir)Auxiliary\Build\vcvars64.bat" & ml64.exe /nologo /c /Fo"$(IntDir)%(Filename).obj" "%(FullPath)""
-					$CommandLine                "%comspec% /c $QUOTE$QUOTE$(VCInstallDir)Auxiliary\Build\vcvars64.bat$QUOTE & ml64.exe /nologo /c /Fo$QUOTE$(IntDir)$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE$QUOTE"
+					$CommandLine                "$QUOTE$(VCInstallDir)Tools\MSVC\14.26.28801\bin\Hostx64\x64\ml64.exe$QUOTE /nologo /c /Fo$QUOTE$(IntDir)\$(InputName).obj$QUOTE $QUOTE$(InputPath)$QUOTE"
 					$Description                "Compiling $(InputName).masm"
-					$Outputs                    "$(IntDir)$(InputName).obj"
+					$Outputs                    "$(IntDir)\$(InputName).obj"
 				}
 			}
 		}
