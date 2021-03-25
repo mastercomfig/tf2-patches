@@ -1307,7 +1307,7 @@ int CZipFile::MakeXZipCommentString( char *pCommentString )
 	char tempString[XZIP_COMMENT_LENGTH];
 
 	memset( tempString, 0, sizeof( tempString ) );
-	V_snprintf( tempString, sizeof( tempString ), "XZP%c %d", m_bCompatibleFormat ? '1' : '2', m_AlignmentSize );
+	V_snprintf( tempString, sizeof( tempString ), "XZP%c %u", m_bCompatibleFormat ? '1' : '2', m_AlignmentSize );
 	if ( pCommentString )
 	{
 		memcpy( pCommentString, tempString, sizeof( tempString ) );
@@ -1334,7 +1334,7 @@ void CZipFile::ParseXZipCommentString( const char *pCommentString )
 		if ( !m_bForceAlignment )
 		{
 			m_AlignmentSize = 0;
-			sscanf( pCommentString + 4, "%d", &m_AlignmentSize );
+			sscanf( pCommentString + 4, "%u", &m_AlignmentSize );
 			if ( !IsPowerOfTwo( m_AlignmentSize ) )
 			{
 				m_AlignmentSize = 0;
