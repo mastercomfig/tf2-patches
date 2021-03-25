@@ -333,7 +333,7 @@ static void PSDReadCompressedChannels( CUtlBuffer &buf, int nChannelsCount, PSDM
 		for( int j=0; j < bitmap.Height(); ++j )
 		{
 			unsigned char *pSrc = pChannelRow;
-			unsigned int nPixelsRemaining = bitmap.Width();
+			int nPixelsRemaining = bitmap.Width();
 			while ( nPixelsRemaining > 0 )
 			{
 				int nCount = buf.GetChar();
@@ -341,14 +341,14 @@ static void PSDReadCompressedChannels( CUtlBuffer &buf, int nChannelsCount, PSDM
 				{
 					// If nCount is between 0 + 7F, it means copy the next nCount+1 bytes directly
 					++nCount;
-					Assert( (unsigned int)nCount <= nPixelsRemaining );
+					Assert( nCount <= nPixelsRemaining );
 					buf.Get( pSrc, nCount );
 				}
 				else
 				{
 					// If nCount is between 80 and FF, it means replicate the next byte -Count+1 times
 					nCount = -nCount + 1;
-					Assert( (unsigned int)nCount <= nPixelsRemaining );
+					Assert( nCount <= nPixelsRemaining );
 					unsigned char nPattern = buf.GetUnsignedChar();
 					memset( pSrc, nPattern, nCount );
 				}
