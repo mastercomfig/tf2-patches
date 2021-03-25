@@ -257,7 +257,7 @@ int GetNumMipMapLevels( int width, int height, int depth )
 		depth = 1;
 	}
 
-	if( width < 1 || height < 1 || depth < 1 )
+	if( width < 1 || height < 1 )
 		return 0;
 
 	int numMipLevels = 1;
