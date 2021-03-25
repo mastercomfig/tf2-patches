@@ -1543,12 +1543,12 @@ StateSnapshot_t CTransitionTable::TakeSnapshot( )
 		// Now create new transition entries
 		for (int to = 0; to < shadowStateId; ++to)
 		{
-			CreateTransitionTableEntry( to, shadowStateId );
+			CreateTransitionTableEntry(to, shadowStateId);
 		}
 
 		for (int from = 0; from < shadowStateId; ++from)
 		{
-			CreateTransitionTableEntry( shadowStateId, from );
+		    CreateTransitionTableEntry(shadowStateId, from);
 		}
 	}
 

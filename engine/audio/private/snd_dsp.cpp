@@ -5922,7 +5922,7 @@ int idsp_speaker;
 int idsp_spatial;
 int idsp_automatic;
 
-ConVar dsp_off		("dsp_off", "0", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );						// set to 1 to disable all dsp processing
+ConVar dsp_off		("dsp_off", "0", FCVAR_ARCHIVE );						// set to 1 to disable all dsp processing
 ConVar dsp_slow_cpu ("dsp_slow_cpu", "0", FCVAR_ARCHIVE|FCVAR_DEMO );	// set to 1 if cpu bound - ie: does not process dsp_room fx
 ConVar snd_profile	("snd_profile", "0", FCVAR_DEMO );					// 1 - profile dsp, 2 - mix, 3 - load sound, 4 - all sound
 ConVar dsp_volume	("dsp_volume", "1.0", FCVAR_ARCHIVE|FCVAR_DEMO );	// 0.0 - 2.0; master dsp volume control
@@ -9295,17 +9295,32 @@ void DSP_FastReset( int dspType )
 
 void CheckNewDspPresets( void )
 {
-	bool b_slow_cpu = dsp_slow_cpu.GetInt() == 0 ? false : true;
+	bool b_slow_cpu = dsp_slow_cpu.GetBool();
 
 	DSP_CheckRestorePresets();
 
 	//  room fx are on only if cpu is not slow
-
-	int iroom			= b_slow_cpu ? 0 : dsp_room.GetInt() ;	
-	int ifacingaway		= b_slow_cpu ? 0 : dsp_facingaway.GetInt();
-	int iroomtype		= b_slow_cpu ? 0 : dsp_room_type.GetInt();
-	int ispatial		= b_slow_cpu ? 0 : dsp_spatial.GetInt();
-	int iautomatic		= b_slow_cpu ? 0 : dsp_automatic.GetInt();
+	int iroom;
+	int ifacingaway;
+	int iroomtype;
+	int ispatial;
+	int iautomatic;
+	if (b_slow_cpu)
+	{
+		iroom = 0;
+		ifacingaway = 0;
+		iroomtype = 0;
+		ispatial = 0;
+		iautomatic = 0;
+	}
+	else
+	{
+		iroom = dsp_room.GetInt();
+		ifacingaway = dsp_facingaway.GetInt();
+		iroomtype = dsp_room_type.GetInt();
+		ispatial = dsp_spatial.GetInt();
+		iautomatic = dsp_automatic.GetInt();
+	}
 
 	// always use dsp to process these
 

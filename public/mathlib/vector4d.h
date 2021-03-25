@@ -125,8 +125,8 @@ public:
 	Vector4D& operator=( Vector4D const& src );
 };
 
-const Vector4D vec4_origin( 0.0f, 0.0f, 0.0f, 0.0f );
-const Vector4D vec4_invalid( FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX );
+const Vector4D inline vec4_origin( 0.0f, 0.0f, 0.0f, 0.0f );
+const Vector4D inline vec4_invalid( FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX );
 
 //-----------------------------------------------------------------------------
 // SSE optimized routines
@@ -639,7 +639,11 @@ inline void Vector4DWeightMADSSE(vec_t w, Vector4DAligned const& vInA, Vector4DA
 {
 	Assert(vInA.IsValid() && vInB.IsValid() && IsFinite(w));
 
-#if !defined( _X360 )
+#if defined(USE_DIRECTX_MATH)
+	DirectX::XMVECTOR packed = DirectX::XMVectorReplicate(w);
+	vOutA.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInA.AsM128(), vOutA.AsM128());
+	vOutB.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInB.AsM128(), vOutB.AsM128());
+#elif !defined( _X360 )
 	// Replicate scalar float out to 4 components
 	__m128 packed = _mm_set1_ps(w);
 

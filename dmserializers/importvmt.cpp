@@ -121,7 +121,7 @@ bool CImportVMT::SerializeShaderParameter( CUtlBuffer &buf, CDmAttribute *pAttri
 		{
 			// NOTE: VMTs only support 3 component color (no alpha)
 			const Color &color = pAttribute->GetValue<Color>( );
-			buf.Printf( "\"%s\" \"{ %d %d %d }\"\n", pAttribute->GetName(), color.r(), color.g(), color.b() );
+			buf.Printf( "\"%s\" \"{ %u %u %u }\"\n", pAttribute->GetName(), color.r(), color.g(), color.b() );
 		}
 		break;
 

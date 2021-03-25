@@ -88,6 +88,9 @@ namespace
 		void CancelUpload( YouTubeUploadHandle_t handle );
 		void SetUploadFinished( YouTubeUploadHandle_t handle, bool bSuccess, const char *pURLToVideo, const char *pURLToVideoStats );
 
+		void InitThreadPool();
+		void AddJobToThreadPool(CJob* Job);
+
 		void SetUserProfile( const char *pUserProfile );
 		bool GetProfileURL( CUtlString &strProfileURL ) const;
 
@@ -204,7 +207,7 @@ protected:
 		// Wait for it to finish.
 		while ( m_bHTTPRequestPending && !m_bCancelled )
 		{
-			ThreadSleep( 100 );
+			ThreadSleepEx( 100 );
 		}
 
 		GetISteamHTTP()->ReleaseHTTPRequest( hSteamAPICall );
@@ -617,10 +620,24 @@ CYouTubeSystem::~CYouTubeSystem()
 
 bool CYouTubeSystem::Init()
 {
-	m_pThreadPool = CreateThreadPool();
-	m_pThreadPool->Start( ThreadPoolStartParams_t( false, 4 ), "YouTubeSystem" );
 	return true;
 }
+
+void CYouTubeSystem::InitThreadPool()
+{
+	m_pThreadPool = CreateThreadPool();
+	m_pThreadPool->Start(ThreadPoolStartParams_t(false, 4), "YouTubeSystem");
+}
+
+void CYouTubeSystem::AddJobToThreadPool(CJob* pJob)
+{
+	if (m_pThreadPool == NULL)
+	{
+		InitThreadPool();
+	}
+	m_pThreadPool->AddJob(pJob);
+}
+
 
 void CYouTubeSystem::PostInit()
 {
@@ -628,8 +645,11 @@ void CYouTubeSystem::PostInit()
 
 void CYouTubeSystem::Shutdown()
 {
-	DestroyThreadPool( m_pThreadPool );
-	m_pThreadPool = NULL;
+	if (m_pThreadPool != NULL)
+	{
+		DestroyThreadPool(m_pThreadPool);
+		m_pThreadPool = NULL;
+	}
 }
 
 void CYouTubeSystem::Update( float frametime )
@@ -657,7 +677,7 @@ void CYouTubeSystem::Login( const char *pUserName, const char *pPassword, const 
 {
 	m_eLoginStatus = kYouTubeLogin_NotLoggedIn;
 	CYouTubeLoginJob *pJob = new CYouTubeLoginJob( this, pUserName, pPassword, pSource );
-	m_pThreadPool->AddJob( pJob );
+	AddJobToThreadPool(pJob);
 	pJob->Release();
 }
 
@@ -673,7 +693,7 @@ YouTubeUploadHandle_t CYouTubeSystem::Upload( const char* pFilePath, const char 
 		return NULL;
 	}
 	CYouTubeUploadJob *pJob = new CYouTubeUploadJob( this, pFilePath, pMimeType, pTitle, pDescription, pCategory, pKeywords, access );
-	m_pThreadPool->AddJob( pJob );
+	AddJobToThreadPool(pJob);
 	uploadstatus_t status = { false, false, "", "" };
 	m_mapUploads.Insert( (YouTubeUploadHandle_t)pJob, status );
 	return (YouTubeUploadHandle_t)pJob;
@@ -774,7 +794,7 @@ YouTubeInfoHandle_t CYouTubeSystem::GetInfo( const char *pURLToVideoStats, CYouT
 {
 	AUTO_LOCK( m_Mutex );
 	CYouTubeRetrieveInfoJob *pJob = new CYouTubeRetrieveInfoJob( this, pURLToVideoStats, responseHandler );
-	m_pThreadPool->AddJob( pJob );
+	AddJobToThreadPool(pJob);
 	m_vecRetrieveInfoJobs.AddToTail( pJob );
 	return (YouTubeInfoHandle_t)pJob;
 }
@@ -836,7 +856,7 @@ void CYouTubeSystem::SetLoginStatus( eYouTubeLoginStatus status )
 	if ( m_eLoginStatus == kYouTubeLogin_LoggedIn )
 	{
 		CYouTubeRetrieveUserProfile *pJob = new CYouTubeRetrieveUserProfile( this );
-		m_pThreadPool->AddJob( pJob );
+		AddJobToThreadPool(pJob);
 		pJob->Release();
 	}
 }	

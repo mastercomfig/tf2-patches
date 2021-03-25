@@ -148,7 +148,6 @@ public:
 	virtual void	ApplySchemeSettings( IScheme *pScheme );
 	virtual void	OnTick( void );
 	virtual bool	ShouldDraw( void );
-	virtual void	FireGameEvent( IGameEvent * event );
 
 private:
 

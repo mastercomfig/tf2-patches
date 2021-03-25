@@ -498,12 +498,14 @@ void CTFPlayerAnimState::CheckPasstimeThrowAnimation()
 		return;
 	}
 
-	// FIXME: there must be a better way of doing this...
-	CPasstimeGun *pGun = dynamic_cast< CPasstimeGun * >( pPlayer->GetEntityForLoadoutSlot( LOADOUT_POSITION_UTILITY ) );
-	if ( !pGun )
+	CBaseCombatWeapon* pWeapon = pPlayer->GetWeapon(LOADOUT_POSITION_UTILITY);
+
+	if (!pWeapon || static_cast<CTFWeaponBase*>(pWeapon)->GetWeaponID() != TF_WEAPON_PASSTIME_GUN)
 	{
 		return;
 	}
+
+	CPasstimeGun* pGun = static_cast<CPasstimeGun*>(pWeapon);
 
 	if ( pGun->GetCurrentCharge() > 0 ) 
 	{

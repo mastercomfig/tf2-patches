@@ -15,6 +15,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/utlrbtree.h"
 #include "tier1/utlsymbol.h"
+#include "utlsymbollarge.h"
 #include "tier1/mempool.h"
 #include "dmxloader/dmxloader.h"
 
@@ -48,7 +49,7 @@ public:
 	// Returns the name. NOTE: The utlsymbol
 	// can be turned into a string by using g_pDataModel->String();
 	const char *GetName() const;
-	CUtlSymbol GetNameSymbol() const;
+	CUtlSymbolLarge GetNameSymbol() const;
 	void SetName( const char *pName );
 
 	// Gets values
@@ -89,7 +90,7 @@ public:
 
 private:
 	CDmxAttribute( const char *pAttributeName );
-	CDmxAttribute( CUtlSymbol attributeName );
+	CDmxAttribute( CUtlSymbolLarge attributeName );
 	~CDmxAttribute();
 
 	// Allocate, free memory for data
@@ -100,10 +101,10 @@ private:
 	void SetValue( DmAttributeType_t type, const void *pSrc, int nLen );
 
 	DmAttributeType_t m_Type;
-	CUtlSymbol m_Name;
+	CUtlSymbolLarge m_Name;
 	void *m_pData;
 
-	static CUtlSymbolTableMT s_AttributeNameSymbols;
+	static CUtlSymbolTableLargeMT s_AttributeNameSymbols;
 
 	friend class CDmxElement;
 };
@@ -122,7 +123,7 @@ template< class T > inline bool CDmxAttribute::IsA() const
 	return GetType() == CDmAttributeInfo< T >::ATTRIBUTE_TYPE;
 }
 
-inline CUtlSymbol CDmxAttribute::GetNameSymbol() const
+inline CUtlSymbolLarge CDmxAttribute::GetNameSymbol() const
 {
 	return m_Name;
 }

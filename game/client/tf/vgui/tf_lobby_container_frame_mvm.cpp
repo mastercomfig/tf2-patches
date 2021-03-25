@@ -155,7 +155,7 @@ void CLobbyContainerFrame_MvM::OnCommand( const char *command )
 	{
 		if ( steamapicontext && steamapicontext->SteamFriends() )
 		{
-			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "http://www.teamfortress.com/mvm/" );
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://www.teamfortress.com/mvm/" );
 		}
 		return;
 	}

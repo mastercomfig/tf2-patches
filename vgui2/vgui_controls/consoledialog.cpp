@@ -327,8 +327,8 @@ CConsolePanel::CConsolePanel( vgui::Panel *pParent, const char *pName, bool bSta
 	pCompletionList->SetFocusPanel( m_pEntry );
 
 	// need to set up default colors, since ApplySchemeSettings won't be called until later
-	m_PrintColor = Color(216, 222, 211, 255);
-	m_DPrintColor = Color(196, 181, 80, 255);
+	m_PrintColor = Color((unsigned char)216, (unsigned char)222, (unsigned char)211, (unsigned char)255);
+	m_DPrintColor = Color((unsigned char)196, (unsigned char)181, (unsigned char)80, (unsigned char)255);
 
 	m_pEntry->SetTabPosition(1);
 

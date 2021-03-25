@@ -250,13 +250,13 @@ static void SaveToFile_R( KeyValues *pkv, IBaseFileSystem *pFileSystem, FileHand
 		{
 			char szTmpBuf[32] = {};
 			const Color c = pkv->GetColor();
-			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%d", c.r() );
+			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%u", c.r() );
 			pFileSystem->Write( " ", 1, hFile );
-			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%d", c.g() );
+			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%u", c.g() );
 			pFileSystem->Write( " ", 1, hFile );
-			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%d", c.b() );
+			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%u", c.b() );
 			pFileSystem->Write( " ", 1, hFile );
-			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%d", c.a() );
+			V_snprintf( szTmpBuf, sizeof( szTmpBuf ), "%u", c.a() );
 			break;
 		}
 		default:

@@ -21,7 +21,7 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE Ws2_32.lib odbc32.lib odbccp32.lib Shlwapi.lib" [$WIN32]
+		$AdditionalDependencies			"$BASE Ws2_32.lib odbc32.lib odbccp32.lib Shlwapi.lib" [$WINDOWS]
 		$SystemLibraries				"iconv;z" [$OSXALL]	
 		$SystemLibraries				"rt" [$LINUXALL && !$DEDICATED]
 		$GCC_ExtraLinkerFlags			"-L/usr/lib32 -L/usr/lib" [$LINUXALL && !$DEDICATED]
@@ -223,8 +223,8 @@ $Project "GameUI"
 		$File	"OptionsSubDifficulty.h"
 		$File	"OptionsSubGame.cpp"
 		$File	"OptionsSubGame.h"
-		$File	"OptionsSubHaptics.cpp"	[$WIN32]
-		$File	"OptionsSubHaptics.h"	[$WIN32]
+		$File	"OptionsSubHaptics.cpp"	[$WINDOWS]
+		$File	"OptionsSubHaptics.h"	[$WINDOWS]
 		$File	"OptionsSubKeyboard.cpp"
 		$File	"OptionsSubKeyboard.h"
 		$File	"OptionsSubMouse.cpp"

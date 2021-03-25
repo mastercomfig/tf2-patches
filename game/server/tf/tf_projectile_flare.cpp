@@ -207,7 +207,8 @@ void CTFProjectile_Flare::Explode( trace_t *pTrace, CBaseEntity *pOther )
 
 	CTFPlayer *pTFVictim = ToTFPlayer( pOther );
 
-	CTFFlareGun *pFlareGun = dynamic_cast< CTFFlareGun* >( GetLauncher() );
+	CBaseEntity *pLauncher = GetOriginalLauncher();
+	CTFFlareGun *pFlareGun = dynamic_cast< CTFFlareGun* >( pLauncher );
 	if ( pFlareGun )
 	{
 		if ( pFlareGun->GetFlareGunType() == FLAREGUN_SCORCHSHOT )
@@ -228,7 +229,7 @@ void CTFProjectile_Flare::Explode( trace_t *pTrace, CBaseEntity *pOther )
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 
 				// Damage the player to push them back
-				CTakeDamageInfo info( this, pAttacker, m_hLauncher, vec3_origin, vecOrigin, GetDamage(), iDamageType, m_bIsFromTaunt ? TF_DMG_CUSTOM_FLARE_PELLET : 0 );
+				CTakeDamageInfo info( this, pAttacker, pLauncher, vec3_origin, vecOrigin, GetDamage(), iDamageType, m_bIsFromTaunt ? TF_DMG_CUSTOM_FLARE_PELLET : TF_DMG_CUSTOM_BURNING_FLARE );
 				pTFVictim->TakeDamage( info );
 
 				bool bIsEnemy = pAttacker && pTFVictim->GetTeamNumber() != pAttacker->GetTeamNumber();
@@ -329,7 +330,7 @@ void CTFProjectile_Flare::Explode( trace_t *pTrace, CBaseEntity *pOther )
 		m_bCritical = true;
 	}
 
-	CTakeDamageInfo info( this, pAttacker, m_hLauncher, vec3_origin, vecOrigin, GetDamage(), GetDamageType(), TF_DMG_CUSTOM_BURNING_FLARE );
+	CTakeDamageInfo info( this, pAttacker, pLauncher, vec3_origin, vecOrigin, GetDamage(), GetDamageType(), TF_DMG_CUSTOM_BURNING_FLARE );
 	pOther->TakeDamage( info );
 
 	// Remove the flare.
@@ -410,7 +411,7 @@ void CTFProjectile_Flare::Explode_Air( trace_t *pTrace, int bitsDamageType, bool
 			DrawRadius( flRadius );
 		}
 #endif
-		CTakeDamageInfo info( this, pAttacker, m_hLauncher, vec3_origin, vecOrigin, GetDamage(), bitsDamageType | DMG_HALF_FALLOFF, TF_DMG_CUSTOM_FLARE_EXPLOSION );
+		CTakeDamageInfo info( this, pAttacker, GetOriginalLauncher(), vec3_origin, vecOrigin, GetDamage(), bitsDamageType | DMG_HALF_FALLOFF, TF_DMG_CUSTOM_FLARE_EXPLOSION );
 		CTFRadiusDamageInfo radiusinfo( &info, vecOrigin, flRadius, NULL, TF_FLARE_RADIUS_FOR_FJS );
 		TFGameRules()->RadiusDamage( radiusinfo );
 	}
@@ -606,6 +607,8 @@ void CTFProjectile_Flare::Deflected( CBaseEntity *pDeflectedBy, Vector &vecDir )
 
 	IncrementDeflected();
 	SetScorer( pTFDeflector );
+	
+	m_nSkin = ( GetTeamNumber() == TF_TEAM_BLUE ) ? 1 : 0;
 }
 
 float CTFProjectile_Flare::GetProjectileSpeed( void ) const

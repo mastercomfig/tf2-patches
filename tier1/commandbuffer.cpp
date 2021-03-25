@@ -30,13 +30,16 @@ struct cmdalias_t
 //-----------------------------------------------------------------------------
 CCommandBuffer::CCommandBuffer( ) : m_Commands( 32, 32 )
 {
-	m_hNextCommand = m_Commands.InvalidIndex();
-	m_nWaitDelayTicks = 1;
+	m_pArgSBuffer[0] = '\0';
+	m_nLastUsedArgSSize = -1;
+	m_nArgSBufferSize = 0;
 	m_nCurrentTick = 0;
 	m_nLastTickToProcess = -1;
-	m_nArgSBufferSize = 0;
-	m_bIsProcessingCommands = false;
+	m_nWaitDelayTicks = 1;
+	m_hNextCommand = m_Commands.InvalidIndex();
 	m_nMaxArgSBufferLength = ARGS_BUFFER_LENGTH;
+	m_bIsProcessingCommands = false;
+	m_bWaitEnabled = false;
 }
 
 CCommandBuffer::~CCommandBuffer()
@@ -420,7 +423,7 @@ CommandHandle_t CCommandBuffer::GetNextCommandHandle()
 ===============
 Cmd_Alias_f
 
-Creates a new command that executes a command string (possibly ; seperated)
+Creates a new command that executes a command string (possibly ; separated)
 ===============
 */
 void Cmd_Alias_f (void)

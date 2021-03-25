@@ -192,7 +192,7 @@ static ConVar mod_load_mesh_async( "mod_load_mesh_async", ( AsyncMdlCache() ) ? 
 static ConVar mod_load_anims_async( "mod_load_anims_async", ( IsX360() || AsyncMdlCache() ) ? "1" : "0" );
 static ConVar mod_load_vcollide_async( "mod_load_vcollide_async",  ( AsyncMdlCache() ) ? "1" : "0" );
 static ConVar mod_trace_load( "mod_trace_load", "0" );
-static ConVar mod_lock_mdls_on_load( "mod_lock_mdls_on_load", ( IsX360() ) ? "1" : "0" );
+static ConVar mod_lock_mdls_on_load( "mod_lock_mdls_on_load", ( IsX360() ) ? "1" : "0", FCVAR_CHEAT );
 static ConVar mod_load_fakestall( "mod_load_fakestall", "0", 0, "Forces all ANI file loading to stall for specified ms\n");
 
 //-----------------------------------------------------------------------------

@@ -61,7 +61,8 @@ void CGlowObjectManager::RenderGlowEffects( const CViewSetup *pSetup, int nSplit
 {
 	if ( g_pMaterialSystemHardwareConfig->SupportsPixelShaders_2_0() )
 	{
-		if ( glow_outline_effect_enable.GetBool() )
+		// TODO: fix glows glitching out
+		if ( 0 && glow_outline_effect_enable.GetBool() )
 		{
 			CMatRenderContextPtr pRenderContext( materials );
 

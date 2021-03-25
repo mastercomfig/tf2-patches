@@ -1716,7 +1716,7 @@ class C_INIT_RandomColor : public CParticleOperatorInstance
 				Vector vecOrigin;
 				pParticles->GetControlPointAtTime( m_nTintCP, pParticles->m_flCurTime, &vecOrigin );
 
-				if ( ( ( pCtx->m_vPrevPosition - vecOrigin ).Length() >= m_flUpdateThreshold ) || ( pParticles->m_LocalLightingCP == -1 ) )
+				if ( ( ( pCtx->m_vPrevPosition - vecOrigin ).LengthSqr() >= m_flUpdateThreshold * m_flUpdateThreshold) || ( pParticles->m_LocalLightingCP == -1 ) )
 					{
 						g_pParticleSystemMgr->Query()->GetLightingAtPoint( vecOrigin, tint );
 						pParticles->m_LocalLighting = tint;
@@ -1790,7 +1790,7 @@ class C_INIT_RandomColor : public CParticleOperatorInstance
 				Vector vecOrigin;
 				pParticles->GetControlPointAtTime( m_nTintCP, pParticles->m_flCurTime, &vecOrigin );
 
-				if ( ( ( pCtx->m_vPrevPosition - vecOrigin ).Length() >= m_flUpdateThreshold ) || ( pParticles->m_LocalLightingCP == -1 ) )
+				if ( ( ( pCtx->m_vPrevPosition - vecOrigin ).LengthSqr() >= m_flUpdateThreshold * m_flUpdateThreshold) || ( pParticles->m_LocalLightingCP == -1 ) )
 				{
 					g_pParticleSystemMgr->Query()->GetLightingAtPoint( vecOrigin, tint );
 					pParticles->m_LocalLighting = tint;
@@ -4205,11 +4205,12 @@ void C_INIT_DistanceToCPInit::InitNewParticlesScalar(
 		const float *pXYZ = pParticles->GetFloatAttributePtr(PARTICLE_ATTRIBUTE_XYZ, start_p );
 		vecPosition2 = Vector(pXYZ[0], pXYZ[4], pXYZ[8]); 
 		Vector vecDelta = vecControlPoint1 - vecPosition2;
-		float flDistance = vecDelta.Length();
-		if ( m_bActiveRange && ( flDistance < m_flInputMin || flDistance > m_flInputMax ) )
+		float flDistance = vecDelta.LengthSqr();
+		if ( m_bActiveRange && ( flDistance < m_flInputMin * m_flInputMin || flDistance > m_flInputMax  * m_flInputMax) )
 		{
 			continue;
 		}
+		flDistance = FastSqrt(flDistance);
 		if ( m_bLOS )
 		{
 			Vector vecEndPoint = vecPosition2;
@@ -4225,7 +4226,6 @@ void C_INIT_DistanceToCPInit::InitNewParticlesScalar(
 			{
 				flDistance *= tr.fraction * m_flLOSScale;
 			}
-
 		}
 
 		float flOutput = RemapValClamped( flDistance, m_flInputMin, m_flInputMax, flMin, flMax  );

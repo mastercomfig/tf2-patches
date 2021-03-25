@@ -106,8 +106,8 @@ void TangentSpaceComputeBasis( Vector& tangentS, Vector& tangentT, const Vector&
 inline void BuildIndicesForSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t surfID )
 {
 	int nSurfTriangleCount = MSurf_VertCount( surfID ) - 2;
-	unsigned short startVert = MSurf_VertBufferIndex( surfID );
-	Assert(startVert!=0xFFFF);
+	unsigned short startVert = MSurf_VertBufferIndex(surfID);
+	Assert(startVert != 0xFFFF);
 
 	// NOTE: This switch appears to help performance
 	// add surface to this batch
@@ -143,21 +143,20 @@ inline void BuildIndicesForSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t s
 
 inline void BuildIndicesForWorldSurface( CMeshBuilder &meshBuilder, SurfaceHandle_t surfID, worldbrushdata_t *pData )
 {
-	if ( SurfaceHasPrims(surfID) )
+	if (SurfaceHasPrims(surfID))
 	{
-		mprimitive_t *pPrim = &pData->primitives[MSurf_FirstPrimID( surfID, pData )];
-		Assert(pPrim->vertCount==0);
-		unsigned short startVert = MSurf_VertBufferIndex( surfID );
-		Assert( pPrim->indexCount == ((MSurf_VertCount( surfID ) - 2)*3));
+		mprimitive_t* pPrim = &pData->primitives[MSurf_FirstPrimID(surfID, pData)];
+		Assert(pPrim->vertCount == 0);
+		unsigned short startVert = MSurf_VertBufferIndex(surfID);
+		Assert(pPrim->indexCount == ((MSurf_VertCount(surfID) - 2) * 3));
 
-		for ( int primIndex = 0; primIndex < pPrim->indexCount; primIndex++ )
-		{
-			meshBuilder.FastIndex( pData->primindices[pPrim->firstIndex + primIndex] + startVert );
-		}
+		CIndexBuilder& indexBuilder = meshBuilder;
+		indexBuilder.FastIndexList(&pData->primindices[pPrim->firstIndex], startVert, pPrim->indexCount);
 	}
 	else
 	{
-		BuildIndicesForSurface( meshBuilder, surfID );
+		BuildIndicesForSurface(meshBuilder, surfID);
+
 	}
 }
 

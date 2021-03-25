@@ -63,8 +63,13 @@ bool CSharedReplayContext::Init( CreateInterfaceFn fnFactory )
 	m_pRecordingSessionBlockManager->Init();
 	m_pRecordingSessionManager->Init();
 
-	if ( !InitThreadPool() )
-		return false;
+    if (g_pEngine->IsDedicated())
+    {
+		if (!InitThreadPool())
+		{
+			return false;
+		}
+    }
 
 	m_bInit = true;
 
@@ -113,7 +118,10 @@ void CSharedReplayContext::Shutdown()
 {
 	m_pRecordingSessionBlockManager->Shutdown();
 	m_pRecordingSessionManager->Shutdown();
-	m_pThreadPool->Stop();
+	if (m_pThreadPool)
+	{
+		m_pThreadPool->Stop();
+	}
 }
 
 void CSharedReplayContext::Think()

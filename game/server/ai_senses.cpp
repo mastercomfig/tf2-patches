@@ -49,6 +49,12 @@ struct AISightIterVal_t
 	char  array;
 	short iNext;
 	char  SeenArray;
+	// x64: Aidan: I couldn't see a reason why AISightIter_t needs
+	// to be the same size of AISightIterVal_t, so I've just added
+	// padding in x64 until I find a reason otherwise.
+#if defined(PLATFORM_64BITS)
+	int padding;
+#endif
 };
 
 #pragma pack(pop)

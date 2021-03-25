@@ -1436,8 +1436,8 @@ class CAchievementTFScout_TauntKill : public CBaseTFAchievement
 				float y = event->GetFloat( "y" );
 				float z = event->GetFloat( "z" );
 				Vector vHitOrigin = Vector(x,y,z);
-				float fDist = (vHitOrigin - m_vSlamOrigin).Length();
-				if ( fDist > 1000 )
+				float fDist = (vHitOrigin - m_vSlamOrigin).LengthSqr();
+				if ( fDist > 1000 * 1000 )
 				{
 					IncrementCount();
 				}

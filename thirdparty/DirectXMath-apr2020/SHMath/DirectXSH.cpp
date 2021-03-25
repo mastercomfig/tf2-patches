@@ -4806,7 +4806,7 @@ bool XM_CALLCONV DirectX::XMSHEvalHemisphereLight(
     if (order < XM_SH_MINORDER || order > XM_SH_MAXORDER)
         return false;
 
-    // seperate "R/G/B colors...
+    // separate "R/G/B colors...
 
     float fTmpDir[XM_SH_MAXORDER * XM_SH_MAXORDER];  // rotation "vector"
     float fTmpL0[XM_SH_MAXORDER];

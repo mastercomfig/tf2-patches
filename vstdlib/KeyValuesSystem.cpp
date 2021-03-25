@@ -88,7 +88,7 @@ private:
 	}
 	CUtlRBTree<MemoryLeakTracker_t, int> m_KeyValuesTrackingList;
 
-	CThreadFastMutex m_mutex;
+	CThreadMutex m_mutex;
 
 	CUtlMap<CUtlString, KeyValues*> m_KeyValueCache;
 };
@@ -235,7 +235,7 @@ HKeySymbol CKeyValuesSystem::GetSymbolForString( const char *name, bool bCreate 
 	hash_item_t *item = &m_HashTable[hash];
 	while (1)
 	{
-		if (!stricmp(name, (char *)m_Strings.GetBase() + item->stringIndex ))
+		if (!V_stricmp(name, (char *)m_Strings.GetBase() + item->stringIndex ))
 		{
 			return (HKeySymbol)item->stringIndex;
 		}

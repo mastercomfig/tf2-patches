@@ -717,7 +717,7 @@ static const char *g_pBlacklistedCommands[] =
 ===============
 Cmd_Alias_f
 
-Creates a new command that executes a command string (possibly ; seperated)
+Creates a new command that executes a command string (possibly ; separated)
 ===============
 */
 CON_COMMAND( alias, "Alias a command." )
@@ -1044,7 +1044,7 @@ const ConCommandBase *Cmd_ExecuteCommand( const CCommand &command, cmd_source_t 
 		}
 	}
 
-	// Bail out before we update convars if we're runnign in default mode.
+	// Bail out before we update convars if we're running in default mode.
 	if ( pCommand && src == src_command && CommandLine()->CheckParm( "-default" ) && !pCommand->IsFlagSet( FCVAR_EXEC_DESPITE_DEFAULT ) )
 	{
 		Msg( "Ignoring cvar \"%s\" due to -default on command line\n", pCommand->GetName() );

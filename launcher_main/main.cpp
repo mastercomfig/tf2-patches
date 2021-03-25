@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <direct.h>
+#include <system_error>
 #endif
 #if defined( _X360 )
 #define _XBOX
@@ -31,10 +32,10 @@
 #include "tier0/basetypes.h"
 
 #ifdef WIN32
-typedef int (*LauncherMain_t)( HINSTANCE hInstance, HINSTANCE hPrevInstance, 
-							  LPSTR lpCmdLine, int nCmdShow );
+using LauncherMain_t = int (*)( HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine, int nCmdShow );
 #elif POSIX
-typedef int (*LauncherMain_t)( int argc, char **argv );
+using LauncherMain_t = int (*)( int argc, char **argv );
 #else
 #error
 #endif
@@ -46,99 +47,119 @@ extern "C" { _declspec( dllexport ) DWORD NvOptimusEnablement = 0x00000001; }
 
 // same thing for AMD GPUs using v13.35 or newer drivers
 extern "C" { __declspec( dllexport ) int AmdPowerXpressRequestHighPerformance = 1; }
-
 #endif
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Return the directory where this .exe is running from
-// Output : char
-//-----------------------------------------------------------------------------
 #if !defined( _X360 )
+namespace {
 
-static char *GetBaseDir( const char *pszBuffer )
+//-----------------------------------------------------------------------------
+// Purpose: Return the directory where this .exe is running from.
+// Output : wchar_t
+//-----------------------------------------------------------------------------
+template<size_t bufferSize>
+[[nodiscard]] const wchar_t* GetBaseDir( const wchar_t (&szBuffer)[bufferSize] )
 {
-	static char	basedir[ MAX_PATH ];
-	char szBuffer[ MAX_PATH ];
-	size_t j;
-	char *pBuffer = NULL;
+	static wchar_t basedir[ MAX_PATH ];
+	wcscpy_s( basedir, szBuffer );
 
-	strcpy( szBuffer, pszBuffer );
-
-	pBuffer = strrchr( szBuffer,'\\' );
+	wchar_t* pBuffer{ wcsrchr( basedir, L'\\' ) };
 	if ( pBuffer )
 	{
-		*(pBuffer+1) = '\0';
+		*(pBuffer+1) = L'\0';
 	}
 
-	strcpy( basedir, szBuffer );
-
-	j = strlen( basedir );
+	const size_t j = wcslen( basedir );
 	if (j > 0)
 	{
-		if ( ( basedir[ j-1 ] == '\\' ) || 
-			 ( basedir[ j-1 ] == '/' ) )
+		wchar_t &lastChar = basedir[j-1];
+		if ( lastChar == L'\\' || lastChar == L'/' )
 		{
-			basedir[ j-1 ] = 0;
+			lastChar = L'\0';
 		}
 	}
 
 	return basedir;
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: Error codes.
+//-----------------------------------------------------------------------------
+enum class ErrorCode : int
+{
+	None = 0,
+	CantGetModuleFileName,
+	CantUpdatePathEnvVariable,
+	CantLoadLauncherDll,
+	CantFindLauncherMainInLauncherDll
+};
+
+//-----------------------------------------------------------------------------
+// Purpose: Shows error box and returns error code.
+// Output : int
+//-----------------------------------------------------------------------------
+[[nodiscard]] int ShowErrorBoxAndExitWithCode( const wchar_t* szError, ErrorCode errorCode )
+{
+	MessageBoxW( 0, szError, L"Launcher Error", MB_OK | MB_ICONERROR );
+	return static_cast<int>( errorCode );
+}
+
+}  // namespace
+
 #ifdef WIN32
 
-int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+int APIENTRY WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow )
 {
-	// Must add 'bin' to the path....
-	char* pPath = getenv("PATH");
-
-	// Use the .EXE name to determine the root directory
-	char moduleName[ MAX_PATH ];
-	char szBuffer[4096];
-	if ( !GetModuleFileName( hInstance, moduleName, MAX_PATH ) )
+	// Use the .EXE name to determine the root directory.
+	wchar_t moduleName[ MAX_PATH ];
+	if ( !GetModuleFileNameW( hInstance, moduleName, MAX_PATH ) )
 	{
-		MessageBox( 0, "Failed calling GetModuleFileName", "Launcher Error", MB_OK );
-		return 0;
+		return ShowErrorBoxAndExitWithCode( L"Failed calling GetModuleFileName.", ErrorCode::CantGetModuleFileName );
 	}
 
-	// Get the root directory the .exe is in
-	char* pRootDir = GetBaseDir( moduleName );
-
-#ifdef _DEBUG
-	int len = 
-#endif
-	_snprintf( szBuffer, sizeof( szBuffer ), "PATH=%s\\bin\\;%s", pRootDir, pPath );
-	szBuffer[sizeof( szBuffer ) - 1] = '\0';
-	assert( len < sizeof( szBuffer ) );
-	_putenv( szBuffer );
-
-	// Assemble the full path to our "launcher.dll"
-	_snprintf( szBuffer, sizeof( szBuffer ), "%s\\bin\\launcher.dll", pRootDir );
-	szBuffer[sizeof( szBuffer ) - 1] = '\0';
-
-	// STEAM OK ... filesystem not mounted yet
-#if defined(_X360)
-	HINSTANCE launcher = LoadLibrary( szBuffer );
+	// Get the root directory the .exe is in.
+	const wchar_t* rootDirPath{ GetBaseDir( moduleName ) };
+	// x64: Use subdir as CS:GO does. Allows to have both x86/x86-64 binaries and choose game bitness.
+	constexpr wchar_t binDirPath[] =
+#ifdef _WIN64
+		L"\\x64"
 #else
-	HINSTANCE launcher = LoadLibraryEx( szBuffer, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
+		L""
 #endif
-	if ( !launcher )
+		;
+
+	wchar_t buffer[4096];
+	// Must add 'bin' to the path...
+	const wchar_t* oldPathEnv{ _wgetenv( L"PATH" ) };
+	if ( oldPathEnv )
 	{
-		char *pszError;
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&pszError, 0, NULL);
-
-		char szBuf[1024];
-		_snprintf(szBuf, sizeof( szBuf ), "Failed to load the launcher DLL:\n\n%s", pszError);
-		szBuf[sizeof( szBuf ) - 1] = '\0';
-		MessageBox( 0, szBuf, "Launcher Error", MB_OK );
-
-		LocalFree(pszError);
-		return 0;
+		swprintf_s( buffer, L"PATH=%s\\bin%s\\;%s", rootDirPath, binDirPath, oldPathEnv );
+		if ( _wputenv( buffer ) == -1 )
+		{
+			return ShowErrorBoxAndExitWithCode( L"Failed to update PATH env variable.", ErrorCode::CantUpdatePathEnvVariable );
+		}
 	}
 
-	LauncherMain_t main = (LauncherMain_t)GetProcAddress( launcher, "LauncherMain" );
-	return main( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+	// Assemble the full path to our "launcher.dll".
+	swprintf_s( buffer, L"%s\\bin%s\\launcher.dll", rootDirPath, binDirPath );
+
+	// STEAM OK ... filesystem not mounted yet.
+	const HINSTANCE launcher{ LoadLibraryExW( buffer, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH ) };
+	if ( launcher )
+	{
+		const auto main = reinterpret_cast<LauncherMain_t>( GetProcAddress( launcher, "LauncherMain" ));
+
+		return main
+			? main( hInstance, hPrevInstance, lpCmdLine, nCmdShow )
+			: ShowErrorBoxAndExitWithCode( L"Failed to get \"LauncherMain\" entry point in the launcher DLL.",
+					ErrorCode::CantFindLauncherMainInLauncherDll );
+	}
+
+	const auto lastErrorText = std::system_category().message( GetLastError() );
+
+	wchar_t userErrorText[1024];
+	swprintf_s( userErrorText, L"Failed to load the launcher DLL:\n\n%S", lastErrorText.c_str() );
+
+	return ShowErrorBoxAndExitWithCode( userErrorText, ErrorCode::CantLoadLauncherDll );
 }
 
 #elif defined (POSIX)

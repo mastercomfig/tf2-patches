@@ -112,6 +112,7 @@
 #include "tf_player_resource.h"
 #include "gcsdk/gcclient_sharedobjectcache.h"
 #include "tf_party.h"
+#include "info_camera_link.h"
 #ifdef STAGING_ONLY
 #include "tf_extra_map_entity.h"
 #endif
@@ -139,7 +140,7 @@
 
 #pragma warning( disable: 4355 ) // disables ' 'this' : used in base member initializer list'
 
-ConVar sv_motd_unload_on_dismissal( "sv_motd_unload_on_dismissal", "0", 0, "If enabled, the MOTD contents will be unloaded when the player closes the MOTD." );
+ConVar sv_motd_unload_on_dismissal( "sv_motd_unload_on_dismissal", "1", 0, "If enabled, the MOTD contents will be unloaded when the player closes the MOTD." );
 
 #define DAMAGE_FORCE_SCALE_SELF				9
 #define SCOUT_ADD_BIRD_ON_GIB_CHANCE		5
@@ -249,12 +250,16 @@ ConVar tf_highfive_max_range( "tf_highfive_max_range", "150", FCVAR_CHEAT | FCVA
 ConVar tf_highfive_height_tolerance( "tf_highfive_height_tolerance", "12", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "The maximum height difference allowed for two high-fivers." );
 ConVar tf_highfive_debug( "tf_highfive_debug", "0", FCVAR_NONE, "Turns on some console spew for debugging high five issues." );
 
+ConVar tf_taunt_first_person("tf_taunt_first_person", "0", FCVAR_REPLICATED, "1 = taunts remain first-person");
+
 ConVar tf_test_teleport_home_fx( "tf_test_teleport_home_fx", "0", FCVAR_CHEAT );
 
 ConVar tf_halloween_giant_health_scale( "tf_halloween_giant_health_scale", "10", FCVAR_CHEAT );
 
 ConVar tf_grapplinghook_los_force_detach_time( "tf_grapplinghook_los_force_detach_time", "1", FCVAR_CHEAT );
 ConVar tf_powerup_max_charge_time( "tf_powerup_max_charge_time", "30", FCVAR_CHEAT );
+
+ConVar tf_unlag_teammates( "tf_unlag_teammates", "1", FCVAR_NOTIFY, "Controls lag compensation for teammates. 0: Disable, 1: Enable, 2: Melee weapons only" );
 
 extern ConVar tf_powerup_mode;
 extern ConVar tf_mvm_buybacks_method;
@@ -282,12 +287,12 @@ void CC_tf_debug_ballistic_targeting_mark_target( const CCommand &args )
 }
 static ConCommand tf_debug_ballistic_targeting_mark_target( "tf_debug_ballistic_targeting_mark_target", CC_tf_debug_ballistic_targeting_mark_target, "Mark a spot for testing ballistic targeting.", FCVAR_CHEAT );
 
-ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_CHEAT );
-
 extern ConVar tf_bountymode_currency_starting;
 extern ConVar tf_bountymode_upgrades_wipeondeath;
 extern ConVar tf_bountymode_currency_penalty_ondeath;
 #endif // STAGING_ONLY
+
+ConVar tf_infinite_ammo( "tf_infinite_ammo", "0", FCVAR_CHEAT );
 
 ConVar tf_halloween_unlimited_spells( "tf_halloween_unlimited_spells", "0", FCVAR_CHEAT );
 extern ConVar tf_halloween_kart_boost_recharge;
@@ -3452,6 +3457,9 @@ void CTFPlayer::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, i
 	{
 		BaseClass::SetupVisibility( pViewEntity, pvs, pvssize );
 	}
+
+	int area = pViewEntity ? pViewEntity->NetworkProp()->AreaNum() : NetworkProp()->AreaNum();
+	PointCameraSetupVisibility(this, area, pvs, pvssize);
 }
 
 //-----------------------------------------------------------------------------
@@ -8534,7 +8542,15 @@ int CTFPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	CTFWeaponBase *pWeapon = dynamic_cast< CTFWeaponBase * >( inputInfo.GetWeapon() );
 
 	if ( GetFlags() & FL_GODMODE )
+	{
+		if (info.GetInflictor() == this)
+		{
+			Vector vecDir;
+			GetAttackVector(info, vecDir);
+			ApplyPushFromDamage(info, vecDir);
+		}
 		return 0;
+	}
 
 	if ( IsInCommentaryMode() )
 		return 0;
@@ -8550,6 +8566,12 @@ int CTFPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	{
 		if ( ( m_iHealth - info.GetDamage() ) <= 0 )
 		{
+			if (info.GetInflictor() == this)
+			{
+				Vector vecDir;
+				GetAttackVector(info, vecDir);
+				ApplyPushFromDamage(info, vecDir);
+			}
 			m_iHealth = 1;
 			return 0;
 		}
@@ -10002,6 +10024,17 @@ void CTFPlayer::PlayDamageResistSound( float flStartDamage, float flModifiedDama
 	}
 }
 
+void CTFPlayer::GetAttackVector(const CTakeDamageInfo& info, Vector& vecDir)
+{
+    vecDir = vec3_origin;
+    if ( info.GetInflictor() )
+    {
+        vecDir = info.GetInflictor()->WorldSpaceCenter() - Vector ( 0.0f, 0.0f, 10.0f ) - WorldSpaceCenter();
+        info.GetInflictor()->AdjustDamageDirection( info, vecDir, this );
+        VectorNormalize( vecDir );
+    }
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : &info - 
@@ -10042,14 +10075,9 @@ int CTFPlayer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	// Grab the vector of the incoming attack. 
 	// (Pretend that the inflictor is a little lower than it really is, so the body will tend to fly upward a bit).
-	Vector vecDir = vec3_origin;
-	if ( info.GetInflictor() )
-	{
-		vecDir = info.GetInflictor()->WorldSpaceCenter() - Vector ( 0.0f, 0.0f, 10.0f ) - WorldSpaceCenter();
-		info.GetInflictor()->AdjustDamageDirection( info, vecDir, this );
-		VectorNormalize( vecDir );
-	}
-	g_vecAttackDir = vecDir;
+    Vector vecDir;
+    GetAttackVector(info, vecDir);
+    g_vecAttackDir = vecDir;
 
 	// Do the damage.
 	m_bitsDamageType |= info.GetDamageType();
@@ -10881,7 +10909,7 @@ void CTFPlayer::Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &
 
 		// Halloween Death Ghosts
 		// Check the weapon I used to kill with this player and if it has my desired attribute
-		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+		if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 		{
 			int iHalloweenDeathGhosts = 0;
 			CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iHalloweenDeathGhosts, halloween_death_ghosts );
@@ -13646,12 +13674,10 @@ int CTFPlayer::GiveAmmo( int iCount, int iAmmoIndex, bool bSuppressSound, EAmmoS
 //-----------------------------------------------------------------------------
 void CTFPlayer::RemoveAmmo( int iCount, int iAmmoIndex )
 {
-#ifdef STAGING_ONLY
 	if ( tf_infinite_ammo.GetBool() )
 	{
 		return;
 	}
-#endif // STAGING_ONLY
 
 #if defined( _DEBUG ) || defined( STAGING_ONLY )
 	if ( mp_developer.GetInt() > 1 && !IsBot() )
@@ -13885,6 +13911,13 @@ void CTFPlayer::ForceRespawn( void )
 	if ( HasTheFlag() )
 	{
 		DropFlag();
+	}
+
+	// Prevent bypassing class limits
+	// TODO(mastercoms): inform users that their reservation was cancelled?
+	if (!TFGameRules()->CanPlayerChooseClass(this, iDesiredClass))
+	{
+		iDesiredClass = GetPlayerClass()->GetClassIndex();
 	}
 
 	if ( GetPlayerClass()->GetClassIndex() != iDesiredClass )
@@ -15030,7 +15063,7 @@ void CTFPlayer::FeignDeath( const CTakeDamageInfo& info )
 
 //-----------------------------------------------------------------------------
 // Purpose: Create a ragdoll entity for feign death. Does not hide the player.
-// Creates an entirely seperate ragdoll that isn't used for client death cam or other real death stuff.
+// Creates an entirely separate ragdoll that isn't used for client death cam or other real death stuff.
 //-----------------------------------------------------------------------------
 void CTFPlayer::CreateFeignDeathRagdoll( const CTakeDamageInfo& info, bool bGib, bool bBurning, bool bDisguised )
 {
@@ -16999,7 +17032,7 @@ void CTFPlayer::Taunt( taunts_t iTauntIndex, int iTauntConcept )
 				if ( m_Shared.GetRageMeter() >= 100.f )
 				{
 					m_Shared.m_bRageDraining = true;
-					EmitSound( "Heavy.Battlecry03" );
+					SpeakConceptIfAllowed(MP_CONCEPT_MVM_DEPLOY_RAGE);
 					return;
 				}
 
@@ -18511,7 +18544,7 @@ void CTFPlayer::ModifyOrAppendCriteria( AI_CriteriaSet& criteriaSet )
 	trace_t tr;
 	Vector forward;
 	EyeVectors( &forward );
-	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * MAX_TRACE_LENGTH), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
+	UTIL_TraceLine( EyePosition(), EyePosition() + (forward * 8192.0f), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
 	if ( !tr.startsolid && tr.DidHitNonWorldEntity() )
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;
@@ -19201,22 +19234,42 @@ bool CTFPlayer::WantsLagCompensationOnEntity( const CBasePlayer *pPlayer, const 
 		}
 	}
 
-	if ( pPlayer->GetTeamNumber() == GetTeamNumber() && bIsMedic == false )
-		return false;
-	
+	// check if teammates should be lag compensated
+	int iUnlagTeammates = 0;
+	if ( pPlayer->GetTeamNumber() == GetTeamNumber() )
+	{
+		iUnlagTeammates = tf_unlag_teammates.GetInt();
+
+		if ( iUnlagTeammates == 0 && bIsMedic == false )
+			return false;
+	}
+
 	// If this entity hasn't been transmitted to us and acked, then don't bother lag compensating it.
 	if ( pEntityTransmitBits && !pEntityTransmitBits->Get( pPlayer->entindex() ) )
 		return false;
 
 	const Vector &vMyOrigin = GetAbsOrigin();
 	const Vector &vHisOrigin = pPlayer->GetAbsOrigin();
+	
+	float fDistance = vHisOrigin.DistTo( vMyOrigin );
+
+	// teammates are only lag compensated for melee attacks for tf_unlag_teammates 2
+	if ( iUnlagTeammates == 2 )
+	{
+		if ( fDistance > 512 )
+			return false;
+		
+		CTFWeaponBaseMelee *pWeapon = dynamic_cast <CTFWeaponBaseMelee*>( GetActiveWeapon() );
+		if ( !pWeapon )
+			return false;
+	}
 
 	// get max distance player could have moved within max lag compensation time, 
 	// multiply by 1.5 to to avoid "dead zones"  (sqrt(2) would be the exact value)
 	float maxDistance = 1.5 * pPlayer->MaxSpeed() * sv_maxunlag.GetFloat();
 
 	// If the player is within this distance, lag compensate them in case they're running past us.
-	if ( vHisOrigin.DistTo( vMyOrigin ) < maxDistance )
+	if ( fDistance < maxDistance )
 		return true;
 
 	// If their origin is not within a 45 degree cone in front of us, no need to lag compensate.
@@ -19375,6 +19428,17 @@ void IgnitePlayer()
 	pPlayer->m_Shared.Burn( pPlayer, pPlayer->GetActiveTFWeapon() );
 }
 static ConCommand cc_IgnitePlayer( "tf_ignite_player", IgnitePlayer, "Sets you on fire", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+
+//-----------------------------------------------------------------------------
+// Purpose: Debug concommand to stun the player
+//-----------------------------------------------------------------------------
+void StunPlayer()
+{
+	CTFPlayer* pPlayer = ToTFPlayer(ToTFPlayer(UTIL_PlayerByIndex(1)));
+	float flStunAmount = 0.60f;
+	pPlayer->m_Shared.StunPlayer(10.0f, flStunAmount, TF_STUN_MOVEMENT, pPlayer);
+}
+static ConCommand cc_StunPlayer("tf_stun_player", StunPlayer, "Stuns you.", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -21624,7 +21688,7 @@ void CTFPlayer::InputSpeakResponseConcept( inputdata_t &inputdata )
 		while (token)
 		{
 			// find the start characters for the key and value
-			// (seperated by a : which we replace with null)
+			// (separated by a : which we replace with null)
 			char * RESTRICT key = token;
 			char * RESTRICT colon = const_cast<char *>(V_strnchr(key, ':', 510)); 
 			char * RESTRICT value;

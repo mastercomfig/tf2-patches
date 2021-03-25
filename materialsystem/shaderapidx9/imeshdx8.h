@@ -93,6 +93,8 @@ public:
 	virtual IIndexBuffer *GetDynamicIndexBuffer( IMaterial *pMaterial, bool buffered = true ) = 0;
 
 	virtual void MarkUnusedVertexFields( unsigned int nFlags, int nTexCoordCount, bool *pUnusedTexCoords ) = 0;
+
+	virtual class IThreadPool* GetRenderDeviceThreadPool() = 0;
 };
 
 #endif // IMESHDX8_H

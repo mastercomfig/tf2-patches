@@ -233,9 +233,10 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 		}
 	}
 
-	float flDist = (pmDirectionTrace.endpos - vOrigin).Length();
-	if ( flDist < flDistCutoff )
+	float flDist = (pmDirectionTrace.endpos - vOrigin).LengthSqr();
+	if ( flDist < flDistCutoff * flDistCutoff)
 	{
+		flDist = FastSqrt(flDist);
 		// We have an intersection with our cutoff range
 		// Determine how far to pull back, then trace to see if we are clear
 		float flPullBackDist = bPlayerOnLadder ? r_flashlightladderdist.GetFloat() : flDistCutoff - flDist;	// Fixed pull-back distance if on ladder
@@ -248,8 +249,8 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 			if( pmBackTrace.DidHit() )
 			{
 				// We have an intersection behind us as well, so limit our m_flDistMod
-				float flMaxDist = (pmBackTrace.endpos - vOrigin).Length() - flEpsilon;
-				if( m_flDistMod > flMaxDist )
+				float flMaxDist = (pmBackTrace.endpos - vOrigin).LengthSqr() - flEpsilon;
+				if( m_flDistMod > flMaxDist * flMaxDist )
 					m_flDistMod = flMaxDist;
 			}
 		}

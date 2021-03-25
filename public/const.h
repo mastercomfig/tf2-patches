@@ -62,7 +62,7 @@
 #define SP_MODEL_INDEX_BITS			13
 
 // How many bits to use to encode an edict.
-#define	MAX_EDICT_BITS				11			// # of bits needed to represent max edicts
+#define	MAX_EDICT_BITS				14			// # of bits needed to represent max edicts
 // Max # of edicts in a level
 #define	MAX_EDICTS					(1<<MAX_EDICT_BITS)
 
@@ -425,6 +425,9 @@ enum Collision_Group_t
 #include "basetypes.h"
 
 #define SOUND_NORMAL_CLIP_DIST	1000.0f
+
+// max number of cached build/draw views to support parallel building of World/Renderlists on SPU
+#define MAX_CONCURRENT_BUILDVIEWS 10
 
 // How many networked area portals do we allow?
 #define MAX_AREA_STATE_BYTES		32

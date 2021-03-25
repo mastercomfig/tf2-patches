@@ -429,7 +429,7 @@ quit() {
 		rm -f $PID_FILE
 	fi
 
-	# reset SIGINT and then kill ourselves properly
+	# reset SIGINT and then kill the process properly
 	trap - 2
 	kill -2 $$
 }
@@ -442,4 +442,3 @@ run
 
 # Quit normally
 quit 0
-

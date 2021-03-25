@@ -1089,8 +1089,8 @@ static float LightIntensityAndDirectionInBox( dworldlight_t* pLight,
 			{
 				float sphereRadius = (maxs-mid).Length();
 				// first do a sphere/sphere check
-				float dist = (pLight->origin - mid).Length();
-				if ( dist > (sphereRadius + pLight->radius) )
+				float dist = (pLight->origin - mid).LengthSqr();
+				if ( dist > (sphereRadius + pLight->radius) * (sphereRadius + pLight->radius) )
 					return 0;
 				// PERFORMANCE: precalc this and store in the light?
 				float angle = acos(pLight->stopdot2);
@@ -1111,8 +1111,8 @@ static float LightIntensityAndDirectionInBox( dworldlight_t* pLight,
 			{
 				float sphereRadius = (maxs-mid).Length();
 				// first do a sphere/sphere check
-				float dist = (pLight->origin - mid).Length();
-				if ( dist > (sphereRadius + pLight->radius) )
+				float dist = (pLight->origin - mid).LengthSqr();
+				if ( dist > (sphereRadius + pLight->radius) * (sphereRadius + pLight->radius))
 					return 0;
 				// PERFORMANCE: precalc this and store in the light?
 				if ( !IsSphereIntersectingCone( mid, sphereRadius, pLight->origin, pLight->normal, 1.0f, 0.0f ) )
@@ -1817,7 +1817,7 @@ static void AddDLightsForStaticProps( LightingStateInfo_t& info, LightingState_t
 //-----------------------------------------------------------------------------
 
 
-ConVar r_lightcache_zbuffercache( "r_lightcache_zbuffercache", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
+ConVar r_lightcache_zbuffercache( "r_lightcache_zbuffercache", IsPC() ? "1" : "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 static void AddStaticLighting( 
 	CBaseLightCache* pCache, 
@@ -1847,7 +1847,7 @@ static void AddStaticLighting(
 	{
 		dworldlight_t *wl = &host_state.worldbrush->worldlights[i];
 		lightzbuffer_t *pZBuf;
-		if ( r_lightcache_zbuffercache.GetInt() )
+		if ( r_lightcache_zbuffercache.GetInt() && host_state.worldbrush->shadowzbuffers != NULL )
 			pZBuf = &host_state.worldbrush->shadowzbuffers[i];
 		else
 			pZBuf = NULL;

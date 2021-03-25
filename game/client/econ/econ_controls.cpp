@@ -576,7 +576,7 @@ void CExLabel::SetColorStr( const char *pColor )
 //-----------------------------------------------------------------------------
 void CExLabel::SetColorStr( Color cColor )
 {
-	Q_snprintf( m_szColor, ARRAYSIZE(m_szColor), "%d %d %d %d", cColor.r(), cColor.g(), cColor.b(), cColor.a() );
+	Q_snprintf( m_szColor, ARRAYSIZE(m_szColor), "%u %u %u %u", cColor.r(), cColor.g(), cColor.b(), cColor.a() );
 	SetFgColor( cColor );
 }
 

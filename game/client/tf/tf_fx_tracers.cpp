@@ -32,7 +32,7 @@ CLIENTEFFECT_REGISTER_END()
 void FX_TFTracerSound( const Vector &start, const Vector &end, int iTracerType )
 {
 	// don't play on very short hits
-	if ( ( start - end ).Length() < 200 )
+	if ( ( start - end ).LengthSqr() < 200 * 200 )
 		return;
 	
 	const char *pszSoundName = "Bullets.DefaultNearmiss";

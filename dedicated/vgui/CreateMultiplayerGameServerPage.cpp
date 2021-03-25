@@ -113,7 +113,7 @@ CCreateMultiplayerGameServerPage::CCreateMultiplayerGameServerPage(vgui::Panel *
 {
 	memset(&m_iServer,0x0,sizeof(serveritem_t));
 
-	m_MainPanel = parent; // as we are a popup frame we need to store this seperately
+	m_MainPanel = parent; // as we are a popup frame we need to store this separately
 	m_pSavedData = NULL;
 	m_pGameInfo = NULL;
 
@@ -699,7 +699,7 @@ int CCreateMultiplayerGameServerPage::LoadMaps( const char *pszMod )
 		}
 
 		//!! hack: strip out single player HL maps
-		// this needs to be specified in a seperate file
+		// this needs to be specified in a separate file
 		if ( ( mapname[0] == 'c' || mapname[0] == 't' ) && mapname[2] == 'a' && mapname[1] >= '0' && mapname[1] <= '5' )
 		{
 			goto nextFile;

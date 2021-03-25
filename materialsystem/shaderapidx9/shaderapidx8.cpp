@@ -88,6 +88,7 @@ mat_fullbright 1 doesn't work properly on alpha materials in testroom_standards
 #include "xbox/xbox_console.h"
 #include "xbox/xbox_win32stubs.h"
 #include "xbox/xbox_launch.h"
+#include "tier0/threadtools.h"
 #endif
 #include "tier0/tslist.h"
 #ifndef _X360
@@ -1847,34 +1848,6 @@ void PIXifyName( char *pDst, int destSize, const char *pSrc )
 	V_strncpy( pDst, pSrcWalk, min( 32, destSize ) );
 }
 
-static int AdjustUpdateRange( float const* pVec, void const *pOut, int numVecs, int* pSkip )
-{
-	int skip = 0;
-	uint32* pSrc = (uint32*)pVec;
-	uint32* pDst = (uint32*)pOut;
-	while( numVecs && !( ( pSrc[0] ^ pDst[0] ) | ( pSrc[1] ^ pDst[1] ) | ( pSrc[2] ^ pDst[2] ) | ( pSrc[3] ^ pDst[3] ) ) )
-	{
-		pSrc += 4;
-		pDst += 4;
-		numVecs--;
-		skip++;
-	}
-	*pSkip = skip;
-	if ( !numVecs )
-		return 0;
-
-	uint32* pSrcLast = pSrc + numVecs * 4 - 4;
-	uint32* pDstLast = pDst + numVecs * 4 - 4;
-	while( numVecs > 1 && !( ( pSrcLast[0] ^ pDstLast[0] ) | ( pSrcLast[1] ^ pDstLast[1] ) | ( pSrcLast[2] ^ pDstLast[2] ) | ( pSrcLast[3] ^ pDstLast[3] ) ) )
-	{
-		pSrcLast -= 4;
-		pDstLast -= 4;
-		numVecs--;
-	}
-
-	return numVecs;
-}
-
 //-----------------------------------------------------------------------------
 // Constructor, destructor
 //-----------------------------------------------------------------------------
@@ -3520,12 +3493,15 @@ void CShaderAPIDx8::ResetRenderState( bool bFullReset )
 		bAntialiasing = false;
 	}
 	SetRenderState( D3DRS_MULTISAMPLEANTIALIAS, bAntialiasing );
-	
+
+	// UNDONE(mastercoms): WHY? all this does is cause yet another alt-tab because the aniso level flips back and forth
+#if 0
 	// Anisotropic filtering is disabled by default
 	if ( bFullReset )
 	{
 		SetAnisotropicLevel( 1 );
 	}
+#endif
 	
 	int i;
 	for ( i = 0; i < g_pHardwareConfig->ActualCaps().m_NumTextureStages; ++i )
@@ -3907,11 +3883,15 @@ void CShaderAPIDx8::DrawMesh( CMeshBase *pMesh )
 #endif
 
 	m_pRenderMesh = pMesh;
-	VertexFormat_t vertexFormat = m_pRenderMesh->GetVertexFormat();
-	SetVertexDecl( vertexFormat, m_pRenderMesh->HasColorMesh(), m_pRenderMesh->HasFlexMesh(), m_pMaterial->IsUsingVertexID() );
-	CommitStateChanges();
-	Assert( m_pRenderMesh && m_pMaterial );
-	m_pMaterial->DrawMesh( CompressionType( vertexFormat ) );
+	
+	if (m_pRenderMesh)
+	{
+		VertexFormat_t vertexFormat = m_pRenderMesh->GetVertexFormat();
+		SetVertexDecl(vertexFormat, m_pRenderMesh->HasColorMesh(), m_pRenderMesh->HasFlexMesh(), m_pMaterial->IsUsingVertexID());
+		CommitStateChanges();
+		Assert(m_pMaterial);
+		m_pMaterial->DrawMesh(CompressionType(vertexFormat));
+	}
 	m_pRenderMesh = NULL;
 
 #if defined( PIX_INSTRUMENTATION ) || defined( NVPERFHUD )
@@ -4028,29 +4008,38 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 	{
 		tmZone( TELEMETRY_LEVEL1, TMZF_NONE, "%s", __FUNCTION__ );
 
-		double flStartTime = Plat_FloatTime();
-		BOOL dummyData = 0;
-		HRESULT hr = S_OK;
+		float flStartTime = Plat_FloatTime();
+		BOOL bFinished = false;
+		HRESULT hr;
 		// NOTE: This fix helps out motherboards that are a little freaky.
 		// On such boards, sometimes the driver has to reset itself (an event which takes several seconds)
 		// and when that happens, the frame sync query object gets lost
-		for (;;)
+		do
 		{
-			hr = m_pFrameSyncQueryObject[queryIndex]->GetData( &dummyData, sizeof( dummyData ), D3DGETDATA_FLUSH );
-			if ( hr != S_FALSE )
+			hr = m_pFrameSyncQueryObject[queryIndex]->GetData(&bFinished, sizeof(bFinished), D3DGETDATA_FLUSH);
+			// If we lost the device, just bail immediately.
+			if (hr != S_FALSE)
+			{
 				break;
-			double flCurrTime = Plat_FloatTime();
-			// don't wait more than 200ms (5fps) for these
-			if ( flCurrTime - flStartTime > 0.200f )
+			}
+			float dt = Plat_FloatTime() - flStartTime;
+			// don't wait more than 200ms for these
+			if (dt > 0.200f)
 				break;
 			// Avoid burning a full core while waiting for the query. Spinning can actually harm performance
 			// because there might be driver threads that are trying to do work that end up starved, and the
 			// power drawn by the CPU may take away from the power available to the integrated graphics chip.
-			// A sleep of one millisecond should never be long enough to affect performance, especially since
-			// this should only trigger when the CPU is already ahead of the GPU.
-			// On L4D2/TF2 in GL mode this spinning was causing slowdowns.
-			ThreadSleep( 1 );
+#ifdef DX_TO_GL_ABSTRACTION
+            // A sleep of one millisecond should never be long enough to affect performance, especially since
+            // this should only trigger when the CPU is already ahead of the GPU.
+            // On L4D2/TF2 in GL mode this spinning was causing slowdowns.
+			ThreadSleepEx(1);
+#else
+			ThreadPause();
+			ThreadSleep();
+#endif
 		}
+	    while (hr == S_FALSE);
 		m_bQueryIssued[queryIndex] = false;
 		Assert(hr == S_OK || hr == D3DERR_DEVICELOST);
 
@@ -4066,6 +4055,8 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 		m_bQueryIssued[queryIndex] = true;
 	}
 }
+
+ConVar r_reduce_frame_latency("r_reduce_frame_latency", "0", 0, "Reduces frame latency at the cost of rendering performance.");
 
 void CShaderAPIDx8::ForceHardwareSync( void )
 {
@@ -4105,16 +4096,22 @@ void CShaderAPIDx8::ForceHardwareSync( void )
 		
 		// Disable VCR mode here or else it'll screw up (and we don't really care if this part plays back in exactly the same amount of time).
 		VCRSetEnabled( false );
-
-		m_currentSyncQuery ++;
-		if ( m_currentSyncQuery >= ARRAYSIZE(m_pFrameSyncQueryObject) )
+		m_currentSyncQuery++;
+		if (m_currentSyncQuery >= ARRAYSIZE(m_pFrameSyncQueryObject))
 		{
 			m_currentSyncQuery = 0;
 		}
-		double fStart = Plat_FloatTime();
-		int waitIndex = ((m_currentSyncQuery + NUM_FRAME_SYNC_QUERIES) - (NUM_FRAME_SYNC_FRAMES_LATENCY+1)) % NUM_FRAME_SYNC_QUERIES;
-		UpdateFrameSyncQuery( waitIndex, false );
-		UpdateFrameSyncQuery( m_currentSyncQuery, true );
+		if (r_reduce_frame_latency.GetBool())
+		{
+			UpdateFrameSyncQuery(m_currentSyncQuery, true);
+			UpdateFrameSyncQuery(m_currentSyncQuery, false);
+		}
+		else
+		{
+			int waitIndex = ((m_currentSyncQuery + NUM_FRAME_SYNC_QUERIES) - (NUM_FRAME_SYNC_FRAMES_LATENCY + 1)) % NUM_FRAME_SYNC_QUERIES;
+			UpdateFrameSyncQuery(waitIndex, false);
+			UpdateFrameSyncQuery(m_currentSyncQuery, true);
+		}
 		VCRSetEnabled( true );
 	} 
 #else
@@ -6303,39 +6300,38 @@ FORCEINLINE void CShaderAPIDx8::SetVertexShaderConstantInternal( int var, float 
 {
 	Assert( pVec );
 
-	// DX8 asm shaders use a constant mapping which has transforms and vertex shader
-	// specific constants shifted down by 10 constants (two 5-constant light structures)
-	if ( IsPC() )
-	{
-		if ( (g_pHardwareConfig->Caps().m_nDXSupportLevel < 90) && (var >= VERTEX_SHADER_MODULATION_COLOR) )
-		{
-			var -= 10;
-		}
-		Assert( var + numVecs <= g_pHardwareConfig->NumVertexShaderConstants() );
+	Assert(numVecs > 0);
+	Assert(pVec);
 
-		if ( !bForce )
-		{
-			int skip = 0;
-			numVecs = AdjustUpdateRange( pVec, &m_DesiredState.m_pVectorVertexShaderConstant[var], numVecs, &skip );
-			if ( !numVecs )
-				return;
-			var += skip;
-			pVec += skip * 4;
-		}
-		Dx9Device()->SetVertexShaderConstantF( var, pVec, numVecs );
-		memcpy( &m_DynamicState.m_pVectorVertexShaderConstant[var], pVec, numVecs * 4 * sizeof(float) );
+	if (IsPC() || IsPS3())
+	{
+		Assert(var + numVecs <= g_pHardwareConfig->NumVertexShaderConstants());
+
+		if (!bForce && memcmp(pVec, &m_DynamicState.m_pVectorVertexShaderConstant[var], numVecs * 4 * sizeof(float)) == 0)
+			return;
+
+		Dx9Device()->SetVertexShaderConstantF(var, pVec, numVecs);
+		memcpy(&m_DynamicState.m_pVectorVertexShaderConstant[var], pVec, numVecs * 4 * sizeof(float));
 	}
 	else
 	{
-		Assert( var + numVecs <= g_pHardwareConfig->NumVertexShaderConstants() );
+		Assert(var + numVecs <= g_pHardwareConfig->NumVertexShaderConstants());
 	}
 
-	memcpy( &m_DesiredState.m_pVectorVertexShaderConstant[var], pVec, numVecs * 4 * sizeof(float) );	
-
-	if ( IsX360() )
+	if (IsX360())
 	{
-		m_MaxVectorVertexShaderConstant = max( m_MaxVectorVertexShaderConstant, var + numVecs );
-	}	
+		if (!m_bGPUOwned)
+		{
+			Dx9Device()->SetVertexShaderConstantF(var, pVec, numVecs);
+			memcpy(&m_DynamicState.m_pVectorVertexShaderConstant[var], pVec, numVecs * 4 * sizeof(float));
+		}
+		else if (var + numVecs > m_MaxVectorVertexShaderConstant)
+		{
+			m_MaxVectorVertexShaderConstant = var + numVecs;
+		}
+	}
+
+	memcpy(&m_DesiredState.m_pVectorVertexShaderConstant[var], pVec, numVecs * 4 * sizeof(float));
 }
 
 
@@ -6415,31 +6411,52 @@ void CShaderAPIDx8::SetIntegerVertexShaderConstant( int var, int const* pVec, in
 
 FORCEINLINE void CShaderAPIDx8::SetPixelShaderConstantInternal( int nStartConst, float const* pValues, int nNumConsts, bool bForce )
 {
-	Assert( nStartConst + nNumConsts <= g_pHardwareConfig->NumPixelShaderConstants() );
+	Assert(nStartConst + nNumConsts <= g_pHardwareConfig->NumPixelShaderConstants());
 
-	if ( IsPC() )
+	if (IsPC() || IsPS3())
 	{
-		if ( ! bForce )
+		if (!bForce)
 		{
-			int skip = 0;
-			nNumConsts = AdjustUpdateRange( pValues, &m_DesiredState.m_pVectorPixelShaderConstant[nStartConst], nNumConsts, &skip );
-			if ( !nNumConsts )
+			DWORD* pSrc = (DWORD*)pValues;
+			DWORD* pDst = (DWORD*)&m_DesiredState.m_pVectorPixelShaderConstant[nStartConst];
+			while (nNumConsts && (pSrc[0] == pDst[0]) && (pSrc[1] == pDst[1]) && (pSrc[2] == pDst[2]) && (pSrc[3] == pDst[3]))
+			{
+				pSrc += 4;
+				pDst += 4;
+				nNumConsts--;
+				nStartConst++;
+			}
+			if (!nNumConsts)
 				return;
-			nStartConst += skip;
-			pValues += skip * 4;
+			pValues = reinterpret_cast<float const*>(pSrc);
 		}
-					
-		Dx9Device()->SetPixelShaderConstantF( nStartConst, pValues, nNumConsts );
-		memcpy( &m_DynamicState.m_pVectorPixelShaderConstant[nStartConst], pValues, nNumConsts * 4 * sizeof(float) );
+
+		Dx9Device()->SetPixelShaderConstantF(nStartConst, pValues, nNumConsts);
+		memcpy(&m_DynamicState.m_pVectorPixelShaderConstant[nStartConst], pValues, nNumConsts * 4 * sizeof(float));
 	}
 
-	memcpy( &m_DesiredState.m_pVectorPixelShaderConstant[nStartConst], pValues, nNumConsts * 4 * sizeof(float) );
-					
-	if ( IsX360() )
+	if (IsX360())
 	{
-		m_MaxVectorPixelShaderConstant = max( m_MaxVectorPixelShaderConstant, nStartConst + nNumConsts );
-		Assert( m_MaxVectorPixelShaderConstant <= 32 );
+		if (!m_bGPUOwned)
+		{
+			Dx9Device()->SetPixelShaderConstantF(nStartConst, pValues, nNumConsts);
+#if 0
+				memcpy(&m_DynamicState.m_pVectorPixelShaderConstant[nStartConst], pValues, nNumConsts * 4 * sizeof(float));
+#endif
+		}
+		else if (nStartConst + nNumConsts > m_MaxVectorPixelShaderConstant)
+		{
+			m_MaxVectorPixelShaderConstant = nStartConst + nNumConsts;
+			Assert(m_MaxVectorPixelShaderConstant <= 32);
+			if (m_MaxVectorPixelShaderConstant > 32)
+			{
+				// NOTE!  There really are 224 pixel shader constants on the 360, but we do an optimization that only blasts the first 32 always.
+				Error("Don't use more then the first 32 pixel shader constants on the 360!");
+			}
+		}
 	}
+
+	memcpy(&m_DesiredState.m_pVectorPixelShaderConstant[nStartConst], pValues, nNumConsts * 4 * sizeof(float));
 }
 
 void CShaderAPIDx8::SetPixelShaderConstant( int var, float const* pVec, int numVecs, bool bForce )
@@ -10005,7 +10022,7 @@ void CShaderAPIDx8::CachePolyOffsetProjectionMatrix()
 //-----------------------------------------------------------------------------
 bool CShaderAPIDx8::MatrixIsChanging( TransformType_t type )
 {
-	if ( IsDeactivated() )	
+	if (IsDeactivated())
 	{
 		return false;
 	}
@@ -10017,7 +10034,9 @@ bool CShaderAPIDx8::MatrixIsChanging( TransformType_t type )
 	// Only flush state if we're changing something other than a texture transform
 	int textureMatrix = m_CurrStack - MATERIAL_TEXTURE0;
 	if (( textureMatrix < 0 ) || (textureMatrix >= NUM_TEXTURE_TRANSFORMS))
-		FlushBufferedPrimitivesInternal();
+	{
+		FlushBufferedPrimitives();
+	}
 
 	return true;
 }
@@ -13558,7 +13577,7 @@ bool CShaderAPIDx8::GetTrueTypeGlyphs( HXUIFONT hFont, int numChars, wchar_t *pW
 		return false;
 
 	// Ensure this doesn't talk to D3D at the same time as the loading bar
-	AUTO_LOCK_FM( m_nonInteractiveModeMutex );
+	AUTO_LOCK( m_nonInteractiveModeMutex );
 
 
 	LOCK_SHADERAPI();

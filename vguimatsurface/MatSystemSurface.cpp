@@ -440,42 +440,17 @@ void CMatSystemSurface::Shutdown( void )
 	m_PaintStateStack.Purge();
 
 #if defined( WIN32 ) && !defined( _X360 )
- 	// release any custom font files
-	// use newer function if possible
-	HMODULE gdiModule = ::LoadLibrary( "gdi32.dll" );
-	typedef int (WINAPI *RemoveFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-	RemoveFontResourceExProc pRemoveFontResourceEx = NULL;
-	if ( gdiModule )
-	{
-		pRemoveFontResourceEx = (RemoveFontResourceExProc)::GetProcAddress(gdiModule, "RemoveFontResourceExA");
-	}
-
-	for (int i = 0; i < m_CustomFontFileNames.Count(); i++)
+	for (auto &fontName : m_CustomFontFileNames)
  	{
-		if (pRemoveFontResourceEx)
+		// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
+		// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
+		// when we load the font next time we get the real font instead of Ariel.
+		int nRetries = 0;
+		while (RemoveFontResourceExA(fontName.String(), FR_PRIVATE, nullptr) && (nRetries < 10))
 		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( (*pRemoveFontResourceEx)(m_CustomFontFileNames[i].String(), 0x10, NULL) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
+			nRetries++;
 		}
-		else
-		{
-			// dvs: Keep removing the font until we get an error back. After consulting with Microsoft, it appears
-			// that RemoveFontResourceEx must sometimes be called multiple times to work. Doing this insures that
-			// when we load the font next time we get the real font instead of Ariel.
-			int nRetries = 0;
-			while ( ::RemoveFontResource(m_CustomFontFileNames[i].String()) && ( nRetries < 10 ) )
-			{
-				nRetries++;
-				Msg( "Removed font resource %s on attempt %d.\n", m_CustomFontFileNames[i].String(), nRetries );
-			}
-		}
+		Msg("Removed font resource %s on attempt %d.\n", fontName.String(), nRetries);
  	}
 #endif
 
@@ -484,13 +459,6 @@ void CMatSystemSurface::Shutdown( void )
 	m_BitmapFontFileMapping.RemoveAll();
 
 	Cursor_ClearUserCursors();
-
-#if defined( WIN32 ) && !defined( _X360 )
-	if ( gdiModule )
-	{
-		::FreeLibrary(gdiModule);
-	}
-#endif
 
 	BaseClass::Shutdown();
 }
@@ -1083,89 +1051,108 @@ void CMatSystemSurface::DrawQuad( const vgui::Vertex_t &ul, const vgui::Vertex_t
 //-----------------------------------------------------------------------------
 // Purpose: Draws an array of quads
 //-----------------------------------------------------------------------------
-void CMatSystemSurface::DrawQuadArray( int quadCount, vgui::Vertex_t *pVerts, unsigned char *pColor, bool bShouldClip )
+void CMatSystemSurface::DrawQuadArray(int quadCount, Vertex_t* pVerts, unsigned char* pColor, bool bShouldClip)
 {
-	MAT_FUNC;
+	Assert(!m_bIn3DPaintMode);
 
-	Assert( !m_bIn3DPaintMode );
-
-	if ( !m_pMesh )
+	if (!m_pMesh)
 		return;
-
-	meshBuilder.Begin( m_pMesh, MATERIAL_QUADS, quadCount );
 
 	vgui::Vertex_t ulc;
 	vgui::Vertex_t lrc;
-	vgui::Vertex_t *pulc;
-	vgui::Vertex_t *plrc;
+	vgui::Vertex_t* pulc;
+	vgui::Vertex_t* plrc;
 
-	if ( bShouldClip )
+	int nMaxVertices, nMaxIndices;
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+	pRenderContext->GetMaxToRender(m_pMesh, false, &nMaxVertices, &nMaxIndices);
+	if (!nMaxVertices || !nMaxIndices)
+		return; // probably in alt-tab
+
+	int nMaxQuads = nMaxVertices / 4;
+	nMaxQuads = MIN(nMaxQuads, nMaxIndices / 6);
+
+	int nFirstQuad = 0;
+	int nQuadsRemaining = quadCount;
+
+	while (nQuadsRemaining > 0)
 	{
-		for ( int i = 0; i < quadCount; ++i )
-		{
-			PREFETCH360( &pVerts[ 2 * ( i + 1 ) ], 0 );
+		quadCount = MIN(nQuadsRemaining, nMaxQuads);
 
-			if ( !ClipRect( pVerts[2*i], pVerts[2*i + 1], &ulc, &lrc ) )
+		meshBuilder.Begin(m_pMesh, MATERIAL_QUADS, quadCount);
+		if (bShouldClip)
+		{
+			for (int q = 0; q < quadCount; ++q)
 			{
-				continue;	
+				int i = q + nFirstQuad;
+				PREFETCH360(&pVerts[2 * (i + 1)], 0);
+
+				if (!ClipRect(pVerts[2 * i], pVerts[2 * i + 1], &ulc, &lrc))
+				{
+					continue;
+				}
+				pulc = &ulc;
+				plrc = &lrc;
+
+				meshBuilder.Position3f(pulc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(plrc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(plrc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+
+				meshBuilder.Position3f(pulc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 			}
-			pulc = &ulc;
-			plrc = &lrc;
-
-			meshBuilder.Position3f( pulc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( plrc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( plrc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
-
-			meshBuilder.Position3f( pulc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 		}
-	}
-	else
-	{
-		for ( int i = 0; i < quadCount; ++i )
+		else
 		{
-			PREFETCH360( &pVerts[ 2 * ( i + 1 ) ], 0 );
+			for (int q = 0; q < quadCount; ++q)
+			{
+				int i = q + nFirstQuad;
+				PREFETCH360(&pVerts[2 * (i + 1)], 0);
 
-			pulc = &pVerts[2*i];
-			plrc = &pVerts[2*i + 1];
+				pulc = &pVerts[2 * i];
+				plrc = &pVerts[2 * i + 1];
 
-			meshBuilder.Position3f( pulc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(pulc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( plrc->m_Position.x, pulc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, pulc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(plrc->m_Position.x, pulc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, pulc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( plrc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, plrc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(plrc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, plrc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
 
-			meshBuilder.Position3f( pulc->m_Position.x, plrc->m_Position.y, m_flZPos );
-			meshBuilder.Color4ubv( pColor );
-			meshBuilder.TexCoord2f( 0, pulc->m_TexCoord.x, plrc->m_TexCoord.y );
-			meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+				meshBuilder.Position3f(pulc->m_Position.x, plrc->m_Position.y, m_flZPos);
+				meshBuilder.Color4ubv(pColor);
+				meshBuilder.TexCoord2f(0, pulc->m_TexCoord.x, plrc->m_TexCoord.y);
+				meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 1>();
+			}
 		}
-	}
 
-	meshBuilder.End();
-	m_pMesh->Draw();
+		meshBuilder.End();
+		m_pMesh->Draw();
+
+		nFirstQuad += quadCount;
+		nQuadsRemaining -= quadCount;
+	}
 }
 
 
@@ -1878,25 +1865,8 @@ bool CMatSystemSurface::AddCustomFontFile( const char *fontName, const char *fon
 	// try and use the optimal custom font loader, will makes sure fonts are unloaded properly
 	// this function is in a newer version of the gdi library (win2k+), so need to try get it directly
 #if defined( WIN32 ) && !defined( _X360 )
-	bool successfullyAdded = false;
-	HMODULE gdiModule = ::LoadLibrary("gdi32.dll");
-	if (gdiModule)
-	{
-		typedef int (WINAPI *AddFontResourceExProc)(LPCTSTR, DWORD, PVOID);
-		AddFontResourceExProc pAddFontResourceEx = (AddFontResourceExProc)::GetProcAddress(gdiModule, "AddFontResourceExA");
-		if (pAddFontResourceEx)
-		{
-			int result = (*pAddFontResourceEx)(fullPath, 0x10, NULL);
-			if (result > 0)
-			{
-				successfullyAdded = true;
-			}
-		}
-		::FreeLibrary(gdiModule);
-	}
-
 	// add to windows
-	bool success = successfullyAdded || (::AddFontResource(fullPath) > 0);
+	bool success = AddFontResourceExA(fullPath, FR_PRIVATE, nullptr) > 0;
 	if ( !success )
 	{
 		Msg( "Failed to load custom font file '%s'\n", fullPath );
@@ -2107,7 +2077,7 @@ void CMatSystemSurface::ClearTemporaryFontCache( void )
 //-----------------------------------------------------------------------------
 void CMatSystemSurface::PrecacheFontCharacters( HFont font, const wchar_t *pCharacterString )
 {
-	wchar_t *pCommonChars = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.!:-/%";
+	wchar_t pCommonChars[] = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.!:-/%";
 	MAT_FUNC;
 
 	if ( !pCharacterString || !pCharacterString[0] )
@@ -4089,6 +4059,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 	int c = surface()->GetPopupCount();
 
 	VPANEL modalSubTree = input()->GetModalSubTree();
+
 	if ( modalSubTree )
 	{
 		for (i = 0 ; i < c ; i++ )
@@ -4099,7 +4070,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 				continue;
 
 			bool isVisible=pop->IsVisible();
-			VPanel *p= pop->GetParent();
+			VPanel* p = pop->GetParent();
 
 			while (p && isVisible)
 			{
@@ -4129,7 +4100,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 			VPanel *pop = (VPanel *)surface()->GetPopup(i) ;
 			
 			bool isVisible=pop->IsVisible();
-			VPanel *p= pop->GetParent();
+			VPanel* p = pop->GetParent();
 
 			while (p && isVisible)
 			{

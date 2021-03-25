@@ -561,10 +561,12 @@ void CEmbeddedItemModelPanel::LoadAttachedModel( attachedmodel_t *pModel )
 	SetIdentityMatrix( m_AttachedModels[iIndex].m_MDLToWorld );
 }
 
+extern ConVar tf_disable_weapon_skins;
+
 bool CEmbeddedItemModelPanel::IsLoadingWeaponSkin( void ) const
 {
 	static ConVarRef mat_dxlevel( "mat_dxlevel" );
-	if ( mat_dxlevel.GetInt() < 90 )
+	if ( tf_disable_weapon_skins.GetBool() || mat_dxlevel.GetInt() < 90 )
 		return false;
 
 	if ( m_bForceUseModel )
@@ -3681,7 +3683,7 @@ void CItemModelPanel::OnCommand( const char *command )
 			}
 			uint32 nAssetContext = 2; // k_EEconContextBackpack
 			char szURL[512];
-			V_snprintf( szURL, sizeof(szURL), "http://%ssteamcommunity.com/my/inventory/?sellOnLoad=1#%d_%d_%llu", pszPrefix, engine->GetAppID(), nAssetContext, GetItem()->GetItemID() );
+			V_snprintf( szURL, sizeof(szURL), "https://%ssteamcommunity.com/my/inventory/?sellOnLoad=1#%d_%d_%llu", pszPrefix, engine->GetAppID(), nAssetContext, GetItem()->GetItemID() );
 			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( szURL );
 		}
 	}

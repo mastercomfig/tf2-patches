@@ -472,6 +472,7 @@ void CTFPlayerModelPanel::PlayVCD( const char *pszVCD, const char *pszWeaponEnti
 	m_pszWeaponEntityRequired = pszWeaponEntityRequired;
 	m_bLoopVCD = bLoopVCD;
 	m_bVCDFileNameOnly = bFileNameOnly;
+	m_bDisableSpeakEvent = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1322,6 +1323,8 @@ void CTFPlayerModelPanel::PostPaint3D( IMatRenderContext *pRenderContext )
 //-----------------------------------------------------------------------------
 void CTFPlayerModelPanel::RenderingRootModel( IMatRenderContext *pRenderContext, CStudioHdr *pStudioHdr, MDLHandle_t mdlHandle, matrix3x4_t *pWorldMatrix )
 {
+	UpdateSpotlight(pRenderContext);
+
 	if ( !m_bUseParticle )
 		return;
 
@@ -1339,7 +1342,6 @@ void CTFPlayerModelPanel::RenderingRootModel( IMatRenderContext *pRenderContext,
 CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positions_t iPosition, MDLHandle_t mdlHandle )
 {
 	// Check if we have a particle hat, if not ignore
-	CEconItemView *pEconItem = NULL;
 
 	// Find this item
 	FOR_EACH_VEC( m_ItemsToCarry, i )
@@ -1349,6 +1351,9 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 		if ( ( IsMiscSlot( iLoadoutSlot ) && IsMiscSlot( iPosition ) ) ||
 			 ( IsValidPickupWeaponSlot( iLoadoutSlot ) && iLoadoutSlot == iPosition ) )
 		{
+			return pItem;
+			// UNDONE(mastercoms): this check is making model panel absurdly expensively, and for what?
+#if 0
 			const char * pDisplayModel = pItem->GetPlayerDisplayModel( m_iCurrentClassIndex, m_iTeam );
 			if ( pDisplayModel )
 			{
@@ -1362,10 +1367,11 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 				}
 				vgui::MDLCache()->Release(hMDLFindResult);
 			}
+#endif
 		}
 	}
 
-	return pEconItem;
+	return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -1426,7 +1432,7 @@ void CTFPlayerModelPanel::RenderingMergedModel( IMatRenderContext *pRenderContex
 
 IMaterial* CTFPlayerModelPanel::GetOverrideMaterial( MDLHandle_t mdlHandle ) 
 {
-	loadout_positions_t s_iPosition[] = {
+	static loadout_positions_t s_iPosition[] = {
 		LOADOUT_POSITION_HEAD,
 		LOADOUT_POSITION_MISC,
 		LOADOUT_POSITION_MISC2,
@@ -1435,7 +1441,7 @@ IMaterial* CTFPlayerModelPanel::GetOverrideMaterial( MDLHandle_t mdlHandle )
 		LOADOUT_POSITION_MELEE
 	};
 
-	int count = ARRAYSIZE( s_iPosition );
+	static int count = ARRAYSIZE( s_iPosition );
 	for ( int i = 0; i < count; ++i ) 
 	{
 		CEconItemView *pEconItem = GetLoadoutItemFromMDLHandle( s_iPosition[ i ], mdlHandle );
@@ -1615,6 +1621,36 @@ bool CTFPlayerModelPanel::UpdateCosmeticParticles(
 	return true;
 }
 
+
+void CTFPlayerModelPanel::UpdateSpotlight(IMatRenderContext* pRenderContext)
+{
+	pRenderContext->SetLightingOrigin(vec3_origin);
+	pRenderContext->SetAmbientLight(0.4, 0.4, 0.4);
+
+	static Vector white[6] =
+	{
+		Vector(0.4, 0.4, 0.4),
+		Vector(0.4, 0.4, 0.4),
+		Vector(0.4, 0.4, 0.4),
+		Vector(0.4, 0.4, 0.4),
+		Vector(0.4, 0.4, 0.4),
+		Vector(0.4, 0.4, 0.4),
+	};
+
+	g_pStudioRender->SetAmbientLightColors(white);
+	g_pStudioRender->SetLocalLights(0, NULL);
+
+	if (m_BMPResData.m_bUseSpotlight)
+	{
+		Vector vecBoundsMin, vecBoundsMax;
+		if (GetBoundingBox(vecBoundsMin, vecBoundsMax))
+		{
+			Vector vecCenter = (vecBoundsMin + vecBoundsMax) * 0.5f;
+			LightDesc_t spotLight(vec3_origin + Vector(0, 0, 200), Vector(1, 1, 1), vecCenter + Vector(0, 0, (vecBoundsMax.z - vecBoundsMin.z) * 0.75f), 0.035f, 0.873f);
+			g_pStudioRender->SetLocalLights(1, &spotLight);
+		}
+	}
+}
 
 //-----------------------------------------------------------------------------
 void CTFPlayerModelPanel::UpdateEyeGlows( 

@@ -122,7 +122,7 @@ static ConVar con_notifytime( "con_notifytime","8", FCVAR_MATERIAL_SYSTEM_THREAD
 static ConVar con_times("contimes", "8", FCVAR_MATERIAL_SYSTEM_THREAD, "Number of console lines to overlay for debugging." );
 static ConVar con_drawnotify( "con_drawnotify", "1", 0, "Disables drawing of notification area (for taking screenshots)." );
 static ConVar con_enable("con_enable", "0", FCVAR_ARCHIVE, "Allows the console to be activated.");
-static ConVar con_filter_enable ( "con_filter_enable","0", FCVAR_MATERIAL_SYSTEM_THREAD, "Filters console output based on the setting of con_filter_text. 1 filters completely, 2 displays filtered text brighter than other text." );
+static ConVar con_filter_enable ( "con_filter_enable","0", FCVAR_MATERIAL_SYSTEM_THREAD, "Filters console output based on the setting of con_filter_text. 1 filters completely, 2 displays filtered text brighter than other text. 3 completely disables console output." );
 static ConVar con_filter_text ( "con_filter_text","", FCVAR_MATERIAL_SYSTEM_THREAD, "Text with which to filter console spew. Set con_filter_enable 1 or 2 to activate." );
 static ConVar con_filter_text_out ( "con_filter_text_out","", FCVAR_MATERIAL_SYSTEM_THREAD, "Text with which to filter OUT of console spew. Set con_filter_enable 1 or 2 to activate." );
 
@@ -495,12 +495,14 @@ void Con_ColorPrint( const Color& clr, char const *msg )
 		int nCon_Filter_Enable = con_filter_enable.GetInt();
 		if ( nCon_Filter_Enable > 0 )
 		{
-			const char *pszText = con_filter_text.GetString();
-			const char *pszIgnoreText = con_filter_text_out.GetString();
+			const char *pszText;
+			const char *pszIgnoreText;
 
 			switch( nCon_Filter_Enable )
 			{
 			case 1:
+				pszText = con_filter_text.GetString();
+				pszIgnoreText = con_filter_text_out.GetString();
 				// if line does not contain keyword do not print the line
 				if ( pszText && ( *pszText != '\0' ) && ( Q_stristr( msg, pszText ) == NULL ))
 					return;
@@ -509,6 +511,8 @@ void Con_ColorPrint( const Color& clr, char const *msg )
 				break;
 
 			case 2:
+				pszText = con_filter_text.GetString();
+				pszIgnoreText = con_filter_text_out.GetString();
 				if ( pszIgnoreText && *pszIgnoreText && ( Q_stristr( msg, pszIgnoreText ) != NULL ) )
 					return;
 				// if line does not contain keyword print it in a darker color
@@ -519,6 +523,9 @@ void Con_ColorPrint( const Color& clr, char const *msg )
 					return;
 				}
 				break;
+
+			case 3:
+				return;
 
 			default:
 				// by default do no filtering

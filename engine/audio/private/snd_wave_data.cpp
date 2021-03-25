@@ -42,7 +42,7 @@ extern double realtime;
 #define TF_XBOX_WAV_MEMORY_CACHE ( 24 * 1024 * 1024 ) // Team Fortress uses a larger cache
 
 // Dev builds will be missing soundcaches and hitch sometimes, we only care if its being properly launched from steam where sound caches should be complete.
-ConVar snd_async_spew_blocking( "snd_async_spew_blocking", "1", 0, "Spew message to console any time async sound loading blocks on file i/o. ( 0=Off, 1=With -steam only, 2=Always" );
+ConVar snd_async_spew_blocking( "snd_async_spew_blocking", "0", 0, "Spew message to console any time async sound loading blocks on file i/o. ( 0=Off, 1=With -steam only, 2=Always" );
 ConVar snd_async_spew( "snd_async_spew", "0", 0, "Spew all async sound reads, including success" );
 ConVar snd_async_fullyasync( "snd_async_fullyasync", "0", 0, "All playback is fully async (sound doesn't play until data arrives)." );
 ConVar snd_async_stream_spew( "snd_async_stream_spew", "0", 0, "Spew streaming info ( 0=Off, 1=streams, 2=buffers" );
@@ -2071,20 +2071,18 @@ bool CWaveDataStreamAsync::IsReadyToMix()
 {
 	if ( IsPC() )
 	{
+		const bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool();
+
 		// Notify load
 		bool bCacheValid;
-		bool bLoaded = wavedatacache->IsDataLoadCompleted( m_hCache, &bCacheValid );
+		const bool bLoaded = wavedatacache->IsDataLoadCompleted( m_hCache, &bCacheValid );
 		if ( !bCacheValid )
 		{
 			wavedatacache->RestartDataLoad( &m_hCache, GetFileName(), m_dataSize, m_dataStart );
 		}
 
 		// Start mixing right away unless not loaded
-		if (bLoaded || !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool())
-		{
-			return true;
-		}
-		return false;
+		return bReady || bLoaded;
 	}
 
 	if ( IsX360() )
@@ -2332,30 +2330,33 @@ int CWaveDataMemoryAsync::ReadSourceData( void **pData, int sampleIndex, int sam
 //-----------------------------------------------------------------------------
 bool CWaveDataMemoryAsync::IsReadyToMix()
 {
-	if ( !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() )
-	{
-		// Wait until we're pending at least
-		if ( m_source.GetCacheStatus() != CAudioSource::AUDIO_NOT_LOADED )
-		{
-			return true;
-		}
-	}
+	const int iStatus = m_source.GetCacheStatus();
 
-	if ( m_source.IsCached() )
-	{
-		return true;
-	}
+	// Wait until we're pending at least
+	const bool bReady = !m_source.IsAsyncLoad() && !snd_async_fullyasync.GetBool() && iStatus != CAudioSource::AUDIO_IS_LOADED;
 
-	if ( IsPC() )
+	const bool bLoaded = iStatus == CAudioSource::AUDIO_IS_LOADED;
+	if ( IsPC() && !bLoaded )
 	{
-		// Msg( "Waiting for data '%s'\n", m_source.GetFileName() );
 		m_source.CacheLoad();
 	}
 
 	if ( IsX360() )
 	{
+	    if (bLoaded || bReady)
+	    {
+			return true;
+	    }
+
 		// expected to be resident and valid, otherwise being called prior to load
-		Assert( 0 );
+		Assert(0);
+
+		return false;
+	}
+
+    if ( IsPC() )
+	{
+		return bReady || bLoaded;
 	}
 
 	return false;

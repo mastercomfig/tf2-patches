@@ -1656,7 +1656,7 @@ void CMultiPlayerAnimState::ComputePoseParam_AimYaw( CStudioHdr *pStudioHdr )
 	GetOuterAbsVelocity( vecVelocity );
 
 	// Check to see if we are moving.
-	bool bMoving = ( vecVelocity.Length() > 1.0f ) ? true : false;
+	bool bMoving = ( vecVelocity.LengthSqr() > 1.0f ) ? true : false;
 
 	// If we are moving or are prone and undeployed.
 	// If you are forcing aim yaw, your code is almost definitely broken if you don't include a delay between 

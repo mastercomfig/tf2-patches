@@ -137,7 +137,7 @@ Color Bitmap_t::GetColor( int x, int y ) const
 
 		default:
 			Assert( !"Unsupport image format!");
-			return Color( 255,0,255,255 );
+			return Color( (unsigned char)255,0,(unsigned char)255,(unsigned char)255 );
 	}
 }
 

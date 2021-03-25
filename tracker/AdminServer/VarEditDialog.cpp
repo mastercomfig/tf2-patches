@@ -83,7 +83,7 @@ void CVarEditDialog::Activate(vgui::Panel *actionSignalTarget, KeyValues *rules)
 		const char *parse = m_pRules->GetString("stringlist");
 		while (*parse)
 		{
-			// newline-seperated map list
+			// newline-separated map list
 			if (*parse == '\n')
 			{
 				parse++;

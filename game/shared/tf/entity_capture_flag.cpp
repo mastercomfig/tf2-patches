@@ -2638,7 +2638,7 @@ void CCaptureFlag::ManageTrailEffects( void )
 
 			if ( pPlayer )
 			{
-				if ( pPlayer->GetAbsVelocity().Length() >= pPlayer->MaxSpeed() * 0.2f )	
+				if ( pPlayer->GetAbsVelocity().LengthSqr() >= (pPlayer->MaxSpeed() * 0.2f) * (pPlayer->MaxSpeed() * 0.2f))
 				{
 					if ( m_pPaperTrailEffect == NULL )
 					{

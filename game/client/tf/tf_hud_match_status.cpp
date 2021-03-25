@@ -34,7 +34,7 @@ using namespace vgui;
 
 void AddSubKeyNamed( KeyValues *pKeys, const char *pszName );
 
-static ConVar tf_use_match_hud("tf_use_match_hud", "1", FCVAR_ARCHIVE);
+static ConVar tf_use_match_hud("tf_use_match_hud", "0", FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Purpose: Use the new match HUD or the old?  Right now, Comp is the key
@@ -353,13 +353,9 @@ void CTFHudMatchStatus::ApplySchemeSettings(IScheme *pScheme)
 		pConditions = new KeyValues( "conditions" );
 		AddSubKeyNamed( pConditions, "if_match" );
 
-		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GTFGCClientSystem()->GetLiveMatchGroup() );
-		if ( pMatchDesc )
+		if (GetGlobalTeam(TF_TEAM_RED)->GetNumPlayers() >= 12 || GetGlobalTeam(TF_TEAM_BLUE)->GetNumPlayers() >= 12)
 		{
-			if (GetGlobalTeam(TF_TEAM_RED)->GetNumPlayers() >= 12 || GetGlobalTeam(TF_TEAM_BLUE)->GetNumPlayers() >= 12)
-			{
-				AddSubKeyNamed( pConditions, "if_large" );
-			}
+			AddSubKeyNamed( pConditions, "if_large" );
 		}
 	}
 

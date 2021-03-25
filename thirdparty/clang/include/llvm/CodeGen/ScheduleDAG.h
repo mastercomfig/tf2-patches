@@ -90,7 +90,7 @@ namespace llvm {
     /// the value of the Latency field of the predecessor, however advanced
     /// models may provide additional information about specific edges.
     unsigned Latency;
-    /// Record MinLatency seperately from "expected" Latency.
+    /// Record MinLatency separately from "expected" Latency.
     ///
     /// FIXME: this field is not packed on LP64. Convert to 16-bit DAG edge
     /// latency after introducing saturating truncation.

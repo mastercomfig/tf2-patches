@@ -209,7 +209,7 @@ static void ContactSupportConfirm( bool bConfirmed, void *pContext )
 {
 	if ( bConfirmed && steamapicontext && steamapicontext->SteamFriends() )
 	{
-		steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://support.steampowered.com/" );
+		steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://help.steampowered.com/" );
 	}
 }
 
@@ -1617,7 +1617,7 @@ void CStoreCart::AddToCart( const econ_store_entry_t *pEntry, const char* pszPag
 			g_pVGuiLocalize->ConvertUnicodeToANSI( g_pVGuiLocalize->Find( pItemDef->GetItemBaseName() ), pszItemName, sizeof( pszItemName ) );
 
 			char szURL[512];
-			V_snprintf( szURL, sizeof( szURL ), "http://%ssteamcommunity.com/market/listings/%d/%s", pszPrefix, engine->GetAppID(), pszItemName );
+			V_snprintf( szURL, sizeof( szURL ), "https://%ssteamcommunity.com/market/listings/%d/%s", pszPrefix, engine->GetAppID(), pszItemName );
 			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( szURL );
 		}
 		return;

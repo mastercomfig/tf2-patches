@@ -268,7 +268,7 @@ void RayTracingEnvironment::ComputeVirtualLightSources(void)
 						l1.m_Direction=Vector(rslt.surface_normal.X(0),rslt.surface_normal.Y(0),
 											  rslt.surface_normal.Z(0));
 						l1.m_Color=Vector(intens.X(0),intens.Y(0),intens.Z(0));
-						if (l1.m_Color.Length()>0)
+						if (l1.m_Color.LengthSqr()>0)
 						{
 							l1.m_Color*=area_of_virtual_light/M_PI;
 							l1.m_Range=0.0;

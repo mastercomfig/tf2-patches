@@ -574,7 +574,7 @@ Vector C_BaseFlex::SetViewTarget( CStudioHdr *pStudioHdr )
 	if (m_iEyeAttachment > 0)
 	{
 		matrix3x4_t attToWorld;
-		if (!GetAttachment( m_iEyeAttachment, attToWorld ))
+		if (!GetAttachmentNoRecalc( m_iEyeAttachment, attToWorld ))
 		{
 			return Vector( 0, 0, 0);
 		}
@@ -1384,7 +1384,7 @@ const flexsetting_t *C_BaseFlex::FindNamedSetting( const flexsettinghdr_t *pSett
 
 		const char *name = pSetting->pszName();
 
-		if ( !stricmp( name, expr ) )
+		if ( !V_stricmp( name, expr ) )
 			break;
 	}
 
@@ -1674,7 +1674,7 @@ LocalFlexController_t C_BaseFlex::FindFlexController( const char *szName )
 {
 	for (LocalFlexController_t i = LocalFlexController_t(0); i < GetNumFlexControllers(); i++)
 	{
-		if (stricmp( GetFlexControllerName( i ), szName ) == 0)
+		if (V_stricmp( GetFlexControllerName( i ), szName ) == 0)
 		{
 			return i;
 		}

@@ -109,7 +109,7 @@ static char g_szMapLoadOverride[32];
 
 //-----------------------------------------------------------------------------
 
-IThreadPool *g_pSaveThread;
+IThreadPool *g_pSaveThread = NULL;
 
 static bool g_bSaveInProgress = false;
 

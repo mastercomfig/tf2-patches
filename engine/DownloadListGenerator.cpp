@@ -30,7 +30,7 @@ CDownloadListGenerator &DownloadListGenerator()
 	return g_DownloadListGenerator;
 }
 
-ConVar	sv_logdownloadlist( "sv_logdownloadlist", IsX360() ? "0" : "1" );
+ConVar	sv_logdownloadlist( "sv_logdownloadlist", "0" );
 
 extern int GetSvPureMode();
 

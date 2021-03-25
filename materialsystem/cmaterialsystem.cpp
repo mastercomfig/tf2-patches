@@ -38,22 +38,13 @@
 #endif
 
 // this is hooked into the engines convar
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 ConVar mat_forcemanagedtextureintohardware( "mat_forcemanagedtextureintohardware", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 
 ConVar mat_supportflashlight( "mat_supportflashlight", "-1", FCVAR_HIDDEN, "0 - do not support flashlight (don't load flashlight shader combos), 1 - flashlight is supported" );
-#ifdef OSX
-#define CV_FRAME_SWAP_WORKAROUND_DEFAULT "1"
-#else
-#define CV_FRAME_SWAP_WORKAROUND_DEFAULT "0"
-#endif
-ConVar mat_texture_reload_frame_swap_workaround( "mat_texture_reload_frame_swap_workaround", CV_FRAME_SWAP_WORKAROUND_DEFAULT, FCVAR_INTERNAL_USE,
+ConVar mat_texture_reload_frame_swap_workaround( "mat_texture_reload_frame_swap_workaround", "0", FCVAR_INTERNAL_USE,
                                                  "Workaround certain GL drivers holding unnecessary amounts of data when loading many materials by forcing synthetic frame swaps" );
-
-// This ConVar allows us to skip ~40% of our map load time, but it doesn't work on GPUs older
-// than ~2005. We set it automatically and don't expose it to players. 
-ConVar mat_requires_rt_alloc_first( "mat_requires_rt_alloc_first", "0", FCVAR_HIDDEN );
 
 // Make sure this convar gets created before videocfg.lib is initialized, so it can be driven by dxsupport.cfg
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
@@ -62,7 +53,7 @@ static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_
 // In GL mode, we currently require mat_dxlevel to be between 90-92
 static ConVar mat_dxlevel( "mat_dxlevel", "92", 0, "", true, 90, true, 92, NULL );
 #else
-static ConVar mat_dxlevel( "mat_dxlevel", "0", 0, "Current DirectX Level. Competitive play requires at least mat_dxlevel 90", false, 0, false, 0, true, 90, false, 0, NULL  );
+static ConVar mat_dxlevel( "mat_dxlevel", "100", 0, "Current DirectX Level. Competitive play requires at least mat_dxlevel 90", true, 90, true, 100);
 #endif
 
 IMaterialInternal *g_pErrorMaterial = NULL;
@@ -444,7 +435,7 @@ void CMaterialSystem::CreateCompositorMaterials()
 
 		IMaterialInternal *pMatqf = assert_cast< IMaterialInternal* >( FindMaterial( pszMaterial, TEXTURE_GROUP_RUNTIME_COMPOSITE ) );
 		Assert( pMatqf );
-		Assert( !pMatqf->IsErrorMaterial() );
+		AssertMsg( !pMatqf->IsErrorMaterial(), "Material %s is missed", pszMaterial );
 		IMaterialInternal *pMatrt = pMatqf->GetRealTimeVersion();
 		Assert( pMatrt );
 		pMatrt->IncrementReferenceCount(); // Hold a ref.
@@ -465,7 +456,12 @@ void CMaterialSystem::CleanUpCompositorMaterials()
 			continue;
 
 		m_pCompositorMaterials[ i ]->DecrementReferenceCount();
-		RemoveMaterial( m_pCompositorMaterials[ i ] );
+
+		// Remove only loaded material, as nothing to remove + warning for not loaded one.
+		if ( !m_pCompositorMaterials[i]->IsErrorMaterial() )
+		{
+			RemoveMaterial(m_pCompositorMaterials[i]);
+		}
 	}
 
 	m_pCompositorMaterials.RemoveAll();
@@ -1765,16 +1761,12 @@ static ConVar mat_showmiplevels(	"mat_showmiplevels", "0", FCVAR_CHEAT, "color-c
 
 static ConVar mat_specular(			"mat_specular", "1", FCVAR_ALLOWED_IN_COMPETITIVE, "Enable/Disable specularity for perf testing.  Will cause a material reload upon change." );
 static ConVar mat_bumpmap(			"mat_bumpmap", "1", FCVAR_ALLOWED_IN_COMPETITIVE );
-static ConVar mat_phong(			"mat_phong", "1" );
-static ConVar mat_parallaxmap(		"mat_parallaxmap", "1", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar mat_phong(			"mat_phong", "1", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 1, true, 1, NULL);
+static ConVar mat_parallaxmap(		"mat_parallaxmap", "0", FCVAR_HIDDEN | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_reducefillrate(	"mat_reducefillrate", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 
-#if defined( OSX ) && !defined( STAGING_ONLY ) && !defined( _DEBUG )
-// OSX users are currently running OOM. We limit them to texture quality high here, which avoids the problem while we come up with a real solution.
-static ConVar mat_picmip(			"mat_picmip", "1", FCVAR_ARCHIVE, "", true, 0, true, 4 );
-#else
+
 static ConVar mat_picmip(			"mat_picmip", "0", FCVAR_ARCHIVE, "", true, -1, true, 4 );
-#endif
 static ConVar mat_slopescaledepthbias_normal( "mat_slopescaledepthbias_normal", "0.0f", FCVAR_CHEAT );
 static ConVar mat_depthbias_normal( "mat_depthbias_normal", "0.0f", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_slopescaledepthbias_decal( "mat_slopescaledepthbias_decal", "-0.5", FCVAR_CHEAT );		// Reciprocals of these biases sent to API
@@ -1811,11 +1803,7 @@ static ConVar mat_normalmaps(		"mat_normalmaps", "0", FCVAR_CHEAT );
 static ConVar mat_measurefillrate(	"mat_measurefillrate", "0", FCVAR_CHEAT );
 static ConVar mat_fillrate(			"mat_fillrate", "0", FCVAR_CHEAT );
 static ConVar mat_reversedepth(		"mat_reversedepth", "0", FCVAR_CHEAT );
-#ifdef DX_TO_GL_ABSTRACTION
-static ConVar mat_bufferprimitives( "mat_bufferprimitives", "0" );	// I'm not seeing any benefit speed wise for buffered primitives on GLM/POSIX (checked via TF2 timedemo) - default to zero
-#else
 static ConVar mat_bufferprimitives( "mat_bufferprimitives", "1" );
-#endif
 static ConVar mat_drawflat(			"mat_drawflat","0", FCVAR_CHEAT );
 static ConVar mat_softwarelighting( "mat_softwarelighting", "0", FCVAR_ALLOWED_IN_COMPETITIVE );
 static ConVar mat_proxy(			"mat_proxy", "0", FCVAR_CHEAT, "", MatProxyCallback );
@@ -1898,7 +1886,8 @@ void CMaterialSystem::ReadConfigFromConVars( MaterialSystem_Config_t *pConfig )
 	pConfig->m_bSupportFlashlight = mat_supportflashlight.GetInt() != 0;
 	pConfig->m_bShadowDepthTexture = r_flashlightdepthtexture.GetBool();
 
-	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, HardwareConfig() && HardwareConfig()->GetHDREnabled() );
+	static ConVarRef mat_hdr_level("mat_hdr_level");
+	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, mat_hdr_level.GetInt() > 1);
 
 	// Render-to-texture shadows are disabled for dxlevel 70 because of material issues
 	if ( pConfig->dxSupportLevel < 80 )
@@ -1911,7 +1900,6 @@ void CMaterialSystem::ReadConfigFromConVars( MaterialSystem_Config_t *pConfig )
 	}
 	if ( pConfig->dxSupportLevel < 90 )
 	{
-		mat_requires_rt_alloc_first.SetValue( 1 );
 		r_flashlightdepthtexture.SetValue( 0 );
 		mat_motion_blur_enabled.SetValue( 0 );
 		pConfig->m_bShadowDepthTexture = false;
@@ -2002,7 +1990,6 @@ static const char *pConvarsAllowedInDXSupport[]={
 	"cl_blobbyshadows",
 	"r_flex",
 	"r_drawropes",
-	"props_break_max_pieces",
 	"cl_ragdoll_fade_time",
 	"cl_ragdoll_forcefade",
 	"tf_impactwatertimeenable",
@@ -2419,7 +2406,7 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 		if( mat_debugalttab.GetBool() )
 		{
 			Warning( "mat_debugalttab: new m_nForceAnisotropicLevel: %d, old m_nForceAnisotropicLevel: %d, setting bResetAnisotropy and bResetTextureFilter\n",
-				( int )config.ForceTrilinear(), ( int )g_config.ForceTrilinear() );
+				( int )config.m_nForceAnisotropicLevel, ( int )g_config.m_nForceAnisotropicLevel);
 		}
 		bResetAnisotropy = true;
 		bResetTextureFilter = true;
@@ -2580,19 +2567,20 @@ bool CMaterialSystem::OverrideConfig( const MaterialSystem_Config_t &_config, bo
 
 	if ( bVideoModeChange )
 	{
-		if ( mat_debugalttab.GetBool() )
+		if (mat_debugalttab.GetBool())
 		{
-			Warning( "mat_debugalttab: ChangeVideoMode\n" );
+			Warning("mat_debugalttab: ChangeVideoMode\n");
 		}
 		ShaderDeviceInfo_t info;
-		ConvertModeStruct( &info, config );
-		g_pShaderAPI->ChangeVideoMode( info );
+		ConvertModeStruct(&info, config);
+		g_pShaderAPI->ChangeVideoMode(info);
 
 #if defined( USE_SDL )
 		uint width = info.m_DisplayMode.m_nWidth;
 		uint height = info.m_DisplayMode.m_nHeight;
-		g_pLauncherMgr->RenderedSize( width, height, true ); // true = set
+		g_pLauncherMgr->RenderedSize(width, height, true); // true = set
 #endif
+
 	}
 
 	if ( bForceAltTab )
@@ -3100,28 +3088,35 @@ void CMaterialSystem::ResetTempHWMemory( bool bExitingLevel )
 //-----------------------------------------------------------------------------
 void CMaterialSystem::CacheUsedMaterials( )
 {
-	g_pShaderAPI->EvictManagedResources();
+	IMatRenderContextInternal* pRenderContext = GetRenderContextInternal();
+	pRenderContext->EvictManagedResources();
+
+#ifdef OSX
 	size_t count = 0;
-	for (MaterialHandle_t i = FirstMaterial(); i != InvalidMaterial(); i = NextMaterial(i) )
+#endif
+	for (MaterialHandle_t i = FirstMaterial(); i != InvalidMaterial(); i = NextMaterial(i))
 	{
+#ifdef OSX
 		// Some (mac) drivers (amd) seem to keep extra resources around on uploads until the next frame swap.  This
-		// injects pointless synthetic swaps (between already-static load frames)
-		if ( mat_texture_reload_frame_swap_workaround.GetBool() )
+		// injects pointless synthetic swaps (between already-static load frames
+		if (mat_texture_reload_frame_swap_workaround.GetBool())
 		{
-			if ( count++ % 20 == 0 )
+			if (count++ % 20 == 0)
 			{
 				Flush(true);
 				SwapBuffers(); // Not the right thing to call
 			}
 		}
+#endif
 		IMaterialInternal* pMat = GetMaterialInternal(i);
-		Assert( pMat->GetReferenceCount() >= 0 );
-		if( pMat->GetReferenceCount() > 0 )
+		Assert(pMat->GetReferenceCount() >= 0);
+		if (pMat->GetReferenceCount() > 0)
 		{
 			pMat->Precache();
 		}
 	}
-	if ( mat_forcemanagedtextureintohardware.GetBool() )
+
+	if (mat_forcemanagedtextureintohardware.GetBool())
 	{
 		TextureManager()->ForceAllTexturesIntoHardware();
 	}
@@ -3486,10 +3481,10 @@ void CMaterialSystem::BeginFrame( float frameTime )
 	VPROF_BUDGET( "CMaterialSystem::BeginFrame", VPROF_BUDGETGROUP_SWAP_BUFFERS );
 	tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "%s", __FUNCTION__ );
 
-	IMatRenderContextInternal *pRenderContext = GetRenderContextInternal();
-	if ( g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED) )
+	IMatRenderContextInternal* pRenderContext = GetRenderContextInternal();
+	if (g_config.ForceHWSync() && (IsPC() || m_ThreadMode != MATERIAL_QUEUED_THREADED))
 	{
-		tmZoneFiltered( TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync" );
+		tmZoneFiltered(TELEMETRY_LEVEL0, 50, TMZF_NONE, "ForceHardwareSync");
 		pRenderContext->ForceHardwareSync();
 	}
 
@@ -3537,7 +3532,7 @@ void CMaterialSystem::ThreadExecuteQueuedContext( CMatQueuedRenderContext *pCont
 
 	Assert( m_bThreadHasOwnership );
 
-	m_nRenderThreadID = ThreadGetCurrentId(); 
+	m_nRenderThreadID = ThreadGetCurrentId();
 	IMatRenderContextInternal* pSavedRenderContext = m_pRenderContext.Get();
 	m_pRenderContext.Set( &m_HardwareRenderContext );
 	pContext->EndQueue( true );
@@ -3558,6 +3553,7 @@ IThreadPool *CMaterialSystem::CreateMatQueueThreadPool()
 		startParams.nThreads = 1;
 		startParams.nStackSize = 256*1024;
 		startParams.fDistribute = TRS_TRUE;
+		startParams.bFullCore = true;
 
 		// The rendering thread has the GL context and the main thread is coming in and
 		//  "helping" finish jobs - that breaks OpenGL, which requires TLS. This flag states 
@@ -3700,10 +3696,21 @@ void CMaterialSystem::EndFrame( void )
 				ThreadAcquire( true );
 			}
 
-			if ( m_pActiveAsyncJob && !m_pActiveAsyncJob->IsFinished() )
+			if ( m_pActiveAsyncJob )
 			{
-				m_pActiveAsyncJob->WaitForFinish();
-				if ( !IsPC() && g_config.ForceHWSync() )
+#if 1
+				while ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish(0);
+				}
+#else
+				if ( !m_pActiveAsyncJob->IsFinished() )
+				{
+					m_pActiveAsyncJob->WaitForFinish();
+				}
+#endif
+				// Sync with GPU if we had a job for it, even if it finished early on CPU!
+				if (!IsPC() && g_config.ForceHWSync())
 				{
 					g_pShaderAPI->ForceHardwareSync();
 				}
@@ -3782,7 +3789,10 @@ void CMaterialSystem::EndFrame( void )
 			{
 				if ( m_pActiveAsyncJob )
 				{
-					m_pActiveAsyncJob->WaitForFinish();
+					if (!m_pActiveAsyncJob->IsFinished())
+					{
+						m_pActiveAsyncJob->WaitForFinish();
+					}
 					SafeRelease( m_pActiveAsyncJob );
 				}
 				// probably have a queued context set here, need hardware to flush the queue if the job isn't active
@@ -4661,19 +4671,8 @@ void CMaterialSystem::BeginRenderTargetAllocation( void )
 
 void CMaterialSystem::EndRenderTargetAllocation( void )
 {
-	// Any GPU newer than 2005 doesn't need to do this, and it eats up ~40% of our level load time! 
-	const bool cbRequiresRenderTargetAllocationFirst = mat_requires_rt_alloc_first.GetBool();
-
 	g_pShaderAPI->FlushBufferedPrimitives();
 	m_bAllocatingRenderTargets = false;
-
-	if ( IsPC() && cbRequiresRenderTargetAllocationFirst && g_pShaderAPI->CanDownloadTextures() )
-	{
-		// Simulate an Alt-Tab...will cause RTs to be allocated first
-
-		g_pShaderDevice->ReleaseResources();
-		g_pShaderDevice->ReacquireResources();
-	}
 
 	TextureManager()->CacheExternalStandardRenderTargets();
 }
@@ -4878,7 +4877,10 @@ void CMaterialSystem::ThreadRelease( )
 	CJob		*pActiveAsyncJob = new CThreadRelease();
 	IThreadPool *pThreadPool = CreateMatQueueThreadPool();
 	pThreadPool->AddJob( pActiveAsyncJob );
-	pActiveAsyncJob->WaitForFinish();
+	if (!pActiveAsyncJob->IsFinished())
+	{
+		pActiveAsyncJob->WaitForFinish();
+	}
 
 	SafeRelease( pActiveAsyncJob );
 
@@ -4965,7 +4967,17 @@ MaterialLock_t CMaterialSystem::Lock()
 #if 1 // Rick's optimization: not sure this is needed anymore
 	if ( pCurContext != &m_HardwareRenderContext && m_pActiveAsyncJob )
 	{
-		m_pActiveAsyncJob->WaitForFinish();
+#if 1
+		while (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish(0);
+		}
+#else
+		if (!m_pActiveAsyncJob->IsFinished())
+		{
+			m_pActiveAsyncJob->WaitForFinish();
+		}
+#endif
 		// threadsafety note: not releasing or nulling pointer.
 	}
 

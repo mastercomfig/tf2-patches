@@ -146,6 +146,8 @@ InitReturnVal_t CInputSystem::Init()
 		return INIT_FAILED;
 #endif
 
+	// x64: No sense in Steam controller without Steam, as it requires Steam.
+#if !defined( NO_STEAM )
 	// Initialize the input system copy of the steam API context, for use by controller stuff (don't do this if we're a dedicated server).
 	if ( !m_bSkipControllerInitialization && SteamAPI_InitSafe() )
 	{
@@ -161,6 +163,7 @@ InitReturnVal_t CInputSystem::Init()
 			}
 		}
 	}
+#endif
 
 	ButtonCode_InitKeyTranslationTable();
 	ButtonCode_UpdateScanCodeLayout();
@@ -175,7 +178,7 @@ InitReturnVal_t CInputSystem::Init()
 
 #if defined( PLATFORM_WINDOWS_PC )
 		// NVNT try and load and initialize through the haptic dll, but only if the drivers are installed
-		HMODULE hdl = LoadLibraryEx( "hdl.dll", NULL, LOAD_LIBRARY_AS_DATAFILE );
+		HMODULE hdl = LoadLibraryExW( L"hdl.dll", NULL, LOAD_LIBRARY_AS_DATAFILE );
 
 		if ( hdl )
 		{
@@ -202,17 +205,9 @@ InitReturnVal_t CInputSystem::Init()
 
 #elif defined( WIN32 ) && !defined( _X360 )
 
-	// Check if this version of windows supports raw mouse input (later than win2k)
-	m_bRawInputSupported = false;
-
-	CSysModule *m_pRawInputDLL = Sys_LoadModule( "USER32.dll" );
-	if ( m_pRawInputDLL )
-	{
-		pfnRegisterRawInputDevices = (RegisterRawInputDevices_t)GetProcAddress( (HMODULE)m_pRawInputDLL, "RegisterRawInputDevices" );
-		pfnGetRawInputData = (GetRawInputData_t)GetProcAddress( (HMODULE)m_pRawInputDLL, "GetRawInputData" );
-		if ( pfnRegisterRawInputDevices && pfnGetRawInputData )
-			m_bRawInputSupported = true;
-	}
+	pfnRegisterRawInputDevices = &RegisterRawInputDevices;
+	pfnGetRawInputData = &GetRawInputData;
+	m_bRawInputSupported = true;
 
 #endif
 
@@ -299,8 +294,8 @@ void CInputSystem::AttachToWindow( void* hWnd )
 	}
 
 #if defined( PLATFORM_WINDOWS )
-	m_ChainedWndProc = (WNDPROC)GetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC );
-	SetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC, (LONG_PTR)InputSystemWindowProc );
+	m_ChainedWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC ));
+	SetWindowLongPtrW( (HWND)hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(InputSystemWindowProc) );
 #endif
 
 	m_hAttachedHWnd = (HWND)hWnd;
@@ -347,8 +342,8 @@ void CInputSystem::DetachFromWindow( )
 #if defined( PLATFORM_WINDOWS )
 	if ( m_ChainedWndProc )
 	{
-		SetWindowLongPtrW( m_hAttachedHWnd, GWLP_WNDPROC, (LONG_PTR)m_ChainedWndProc );
-		m_ChainedWndProc = 0;
+		SetWindowLongPtrW( m_hAttachedHWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(m_ChainedWndProc) );
+		m_ChainedWndProc = nullptr;
 	}
 #endif
 
@@ -544,7 +539,7 @@ void CInputSystem::ProcessEvent( UINT uMsg, WPARAM wParam, LPARAM lParam )
 	// To prevent subtle input timing bugs, all button events must be fed 
 	// through the window proc once per frame, same as the keyboard and mouse.
 	HWND hWnd = GetFocus();
-	WNDPROC windowProc = (WNDPROC)GetWindowLongPtrW(hWnd, GWLP_WNDPROC );
+	WNDPROC windowProc = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hWnd, GWLP_WNDPROC ));
 	if ( windowProc )
 	{
 		windowProc( hWnd, uMsg, wParam, lParam );
@@ -617,7 +612,7 @@ static void initKeymap(void)
 		scantokey[i] = KEY_A + (i - SDL_SCANCODE_A);
 	for (int i = SDL_SCANCODE_1; i <= SDL_SCANCODE_9; i++)
 		scantokey[i] = KEY_1 + (i - SDL_SCANCODE_1);
-	for (int i = SDL_SCANCODE_F1; i <= SDL_SCANCODE_F12; i++)
+	for (int i = SDL_SCANCODE_F1; i <= SDL_SCANCODE_F24; i++)
 		scantokey[i] = KEY_F1 + (i - SDL_SCANCODE_F1);
 	for (int i = SDL_SCANCODE_KP_1; i <= SDL_SCANCODE_KP_9; i++)
 		scantokey[i] = KEY_PAD_1 + (i - SDL_SCANCODE_KP_1);
@@ -1202,8 +1197,12 @@ void CInputSystem::SetCursorPosition( int x, int y )
 
 #if defined( PLATFORM_WINDOWS )
 	POINT pt;
+#if 0
+	pt.x = x + m_windowOffsetX; pt.y = y + m_windowOffsetY;
+#else
 	pt.x = x; pt.y = y;
-	ClientToScreen( (HWND)m_hAttachedHWnd, &pt );
+	ClientToScreen((HWND)m_hAttachedHWnd, &pt);
+#endif
 	SetCursorPos( pt.x, pt.y );
 #elif defined( USE_SDL )
 	m_pLauncherMgr->SetCursorPosition( x, y );
@@ -1446,7 +1445,7 @@ LRESULT CInputSystem::WindowProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			PostEvent( IE_ButtonPressed, m_nLastSampleTick, code, code );
 			PostEvent( IE_ButtonReleased, m_nLastSampleTick, code, code );
 
-			state.m_pAnalogDelta[ MOUSE_WHEEL ] = ( (short)HIWORD(wParam) ) / WHEEL_DELTA;
+			state.m_pAnalogDelta[ MOUSE_WHEEL ] = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 			state.m_pAnalogValue[ MOUSE_WHEEL ] += state.m_pAnalogDelta[ MOUSE_WHEEL ];
 			PostEvent( IE_AnalogValueChanged, m_nLastSampleTick, MOUSE_WHEEL, state.m_pAnalogValue[ MOUSE_WHEEL ], state.m_pAnalogDelta[ MOUSE_WHEEL ] );
 		}

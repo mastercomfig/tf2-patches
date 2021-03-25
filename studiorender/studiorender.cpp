@@ -47,7 +47,8 @@ static ConVar r_flexstats( "r_flexstats", "0", FCVAR_CHEAT );
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
-CStudioRender::CStudioRender()
+CStudioRender::CStudioRender() :
+	m_ModelDecalMaterials(DefLessFunc(IMaterial*))
 {
 	m_pRC = NULL;
 	m_pBoneToWorld = NULL;
@@ -594,9 +595,6 @@ void CStudioRender::DrawModelStaticProp( const DrawModelInfo_t& info,
 	m_pBoneToWorld = NULL;
 	m_pRC = NULL;
 }
-
-
-
 
 // UNDONE: Currently no flex supported, no per instance cubemap or other lighting state supported, no eyeballs supported
 // NOTE: This is a fast path for simple models with skeletons but not many other features

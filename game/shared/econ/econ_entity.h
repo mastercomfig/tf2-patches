@@ -114,6 +114,7 @@ public:
 	virtual bool			GetAttachment( const char *szName, Vector &absOrigin ) { return BaseClass::GetAttachment(szName,absOrigin); }
 	virtual bool			GetAttachment( const char *szName, Vector &absOrigin, QAngle &absAngles ) { return BaseClass::GetAttachment(szName,absOrigin,absAngles); }
 	virtual bool			GetAttachment( int number, matrix3x4_t &matrix );
+	virtual bool			GetAttachmentNoRecalc(int number, matrix3x4_t& matrix);
 	virtual bool			GetAttachment( int number, Vector &origin );
 	virtual	bool			GetAttachment( int number, Vector &origin, QAngle &angles );
 	virtual bool			GetAttachmentVelocity( int number, Vector &originVel, Quaternion &angleVel );

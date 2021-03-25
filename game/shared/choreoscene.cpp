@@ -162,7 +162,6 @@ CChoreoScene& CChoreoScene::operator=( const CChoreoScene& src )
 	m_flSoundSystemLatency = src.m_flSoundSystemLatency;
 	m_pfnPrint = src.m_pfnPrint;
 	m_flLastActiveTime = src.m_flLastActiveTime;
-	m_pTokenizer = src.m_pTokenizer;
 	m_bSubScene = src.m_bSubScene;
 	m_nSceneFPS = src.m_nSceneFPS;
 	m_bUseFrameSnap = src.m_bUseFrameSnap;
@@ -2594,7 +2593,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 	// Start time equal, go to order in channel
 	if ( !a0 || !a1 || a0 != a1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	CChoreoChannel *c0 = event0->GetChannel();
@@ -2602,7 +2601,7 @@ bool CChoreoScene::EventLess( const CChoreoScene::ActiveList &al0, const CChoreo
 
 	if ( !c0 || !c1 || c0 != c1 )
 	{
-		return strcmp( event0->GetName(), event1->GetName() ) == -1;
+		return strcmp( event0->GetName(), event1->GetName() ) < 0;
 	}
 
 	// Go by slot within channel
@@ -2644,129 +2643,118 @@ void CChoreoScene::AddPauseEventDependency( CChoreoEvent *pauseEvent, CChoreoEve
 //-----------------------------------------------------------------------------
 void CChoreoScene::Think( float curtime )
 {
-	CChoreoEvent *e;
+	CChoreoEvent* e;
 
 	float oldt = m_flCurrentTime;
-	float dt;
+	float dt = curtime - oldt;
+
+	bool playing_forward = (dt >= 0.0f) ? true : false;
 
 	m_nActiveEvents = 0;
 
 	ClearPauseEventDependencies();
 
-	CUtlRBTree< ActiveList, int > pending(0,0,EventLess);
-
-	// Handle loop events first:
-	//float flLoopPoint = LoopThink( curtime );
-	LoopThink( curtime );
-	if ( m_flCurrentTime != oldt )
-	{
-		// We hit a loop, we need to adjust the times.
-		//curtime = m_flCurrentTime + ( oldt - flLoopPoint ); // if we overshot, skip by how much we overshot
-		curtime = m_flCurrentTime;
-		Assert( curtime > 0.0f );
-	}
-
-	dt = curtime - oldt;
-	oldt = m_flCurrentTime;
-
-	bool playing_forward = ( dt >= 0.0f ) ? true : false;
-	//if ( !playing_forward )
-	//{
-	//	Msg( "-----dt was negative. %f   oldt: %f   t: %f\n", dt, oldt, curtime );
-	//}
-	//else
-	//{
-	//	Msg( "+++++dt was positive. %f   oldt: %f   t: %f\n", dt, oldt, curtime );
-	//}
-
+	CUtlRBTree< ActiveList, int > pending(0, 0, EventLess);
 
 	// Iterate through all events in the scene
 	int i;
-	for ( i = 0; i < m_Events.Size(); i++ )
+	for (i = 0; i < m_Events.Count(); i++)
 	{
-		e = m_Events[ i ];
-		if ( !e )
+		e = m_Events[i];
+		if (!e)
 			continue;
 
 		PROCESSING_TYPE disposition;
-		m_nActiveEvents += EventThink( e, m_flCurrentTime, curtime, playing_forward, disposition );
+		m_nActiveEvents += EventThink(e, m_flCurrentTime, curtime, playing_forward, disposition);
 
-		if ( disposition != PROCESSING_TYPE_IGNORE )
+		if (disposition != PROCESSING_TYPE_IGNORE)
 		{
+
 			ActiveList entry;
 
-			entry.e		= e;
-			entry.pt	= disposition;
+			entry.e = e;
+			entry.pt = disposition;
 
-			pending.Insert( entry );
+			pending.Insert(entry);
 		}
 	}
 
 	// Events are sorted start time and then by channel and actor slot or by name if those aren't equal
+	constexpr bool dump = false;
+
 	i = pending.FirstInorder();
-	while ( i != pending.InvalidIndex() )
+	while (i != pending.InvalidIndex())
 	{
-		ActiveList *entry = &pending[ i ];
+		ActiveList* entry = &pending[i];
 
-		Assert( entry->e );
+		Assert(entry->e);
 
-		ProcessActiveListEntry( entry );
+		if constexpr (dump)
+		{
+			Msg("%f == %s starting at %f (actor %p channel %p)\n",
+				m_flCurrentTime, entry->e->GetName(), entry->e->GetStartTime(),
+				entry->e->GetActor(), entry->e->GetChannel());
+		}
 
-		i = pending.NextInorder( i );
+		switch (entry->pt)
+		{
+		default:
+		case PROCESSING_TYPE_IGNORE:
+		{
+			Assert(0);
+		}
+		break;
+		case PROCESSING_TYPE_START:
+		case PROCESSING_TYPE_START_RESUMECONDITION:
+		{
+			entry->e->StartProcessing(m_pIChoreoEventCallback, this, m_flCurrentTime);
+
+			if (entry->pt == PROCESSING_TYPE_START_RESUMECONDITION)
+			{
+				Assert(entry->e->IsResumeCondition());
+				m_ActiveResumeConditions.AddToTail(entry->e);
+			}
+
+			// This event can "pause" the scene, so we need to remember who "paused" the scene so that
+			//  when we resume we can resume any suppressed events dependent on this pauser...
+			if (entry->e->GetType() == CChoreoEvent::SECTION)
+			{
+				// So this event should be in the pauseevents list, otherwise this'll be -1
+				m_nLastPauseEvent = m_PauseEvents.Find(entry->e);
+			}
+		}
+		break;
+		case PROCESSING_TYPE_CONTINUE:
+		{
+			entry->e->ContinueProcessing(m_pIChoreoEventCallback, this, m_flCurrentTime);
+		}
+		break;
+		case PROCESSING_TYPE_STOP:
+		{
+			entry->e->StopProcessing(m_pIChoreoEventCallback, this, m_flCurrentTime);
+		}
+		break;
+		}
+
+		i = pending.NextInorder(i);
+	}
+
+	if constexpr (dump)
+	{
+		Msg("\n");
 	}
 
 	// If a Process call slams this time, don't override it!!!
-	if ( oldt == m_flCurrentTime )
+	if (oldt == m_flCurrentTime)
 	{
 		m_flCurrentTime = curtime;
 	}
 
 	// Still processing?
-	if ( m_nActiveEvents )
+	if (m_nActiveEvents)
 	{
 		m_flLastActiveTime = m_flCurrentTime;
 	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Loop points are handled prior to other events
-// Input  : curtime - 
-//-----------------------------------------------------------------------------
-float CChoreoScene::LoopThink( float curtime )
-{
-	float oldt = m_flCurrentTime;
-	float dt = curtime - oldt;
-
-	bool playing_forward = ( dt >= 0.0f ) ? true : false;
-
-	// Iterate through all events in the scene
-	CChoreoEvent *e;
-	int i;
-	for ( i = 0; i < m_Events.Size(); i++ )
-	{
-		e = m_Events[ i ];
-		if ( !e || e->GetType() != CChoreoEvent::LOOP )
-			continue;
-
-		PROCESSING_TYPE disposition;
-		m_nActiveEvents += EventThink( e, m_flCurrentTime, curtime, playing_forward, disposition );
-
-		if ( disposition != PROCESSING_TYPE_IGNORE )
-		{
-			ActiveList entry;
-
-			entry.e		= e;
-			entry.pt	= disposition;
-
-			//float ret = (float)atof( e->GetParameters() );
-			float ret = e->GetStartTime();
-			ProcessActiveListEntry( &entry );
-
-			return ret;
-		}
-	}
-
-	return 0.0f;
 }
 
 //-----------------------------------------------------------------------------

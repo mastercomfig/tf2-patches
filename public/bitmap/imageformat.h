@@ -11,7 +11,8 @@
 #pragma once
 #endif
 
-#include <stdio.h>
+#include <cstdio>
+#include <cstring>
 
 enum NormalDecodeMode_t
 {
@@ -20,7 +21,7 @@ enum NormalDecodeMode_t
 
 // Forward declaration
 #ifdef _WIN32
-typedef enum _D3DFORMAT D3DFORMAT;
+typedef enum _D3DFORMAT : signed int D3DFORMAT;
 #endif
 
 //-----------------------------------------------------------------------------
@@ -180,7 +181,8 @@ struct BGRA8888_t
 	unsigned char a;
 	inline BGRA8888_t& operator=( const BGRA8888_t& in )
 	{
-		*( unsigned int * )this = *( unsigned int * )&in;
+		static_assert(sizeof(*this) == sizeof(in));
+		memcpy(this, &in, sizeof(*this));
 		return *this;
 	}
 };
@@ -193,7 +195,8 @@ struct BGRX8888_t
 	unsigned char x;
 	inline BGRX8888_t& operator=( const BGRX8888_t& in )
 	{
-		*( unsigned int * )this = *( unsigned int * ) &in;
+		static_assert(sizeof(*this) == sizeof(in));
+		memcpy(this, &in, sizeof(*this));
 		return *this;
 	}
 };

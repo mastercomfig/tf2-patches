@@ -121,7 +121,7 @@ static ConVar r_flashlightrenderworld(  "r_flashlightrenderworld", "1" );
 static ConVar r_flashlightrendermodels(  "r_flashlightrendermodels", "1" );
 static ConVar r_flashlightrender( "r_flashlightrender", "1" );
 static ConVar r_flashlightculldepth( "r_flashlightculldepth", "1" );
-ConVar r_flashlight_version2( "r_flashlight_version2", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+ConVar r_flashlight_version2("r_flashlight_version2", "1", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 
 //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ public:
 	virtual unsigned short InvalidShadowIndex( );
 
 	// Methods of ISpatialLeafEnumerator
-	virtual bool EnumerateLeaf( int leaf, int context );
+	virtual bool EnumerateLeaf( int leaf, intptr_t context );
 
 	// Sets the texture coordinate range for a shadow...
 	virtual void SetShadowTexCoord( ShadowHandle_t handle, float x, float y, float w, float h );
@@ -395,7 +395,7 @@ private:
 	bool ComputeShadowVertices( ShadowDecal_t& decal, const VMatrix* pModelToWorld, const VMatrix* pWorldToModel, ShadowVertexCache_t* pVertexCache );
 
 	// Project vertices into shadow space
-	bool ProjectVerticesIntoShadowSpace( const VMatrix& modelToShadow, 
+	bool ProjectVerticesIntoShadowSpace( const VMatrix* modelToShadow, 
 		float maxDist, int count, Vector** RESTRICT ppPosition, ShadowClipState_t& clip );
 
 	// Copies vertex info from the clipped vertices
@@ -1540,7 +1540,7 @@ void CShadowMgr::ProjectShadow( ShadowHandle_t handle, const Vector &origin,
 	for ( int i  = 0; i < nLeafCount; ++i )
 	{
 		// NOTE: Scope specifier eliminates virtual function call
-		CShadowMgr::EnumerateLeaf( pLeafList[i], (int)&build );
+		CShadowMgr::EnumerateLeaf( pLeafList[i], reinterpret_cast<intptr_t>(&build) );
 	}
 }
 
@@ -1654,7 +1654,7 @@ void CShadowMgr::ProjectFlashlight( ShadowHandle_t handle, const VMatrix& worldT
 	for ( int i = 0; i < nLeafCount; ++i )
 	{
 		// NOTE: Scope specifier eliminates virtual function call
-		CShadowMgr::EnumerateLeaf( pLeafList[i], (int)&build );
+		CShadowMgr::EnumerateLeaf( pLeafList[i], reinterpret_cast<intptr_t>(&build) );
 	}
 }
 
@@ -1743,6 +1743,8 @@ void CShadowMgr::ApplyFlashlightToLeaf( const Shadow_t &shadow, mleaf_t* pLeaf, 
 //-----------------------------------------------------------------------------
 void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pLeaf, ShadowBuildInfo_t* RESTRICT pBuild )
 {
+	// FIXME(mastercoms): optimize
+
 	// Iterate over all surfaces in the leaf, check for backfacing
 	// and apply the shadow to the surface if it's not backfaced.
 	// Note that this really only indicates that the shadow may potentially
@@ -1750,7 +1752,8 @@ void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pL
 	// computation and at that point we'll remove surfaces that don't
 	// actually hit the surface
 	SurfaceHandle_t *pHandle = &host_state.worldbrush->marksurfaces[pLeaf->firstmarksurface];
-	for ( int i = 0; i < pLeaf->nummarksurfaces; i++ )
+	const int nCount = pLeaf->nummarksurfaces;
+	for ( int i = 0; i < nCount; i++ )
 	{
 		SurfaceHandleRestrict_t surfID = pHandle[i];
 		
@@ -1768,7 +1771,7 @@ void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pL
 		// Backface cull
 		const cplane_t * RESTRICT pSurfPlane = &MSurf_Plane( surfID );
 		bool bInFront;
-		if ( (MSurf_Flags( surfID ) & SURFDRAW_NOCULL) == 0 )
+		if ( (MSurf_Flags( surfID ) & SURFDRAW_NOCULL) == 0 ) [[likely]]
 		{
 			if ( DotProduct( pSurfPlane->normal, pBuild->m_ProjectionDirection) > -BACKFACE_EPSILON )
 				continue;
@@ -1813,7 +1816,7 @@ void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pL
 //-----------------------------------------------------------------------------
 // Applies a projected texture to all surfaces in the leaf
 //-----------------------------------------------------------------------------
-bool CShadowMgr::EnumerateLeaf( int leaf, int context )
+bool CShadowMgr::EnumerateLeaf( int leaf, intptr_t context )
 {
 	VPROF( "CShadowMgr::EnumerateLeaf" );
 	ShadowBuildInfo_t* pBuild = (ShadowBuildInfo_t*)context;
@@ -2137,8 +2140,8 @@ static void ShadowClip( ShadowClipState_t& clip, Clipper& clipper )
 
 	// Ye Olde Sutherland-Hodgman clipping algorithm
 	int numOutVerts = 0;
-	ShadowVertex_t** pSrcVert = clip.m_ppClipVertices[clip.m_CurrVert];
-	ShadowVertex_t** pDestVert = clip.m_ppClipVertices[!clip.m_CurrVert];
+	ShadowVertex_t** pSrcVert = (ShadowVertex_t**)clip.m_ppClipVertices[clip.m_CurrVert];
+	ShadowVertex_t** pDestVert = (ShadowVertex_t**)clip.m_ppClipVertices[!clip.m_CurrVert];
 
 	int numVerts = clip.m_ClipCount;
 	ShadowVertex_t* pStart = pSrcVert[numVerts-1];
@@ -2194,29 +2197,56 @@ static void ShadowClip( ShadowClipState_t& clip, Clipper& clipper )
 //-----------------------------------------------------------------------------
 // Project vertices into shadow space
 //-----------------------------------------------------------------------------
-bool CShadowMgr::ProjectVerticesIntoShadowSpace( const VMatrix& modelToShadow, 
+
+//// a version of this function where I promise that src1, dst, and src2 are all different
+FORCEINLINE void Vector3DMultiplyPositionNoAlias(const VMatrix* RESTRICT src1,
+	const Vector* RESTRICT src2,
+	Vector* RESTRICT dst)
+{
+	(*dst)[0] = (*src1)[0][0] * (*src2).x + (*src1)[0][1] * (*src2).y + (*src1)[0][2] * (*src2).z + (*src1)[0][3];
+	(*dst)[1] = (*src1)[1][0] * (*src2).x + (*src1)[1][1] * (*src2).y + (*src1)[1][2] * (*src2).z + (*src1)[1][3];
+	(*dst)[2] = (*src1)[2][0] * (*src2).x + (*src1)[2][1] * (*src2).y + (*src1)[2][2] * (*src2).z + (*src1)[2][3];
+}
+bool CShadowMgr::ProjectVerticesIntoShadowSpace( const VMatrix* modelToShadow, 
 	float maxDist, int count, Vector** RESTRICT ppPosition, ShadowClipState_t& clip )
 {
-	bool insideVolume = false;
+	// init to frustum box
+	Vector mins(1.0f, 1.0f, maxDist);
+	Vector maxs(0.0f, 0.0f, 0.0f);
 
 	// Create vertices to clip to...
 	for (int i = 0; i < count; ++i )
 	{
 		Assert( ppPosition[i] );
 
-		VectorCopy( *ppPosition[i], clip.m_pTempVertices[i].m_Position );
+		Vector* RESTRICT pPos = ppPosition[i];
+		VectorCopy(*pPos, clip.m_pTempVertices[i].m_Position );
 
 		// Project the points into shadow texture space
-		Vector3DMultiplyPosition( modelToShadow, *ppPosition[i], clip.m_pTempVertices[i].m_ShadowSpaceTexCoord );
+		Vector* RESTRICT pShadowSpacePos = &clip.m_pTempVertices[i].m_ShadowSpaceTexCoord;
+		Vector3DMultiplyPositionNoAlias( modelToShadow, pPos, pShadowSpacePos );
+
+		// Update AABB for polygon
+#ifdef _X360
+		// This should be a little better for the 360 than VectorMin()/Max()
+		mins.x = fsel(pShadowSpacePos->x - mins.x, mins.x, pShadowSpacePos->x);
+		mins.y = fsel(pShadowSpacePos->y - mins.y, mins.x, pShadowSpacePos->y);
+		mins.z = fsel(pShadowSpacePos->z - mins.z, mins.x, pShadowSpacePos->z);
+		maxs.x = fsel(pShadowSpacePos->x - maxs.x, pShadowSpacePos->x, maxs.x);
+		maxs.y = fsel(pShadowSpacePos->y - maxs.y, pShadowSpacePos->y, maxs.y);
+		maxs.z = fsel(pShadowSpacePos->z - maxs.z, pShadowSpacePos->z, maxs.z);
+#else
+		VectorMin(mins, *pShadowSpacePos, mins);
+		VectorMax(maxs, *pShadowSpacePos, maxs);
+#endif
 
 		// Set up clipping coords...
 		clip.m_ppClipVertices[0][i] = &clip.m_pTempVertices[i];
-
-		if (clip.m_pTempVertices[i].m_ShadowSpaceTexCoord[2] < maxDist )
-		{
-			insideVolume = true;
-		}
 	}
+
+	// early out if AABB doesn't intersect frustum box
+	bool insideVolume = !((mins.x >= 1.0f) || (maxs.x <= 0.0f) || (mins.y >= 1.0f) ||
+		(maxs.y <= 0.0f) || (mins.z >= maxDist) || (maxs.z <= 0.0f));
 
 	clip.m_TempCount = clip.m_ClipCount = count;
 	clip.m_CurrVert = 0;
@@ -2233,7 +2263,7 @@ int CShadowMgr::ProjectAndClipVertices( const Shadow_t& shadow, const VMatrix& w
 {
 	VPROF( "ProjectAndClipVertices" );
 	static ShadowClipState_t clip;
-	if ( !ProjectVerticesIntoShadowSpace( worldToShadow, shadow.m_MaxDist, count, ppPosition, clip ) )
+	if ( !ProjectVerticesIntoShadowSpace( &worldToShadow, shadow.m_MaxDist, count, ppPosition, clip ) )
 		return 0;
 
 	// Clippers...
@@ -2249,7 +2279,11 @@ int CShadowMgr::ProjectAndClipVertices( const Shadow_t& shadow, const VMatrix& w
 	ShadowClip( clip, bottom );
 	ShadowClip( clip, left );
 	ShadowClip( clip, right );
-	ShadowClip( clip, above );
+	if (shadow.m_ClipPlaneCount == 0)
+	{
+		// only clip above if we don't have any extra clip planes that prevent back-casting
+		ShadowClip(clip, above);
+	}
 
 	// Planes to suppress back-casting
 	for (int i = 0; i < shadow.m_ClipPlaneCount; ++i)
@@ -2274,7 +2308,7 @@ int CShadowMgr::ProjectAndClipVertices( const Shadow_t& shadow, const VMatrix& w
 
 	// Return a pointer to the array of clipped vertices...
 	Assert(ppOutVertex);
-	*ppOutVertex = clip.m_ppClipVertices[clip.m_CurrVert];
+	*ppOutVertex = (ShadowVertex_t**)clip.m_ppClipVertices[clip.m_CurrVert];
 	return clip.m_ClipCount;
 }
 

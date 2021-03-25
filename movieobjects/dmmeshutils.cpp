@@ -606,7 +606,8 @@ void RemoveUnusedVerticesFromBaseState(
 		CDmrGenericArray data = pVertexData->GetVertexData( i );
 
 		// This will also update pNewVertexIndices
-		RemoveUnusedData( pMesh, pVertexData, bBind, pFieldName, pNewVertexIndices, nNewToOldIndexMapCount, CDmrGenericArray( pVertexData->GetVertexData( i ) ) );
+		CDmrGenericArray arr(pVertexData->GetVertexData(i));
+		RemoveUnusedData( pMesh, pVertexData, bBind, pFieldName, pNewVertexIndices, nNewToOldIndexMapCount, arr);
 
 		// Shrink the indices array
 		indices.RemoveMultiple( nNewToOldIndexMapCount, indices.Count() - nNewToOldIndexMapCount );

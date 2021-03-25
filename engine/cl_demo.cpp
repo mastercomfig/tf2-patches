@@ -1709,10 +1709,7 @@ bool CDemoPlayer::StartPlayback( const char *filename, bool bAsTimeDemo )
 	m_nTimeDemoCurrentFrame = -1;
 	m_nTimeDemoStartFrame = -1;
 
-	if ( m_bTimeDemo )
-	{
-		SeedRandomNumberGenerator( true );
-	}
+	SeedRandomNumberGenerator( true );
 
 	demoaction->StartPlaying( filename );
 

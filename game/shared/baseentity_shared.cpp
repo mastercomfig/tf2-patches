@@ -761,7 +761,8 @@ BASEPTR	CBaseEntity::ThinkSet( BASEPTR func, float thinkTime, const char *szCont
 {
 #if !defined( CLIENT_DLL )
 #ifdef _DEBUG
-#ifdef GNUC
+// x64: func is pointer, size was changed.
+#if defined(GNUC) || defined(PLATFORM_64BITS)
 	COMPILE_TIME_ASSERT( sizeof(func) == 8 );
 #else
 	COMPILE_TIME_ASSERT( sizeof(func) == 4 );
@@ -1119,8 +1120,8 @@ int CheckEntityVelocity( Vector &v )
 		// The usual case.  It's totally reasonable
 		return 1;
 	}
-	float speed = v.Length();
-	if ( speed < k_flMaxEntitySpeed * 100.0f )
+	float speed = v.LengthSqr();
+	if ( speed < (k_flMaxEntitySpeed * 100.0f) * (k_flMaxEntitySpeed * 100.0f) )
 	{
 		// Sort of suspicious.  Clamp it
 		v *= k_flMaxEntitySpeed / speed;
@@ -1702,7 +1703,9 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 	
 	float flCumulativeDamage = 0.0f;
 
-	for (int iShot = 0; iShot < info.m_iShots; iShot++)
+	int iShots = info.m_iShots;
+
+	for (int iShot = 0; iShot < iShots; iShot++)
 	{
 		bool bHitWater = false;
 		bool bHitGlass = false;
@@ -1720,7 +1723,6 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		}
 		else
 		{
-
 			// Don't run the biasing code for the player at the moment.
 			vecDir = Manipulator.ApplySpread( info.m_vecSpread );
 		}
@@ -1900,6 +1902,15 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			{
 				// Damage specified by function parameter
 				CTakeDamageInfo dmgInfo( this, pAttacker, flActualDamage, nActualDamageType );
+
+#ifdef TF_DLL
+				// Sentry fire rate can kill engie-boosters. Reduce it back to the old fire rate for self damage.
+				if ( iShots > 1 && tr.m_pEnt->IsPlayer() && ClassMatches("obj_sentrygun") && tr.m_pEnt == pAttacker )
+				{
+					iShots = 1;
+				}
+#endif
+
 				ModifyFireBulletsDamage( &dmgInfo );
 				CalculateBulletDamageForce( &dmgInfo, info.m_iAmmoType, vecDir, tr.endpos );
 				dmgInfo.ScaleDamageForce( info.m_flDamageForceScale );

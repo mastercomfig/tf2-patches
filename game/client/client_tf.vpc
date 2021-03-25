@@ -28,6 +28,22 @@ $Configuration
 	}
 }
 
+$Configuration	"Debug"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug -condebug" [$WINDOWS]
+	}
+}
+
+$Configuration	"Release"
+{
+	$Debugging
+	{
+		$CommandArguments "-steam -game tf -insecure -novid -nojoy -nosteamcontroller -particle_fallback 2 -allowdebug" [$WINDOWS]
+	}
+}
+
 $Project "Client (TF)"
 {
 	$Folder "Source Files"
@@ -894,13 +910,13 @@ $Project "Client (TF)"
 		}
 	}
 
-	$Folder "Useful non-source files" [!$ANALYZE && !$BUILDBOT]
-	{
-		$File "$SRCDIR\..\game\tf\scripts\HudAnimations_tf.txt"
-		$File "$SRCDIR\..\game\tf\resource\tf_english.txt"
-		$File "$SRCDIR\..\game\tf\resource\ModEvents.res"
-		$File "$SRCDIR\..\game\tf\resource\ClientScheme.res"
-	}
+//	$Folder "Useful non-source files" [!$ANALYZE && !$BUILDBOT]
+//	{
+//		$File "$SRCDIR\..\game\tf\scripts\HudAnimations_tf.txt"
+//		$File "$SRCDIR\..\game\tf\resource\tf_english.txt"
+//		$File "$SRCDIR\..\game\tf\resource\ModEvents.res"
+//		$File "$SRCDIR\..\game\tf\resource\ClientScheme.res"
+//	}
 
 	$Folder	"Link libraries"
 	{

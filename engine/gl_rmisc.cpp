@@ -266,10 +266,6 @@ void R_LevelInit( void )
 		materials->ResetTempHWMemory( bOnLevelShutdown );
 	}
 
-	// precache any textures that are used in this map.
-	// this is a no-op for textures that are already cached from the previous map.
-	materials->CacheUsedMaterials();
-
 	// Loads the world geometry
 	R_LoadWorldGeometry();
 

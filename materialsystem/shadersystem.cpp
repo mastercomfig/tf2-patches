@@ -322,9 +322,11 @@ void CShaderSystem::LoadAllShaderDLLs( )
 	int dxSupportLevel = HardwareConfig()->GetMaxDXSupportLevel();
 	Assert( dxSupportLevel >= 60 );
 	dxSupportLevel /= 10;
+	// TODO(mastercoms): add dx10 DLL?
+	dxSupportLevel = min(9, dxSupportLevel);
 
-	// 360 only supports its dx9 dll
-	int dxStart = IsX360() ? 9 : 6;
+	// 360 and OpenGL only supports its dx9 dll
+	int dxStart = IsX360() || !IsWindows() || IsOpenGL() ? 9 : 6;
 	char buf[32];
 	for ( i = dxStart; i <= dxSupportLevel; ++i )
 	{
@@ -935,7 +937,7 @@ void CShaderSystem::PrepForShaderDraw( IShader *pShader,
 
 	// 360 runs the console remotely, spew cannot cause the matsys to be reentrant
 	// 360 sidesteps the other negative affect that *all* buffered spew redirects as warning text
-	if ( (IsPC() && !IsRetail()) || !IsX360() )
+	if ( (IsPC() && !IsRetail()) && !IsX360() )
 	{
 		Assert( !m_SaveSpewOutput );
 		m_SaveSpewOutput = GetSpewOutputFunc();
@@ -949,7 +951,7 @@ void CShaderSystem::PrepForShaderDraw( IShader *pShader,
 
 void CShaderSystem::DoneWithShaderDraw()
 {
-	if ((IsPC() && !IsRetail()) || !IsX360() )
+	if ((IsPC() && !IsRetail()) && !IsX360() )
 	{
 		SpewOutputFunc( m_SaveSpewOutput );
 		PrintBufferedSpew();

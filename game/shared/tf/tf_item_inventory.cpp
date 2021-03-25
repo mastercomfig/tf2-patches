@@ -238,12 +238,11 @@ void CTFInventoryManager::GenerateBaseItems( void )
 	}
 	//
 	const CEconItemSchema::BaseItemDefinitionMap_t& mapItems = GetItemSchema()->GetBaseItemDefinitionMap();
-	int iStart = 0;
-	for ( int it = iStart; it != mapItems.InvalidIndex(); it = mapItems.NextInorder( it ) )
+	for (int it = mapItems.FirstInorder(); it != mapItems.InvalidIndex(); it = mapItems.NextInorder(it))
 	{
-		CEconItemView *pItem = new CEconItemView;
-		pItem->Init( mapItems[it]->GetDefinitionIndex(), AE_USE_SCRIPT_VALUE, AE_USE_SCRIPT_VALUE, false );
-		m_pBaseLoadoutItems.AddToTail( pItem );
+		CEconItemView* pItem = new CEconItemView;
+		pItem->Init(mapItems[it]->GetDefinitionIndex(), AE_USE_SCRIPT_VALUE, AE_USE_SCRIPT_VALUE, false);
+		m_pBaseLoadoutItems.AddToTail(pItem);
 	}
 }
 
@@ -780,7 +779,8 @@ void CTFInventoryManager::GetActiveSets( CUtlVector<const CEconItemSetDefinition
 			continue;
 
 		// Make sure this item isn't failing a Holiday restriction before giving out the set bonus!
-		if ( pData->GetHolidayRestriction() )
+		/// bypass holiday restrictions
+		if ( false && pData->GetHolidayRestriction() )
 		{
 			int iHolidayRestriction = UTIL_GetHolidayForString( pData->GetHolidayRestriction() );
 			if ( iHolidayRestriction != kHoliday_None && (!TFGameRules() || !TFGameRules()->IsHolidayActive( iHolidayRestriction )) )

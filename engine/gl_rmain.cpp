@@ -1211,7 +1211,6 @@ void R_CheckForLightingConfigChanges()
 
 void CRender::DrawSceneBegin( void )
 {
-	R_CheckForLightingConfigChanges();
 }
 
 void CRender::DrawSceneEnd( void )

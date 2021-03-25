@@ -31,6 +31,7 @@
 #include "tf_gamerules.h"
 #include "tf_gamestats.h"
 #include "ilagcompensationmanager.h"
+#include "tf_passtime_logic.h"
 #include "collisionutils.h"
 #include "tf_team.h"
 #include "tf_obj.h"
@@ -144,7 +145,7 @@ void FindHullIntersection( const Vector &vecSrc, trace_t &tr, const Vector &mins
 				UTIL_TraceLine( vecSrc, vecEnd, MASK_SOLID, pEntity, COLLISION_GROUP_NONE, &tmpTrace );
 				if ( tmpTrace.fraction < 1.0 )
 				{
-					float thisDistance = (tmpTrace.endpos - vecSrc).Length();
+					float thisDistance = (tmpTrace.endpos - vecSrc).LengthSqr();
 					if ( thisDistance < distance )
 					{
 						tr = tmpTrace;
@@ -310,6 +311,7 @@ CTFWeaponBase::CTFWeaponBase()
 	m_iCurrentSeed = -1;
 	m_flReloadPriorNextFire = 0;
 	m_flLastDeployTime = 0;
+	m_flLastSwitchMult = 1;
 
 	m_bDisguiseWeapon = false;
 
@@ -515,7 +517,7 @@ void CTFWeaponBase::Precache()
 const CTFWeaponInfo &CTFWeaponBase::GetTFWpnData() const
 {
 	const FileWeaponInfo_t *pWeaponInfo = &GetWpnData();
-	const CTFWeaponInfo *pTFInfo = dynamic_cast< const CTFWeaponInfo* >( pWeaponInfo );
+	const CTFWeaponInfo *pTFInfo = static_cast< const CTFWeaponInfo* >( pWeaponInfo );
 	Assert( pTFInfo );
 	return *pTFInfo;
 }
@@ -1050,32 +1052,41 @@ bool CTFWeaponBase::Deploy( void )
 			return false;
 
 		float flWeaponSwitchTime = 0.5f;
+		float flBaseWeaponSwitchTime = flWeaponSwitchTime;
 
 		// Overrides the anim length for calculating ready time.
 		float flDeployTimeMultiplier = 1.0f;
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flDeployTimeMultiplier, mult_deploy_time );
 		CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_single_wep_deploy_time );
 
-		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed for more than 0.67 second to match to weapon script switch time
-		// unless the player latched to a hook target, then allow switching right away
-		CTFWeaponBase *pLastWeapon = dynamic_cast< CTFWeaponBase* >( pPlayer->GetLastWeapon() );
-		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime - pLastWeapon->m_flLastDeployTime > flWeaponSwitchTime ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
-		}
-		
-		if ( pPlayer->m_Shared.InCond( TF_COND_BLASTJUMPING ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_rocketjump_deploy_time );
-		}
+		CTFWeaponBase* pLastWeapon = static_cast<CTFWeaponBase*>(pPlayer->GetLastWeapon());
 
 		int iIsSword = 0;
-		CALL_ATTRIB_HOOK_INT_ON_OTHER( pLastWeapon, iIsSword, is_a_sword );
-		CALL_ATTRIB_HOOK_INT( iIsSword, is_a_sword );
-		if ( iIsSword )
+		CALL_ATTRIB_HOOK_INT_ON_OTHER(pLastWeapon, iIsSword, is_a_sword);
+		CALL_ATTRIB_HOOK_INT(iIsSword, is_a_sword);
+		if (iIsSword)
 		{
 			// swords deploy and holster 75% slower
 			flDeployTimeMultiplier *= 1.75f;
+		}
+
+		flBaseWeaponSwitchTime *= MAX(flDeployTimeMultiplier, 0.00001f);
+
+		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed
+		// unless the player latched to a hook target, then allow switching right away
+		
+		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime >= pLastWeapon->m_flLastDeployTime ) )
+		{
+			// If the last weapon deployed, then reset the switch multiplier.
+			m_flLastSwitchMult = 1;
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, m_flLastSwitchMult, mult_switch_from_wep_deploy_time );
+		}
+
+		flDeployTimeMultiplier *= m_flLastSwitchMult;
+
+		if (pPlayer->m_Shared.InCond(TF_COND_BLASTJUMPING))
+		{
+			CALL_ATTRIB_HOOK_FLOAT(flDeployTimeMultiplier, mult_rocketjump_deploy_time);
 		}
 
 #ifdef STAGING_ONLY
@@ -1116,7 +1127,7 @@ bool CTFWeaponBase::Deploy( void )
 
 		pPlayer->SetNextAttack( m_flNextPrimaryAttack );
 
-		m_flLastDeployTime = gpGlobals->curtime;
+		m_flLastDeployTime = gpGlobals->curtime + flBaseWeaponSwitchTime;
 
 #ifdef GAME_DLL
 		// Reset our deploy-lifetime kill counter.
@@ -1500,11 +1511,17 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped( m_iCurrentSeed );
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
+		}
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
 		}
 
 		// see if we should start firing crit shots
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE-1 );
 		if ( iRandom < flStartCritChance * WEAPON_RANDOM_RANGE )
 		{
 			bCrit = true;
@@ -1523,10 +1540,15 @@ bool CTFWeaponBase::CalcIsAttackCriticalHelper()
 		if ( iSeed != m_iCurrentSeed )
 		{
 			m_iCurrentSeed = iSeed;
-			RandomSeed( m_iCurrentSeed );
+			RandomStartScope();
+			RandomSeedScoped(m_iCurrentSeed);
+			iRandom = RandomIntScoped(0, WEAPON_RANDOM_RANGE - 1);
+			RandomEndScope();
 		}
-
-		iRandom = RandomInt( 0, WEAPON_RANDOM_RANGE - 1 );
+		else
+		{
+			iRandom = RandomInt(0, WEAPON_RANDOM_RANGE - 1);
+		}
 		bCrit = ( iRandom < flCritChance * WEAPON_RANDOM_RANGE );
 	}
 
@@ -2329,14 +2351,7 @@ int CTFWeaponBase::GetInspectActivity( TFWeaponInspectStage inspectStage )
 //-----------------------------------------------------------------------------
 bool CTFWeaponBase::CanInspect() const
 {
-#ifdef STAGING_ONLY
-	if ( tf_weapon_force_allow_inspect.GetBool() )
-		return true;
-#endif
-
-	float flInspect = 0.f;
-	CALL_ATTRIB_HOOK_FLOAT( flInspect, weapon_allow_inspect );
-	return flInspect != 0.f;
+	return true;
 }
 
 
@@ -5395,6 +5410,10 @@ bool CTFWeaponBase::CanPerformSecondaryAttack() const
 {
 	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 
+    // fix stickies not being detonated while attacking
+    if ( pOwner->IsPlayerClass( TF_CLASS_DEMOMAN ) )
+        return true;
+
 	// Demo shields are allowed to charge whenever
 	if ( pOwner->m_Shared.HasDemoShieldEquipped() )
 		return true;
@@ -5450,6 +5469,13 @@ bool CTFWeaponBase::DeflectProjectiles()
 		return false;
 
 	lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
+
+	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
+	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
+	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
+	{
+		g_pPasstimeLogic->GetBall()->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
+	}
 
 	Vector vecEye = pOwner->EyePosition();
 	Vector vecForward, vecRight, vecUp;
@@ -5516,6 +5542,13 @@ bool CTFWeaponBase::DeflectProjectiles()
 	}
 
 	lagcompensation->FinishLagCompensation( pOwner );
+
+	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
+	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
+	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
+	{
+		g_pPasstimeLogic->GetBall()->FinishLagCompensation( pOwner );
+	}
 
 	return true;
 }

@@ -877,7 +877,7 @@ public:
 
 	char					m_szAnimExtension[32];
 
-	int						m_nUpdateRate;		// user snapshot rate cl_updaterate
+	float						m_fUpdateInterval;		// user snapshot interval cl_updateinterval
 	float					m_fLerpTime;		// users cl_interp
 	bool					m_bLagCompensation;	// user wants lag compenstation
 	bool					m_bPredictWeapons; //  user has client side predicted weapons

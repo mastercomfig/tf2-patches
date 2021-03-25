@@ -31,7 +31,7 @@ BEGIN_VS_SHADER( WorldVertexAlpha,
 
 	SHADER_FALLBACK
 	{
-//		if( g_pHardwareConfig->GetDXSupportLevel() < 90 || g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE )
+		if( g_pHardwareConfig->GetDXSupportLevel() < 90 || g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE )
 		{
 			return "WorldVertexAlpha_DX8";
 		}

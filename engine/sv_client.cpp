@@ -39,10 +39,10 @@ extern CNetworkStringTableContainer *networkStringTableContainerServer;
 
 static ConVar	sv_timeout( "sv_timeout", "65", 0, "After this many seconds without a message from a client, the client is dropped" );
 static ConVar	sv_maxrate( "sv_maxrate", "0", FCVAR_REPLICATED, "Max bandwidth rate allowed on server, 0 == unlimited" );
-static ConVar	sv_minrate( "sv_minrate", "3500", FCVAR_REPLICATED, "Min bandwidth rate allowed on server, 0 == unlimited" );
-       
-       ConVar	sv_maxupdaterate( "sv_maxupdaterate", "66", FCVAR_REPLICATED, "Maximum updates per second that the server will allow" );
-	   ConVar	sv_minupdaterate( "sv_minupdaterate", "10", FCVAR_REPLICATED, "Minimum updates per second that the server will allow" );
+static ConVar	sv_minrate( "sv_minrate", V_STRINGIFY(MIN_RATE), FCVAR_REPLICATED, "Min bandwidth rate allowed on server, 0 == unlimited" );
+
+       ConVar	sv_maxupdateinterval( "sv_maxupdateinterval", "0.015", FCVAR_REPLICATED, "Maximum time between updates that the server will allow" );
+	   ConVar	sv_minupdateinterval( "sv_minupdateinterval", "0.015", FCVAR_REPLICATED, "Minimum time between updates that the server will allow" );
 
 	   ConVar	sv_stressbots("sv_stressbots", "0", FCVAR_DEVELOPMENTONLY, "If set to 1, the server calculates data and fills packets to bots. Used for perf testing.");
 static ConVar	sv_allowdownload ("sv_allowdownload", "1", 0, "Allow clients to download files");
@@ -261,10 +261,6 @@ bool CGameClient::ProcessFileCRCCheck( CLC_FileCRCCheck *msg )
 
 	char warningStr[1024] = {0};
 
-	// The client may send us files we don't care about, so filter them here
-//	if ( !sv.GetPureServerWhitelist()->GetForceMatchList()->IsFileInList( msg->m_szFilename ) )
-//		return true;
-
 	// first check against all the other files users have sent
 	FileHash_t filehash;
 	filehash.m_md5contents = msg->m_MD5;
@@ -274,8 +270,8 @@ bool CGameClient::ProcessFileCRCCheck( CLC_FileCRCCheck *msg )
 	filehash.m_nPackFileNumber = msg->m_nPackFileNumber;
 	filehash.m_PackFileID = msg->m_PackFileID;
 
-	const char *path = msg->m_szPathID;
-	const char *fileName = msg->m_szFilename;
+	const char *path = msg->GetPath();
+	const char *fileName = msg->GetFileName();
 	if ( g_PureFileTracker.DoesFileMatch( path, fileName, msg->m_nFileFraction, &filehash, GetNetworkID() ) )
 	{
 		// track successful file
@@ -490,22 +486,42 @@ void CGameClient::SetRate(int nRate, bool bForce )
 
 	CBaseClient::SetRate( nRate, bForce );
 }
-void CGameClient::SetUpdateRate(int udpaterate, bool bForce)
+
+void CGameClient::SetUpdateInterval(float fUpdateInterval, bool bForce)
 {
-	if ( !bForce )
+	if (!bForce)
 	{
-		if ( sv_maxupdaterate.GetInt() > 0 )
+		if (1.0f / sv_maxupdateinterval.GetFloat() > 0)
 		{
-			udpaterate = clamp( udpaterate, 1, sv_maxupdaterate.GetInt() );
+			fUpdateInterval = max(fUpdateInterval, sv_maxupdateinterval.GetFloat());
 		}
 
-		if ( sv_minupdaterate.GetInt() > 0 )
+		if (1.0f / sv_minupdateinterval.GetFloat() > 0)
 		{
-			udpaterate = clamp( udpaterate, sv_minupdaterate.GetInt(), 100 );
+			fUpdateInterval = min(fUpdateInterval, sv_minupdateinterval.GetFloat());
 		}
 	}
 
-	CBaseClient::SetUpdateRate( udpaterate, bForce );
+	m_fSnapshotInterval = fUpdateInterval;
+}
+
+
+void CGameClient::SetUpdateRate(int updaterate, bool bForce)
+{
+	if ( !bForce )
+	{
+		if (1.0f / sv_maxupdateinterval.GetFloat() > 0)
+		{
+			updaterate = clamp((float) updaterate, 1.0f, 1.0f / sv_maxupdateinterval.GetFloat() );
+		}
+
+		if (1.0f / sv_minupdateinterval.GetFloat() > 0)
+		{
+			updaterate = max((float) updaterate, 1.0f / sv_minupdateinterval.GetFloat());
+		}
+	}
+
+	CBaseClient::SetUpdateRate(updaterate, bForce );
 }
 
 
@@ -817,12 +833,14 @@ void CGameClient::WriteGameSounds( bf_write &buf )
 	}
 }
 
+static ConVar sv_multiplayer_maxsounds("sv_multiplayer_sounds", "20");
+
 int	CGameClient::FillSoundsMessage(SVC_Sounds &msg)
 {
 	int i, count = m_Sounds.Count();
 
-	// send max 64 sound in multiplayer per snapshot, 255 in SP
-	int max = m_Server->IsMultiplayer() ? 32 : 255;
+	// send max 20 sound in multiplayer per snapshot, 255 in SP
+	int max = m_Server->IsMultiplayer() ? sv_multiplayer_maxsounds.GetInt() : 255;
 
 	// Discard events if we have too many to signal with 8 bits
 	if ( count > max )
@@ -832,7 +850,7 @@ int	CGameClient::FillSoundsMessage(SVC_Sounds &msg)
 	if ( !count )
 		return 0;
 
-	SoundInfo_t defaultSound; defaultSound.SetDefault();
+	SoundInfo_t defaultSound;
 	SoundInfo_t *pDeltaSound = &defaultSound;
 	
 	msg.m_nNumSounds = count;

@@ -2,7 +2,6 @@
 *.suo
 *.user
 *.sln.docstates
-*.obj
 *.pch
 *.tlog
 *.log
@@ -15,8 +14,15 @@ ipch
 *.sdf
 *.opensdf
 *.idb
-*.vcxproj
 *.sln
+*.recipe
+pythonenv*/
+
+*.lib
+*.a
+*.obj
+*.dylib
+*.xz
 
 # OSX/Linux build products
 *.mak
@@ -54,7 +60,8 @@ config.cfg
 *.vcxproj.filters
 *.vcxproj.vpc_crc
 *.vcxproj.FileListAbsolute.txt
-*.obj
+# required upgraded/modified protobuf projects
+!thirdparty/protobuf-2.5.0/vsprojects/*.vcxproj
 *.iobj
 *.pch
 *.pdb
@@ -63,6 +70,7 @@ config.cfg
 
 # ignore vs-generated folders
 .vs/
+.vscode/
 Retail/
 Retail_*/
 Release/
@@ -74,8 +82,3 @@ UpgradeLog*.htm
 
 # ignore generated protobufs
 generated_proto*/
-
-*.lib
-*.a
-*.dylib
-*.xz

@@ -32,6 +32,8 @@
 #include "takedamageinfo.h"
 #include "tf_team.h"
 #include "physics_collisionevent.h"
+#include "vcollide.h"
+#include "vcollide_parse.h"
 #ifdef TF_RAID_MODE
 #include "player_vs_environment/boss_alpha/boss_alpha.h"
 #endif // TF_RAID_MODE
@@ -492,7 +494,8 @@ CTFGrenadePipebombProjectile* CTFGrenadePipebombProjectile::Create( const Vector
 //-----------------------------------------------------------------------------
 void CTFGrenadePipebombProjectile::Spawn()
 {
-	if ( HasStickyEffects() )
+	const bool bHasStickyEffects = HasStickyEffects();
+	if ( bHasStickyEffects )
 	{
 		// Set this to max, so effectively they do not self-implode.
 
@@ -525,6 +528,29 @@ void CTFGrenadePipebombProjectile::Spawn()
 	SetCustomPipebombModel();
 
 	BaseClass::Spawn();
+
+#if 0
+	// Reset vphysics model but keep the material
+	if ( !bHasStickyEffects && m_iType == TF_GL_MODE_CANNONBALL )
+	{
+		solid_t solid;
+		PhysModelParseSolid( solid, this, GetModelIndex() );
+		VPhysicsDestroyObject();
+		int surfaceProp = -1;
+	    if ( solid.surfaceprop[0] )
+	    {
+		    surfaceProp = physprops->GetSurfaceIndex( solid.surfaceprop );
+	    }
+		IPhysicsObject *pPhysicsObject = PhysModelCreate( this, modelinfo->GetModelIndex( TF_WEAPON_PIPEGRENADE_MODEL ), GetAbsOrigin(), GetAbsAngles(), NULL );
+		pPhysicsObject->SetMaterialIndex(surfaceProp);
+	    if ( pPhysicsObject )
+	    {
+		    VPhysicsSetObject( pPhysicsObject );
+		    SetMoveType( MOVETYPE_VPHYSICS );
+			pPhysicsObject->Wake();
+	    }
+	}
+#endif
 
 	m_bTouched = false;
 	m_flCreationTime = gpGlobals->curtime;
@@ -769,7 +795,7 @@ void CTFGrenadePipebombProjectile::PipebombTouch( CBaseEntity *pOther )
 			}
 		}
 		
-		if ( m_iType == TF_GL_MODE_CANNONBALL )
+		if ( m_iType == TF_GL_MODE_CANNONBALL && !( TFGameRules() && TFGameRules()->IsTruceActive() ) )
 		{
 			// Damage the player to push them back
 			CBaseEntity *pAttacker = GetThrower();

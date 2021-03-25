@@ -18,7 +18,7 @@
 extern ConVar_ServerBounded *cl_predict;
 extern ConVar_ServerBounded *cl_interp;
 
-// Returns cl_interp_ratio / cl_updaterate.
+// Returns cl_interp_ratio * cl_updateinterval.
 float GetClientInterpAmount();
 
 

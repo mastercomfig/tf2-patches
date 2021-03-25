@@ -345,14 +345,15 @@ void CSteamWorksGameStatsUploader::FireGameEvent( IGameEvent *event )
 		m_nClientJoinMethod = k_ClientJoinMethod_Unknown;
 		if ( pszSource[0] != '\0' )
 		{
-			if ( FStrEq( "listenserver", pszSource ) )                 m_nClientJoinMethod = k_ClientJoinMethod_ListenServer;
-			else if ( FStrEq( "serverbrowser", pszSource ) )           m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowser_UNKNOWN;
-			else if ( FStrEq( "serverbrowser_internet", pszSource ) )  m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserInternet;
-			else if ( FStrEq( "serverbrowser_friends", pszSource ) )   m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserFriends;
-			else if ( FStrEq( "serverbrowser_favorites", pszSource ) ) m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserFavorites;
-			else if ( FStrEq( "serverbrowser_history", pszSource ) )   m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserHistory;
-			else if ( FStrEq( "serverbrowser_lan", pszSource ) )       m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserLAN;
-			else if ( FStrEq( "serverbrowser_spectator", pszSource ) ) m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserSpectator;
+			if (FStrEq("listenserver", pszSource))                 m_nClientJoinMethod = k_ClientJoinMethod_ListenServer;
+			else if (FStrEq("serverbrowser", pszSource))           m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowser_UNKNOWN;
+			else if (FStrEq("serverbrowser_internet", pszSource))  m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserInternet;
+			else if (FStrEq("serverbrowser_friends", pszSource))   m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserFriends;
+			else if (FStrEq("serverbrowser_favorites", pszSource)) m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserFavorites;
+			else if (FStrEq("serverbrowser_history", pszSource))   m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserHistory;
+			else if (FStrEq("serverbrowser_lan", pszSource))       m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserLAN;
+			else if (FStrEq("serverbrowser_spectator", pszSource)) m_nClientJoinMethod = k_ClientJoinMethod_ServerBrowserSpectator;
+			else if (FStrEq("-ConnectStringOnCommandline", pszSource)) m_nClientJoinMethod = k_ClientJoinMethod_Unknown;
 			else if ( FStrEq( "steam", pszSource ) )                   m_nClientJoinMethod = k_ClientJoinMethod_Steam;
 			else if ( FStrEq( "matchmaking", pszSource ) )             m_nClientJoinMethod = k_ClientJoinMethod_Matchmaking;
 			else if ( FStrEq( "coaching", pszSource ) )                m_nClientJoinMethod = k_ClientJoinMethod_Coaching;

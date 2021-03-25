@@ -56,6 +56,7 @@ void Sys_CreateFileAssociations( int count, FileAssociationInfo *list );
 
 // disables the system crash dialogs on windows, stub otherwise
 void Sys_NoCrashDialog();
+void Sys_FixAlignment();
 void Sys_TestSendKey( const char *pKey );
 void Sys_OutputDebugString(const char *msg);
 

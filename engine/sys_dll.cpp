@@ -62,6 +62,7 @@
 #ifdef _WIN32
 #if !defined( _X360 )
 #include <io.h>
+#include <system_error>
 #endif
 #endif
 #include "toolframework/itoolframework.h"
@@ -75,7 +76,7 @@
 #define ONE_HUNDRED_TWENTY_EIGHT_MB	(128 * 1024 * 1024)
 
 ConVar mem_min_heapsize( "mem_min_heapsize", "48", FCVAR_INTERNAL_USE, "Minimum amount of memory to dedicate to engine hunk and datacache (in mb)" );
-ConVar mem_max_heapsize( "mem_max_heapsize", "256", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache (in mb)" );
+ConVar mem_max_heapsize( "mem_max_heapsize", "576", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache (in mb)" );
 ConVar mem_max_heapsize_dedicated( "mem_max_heapsize_dedicated", "64", FCVAR_INTERNAL_USE, "Maximum amount of memory to dedicate to engine hunk and datacache, for dedicated server (in mb)" );
 
 #define MINIMUM_WIN_MEMORY			(unsigned)(mem_min_heapsize.GetInt()*1024*1024)
@@ -392,7 +393,7 @@ void Sys_Error_Internal( bool bMinidump, const char *error, va_list argsList )
 	}
 	else
 	{
-		Sys_Printf( "%s\n", text );
+		Sys_Printf( (char*)"%s\n", text );
 	}
 
 	// Write the error to the log and ensure the log contents get written to disk
@@ -580,54 +581,23 @@ void Sys_InitMemory( void )
 	host_parms.memsize = 0;
 
 #ifdef _WIN32
-#if (_MSC_VER > 1200)
-	// MSVC 6.0 doesn't support GlobalMemoryStatusEx()
-	if ( IsPC() )
-	{
-		OSVERSIONINFOEX osvi;
-		ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-
-		if ( GetVersionEx ((OSVERSIONINFO *)&osvi) )
-		{
-			if ( osvi.dwPlatformId >= VER_PLATFORM_WIN32_NT && osvi.dwMajorVersion >= 5 )
-			{
-				MEMORYSTATUSEX	memStat;
-				ZeroMemory(&memStat, sizeof(MEMORYSTATUSEX));
-				memStat.dwLength = sizeof(MEMORYSTATUSEX);
-				if ( GlobalMemoryStatusEx( &memStat ) )
-				{
-					if ( memStat.ullTotalPhys > 0xFFFFFFFFUL )
-					{
-						host_parms.memsize = 0xFFFFFFFFUL;
-					}
-					else
-					{
-						host_parms.memsize = memStat.ullTotalPhys;
-					}
-				}
-			}
-		}
-	}
-#endif // (_MSC_VER > 1200)
-
 	if ( !IsX360() )
 	{
-		if ( host_parms.memsize == 0 )
+		MEMORYSTATUSEX	memStat = { sizeof(memStat) };
+		if (GlobalMemoryStatusEx(&memStat))
 		{
-			MEMORYSTATUS lpBuffer;
-			// Get OS Memory status
-			lpBuffer.dwLength = sizeof(MEMORYSTATUS);
-			GlobalMemoryStatus( &lpBuffer );
-
-			if ( lpBuffer.dwTotalPhys <= 0 )
+			if (memStat.ullTotalPhys > 0xFFFFFFFFUL)
 			{
-				host_parms.memsize = MAXIMUM_WIN_MEMORY;
+				host_parms.memsize = 0xFFFFFFFFUL;
 			}
 			else
 			{
-				host_parms.memsize = lpBuffer.dwTotalPhys;
-			}	
+				host_parms.memsize = memStat.ullTotalPhys;
+			}
+		}
+		else 
+		{
+			host_parms.memsize = MAXIMUM_WIN_MEMORY;
 		}
 		if ( host_parms.memsize < ONE_HUNDRED_TWENTY_EIGHT_MB )
 		{
@@ -809,7 +779,7 @@ static CThreadFastMutex g_SpewMutex;
 
 static void AddSpewRecord( char const *pMsg )
 {
-#if !defined( _X360 )
+#if !defined( _X360 ) && !defined(_RETAIL)
 	AUTO_LOCK( g_SpewMutex );
 
 	static bool s_bReentrancyGuard = false;
@@ -1254,7 +1224,7 @@ void LoadEntityDLLs( const char *szBaseDir, bool bIsServerOnly )
 	modinfo->deleteThis();
 	
 	// Load the game .dll
-	LoadThisDll( "server" DLL_EXT_STRING, bIsServerOnly );
+	LoadThisDll( (char*)"server" DLL_EXT_STRING, bIsServerOnly );
 
 	if ( serverGameDLL )
 	{
@@ -1289,7 +1259,7 @@ void Sys_GetRegKeyValueUnderRoot( HKEY rootKey, const char *pszSubKey, const cha
 		rootKey,	// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,
@@ -1355,7 +1325,7 @@ void Sys_GetRegKeyValueUnderRootInt( HKEY rootKey, const char *pszSubKey, const 
 		rootKey,	// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,
@@ -1406,7 +1376,7 @@ void Sys_SetRegKeyValueUnderRoot( HKEY rootKey, const char *pszSubKey, const cha
 		rootKey,			// handle of open key 
 		pszSubKey,			// address of name of subkey to open 
 		0ul,					// DWORD ulOptions,	  // reserved 
-		"String",			// Type of value
+		(char*)"String",			// Type of value
 		REG_OPTION_NON_VOLATILE, // Store permanently in reg.
 		KEY_ALL_ACCESS,		// REGSAM samDesired, // security access mask 
 		NULL,
@@ -1535,6 +1505,13 @@ void Sys_NoCrashDialog()
 #endif
 }
 
+void Sys_FixAlignment()
+{
+#if defined(_WIN32)
+	::SetErrorMode(SetErrorMode(SEM_NOALIGNMENTFAULTEXCEPT) | SEM_NOALIGNMENTFAULTEXCEPT);
+#endif
+}
+
 void Sys_TestSendKey( const char *pKey )
 {
 #if defined(_WIN32) && !defined(USE_SDL) && !defined(_XBOX)
@@ -1588,13 +1565,21 @@ CON_COMMAND( star_memory, "Dump memory stats" )
 #elif OSX
 	struct mstats memstats = mstats( );
 	Msg( "Available %.2f MB, Used: %.2f MB, #mallocs = %lu\n",
-		 memstats.bytes_free / ( 1024.0 * 1024.0), memstats.bytes_used / ( 1024.0 * 1024.0 ), memstats.chunks_used );
+		 memstats.bytes_free / ( 1024.0 * 1024.0 ), memstats.bytes_used / ( 1024.0 * 1024.0 ), memstats.chunks_used );
 #else
-	MEMORYSTATUS stat;
-	GlobalMemoryStatus( &stat );
-	Msg( "Available: %.2f MB, Used: %.2f MB, Free: %.2f MB\n", 
-		stat.dwTotalPhys/( 1024.0f*1024.0f ) - 32.0f,
-		( stat.dwTotalPhys - stat.dwAvailPhys )/( 1024.0f*1024.0f ) - 32.0f, 
-		stat.dwAvailPhys/( 1024.0f*1024.0f ) );
+	MEMORYSTATUSEX stat = { sizeof(stat) };
+	if ( GlobalMemoryStatusEx( &stat ) )
+	{
+		Msg( "Available: %.2f MiB, Used: %.2f MiB, Free: %.2f MiB\n",
+			stat.ullTotalPhys / ( 1024.0f * 1024.0f ) - 32.0f,
+			( stat.ullTotalPhys - stat.ullAvailPhys ) / ( 1024.0f * 1024.0f ) - 32.0f,
+			stat.ullAvailPhys / ( 1024.0f * 1024.0f ) );
+	}
+	else
+	{
+		const auto lastErrorText = std::system_category().message( GetLastError() );
+		Msg( "Memory status not available: %s\n", lastErrorText.c_str() );
+	}
+
 #endif
 }

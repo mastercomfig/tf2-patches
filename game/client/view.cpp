@@ -51,7 +51,7 @@
 #include "replay/ienginereplay.h"
 #endif
 
-#if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
+#if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL ) || defined( TF_CLIENT_DLL )
 #define USE_MONITORS
 #endif
 
@@ -1190,7 +1190,7 @@ void CViewRender::Render( vrect_t *rect )
 		if( viewEye.m_flAspectRatio <= 0.f )
 			viewEye.m_flAspectRatio	= (float)viewEye.width / (float)viewEye.height;
 
-	    int nClearFlags = VIEW_CLEAR_DEPTH | VIEW_CLEAR_STENCIL;
+		int nClearFlags = 0;
 
 	    if( gl_clear_randomcolor.GetBool() )
 	    {
@@ -1211,7 +1211,7 @@ void CViewRender::Render( vrect_t *rect )
 		    // On Posix, on ATI, we always clear color if we're antialiasing
 		    if ( adapterInfo.m_VendorID == 0x1002 )
 		    {
-			    if ( g_pMaterialSystem->GetCurrentConfigForVideoCard().m_nAASamples >= 0 )
+			    if ( g_pMaterialSystem->GetCurrentConfigForVideoCard().m_nAASamples > 1 )
 			    {
 				    nClearFlags |= VIEW_CLEAR_COLOR;
 			    }

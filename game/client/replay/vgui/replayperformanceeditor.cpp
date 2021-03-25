@@ -1565,7 +1565,7 @@ void CReplayPerformanceEditorPanel::OnTick()
 	// Factor in host_timescale.
 	float flScaledElapsed = flElapsed;
 	ConVarRef host_timescale( "host_timescale" );
-	if ( host_timescale.GetFloat() > 0 )
+	if ( host_timescale.GetFloat() > 0)
 	{
 		flScaledElapsed *= host_timescale.GetFloat();
 	}

@@ -146,7 +146,7 @@ static ConVar r_dscale_fardist( "r_dscale_fardist", "2000", FCVAR_CHEAT );
 static ConVar r_dscale_basefov( "r_dscale_basefov", "90", FCVAR_CHEAT );
 
 ConVar r_spray_lifetime( "r_spray_lifetime", "2", 0, "Number of rounds player sprays are visible" );
-ConVar r_queued_decals( "r_queued_decals", "1", 0, "Offloads a bit of decal rendering setup work to the material system queue when enabled." );
+ConVar r_queued_decals( "r_queued_decals", "0", 0, "Offloads a bit of decal rendering setup work to the material system queue when enabled." );
 
 
 // This makes sure all the decals got freed before the engine is shutdown.
@@ -1810,17 +1810,17 @@ CDecalVert* R_DecalSetupVerts( decalcontext_t &context, decal_t *pDecal, Surface
 
 			Vector playerOrigin = CurrentViewOrigin();
 
-			float dist = 0;
+			float dist;
 			
 			if ( pDecal->entityIndex == 0 )
 			{
-				dist = (playerOrigin - pDecal->position).Length();
+				dist = (playerOrigin - pDecal->position).LengthSqr();
 			}
 			else
 			{
 				Vector worldSpaceCenter;
 				Vector3DMultiplyPosition(g_BrushToWorldMatrix, pDecal->position, worldSpaceCenter );
-				dist = (playerOrigin - worldSpaceCenter).Length();
+				dist = (playerOrigin - worldSpaceCenter).LengthSqr();
 			}
 			float fov = g_EngineRenderer->GetFov();
 
@@ -1850,12 +1850,13 @@ CDecalVert* R_DecalSetupVerts( decalcontext_t &context, decal_t *pDecal, Surface
 			// attenuation factor rather than a scale, so we compute 1/scale
 			// to account for this.
 			//
-			if ( dist < nearDist )
+			if ( dist < nearDist * nearDist )
 				scaleFactor = 1.0f;
-			else if( dist >= farDist )
+			else if( dist >= farDist * farDist )
 				scaleFactor = farScale;
 			else
 			{
+				dist = FastSqrt(dist);
 				float percent = (dist - nearDist) / (farDist - nearDist);
 				scaleFactor = nearScale + percent * (farScale - nearScale);
 			}
@@ -2415,6 +2416,7 @@ void R_DrawDecalsAll_Gathered( IMatRenderContext *pRenderContext, decal_t **ppDe
 	for( int i = 0; i != iDecalCount; ++i )
 	{
 		decal_t *pDecal = ppDecals[i];
+
 		if( (pDecal == DECALMARKERS_SWITCHSORTTREE) || (pDecal == DECALMARKERS_SWITCHBUCKET) )
 		{
 			if ( pBatch )
@@ -2502,7 +2504,7 @@ void R_DrawDecalsAll_Gathered( IMatRenderContext *pRenderContext, decal_t **ppDe
 			{
 				meshList.m_pMesh = pRenderContext->GetDynamicMesh( false, NULL, NULL, g_materialDecalWireframe );
 			}
-			else
+			else if (pDecalHead)
 			{
 				meshList.m_pMesh = pRenderContext->GetDynamicMesh( false, NULL, NULL, pDecalHead->material );
 			}

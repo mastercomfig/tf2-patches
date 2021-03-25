@@ -1136,7 +1136,7 @@ void VOX_LookupMapnames( void )
 	{
 		// step sequentially through group - return ptr to 1st word in each group (map name)
 
-		psz = VOX_LookupSentenceByIndex( "V_MAPNAME", i, &inext );
+		psz = VOX_LookupSentenceByIndex((char*)"V_MAPNAME", i, &inext );
 
 		if (!psz)
 			return;

@@ -131,8 +131,8 @@ private:
 	HFont			m_hFont;
 
 	HFont			m_hFontSmall;
-	const ConVar		*cl_updaterate;
-	const ConVar		*cl_cmdrate;
+	const ConVar_ServerBounded		*cl_updateinterval;
+	const ConVar_ServerBounded      *cl_cmdinterval;
 
 public:
 						CNetGraphPanel( VPANEL parent );
@@ -229,9 +229,9 @@ CNetGraphPanel::CNetGraphPanel( VPANEL parent )
 
 	InitColors();
 
-	cl_updaterate = cvar->FindVar( "cl_updaterate" );
-	cl_cmdrate = cvar->FindVar( "cl_cmdrate" );
-	assert( cl_updaterate && cl_cmdrate );
+	cl_updateinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_updateinterval" ));
+	cl_cmdinterval = static_cast<ConVar_ServerBounded*>(cvar->FindVar( "cl_cmdinterval" ));
+	assert( cl_updateinterval && cl_cmdinterval );
 
 	memset( sendcolor, 0, 3 );
 	memset( holdcolor, 0, 3 );
@@ -599,19 +599,8 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 	for ( int i=0; i<MAX_FLOWS; i++ )
 		netchannel->GetStreamProgress( i, &m_StreamRecv[i], &m_StreamTotal[i] );
 
-	float flAdjust = 0.0f;
-
-	if ( cl_updaterate->GetFloat() > 0.001f )
-	{
-		flAdjust = -0.5f / cl_updaterate->GetFloat();
-
-		m_AvgLatency += flAdjust;
-	}
-
 	// Can't be below zero
 	m_AvgLatency = MAX( 0.0, m_AvgLatency );
-
-	flAdjust *= 1000.0f;
 
 	// Fill in frame data
 	for ( int seqnr =m_IncomingSequence - m_UpdateWindowSize + 1
@@ -629,7 +618,6 @@ void CNetGraphPanel::GetFrameData( 	INetChannelInfo *netchannel, int *biggest_me
 
 		if ( lat->latency < 9995 )
 		{
-			lat->latency += flAdjust;
 			lat->latency = MAX( lat->latency, 0 );
 		}		
 
@@ -782,7 +770,7 @@ void CNetGraphPanel::DrawTextFields( int graphvalue, int x, int y, int w, netban
 			interpcolor[ 2 ] = 31;
 		}
 		// flInterp is below recommended setting!!!
-		else if ( flInterp < ( 2.0f / cl_updaterate->GetFloat() ) )
+		else if ( flInterp < ( 2.0f * cl_updateinterval->GetFloat() ) )
 		{
 			interpcolor[ 0 ] = 255;
 			interpcolor[ 1 ] = 125;
@@ -1051,7 +1039,7 @@ void CNetGraphPanel::DrawHatches( int x, int y, int maxmsgbytes )
 void CNetGraphPanel::DrawUpdateRate( int xright, int y )
 {
 	char sz[ 32 ];
-	Q_snprintf( sz, sizeof( sz ), "%i/s", cl_updaterate->GetInt() );
+	Q_snprintf( sz, sizeof( sz ), "%3.1f/s", 1.0f / cl_updateinterval->GetFloat() );
 	wchar_t unicode[ 32 ];
 	g_pVGuiLocalize->ConvertANSIToUnicode( sz, unicode, sizeof( unicode  ) );
 
@@ -1071,7 +1059,7 @@ void CNetGraphPanel::DrawUpdateRate( int xright, int y )
 void CNetGraphPanel::DrawCmdRate( int xright, int y )
 {
 	char sz[ 32 ];
-	Q_snprintf( sz, sizeof( sz ), "%i/s", cl_cmdrate->GetInt() );
+	Q_snprintf(sz, sizeof(sz), "%3.1f/s", 1.0f / cl_cmdinterval->GetFloat());
 	wchar_t unicode[ 32 ];
 	g_pVGuiLocalize->ConvertANSIToUnicode( sz, unicode, sizeof( unicode  ) );
 

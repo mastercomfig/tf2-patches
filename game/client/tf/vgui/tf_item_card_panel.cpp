@@ -296,11 +296,12 @@ void CTFItemCardPanel::PerformLayout()
 	// Position grime
 	{
 		// Randomize based on our original item ID, if we have one.  If not, just use defindex
-		RandomSeed( m_pItem->GetSOCData() ? m_pItem->GetSOCData()->GetOriginalID() : m_pItem->GetItemDefIndex() );
-
+		RandomStartScope();
+		RandomSeedScoped( m_pItem->GetSOCData() ? m_pItem->GetSOCData()->GetOriginalID() : m_pItem->GetItemDefIndex() );
 		// Randomize X/Y
-		int nGrimeX = RandomInt( -abs( m_pGrime->GetWide() - GetWide() ), 0 );
-		int nGrimeY = RandomInt( -abs( m_pGrime->GetTall() - GetTall() ), 0 );
+		int nGrimeX = RandomIntScoped( -abs( m_pGrime->GetWide() - GetWide() ), 0 );
+		int nGrimeY = RandomIntScoped( -abs( m_pGrime->GetTall() - GetTall() ), 0 );
+		RandomEndScope();
 		m_pGrime->SetPos( nGrimeX, nGrimeY );
 		// Randomize 0,90,180,270 rotation
 		m_pGrime->GetImage()->SetRotation( RandomInt( 0, 3 ) ); // Have to GetImage()->SetRotation because ImagePanel::SetRotation does nothing!

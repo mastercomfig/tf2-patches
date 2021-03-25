@@ -102,11 +102,7 @@ static ConVar m_mousespeed( "m_mousespeed", "1", FCVAR_ARCHIVE, "Windows mouse a
 static ConVar m_mouseaccel1( "m_mouseaccel1", "0", FCVAR_ARCHIVE, "Windows mouse acceleration initial threshold (2x movement).", true, 0, false, 0.0f );
 static ConVar m_mouseaccel2( "m_mouseaccel2", "0", FCVAR_ARCHIVE, "Windows mouse acceleration secondary threshold (4x movement).", true, 0, false, 0.0f );
 
-#ifdef OSX
 static ConVar m_rawinput( "m_rawinput", "1", FCVAR_ARCHIVE, "Use Raw Input for mouse input.");
-#else
-static ConVar m_rawinput( "m_rawinput", "0", FCVAR_ARCHIVE, "Use Raw Input for mouse input.");
-#endif
 
 #if DEBUG
 ConVar cl_mouselook( "cl_mouselook", "1", FCVAR_ARCHIVE, "Set to 1 to use mouse for look, 0 for keyboard look." );
@@ -138,7 +134,7 @@ void CInput::ActivateMouse (void)
 		}
 		m_fMouseActive = true;
 
-		ResetMouse();
+		//ResetMouse();
 #if !defined( PLATFORM_WINDOWS )
 		int dx, dy;
 		engine->GetMouseDelta( dx, dy, true );
@@ -174,10 +170,8 @@ void CInput::DeactivateMouse (void)
 		}
 		m_fMouseActive = false;
 		vgui::surface()->SetCursor( vgui::dc_arrow );
-#if !defined( PLATFORM_WINDOWS )
 		// now put the mouse back in the middle of the screen
 		ResetMouse();
-#endif
 
 		// Clear accumulated error, too
 		m_flAccumulatedMouseXMovement = 0;
@@ -583,10 +577,6 @@ void CInput::AccumulateMouse( void )
 	int w, h;
 	engine->GetScreenSize( w, h );
 
-	// x,y = screen center
-	int x = w >> 1;	x;
-	int y = h >> 1;	y;
-
 	//only accumulate mouse if we are not moving the camera with the mouse
 	if ( !m_fCameraInterceptingMouse && vgui::surface()->IsCursorLocked() )
 	{
@@ -594,8 +584,11 @@ void CInput::AccumulateMouse( void )
 		// By design, we follow the old mouse path even when using SDL for Windows, to retain old mouse behavior.
 #if defined( PLATFORM_WINDOWS )
 		int current_posx, current_posy;
-
 		GetMousePos(current_posx, current_posy);
+
+		// x,y = screen center
+		int x = w >> 1;
+		int y = h >> 1;
 
 		m_flAccumulatedMouseXMovement += current_posx - x;
 		m_flAccumulatedMouseYMovement += current_posy - y;
@@ -616,9 +609,14 @@ void CInput::AccumulateMouse( void )
 		// Clamp
 		int ox, oy;
 		GetMousePos( ox, oy );
-		ox = clamp( ox, 0, w - 1 );
-		oy = clamp( oy, 0, h - 1 );
-		SetMousePos( ox, oy );
+
+		int ox_new = clamp( ox, 0, w - 1 );
+		int oy_new = clamp( oy, 0, h - 1 );
+
+		if ( ox_new != ox || oy_new != oy )
+		{
+			SetMousePos( ox, oy );
+		}
 	}
 
 
@@ -726,7 +724,7 @@ void CInput::GetFullscreenMousePos( int *mx, int *my, int *unclampedx /*=NULL*/,
 
 	int w, h;
 	vgui::surface()->GetScreenSize( w, h );
-	current_posx += w  / 2;
+	current_posx += w / 2;
 	current_posy += h / 2;
 
 	if ( unclampedx )

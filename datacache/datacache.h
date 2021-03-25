@@ -65,7 +65,8 @@ struct DataCacheItem_t : DataCacheItemData_t
 
 //-------------------------------------
 
-typedef CDataManager<DataCacheItem_t, DataCacheItemData_t, DataCacheItem_t *, CThreadFastMutex> CDataCacheLRU;
+typedef CThreadFastMutex CDataCacheMutex;
+typedef CDataManager<DataCacheItem_t, DataCacheItemData_t, DataCacheItem_t *, CDataCacheMutex> CDataCacheLRU;
 
 //-----------------------------------------------------------------------------
 // CDataCacheSection
@@ -194,7 +195,7 @@ private:
 	CTSSimpleList<FrameLock_t> m_FreeFrameLocks;
 
 protected:
-	CThreadFastMutex &	m_mutex;
+	CDataCacheMutex &	m_mutex;
 };
 
 
@@ -302,7 +303,7 @@ private:
 	DataCacheStatus_t				m_status;
 	CUtlVector<CDataCacheSection *>	m_Sections;
 	bool							m_bInFlush;
-	CThreadFastMutex &				m_mutex;
+	CDataCacheMutex &				m_mutex;
 };
 
 //---------------------------------------------------------

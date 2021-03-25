@@ -52,10 +52,8 @@ typedef unsigned long HFont;
 struct Vertex_t
 {
 	Vertex_t() {}
-	Vertex_t( const Vector2D &pos, const Vector2D &coord = Vector2D( 0, 0 ) )
+	Vertex_t( const Vector2D &pos, const Vector2D &coord = Vector2D( 0, 0 ) ) : m_Position{ pos }, m_TexCoord{ coord }
 	{
-		m_Position = pos;
-		m_TexCoord = coord;
 	}
 	void Init( const Vector2D &pos, const Vector2D &coord = Vector2D( 0, 0 ) )
 	{
@@ -272,7 +270,7 @@ public:
 	virtual void PlaySound(const char *fileName) = 0;
 
 	//!! these functions should not be accessed directly, but only through other vgui items
-	//!! need to move these to seperate interface
+	//!! need to move these to separate interface
 	virtual int GetPopupCount() = 0;
 	virtual VPANEL GetPopup(int index) = 0;
 	virtual bool ShouldPaintChildPanel(VPANEL childPanel) = 0;

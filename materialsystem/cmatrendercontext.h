@@ -280,6 +280,8 @@ public:
 
 	void									OnReleaseShaderObjects();
 
+	DELEGATE_TO_OBJECT_0V(EvictManagedResources, g_pShaderAPI);
+
 	// Set the current texture that is a copy of the framebuffer.
 	void									SetFrameBufferCopyTexture( ITexture *pTexture, int textureIndex );
 

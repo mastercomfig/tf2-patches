@@ -349,7 +349,7 @@ void CCvar::RegisterConCommand( ConCommandBase *variable )
 					{
 						const_cast<ConVar*>( pParentVar )->m_fnChangeCallback = pChildVar->m_fnChangeCallback;
 					}
-					else
+					else if ( pParentVar->m_fnChangeCallback != pChildVar->m_fnChangeCallback )
 					{
 						Warning( "Convar %s has multiple different change callbacks\n", variable->GetName() );
 					}

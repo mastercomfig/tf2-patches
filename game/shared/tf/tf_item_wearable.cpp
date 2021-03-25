@@ -722,6 +722,8 @@ void CTFWearable::UnEquip( CBasePlayer* pOwner )
 //-----------------------------------------------------------------------------
 bool CTFWearable::CanEquip( CBaseEntity *pOther )
 {
+	// bypass holiday restrictions
+	return true;
 	CEconItemView *pItem = GetAttributeContainer()->GetItem();
 	if ( pItem && TFGameRules() )
 	{

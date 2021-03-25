@@ -208,11 +208,12 @@ void FX_DrawLineFade( const Vector &start, const Vector &end, float scale, IMate
 	VectorSubtract( end, start, lineDir );
 	VectorSubtract( end, CurrentViewOrigin(), viewDir );
 	
-	float lineLength = lineDir.Length();
+	float lineLength = lineDir.LengthSqr();
 	float t0 = 0.25f;
 	float t1 = 0.75f;
 	if ( lineLength > 0 )
 	{
+		lineLength = FastSqrt(lineLength);
 		t0 = fadeDist / lineLength;
 		t0 = clamp( t0, 0.0f, 0.25f );
 		t1 = 1.0f - t0;

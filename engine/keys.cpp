@@ -465,8 +465,8 @@ CON_COMMAND( key_findbinding, "Find key bound to specified command string." )
 //-----------------------------------------------------------------------------
 void Key_Init (void)
 {
-	ReadCheatCommandsFromFile( "scripts/cheatcodes.txt" );
-	ReadCheatCommandsFromFile( "scripts/mod_cheatcodes.txt" );
+	ReadCheatCommandsFromFile( (char*)"scripts/cheatcodes.txt" );
+	ReadCheatCommandsFromFile( (char*)"scripts/mod_cheatcodes.txt" );
 }
 
 void Key_Shutdown( void )
@@ -645,6 +645,8 @@ static bool HandleEngineKey( const InputEvent_t &event )
 		return true;
 	}
 
+	// UNDONE(mastercoms): seems like users are confused about this feature. why is it here?
+#if 0
 	// Swallow console toggle if any modifier keys are down if it's bound to toggleconsole (the default)
 	if ( !Q_stricmp( kb, "toggleconsole" ) )
 	{
@@ -652,6 +654,7 @@ static bool HandleEngineKey( const InputEvent_t &event )
 			s_pKeyInfo[KEY_RALT].m_bKeyDown || s_pKeyInfo[KEY_RSHIFT].m_bKeyDown || s_pKeyInfo[KEY_RCONTROL].m_bKeyDown )
 			return false;
 	}
+#endif
 
 	Cbuf_AddText( kb );
 	Cbuf_AddText( "\n" );

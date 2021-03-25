@@ -609,13 +609,6 @@ void CTFFlameThrower::PrimaryAttack()
 	// Move other players back to history positions based on local player's lag
 	lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
 
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
-	}
-
 #endif
 #ifdef CLIENT_DLL
 	C_CTF_GameStats.Event_PlayerFiredWeapon( pOwner, IsCurrentAttackACrit() );
@@ -716,13 +709,6 @@ void CTFFlameThrower::PrimaryAttack()
 
 #if !defined (CLIENT_DLL)
 	lagcompensation->FinishLagCompensation( pOwner );
-
-	// PASSTIME custom lag compensation for the ball; see also tf_fx_shared.cpp
-	// it would be better if all entities could opt-in to this, or a way for lagcompensation to handle non-players automatically
-	if ( g_pPasstimeLogic && g_pPasstimeLogic->GetBall() )
-	{
-		g_pPasstimeLogic->GetBall()->FinishLagCompensation( pOwner );
-	}
 #endif
 }
 
@@ -1492,7 +1478,7 @@ Vector CTFFlameThrower::GetMuzzlePosHelper( bool bVisualPos )
 void CTFFlameThrower::CalculateHalloweenSpell( void )
 {
 	m_bHasHalloweenSpell.Set( false );
-	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+	if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 	{
 		int iHalloweenSpell = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( this, iHalloweenSpell, halloween_green_flames );

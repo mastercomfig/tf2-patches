@@ -629,6 +629,7 @@ protected:
 	float			m_flLastRapidFireCritCheckTime;
 
 	float			m_flLastDeployTime;
+	float           m_flLastSwitchMult;
 
 	char			m_szTracerName[MAX_TRACER_NAME];
 
@@ -706,6 +707,9 @@ private:
 	bool IsInspectActivity( int iActivity );
 	CNetworkVar( float, m_flInspectAnimTime );
 	CNetworkVar( int, m_nInspectStage );
+public:
+	CNetworkVar(int, m_iConsecutiveShots);
+private:
 	bool m_bInspecting;
 
 	friend class CTFDroppedWeapon;

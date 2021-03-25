@@ -189,7 +189,7 @@ void C_PropJeep::DampenForwardMotion( Vector &vecVehicleEyePos, QAngle &vecVehic
 	// Calculate the approximate speed based on the current vehicle eye position and the eye position last frame.
 	Vector vecVehicleEyeSpeed = ( vecVehicleEyePos - m_vecLastEyeTarget ) / flFrameTime;
 	m_vecLastEyeTarget = vecVehicleEyePos;
-	if (vecVehicleEyeSpeed.Length() == 0.0)
+	if (vecVehicleEyeSpeed.LengthSqr() == 0.0f)
 		return;
 
 	// Calculate the delta between the predicted eye position and speed and the current eye position and speed.
@@ -200,9 +200,10 @@ void C_PropJeep::DampenForwardMotion( Vector &vecVehicleEyePos, QAngle &vecVehic
 	Vector vecForward;
 	AngleVectors( vecVehicleEyeAngles, &vecForward );
 
-	float flDeltaLength = vecDeltaPos.Length();
-	if ( flDeltaLength > JEEP_DELTA_LENGTH_MAX )
+	float flDeltaLength = vecDeltaPos.LengthSqr();
+	if ( flDeltaLength > JEEP_DELTA_LENGTH_MAX * JEEP_DELTA_LENGTH_MAX)
 	{
+		flDeltaLength = FastSqrt(flDeltaLength);
 		// Clamp.
 		float flDelta = flDeltaLength - JEEP_DELTA_LENGTH_MAX;
 		if ( flDelta > 40.0f )

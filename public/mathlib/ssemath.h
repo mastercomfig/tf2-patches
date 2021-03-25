@@ -10,9 +10,6 @@
 #include <xboxmath.h>
 #else
 #include <xmmintrin.h>
-#include "../thirdparty/DirectXMath-apr2020/Inc/DirectXMath.h"
-#define VectorLoad( Ptr ) DirectX::XMLoadFloat4( (const DirectX::XMFLOAT4*)(Ptr) )
-#define VectorStore( Vec, Ptr )	DirectX::XMStoreFloat4((DirectX::XMFLOAT4*)(Ptr), Vec )
 #endif
 
 #include <mathlib/vector.h>
@@ -151,7 +148,8 @@ extern const fltx4 Four_2ToThe22s;								// (1<<22)..
 extern const fltx4 Four_2ToThe23s;								// (1<<23)..
 extern const fltx4 Four_2ToThe24s;								// (1<<24)..
 extern const fltx4 Four_Origin;									// 0 0 0 1 (origin point, like vr0 on the PS2)
-extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1 
+extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1
+extern const fltx4 Four_DegToRad;								// (float)(M_PI_F / 180.f) times four
 #else
 #define			   Four_Zeros XMVectorZero()					// 0 0 0 0
 #define			   Four_Ones XMVectorSplatOne()					// 1 1 1 1
@@ -166,7 +164,8 @@ extern const fltx4 Four_2ToThe22s;								// (1<<22)..
 extern const fltx4 Four_2ToThe23s;								// (1<<23)..
 extern const fltx4 Four_2ToThe24s;								// (1<<24)..
 extern const fltx4 Four_Origin;									// 0 0 0 1 (origin point, like vr0 on the PS2)
-extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1 
+extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1
+extern const fltx4 Four_DegToRad;								// (float)(M_PI_F / 180.f) times four
 #endif
 extern const fltx4 Four_FLT_MAX;								// FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX
 extern const fltx4 Four_Negative_FLT_MAX;						// -FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX
@@ -184,6 +183,8 @@ extern const ALIGN16 uint32 g_SIMD_Low16BitsMask[] ALIGN16_POST;			// 0xffff x 4
 // this mask is used for skipping the tail of things. If you have N elements in an array, and wish
 // to mask out the tail, g_SIMD_SkipTailMask[N & 3] what you want to use for the last iteration.
 extern const uint32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST;
+
+extern const int32 ALIGN16 g_SIMD_EveryOtherMask[];				// 0, ~0, 0, ~0
 
 // Define prefetch macros.
 // The characteristics of cache and prefetch are completely 
@@ -979,7 +980,7 @@ FORCEINLINE i32x4 IntShiftLeftWordSIMD(const i32x4 &vSrcA, const i32x4 &vSrcB)
 }
 #endif
 
-#elif ( 0 )
+#elif ( 0 ) || defined(_X360)
 
 //---------------------------------------------------------------------
 // X360 implementation
@@ -1034,45 +1035,47 @@ FORCEINLINE fltx4 Dot4SIMD( const fltx4 &a, const fltx4 &b )
 {
 	return DirectX::XMVector4Dot(a, b);
 }
+#endif
 
+#if 1 || defined(_X360)
 FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 {
-	return DirectX::XMVectorSin( radians );
+	return DirectX::XMVectorSinEst( radians );
 }
 
 FORCEINLINE void SinCos3SIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )
 {
-    DirectX::XMVectorSinCos( &sine, &cosine, radians ); 	
+    DirectX::XMVectorSinCosEst( &sine, &cosine, radians );
 }
 
 FORCEINLINE void SinCosSIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )			
 {
-    DirectX::XMVectorSinCos( &sine, &cosine, radians ); 	
+    DirectX::XMVectorSinCosEst( &sine, &cosine, radians );
 }
 
 FORCEINLINE void CosSIMD( fltx4 &cosine, const fltx4 &radians )				
 {
-	cosine = DirectX::XMVectorCos( radians ); 	
+	cosine = DirectX::XMVectorCosEst( radians );
 }
 
 FORCEINLINE fltx4 ArcSinSIMD( const fltx4 &sine )
 {
-	return DirectX::XMVectorASin( sine );
+	return DirectX::XMVectorASinEst( sine );
 }
 
 FORCEINLINE fltx4 ArcCosSIMD( const fltx4 &cs )
 {
-	return DirectX::XMVectorACos( cs );
+	return DirectX::XMVectorACosEst( cs );
 }
 
 // tan^1(a/b) .. ie, pass sin in as a and cos in as b
 FORCEINLINE fltx4 ArcTan2SIMD( const fltx4 &a, const fltx4 &b )
 {
-	return DirectX::XMVectorATan2( a, b );
+	return DirectX::XMVectorATan2Est( a, b );
 }
 
 // DivSIMD defined further down, since it uses ReciprocalSIMD
-
+#if 0
 FORCEINLINE fltx4 MaxSIMD( const fltx4 & a, const fltx4 & b )				// max(a,b)
 {
 	return DirectX::XMMax( a, b );
@@ -1082,6 +1085,7 @@ FORCEINLINE fltx4 MinSIMD( const fltx4 & a, const fltx4 & b )				// min(a,b)
 {
 	return DirectX::XMMin( a, b );
 }
+#endif
 
 FORCEINLINE fltx4 AndSIMD( const fltx4 & a, const fltx4 & b )				// a & b
 {
@@ -1119,9 +1123,10 @@ FORCEINLINE bool IsAllZeros( const fltx4 & a )								// all floats of a zero?
 FORCEINLINE bool IsAnyZeros( const fltx4 & a )								// any floats are zero?
 {
 	uint32 cr;
-	XMVectorEqualR(&cr, a, DirectX::g_XMZero)
+	XMVectorEqualR(&cr, a, DirectX::g_XMZero);
 	return DirectX::XMComparisonAnyTrue(cr);
 }
+#endif
 
 #ifdef _X360
 FORCEINLINE bool IsAnyXYZZero( const fltx4 &a )								// are any of x,y,z zero?
@@ -1132,6 +1137,7 @@ FORCEINLINE bool IsAnyXYZZero( const fltx4 &a )								// are any of x,y,z zero?
 }
 #endif
 
+#if 0 || defined(_X360)
 // for branching when a.xyzw > b.xyzw
 FORCEINLINE bool IsAllGreaterThan( const fltx4 &a, const fltx4 &b )
 {
@@ -1756,6 +1762,7 @@ FORCEINLINE fltx4 LoadAlignedSIMD( const void *pSIMD )
 	return _mm_load_ps( reinterpret_cast< const float *> ( pSIMD ) );
 }
 
+#if 0
 FORCEINLINE fltx4 AndSIMD( const fltx4 & a, const fltx4 & b )				// a & b
 {
 	return _mm_and_ps( a, b );
@@ -1775,6 +1782,7 @@ FORCEINLINE fltx4 OrSIMD( const fltx4 & a, const fltx4 & b )				// a | b
 {
 	return _mm_or_ps( a, b );
 }
+#endif
 
 // Squelch the w component of a vector to +0.0.
 // Most efficient when you say a = SetWToZeroSIMD(a) (avoids a copy)
@@ -1996,43 +2004,45 @@ FORCEINLINE fltx4 Dot4SIMD( const fltx4 &a, const fltx4 &b )
 	return DirectX::XMVector4Dot(a, b);
 }
 
+#if 0
 //TODO: implement as four-way Taylor series (see xbox implementation)
 FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 {
-	return DirectX::XMVectorSinEst(radians);;
+	return DirectX::XMVectorSin(radians);;
 }
 
 FORCEINLINE void SinCos3SIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )
 {
-	DirectX::XMVectorSinCosEst(&sine, &cosine, radians);
+	DirectX::XMVectorSinCos(&sine, &cosine, radians);
 }
 
 FORCEINLINE void SinCosSIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )				// a*b + c
 {
-	DirectX::XMVectorSinCosEst(&sine, &cosine, radians);
+	DirectX::XMVectorSinCos(&sine, &cosine, radians);
 }
 
 //TODO: implement as four-way Taylor series (see xbox implementation)
 FORCEINLINE fltx4 ArcSinSIMD( const fltx4 &sine )
 {
-	return DirectX::XMVectorASinEst(sine);
+	return DirectX::XMVectorASin(sine);
 }
 
 FORCEINLINE fltx4 ArcCosSIMD( const fltx4 &cs )
 {
-	return DirectX::XMVectorACosEst(cs);
+	return DirectX::XMVectorACos(cs);
 }
 
 // tan^1(a/b) .. ie, pass sin in as a and cos in as b
 FORCEINLINE fltx4 ArcTan2SIMD( const fltx4 &a, const fltx4 &b )
 {
-	return DirectX::XMVectorATan2Est(a, b);
+	return DirectX::XMVectorATan2(a, b);
 }
 
 FORCEINLINE fltx4 NegSIMD(const fltx4 &a) // negate: -a
 {
 	return DirectX::XMVectorNegate(a);
 }
+#endif
 
 FORCEINLINE int TestSignSIMD( const fltx4 & a )								// mask of which floats have the high bit set
 {
@@ -2092,6 +2102,7 @@ FORCEINLINE fltx4 CmpInBoundsSIMD( const fltx4 & a, const fltx4 & b )		// (a <= 
 	return AndSIMD( CmpLeSIMD(a,b), CmpGeSIMD(a, NegSIMD(b)) );
 }
 
+#if 1
 FORCEINLINE fltx4 MinSIMD( const fltx4 & a, const fltx4 & b )				// min(a,b)
 {
 	return _mm_min_ps( a, b );
@@ -2101,6 +2112,7 @@ FORCEINLINE fltx4 MaxSIMD( const fltx4 & a, const fltx4 & b )				// max(a,b)
 {
 	return _mm_max_ps( a, b );
 }
+#endif
 
 FORCEINLINE fltx4 CeilSIMD( const fltx4 &a )
 {
@@ -2113,10 +2125,12 @@ FORCEINLINE fltx4 FloorSIMD( const fltx4 &val )
 	return DirectX::XMVectorFloor(val);
 }
 
+#if 0
 inline bool IsAllZeros( const fltx4 & var )
 {
 	return TestSignSIMD( CmpEqSIMD( var, Four_Zeros ) ) == 0xF;
 }
+#endif
 
 FORCEINLINE fltx4 SqrtEstSIMD( const fltx4 & a )					// sqrt(a), more or less
 {
@@ -2276,6 +2290,34 @@ FORCEINLINE void StoreAlignedIntSIMD( intx4 &pSIMD, const fltx4 & a )
 FORCEINLINE void StoreUnalignedIntSIMD( int32 * RESTRICT pSIMD, const fltx4 & a )
 {
 	_mm_storeu_ps( reinterpret_cast<float *>(pSIMD), a );
+}
+
+// a={ a.x, b.x, c.x, d.x }
+// combine 4 fltx4s by throwing away 3/4s of the fields
+FORCEINLINE fltx4 Compress4SIMD(fltx4 const a, fltx4 const& b, fltx4 const& c, fltx4 const& d)
+{
+	fltx4 aacc = _mm_shuffle_ps(a, c, MM_SHUFFLE_REV(0, 0, 0, 0));
+	fltx4 bbdd = _mm_shuffle_ps(b, d, MM_SHUFFLE_REV(0, 0, 0, 0));
+	return MaskedAssign(LoadAlignedSIMD(g_SIMD_EveryOtherMask), bbdd, aacc);
+}
+
+// outa={a.x, a.x, a.y, a.y}, outb = a.z, a.z, a.w, a.w }
+FORCEINLINE void ExpandSIMD(fltx4 const& a, fltx4& fl4OutA, fltx4& fl4OutB)
+{
+	fl4OutA = _mm_shuffle_ps(a, a, MM_SHUFFLE_REV(0, 0, 1, 1));
+	fl4OutB = _mm_shuffle_ps(a, a, MM_SHUFFLE_REV(2, 2, 3, 3));
+
+}
+
+// construct a fltx4 from four different scalars, which are assumed to be neither aligned nor contiguous
+FORCEINLINE fltx4 LoadGatherSIMD(const float& x, const float& y, const float& z, const float& w)
+{
+	// load the float into the low word of each vector register (this exploits the unaligned load op)
+	fltx4 vx = _mm_load_ss(&x);
+	fltx4 vy = _mm_load_ss(&y);
+	fltx4 vz = _mm_load_ss(&z);
+	fltx4 vw = _mm_load_ss(&w);
+	return Compress4SIMD(vx, vy, vz, vw);
 }
 
 

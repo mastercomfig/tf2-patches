@@ -4708,7 +4708,7 @@ void CDmeTypedLog< T >::GetValue( DmeTime_t time, CDmAttribute *pAttr, uint inde
 }
 
 template< class T >
-void CDmeTypedLog< T >::GetValueSkippingTopmostLayer( DmeTime_t time, CDmAttribute *pAttr, uint index = 0 ) const 
+void CDmeTypedLog< T >::GetValueSkippingTopmostLayer( DmeTime_t time, CDmAttribute *pAttr, uint index ) const 
 {
 	CUtlVector< int > layers;
 	FindLayersForTime( time, layers );

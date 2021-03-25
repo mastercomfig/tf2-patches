@@ -21,7 +21,7 @@
 //////////////////////////////////////////////////////////////////////
 
 
-static ConVar tv_delay( "tv_delay", "30", 0, "SourceTV broadcast delay in seconds", true, 0, true, HLTV_MAX_DELAY );
+static ConVar tv_delay( "tv_delay", "10", 0, "SourceTV broadcast delay in seconds", true, 0, true, HLTV_MAX_DELAY );
 static ConVar tv_allow_static_shots( "tv_allow_static_shots", "1", 0, "Auto director uses fixed level cameras for shots" );
 static ConVar tv_allow_camera_man( "tv_allow_camera_man", "1", 0, "Auto director allows spectators to become camera man" );
 

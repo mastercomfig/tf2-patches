@@ -63,9 +63,9 @@
 #define SOUND_SEQNUMBER_BITS	10
 #define SOUND_SEQNUMBER_MASK	( (1<<SOUND_SEQNUMBER_BITS) - 1 )
 
-// offset sound delay encoding by 60ms since we encode negative sound delays with less precision
-// This means any negative sound delay greater than -100ms will get encoded at full precision
-#define SOUND_DELAY_OFFSET					(0.100f)
+// offset sound delay encoding by 15ms since we encode negative sound delays with less precision
+// This means any negative sound delay greater than -15ms will get encoded at full precision
+#define SOUND_DELAY_OFFSET					(0.015f)
 
 #pragma pack(4)
 //-----------------------------------------------------------------------------
@@ -91,10 +91,17 @@ struct SoundInfo_t
 	int				nSpeakerEntity;
 	
 	//---------------------------------
-	
-	SoundInfo_t()
+	enum SoundInfoInit_t
 	{
-		SetDefault();
+		SOUNDINFO_SETDEFAULT,
+		SOUNDINFO_NO_SETDEFAULT,
+	};
+	SoundInfo_t(SoundInfoInit_t Init = SOUNDINFO_SETDEFAULT )
+	{
+		if (Init == SOUNDINFO_SETDEFAULT)
+		{
+			SetDefault();
+		}
 	}
 
 	void Set(int newEntity, int newChannel, const char *pszNewName, const Vector &newOrigin, const Vector& newDirection, 

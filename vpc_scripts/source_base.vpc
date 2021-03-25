@@ -25,9 +25,6 @@ $Configuration "Debug"
 		$PreprocessorDefinitions		"$BASE;TF_BETA" [$TF_BETA]
 		$PreprocessorDefinitions		"$BASE;RAD_TELEMETRY_DISABLED" [$SOURCESDK||$RAD_TELEMETRY_DISABLED]
 		$PreprocessorDefinitions		"$BASE;DISABLE_ETW" [$DISABLE_ETW]
-// Need to revisit the code to make things run with the _RETAIL preprocessor definition
-// This line was added in the previous check-in, but had previously not been defined in this branch
-//		$PreprocessorDefinitions		"$BASE;_RETAIL"		[$RETAIL]
 	}
 }
 
@@ -40,8 +37,7 @@ $Configuration "Release"
 		$PreprocessorDefinitions		"$BASE;STAGING_ONLY" [$STAGING_ONLY]
 		$PreprocessorDefinitions		"$BASE;TF_BETA" [$TF_BETA]
 		$PreprocessorDefinitions		"$BASE;RAD_TELEMETRY_DISABLED" [$SOURCESDK||$RAD_TELEMETRY_DISABLED]
-// Need to revisit the code to make things run with the _RETAIL preprocessor definition
-// This line was added in the previous check-in, but had previously not been defined in this branch
-//		$PreprocessorDefinitions		"$BASE;_RETAIL"		[$RETAIL]
+		$PreprocessorDefinitions		"$BASE;_RETAIL"		[$RETAIL]
+		$PreprocessorDefinitions		"$BASE;_CERT"		[$CERT]
 	}
 }

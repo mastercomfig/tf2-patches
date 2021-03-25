@@ -14,7 +14,7 @@ $Configuration
 	$Compiler
 	{
 		$PreprocessorDefinitions		"$BASE;BSPPACK_EXPORTS;ZIP_SUPPORT_LZMA_ENCODE"
-		$PreprocessorDefinitions		"$BASE;WIN_ERROR;_USRDLL"						[$WIN32]
+		$PreprocessorDefinitions		"$BASE;WIN_ERROR;_USRDLL"						[$WINDOWS]
 		$PreprocessorDefinitions		"$BASE;WIN_ERROR;_USRDLL;BSP_USE_LESS_MEMORY"	[$X360]
 		$AdditionalIncludeDirectories	"..\common;$BASE"
 	}

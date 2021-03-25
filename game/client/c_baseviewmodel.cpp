@@ -371,28 +371,41 @@ int C_BaseViewModel::DrawOverriddenViewmodel( int flags )
 	return BaseClass::DrawModel( flags );
 }
 
+ConVar tf_viewmodel_alpha("tf_viewmodel_alpha", "255", FCVAR_ARCHIVE, "Controls translucency of viewmodel [1-255].", true, 1.0f, true, 255.0f);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : int
 //-----------------------------------------------------------------------------
 int C_BaseViewModel::GetFxBlend( void )
 {
+	int iPlayerViewmodelBlend = tf_viewmodel_alpha.GetInt();
+	float fViewmodelBlendPct;
+	if (iPlayerViewmodelBlend < 255)
+	{
+		fViewmodelBlendPct = iPlayerViewmodelBlend / 255.0f;
+	}
+	else
+	{
+		fViewmodelBlendPct = 1.0f;
+	}
+
 	// See if the local player wants to override the viewmodel's rendering
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 	if ( pPlayer && pPlayer->IsOverridingViewmodel() )
 	{
 		pPlayer->ComputeFxBlend();
-		return pPlayer->GetFxBlend();
+		return (int) (pPlayer->GetFxBlend() * fViewmodelBlendPct);
 	}
 
 	C_BaseCombatWeapon *pWeapon = GetOwningWeapon();
 	if ( pWeapon && pWeapon->IsOverridingViewmodel() )
 	{
 		pWeapon->ComputeFxBlend();
-		return pWeapon->GetFxBlend();
+		return (int) (pWeapon->GetFxBlend() * fViewmodelBlendPct);
 	}
 
-	return BaseClass::GetFxBlend();
+	return (int) (BaseClass::GetFxBlend() * fViewmodelBlendPct);
 }
 
 //-----------------------------------------------------------------------------

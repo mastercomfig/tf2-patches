@@ -21,10 +21,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static OSVERSIONINFO s_OsVersionInfo;
-static bool s_bOsVersionInitialized = false;
-bool s_bSupportsUnicode = false;
-
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
@@ -48,29 +44,9 @@ CWin32Font::CWin32Font() : m_ExtendedABCWidthsCache(256, 0, &ExtendedABCWidthsCa
 	m_bAdditive = false;
 	m_rgiBitmapSize[ 0 ] = m_rgiBitmapSize[ 1 ] = 0;
 
-#if defined( _X360 )
 	Q_memset( m_ABCWidthsCache, 0, sizeof( m_ABCWidthsCache ) );
-#endif
 
 	m_ExtendedABCWidthsCache.EnsureCapacity( 128 );
-
-	if ( !s_bOsVersionInitialized )
-	{
-		// get the operating system version
-		s_bOsVersionInitialized = true;
-		memset(&s_OsVersionInfo, 0, sizeof(s_OsVersionInfo));
-		s_OsVersionInfo.dwOSVersionInfoSize = sizeof(s_OsVersionInfo);
-		GetVersionEx(&s_OsVersionInfo);
-
-		if (s_OsVersionInfo.dwMajorVersion >= 5)
-		{
-			s_bSupportsUnicode = true;
-		}
-		else
-		{
-			s_bSupportsUnicode = false;
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -84,6 +60,13 @@ CWin32Font::~CWin32Font()
 		::DeleteDC( m_hDC );
 	if ( m_hDIB )
 		::DeleteObject( m_hDIB );
+#ifndef _X360
+	for (int i = 0; i < ARRAYSIZE(m_ABCWidthsCache); i++)
+	{
+		delete m_ABCWidthsCache[i];
+		m_ABCWidthsCache[i] = 0;
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -242,6 +225,14 @@ bool CWin32Font::Create(const char *windowsFontName, int tall, int weight, int b
 			}
 		}
 	}
+#else
+	Assert(ABCWIDTHS_CACHE_SIZE <= 256);
+	Q_memset(m_ABCWidthsCache, 0, sizeof(m_ABCWidthsCache));
+	for (int i = 0; i < ARRAYSIZE(m_ABCWidthsCache); i++)
+	{
+		delete m_ABCWidthsCache[i];
+		m_ABCWidthsCache[i] = 0;
+	}
 #endif
 
 	return true;
@@ -276,21 +267,6 @@ void CWin32Font::GetCharRGBA(wchar_t ch, int rgbaWide, int rgbaTall, unsigned ch
 	{
 		bShouldAntialias = false;
 	}
-	if ( !s_bSupportsUnicode )
-	{
-		// win98 hack, don't antialias some characters that ::GetGlyphOutline() produces bad results for
-		if (ch == 'I' || ch == '1')
-		{
-			bShouldAntialias = false;
-		}
-
-		// don't antialias big fonts at all (since win98 often produces bad results)
-		if (m_iHeight >= 13)
-		{
-			bShouldAntialias = false;
-		}
-	}
-
 
 	// only antialias latin characters, since it essentially always fails for asian characters
 	if (bShouldAntialias)
@@ -381,26 +357,12 @@ void CWin32Font::GetCharRGBA(wchar_t ch, int rgbaWide, int rgbaTall, unsigned ch
 		// render the character
 		wchar_t wch = (wchar_t)ch;
 		
-		if (s_bSupportsUnicode)
-		{
-			// clear the background first
-			RECT rect = { 0, 0, wide, tall};
-			::ExtTextOutW( m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL );
+		// clear the background first
+		RECT rect = { 0, 0, wide, tall};
+		::ExtTextOutW( m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL );
 
-			// just use the unicode renderer
-			::ExtTextOutW( m_hDC, 0, 0, 0, NULL, &wch, 1, NULL );
-		}
-		else
-		{
-			// clear the background first (it may not get done automatically in win98/ME
-			RECT rect = { 0, 0, wide, tall};
-			::ExtTextOut(m_hDC, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
-
-			// convert the character using the current codepage
-			char mbcs[6] = { 0 };
-			::WideCharToMultiByte(CP_ACP, 0, &wch, 1, mbcs, sizeof(mbcs), NULL, NULL);
-			::ExtTextOutA(m_hDC, 0, 0, 0, NULL, mbcs, strlen(mbcs), NULL);
-		}
+		// just use the unicode renderer
+		::ExtTextOutW( m_hDC, 0, 0, 0, NULL, &wch, 1, NULL );
 
 		::SetBkMode(m_hDC, TRANSPARENT);
 
@@ -511,63 +473,83 @@ void CWin32Font::SetAsActiveFont(HDC hdc)
 //-----------------------------------------------------------------------------
 void CWin32Font::GetCharABCWidths(int ch, int &a, int &b, int &c)
 {
-	Assert( IsValid() );
-#if defined( _X360 )
-	if (ch < ABCWIDTHS_CACHE_SIZE)
+	Assert(IsValid());
+
+	bool bFastPath = ch < ABCWIDTHS_CACHE_SIZE;
+	abc_cache_t finder;
+	if (bFastPath)
 	{
 		// use the cache entry
-		a = m_ABCWidthsCache[ch].a;
-		b = m_ABCWidthsCache[ch].b;
-		c = m_ABCWidthsCache[ch].c;
+		abc_t* p_abc = m_ABCWidthsCache[ch];
+		if (p_abc)
+		{
+			abc_t& abc = *p_abc;
+			a = abc.a;
+			b = abc.b;
+			c = abc.c;
+			return;
+		}
 	}
-	else
-#endif
+    else
 	{
-
 		// look for it in the cache
-		abc_cache_t finder = { (wchar_t)ch };
+		finder = { (wchar_t)ch };
 
 		unsigned short i = m_ExtendedABCWidthsCache.Find(finder);
-		if (m_ExtendedABCWidthsCache.IsValidIndex(i))
+		if (i != m_ExtendedABCWidthsCache.InvalidIndex())
 		{
 			a = m_ExtendedABCWidthsCache[i].abc.a;
 			b = m_ExtendedABCWidthsCache[i].abc.b;
 			c = m_ExtendedABCWidthsCache[i].abc.c;
 			return;
 		}
+	}
 
-		// not in the cache, get from windows (this call is a little slow)
-		ABC abc;
-		if (::GetCharABCWidthsW(m_hDC, ch, ch, &abc) || ::GetCharABCWidthsA(m_hDC, ch, ch, &abc))
+	// not in the cache, get from windows (this call is a little slow)
+	ABC abc;
+	if (::GetCharABCWidthsW(m_hDC, ch, ch, &abc) || ::GetCharABCWidthsA(m_hDC, ch, ch, &abc))
+	{
+		a = abc.abcA;
+		b = abc.abcB;
+		c = abc.abcC;
+	}
+	else
+	{
+		// wide character version failed, try the old api function
+		SIZE size;
+		char mbcs[6] = { 0 };
+		wchar_t wch = ch;
+		::WideCharToMultiByte(CP_ACP, 0, &wch, 1, mbcs, sizeof(mbcs), NULL, NULL);
+		if (::GetTextExtentPoint32(m_hDC, mbcs, strlen(mbcs), &size))
 		{
-			a = abc.abcA;
-			b = abc.abcB;
-			c = abc.abcC;
+			a = c = 0;
+			b = size.cx;
 		}
 		else
 		{
-			// wide character version failed, try the old api function
-			SIZE size;
-			char mbcs[6] = { 0 };
-			wchar_t wch = ch;
-			::WideCharToMultiByte(CP_ACP, 0, &wch, 1, mbcs, sizeof(mbcs), NULL, NULL);
-			if (::GetTextExtentPoint32(m_hDC, mbcs, strlen(mbcs), &size))
-			{
-				a = c = 0;
-				b = size.cx;
-			}
-			else
-			{
-				// failed to get width, just use the max width
-				a = c = 0;
-				b = m_iMaxCharWidth;
-			}
+			// failed to get width, just use the max width
+			a = c = 0;
+			b = m_iMaxCharWidth;
 		}
+	}
 
+	char s_a = a - m_iBlur - m_iOutlineSize;
+	short s_b = b + ((m_iBlur + m_iOutlineSize) * 2) + m_iDropShadowOffset;
+	char s_c = c - m_iBlur - m_iDropShadowOffset - m_iOutlineSize;
+
+	if (bFastPath)
+	{
+		m_ABCWidthsCache[ch] = new abc_t;
+		m_ABCWidthsCache[ch]->a = s_a;
+		m_ABCWidthsCache[ch]->b = s_b;
+		m_ABCWidthsCache[ch]->c = s_c;
+	}
+	else
+	{
 		// add to the cache
-		finder.abc.a = a - m_iBlur - m_iOutlineSize;
-		finder.abc.b = b + ((m_iBlur + m_iOutlineSize) * 2) + m_iDropShadowOffset;
-		finder.abc.c = c - m_iBlur - m_iDropShadowOffset - m_iOutlineSize;
+		finder.abc.a = s_a;
+		finder.abc.b = s_b;
+		finder.abc.c = s_c;
 		m_ExtendedABCWidthsCache.Insert(finder);
 	}
 }

@@ -558,7 +558,7 @@ void CTrackEntry::Undo(CHistory *Opposite)
 
 			//
 			// Remove the object from the world, but not its children. If its children
-			// were new to the world they were kept seperately.
+			// were new to the world they were kept separately.
 			//
 			Opposite->GetDocument()->RemoveObjectFromWorld(m_Create.pCreated, false);
 			m_Create.pCreated = NULL; // dvs: why do we do this?

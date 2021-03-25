@@ -77,6 +77,7 @@ int g_DirectXLevels[] =
 	92,
 #endif
 	95,
+	100
 };
 
 //-----------------------------------------------------------------------------
@@ -416,6 +417,7 @@ public:
 
 		m_pShaderDetail = new ComboBox( this, "ShaderDetail", 6, false );
 		m_pShaderDetail->AddItem("#gameui_low", NULL);
+		m_pShaderDetail->AddItem("#gameui_medium", NULL);
 		m_pShaderDetail->AddItem("#gameui_high", NULL);
 
 		m_pColorCorrection = new ComboBox( this, "ColorCorrection", 2, false );
@@ -435,18 +437,29 @@ public:
 		m_pColorCorrection->SetEnabled( mat_dxlevel.GetInt() >= 90 );
 		m_pMotionBlur->SetEnabled( mat_dxlevel.GetInt() >= 90 );
 		
-		if ( g_pCVar->FindVar( "fov_desired" ) == NULL )
+		if ( ConVar* fovVar = g_pCVar->FindVar( "fov_desired" ) )
 		{
-			Panel *pFOV = FindChildByName( "FovSlider" );
-			if ( pFOV )
+			CCvarSlider* pFOV = (CCvarSlider*)FindChildByName("FovSlider");
+			if (pFOV)
 			{
-				pFOV->SetVisible( false );
+				float minVar, maxVar;
+				fovVar->GetMin(minVar);
+				fovVar->GetMax(maxVar);
+				pFOV->SetMinMaxValues(max(75.0f, minVar), maxVar);
+			}
+		}
+		else
+		{
+			Panel* pFOV = FindChildByName("FovSlider");
+			if (pFOV)
+			{
+				pFOV->SetVisible(false);
 			}
 
-			pFOV = FindChildByName( "FovLabel" );
-			if ( pFOV )
+			pFOV = FindChildByName("FovLabel");
+			if (pFOV)
 			{
-				pFOV->SetVisible( false );
+				pFOV->SetVisible(false);
 			}
 		}
 		
@@ -625,7 +638,7 @@ public:
 		else
 			SetComboItemAsRecommended( m_pShadowDetail, 0 );	// Blobbies
 
-		SetComboItemAsRecommended( m_pShaderDetail, nReduceFillRate ? 0 : 1 );
+		SetComboItemAsRecommended( m_pShaderDetail, nReduceFillRate ? 1 : 2 );
 		
 #ifndef _X360
 		if ( nWaterUseRealtimeReflection )
@@ -662,7 +675,7 @@ public:
 
 	void ApplyChangesToConVar( const char *pConVarName, int value )
 	{
-		Assert( cvar->FindVar( pConVarName ) );
+		AssertMsg( cvar->FindVar( pConVarName ), "Missed con var %s", pConVarName);
 		char szCmd[256];
 		Q_snprintf( szCmd, sizeof(szCmd), "%s %d\n", pConVarName, value );
 		engine->ClientCmd_Unrestricted( szCmd );
@@ -738,7 +751,10 @@ public:
 			ApplyChangesToConVar( "r_flashlightdepthtexture", 1 );			// Turn on shadow depth textures
 		}
 
-		ApplyChangesToConVar( "mat_reducefillrate", ( m_pShaderDetail->GetActiveItem() > 0 ) ? 0 : 1 );
+		ApplyChangesToConVar( "mat_reducefillrate", ( m_pShaderDetail->GetActiveItem() > 1 ) ? 0 : 1 );
+		ApplyChangesToConVar( "mat_phong", ( m_pShaderDetail->GetActiveItem() < 1 ) ? 0 : 1 );
+		ApplyChangesToConVar( "r_force_fastpath", ( m_pShaderDetail->GetActiveItem() > 0 ) ? 0 : 1 );
+		ApplyChangesToConVar( "r_skybox_lowend", ( m_pShaderDetail->GetActiveItem() > 0 ) ? 0 : 1 );
 
 		switch ( m_pWaterDetail->GetActiveItem() )
 		{
@@ -796,6 +812,9 @@ public:
 #endif
 		ConVarRef r_waterforcereflectentities( "r_waterforcereflectentities" );
 		ConVarRef mat_reducefillrate("mat_reducefillrate" );
+		ConVarRef mat_phong("mat_phong");
+		ConVarRef r_force_fastpath("r_force_fastpath");
+		ConVarRef r_skybox_lowend("r_skybox_lowend");
 		ConVarRef mat_hdr_level( "mat_hdr_level" );
 		ConVarRef mat_colorcorrection( "mat_colorcorrection" );
 		ConVarRef mat_motion_blur_enabled( "mat_motion_blur_enabled" );
@@ -820,7 +839,22 @@ public:
 			m_pShadowDetail->ActivateItem( 0 );
 		}
 
-		m_pShaderDetail->ActivateItem( mat_reducefillrate.GetBool() ? 0 : 1 );
+		
+		if (mat_reducefillrate.GetBool())
+		{
+			if (!mat_phong.GetBool() && r_force_fastpath.GetBool() && r_skybox_lowend.GetBool())
+			{
+			    m_pShaderDetail->ActivateItem( 0 );
+			}
+			else
+			{
+			    m_pShaderDetail->ActivateItem( 1 );
+			}
+		}
+		else
+		{
+		    m_pShaderDetail->ActivateItem( 2 );
+		}
 		m_pHDR->ActivateItem(clamp(mat_hdr_level.GetInt(), 0, 2));
 
 		switch (mat_forceaniso.GetInt())

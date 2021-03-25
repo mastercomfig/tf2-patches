@@ -237,11 +237,12 @@ bool UseOptimalBufferAllocation()
 ConVar filesystem_unbuffered_io( "filesystem_unbuffered_io", "1", 0, "" );
 #define UseUnbufferedIO() ( UseOptimalBufferAllocation() && filesystem_unbuffered_io.GetBool() )
 #else
+#define UseOptimalBufferAllocation() false
 #define UseUnbufferedIO() false
 #endif
 
 ConVar filesystem_native( "filesystem_native", "1", 0, "Use native FS or STDIO" );
-ConVar filesystem_max_stdio_read( "filesystem_max_stdio_read", IsX360() ? "64" : "16", 0, "" );
+ConVar filesystem_max_stdio_read( "filesystem_max_stdio_read", "64", 0, "" );
 ConVar filesystem_report_buffered_io( "filesystem_report_buffered_io", "0" );
 
 //-----------------------------------------------------------------------------
@@ -417,7 +418,7 @@ FILE *CFileSystem_Stdio::FS_fopen( const char *filenameT, const char *options, u
 
 	CBaseFileSystem::FixUpPath ( filenameT, filename, sizeof( filename ) );
 
-#ifdef _WIN32
+#if 0 && defined(_WIN32)
 	if ( CWin32ReadOnlyFile::CanOpen( filename, options ) )
 	{
 		pFile = CWin32ReadOnlyFile::FS_fopen( filename, options, size );
@@ -1263,6 +1264,8 @@ static HANDLE OpenWin32File( const char *filename, bool bOverlapped, bool bUnbuf
 		createFlags |= FILE_FLAG_NO_BUFFERING;
 	}
 
+	//createFlags |= FILE_FLAG_SEQUENTIAL_SCAN;
+
 	hFile = ::CreateFile( filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, createFlags, NULL );
 	if ( hFile != INVALID_HANDLE_VALUE && !*pFileSize )
 	{
@@ -1381,6 +1384,9 @@ int CWin32ReadOnlyFile::FS_feof()
 //-----------------------------------------------------------------------------
 size_t CWin32ReadOnlyFile::FS_fread( void *dest, size_t destSize, size_t size )
 {
+#if 1
+	return 0;
+#else
 	VPROF_BUDGET( "CWin32ReadOnlyFile::FS_fread", VPROF_BUDGETGROUP_OTHER_FILESYSTEM );
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s %t", __FUNCTION__, tmSendCallStack( TELEMETRY_LEVEL0, 0 ) );
 	if( ThreadInMainThread() )
@@ -1567,6 +1573,7 @@ size_t CWin32ReadOnlyFile::FS_fread( void *dest, size_t destSize, size_t size )
 	m_ReadPos += result;
 
 	return result;
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -125,7 +125,7 @@ static void voiceconvar_file_changed_f( IConVar *pConVar, const char *pOldValue,
 
 ConVar voice_recordtofile("voice_recordtofile", "0", 0, "Record mic data and decompressed voice data into 'voice_micdata.wav' and 'voice_decompressed.wav'");
 ConVar voice_inputfromfile("voice_inputfromfile", "0", 0, "Get voice input from 'voice_input.wav' rather than from the microphone.", &voiceconvar_file_changed_f );
-ConVar sv_allow_voice_from_file( "sv_allow_voice_from_file", "1", FCVAR_REPLICATED, "Allow or disallow clients from using voice_inputfromfile on this server.", &voiceconvar_file_changed_f );
+ConVar sv_allow_voice_from_file( "sv_allow_voice_from_file", "0", FCVAR_REPLICATED, "Allow or disallow clients from using voice_inputfromfile on this server.", &voiceconvar_file_changed_f );
 
 class CStatusLineBuilder
 {

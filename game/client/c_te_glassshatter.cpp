@@ -242,14 +242,14 @@ void C_TEShatterSurface::PostDataUpdate( DataUpdateType_t updateType )
 			}
 
 			// Keep track of min and max speed for collision detection
-			float  flForceSpeed = vForceVel.Length();
-			if (flForceSpeed > flMaxSpeed)
+			float  flForceSpeed = vForceVel.LengthSqr();
+			if (flForceSpeed > flMaxSpeed * flMaxSpeed)
 			{
-				flMaxSpeed = flForceSpeed;
+				flMaxSpeed = FastSqrt(flForceSpeed);
 			}
-			if (flForceSpeed < flMinSpeed)
+			if (flForceSpeed < flMinSpeed * flMinSpeed)
 			{
-				flMinSpeed = flForceSpeed;
+				flMinSpeed = FastSqrt(flForceSpeed);
 			}
 
 			vCurPos += vHeightStep;

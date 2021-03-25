@@ -137,8 +137,8 @@ extern ISoundEmitterSystemBase *soundemitterbase;
 static Color colorEyeballBossText( 134, 80, 172, 255 );
 static Color colorMerasmusText( 112, 176, 74, 255 );
 
-ConVar default_fov( "default_fov", "75", FCVAR_CHEAT );
-ConVar fov_desired( "fov_desired", "75", FCVAR_ARCHIVE | FCVAR_USERINFO, "Sets the base field-of-view.", true, 20.0, true, MAX_FOV );
+ConVar default_fov( "default_fov", "90", FCVAR_CHEAT );
+ConVar fov_desired( "fov_desired", "90", FCVAR_ARCHIVE | FCVAR_USERINFO, "Sets the base field-of-view.", true, 20.0f, true, MAX_FOV );
 
 #define TF_HIGHFIVE_HINT_MAXDIST		512.0f
 #define TF_HIGHFIVE_HINT_MAXHINTS		3
@@ -353,13 +353,6 @@ void CTFModeManager::Init()
 void CTFModeManager::LevelInit( const char *newmap )
 {
 	g_pClientMode->LevelInit( newmap );
-
-	ConVarRef voice_steal( "voice_steal" );
-
-	if ( voice_steal.IsValid() )
-	{
-		voice_steal.SetValue( 1 );
-	}
 }
 
 void CTFModeManager::LevelShutdown( void )
@@ -1391,9 +1384,9 @@ void ClientModeTFNormal::FireGameEvent( IGameEvent *event )
 				// check that this player isn't too far away
 				Vector vecStart = pLocalPlayer->EyePosition();
 				Vector vecEnd = pHighFiveInitiator->EyePosition();
-				float flLength = (vecEnd - vecStart).Length();
+				float flLength = (vecEnd - vecStart).LengthSqr();
 
-				if ( flLength < TF_HIGHFIVE_HINT_MAXDIST )
+				if ( flLength < TF_HIGHFIVE_HINT_MAXDIST * TF_HIGHFIVE_HINT_MAXDIST)
 				{
 					// check that we have line of sight to this player
 					trace_t tr;

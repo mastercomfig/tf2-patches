@@ -99,6 +99,7 @@ $Configuration "Debug"
 		$EnableFloatingPointExceptions
 
 		// Language
+		//$LanguageStandard					"Preview - Features from the Latest C++ Working Draft (std:c++latest)"
 		$DisableLanguageExtensions
 		$DefaultCharUnsigned					"No"
 		$TreatWCHAR_TAsBuiltInType				"Yes (/Zc:wchar_t)"
@@ -175,7 +176,7 @@ $Configuration "Debug"
 		$UACExecutionLevel
 
 		// Debugging
-		$GenerateDebugInfo						"Yes (/DEBUG)"
+		$GenerateDebugInfo						"Generate Debug Information optimized for faster links (/DEBUG:FASTLINK)"
 		$GenerateProgramDatabaseFile			"$(IntDir)/$(TargetName).pdb"
 		$StripPrivateSymbols
 		$MapExports

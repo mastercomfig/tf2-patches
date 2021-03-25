@@ -104,7 +104,7 @@ struct ShadowState_t
 	unsigned char			m_VertexBlendEnable:1;
 	// Auto-convert from linear to gamma upon writing to the frame buffer?
 	unsigned char			m_SRGBWriteEnable:1;
-	// Seperate Alpha Blend?
+	// Separate Alpha Blend?
 	unsigned char			m_SeparateAlphaBlendEnable:1;
 	// Stencil?
 	unsigned char			m_StencilEnable:1;

@@ -59,7 +59,7 @@
 #include "portal_render_targets.h"
 #include "PortalRender.h"
 #endif
-#if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
+#if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL ) || defined( TF_CLIENT_DLL )
 #define USE_MONITORS
 #endif
 #include "rendertexture.h"
@@ -116,7 +116,7 @@ ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_CHEAT );
 #endif
 static ConVar r_drawtranslucentrenderables( "r_drawtranslucentrenderables", "1", FCVAR_CHEAT );
 static ConVar r_drawopaquerenderables( "r_drawopaquerenderables", "1", FCVAR_CHEAT );
-static ConVar r_threaded_renderables( "r_threaded_renderables", "0" );
+static ConVar r_threaded_renderables( "r_threaded_renderables", "1" );
 
 // FIXME: This is not static because we needed to turn it off for TF2 playtests
 ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe" );
@@ -1825,7 +1825,7 @@ void CViewRender::SetupMain3DView( const CViewSetup &viewRender, int &nClearFlag
 	// instead of whatever was previously the render target
 	if( g_pMaterialSystemHardwareConfig->GetHDRType() == HDR_TYPE_FLOAT )
 	{
-		render->Push3DView( viewRender, nClearFlags, GetFullFrameFrameBufferTexture( 0 ), GetFrustum() );
+		render->Push3DView( viewRender, 0, GetFullFrameFrameBufferTexture( 0 ), GetFrustum() );
 	}
 	else
 	{
@@ -1837,7 +1837,7 @@ void CViewRender::SetupMain3DView( const CViewSetup &viewRender, int &nClearFlag
 			pRTDepth = g_pSourceVR->GetRenderTarget( (ISourceVirtualReality::VREye)(viewRender.m_eStereoEye-1), ISourceVirtualReality::RT_Depth );
 		}
 
-		render->Push3DView( viewRender, nClearFlags, pRTColor, GetFrustum(), pRTDepth );
+		render->Push3DView( viewRender, 0, pRTColor, GetFrustum(), pRTDepth );
 	}
 
 	// If we didn't clear the depth here, we'll need to clear it later
@@ -1918,10 +1918,10 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	VPROF( "CViewRender::RenderView" );
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
-	// Don't want TF2 running less than DX 8
-	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 80 )
+	// Don't want TF2 running less than DX 9
+	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 	{
-		// We know they were running at least 8.0 when the game started...we check the 
+		// We know they were running at least 9.0 when the game started...we check the 
 		// value in ClientDLL_Init()...so they must be messing with their DirectX settings.
 		if ( ( Q_stricmp( COM_GetModDirectory(), "tf" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "tf_beta" ) == 0 ) )
 		{
@@ -1929,13 +1929,17 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 			if ( bFirstTime )
 			{
 				bFirstTime = false;
-				Msg( "This game has a minimum requirement of DirectX 8.0 to run properly.\n" );
+				Msg( "This game has a minimum requirement of DirectX 9.0 to run properly.\n" );
 			}
 			return;
 		}
 	}
 
 	CMatRenderContextPtr pRenderContext( materials );
+
+	// Update bounds of all renderables
+	ClientLeafSystem()->ComputeAllBounds();
+
 	ITexture *saveRenderTarget = pRenderContext->GetRenderTarget();
 	pRenderContext.SafeRelease(); // don't want to hold for long periods in case in a locking active share thread mode
 
@@ -2064,19 +2068,13 @@ void CViewRender::RenderView( const CViewSetup &viewRender, int nClearFlags, int
 	
 		if ( !building_cubemaps.GetBool() && viewRender.m_bDoBloomAndToneMapping )
 		{
-			pRenderContext.GetFrom( materials );
+			bool bFlashlightIsOn = false;
+			C_BasePlayer *pLocal = C_BasePlayer::GetLocalPlayer();
+			if ( pLocal )
 			{
-				PIXEVENT( pRenderContext, "DoEnginePostProcessing" );
-
-				bool bFlashlightIsOn = false;
-				C_BasePlayer *pLocal = C_BasePlayer::GetLocalPlayer();
-				if ( pLocal )
-				{
-					bFlashlightIsOn = pLocal->IsEffectActive( EF_DIMLIGHT );
-				}
-				DoEnginePostProcessing( viewRender.x, viewRender.y, viewRender.width, viewRender.height, bFlashlightIsOn );
+				bFlashlightIsOn = pLocal->IsEffectActive( EF_DIMLIGHT );
 			}
-			pRenderContext.SafeRelease();
+			DoEnginePostProcessing( viewRender.x, viewRender.y, viewRender.width, viewRender.height, bFlashlightIsOn );
 		}
 
 		// And here are the screen-space effects
@@ -4876,7 +4874,7 @@ bool CSkyboxView::Setup( const CViewSetup &viewRender, int *pClearFlags, SkyboxV
 	// The next path will need to clear depth, though.
 	m_ClearFlags = *pClearFlags;
 	*pClearFlags &= ~( VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH | VIEW_CLEAR_STENCIL | VIEW_CLEAR_FULL_TARGET );
-	*pClearFlags |= VIEW_CLEAR_DEPTH; // Need to clear depth after rednering the skybox
+	*pClearFlags |= VIEW_CLEAR_DEPTH; // Need to clear depth after rendering the skybox
 
 	m_DrawFlags = DF_RENDER_UNDERWATER | DF_RENDER_ABOVEWATER | DF_RENDER_WATER;
 	if( r_skybox.GetBool() )
@@ -5010,7 +5008,7 @@ void CShadowDepthView::Draw()
 
 	if( IsPC() )
 	{
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
+		render->Push3DView( (*this), 0, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
 	}
 	else if( IsX360() )
 	{
@@ -5669,7 +5667,7 @@ void CSimpleWorldView::Draw()
 	}
 	else
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 
 		SetFogVolumeState( m_fogInfo, false );
 
@@ -5826,7 +5824,7 @@ void CAboveWaterView::Draw()
 	}
 	else if ( !( m_DrawFlags & DF_DRAWSKYBOX ) )
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 	}
 
 #ifdef PORTAL
@@ -6110,7 +6108,7 @@ void CUnderWaterView::CRefractionView::Setup()
 	m_ClearFlags = VIEW_CLEAR_DEPTH;
 	if ( GetOuter()->m_bDrawSkybox )
 	{
-		m_ClearFlags |= VIEW_CLEAR_COLOR;
+		//m_ClearFlags |= VIEW_CLEAR_COLOR;
 		m_DrawFlags |= DF_DRAWSKYBOX | DF_CLIP_SKYBOX;
 	}
 }

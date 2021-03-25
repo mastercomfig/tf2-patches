@@ -16,8 +16,8 @@
 // Function:	CCVarList::writeHTML
 // Purpose:	generates and writes the report. generate() is not used in this object
 // because there is no real intermediate data. Really data is just taken from the 
-// event list, massaged abit, and written out to the html file. There is no calculation
-// of stats or figures so no intermedidate data creation is needed.
+// event list, massaged a bit, and written out to the html file. There is no calculation
+// of stats or figures so no intermediate data creation is needed.
 // Input:	html - the html file that we want to write to. 
 //------------------------------------------------------------------------------------------------------
 void CCVarList::writeHTML(CHTMLFile& html)

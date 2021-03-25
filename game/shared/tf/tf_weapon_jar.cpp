@@ -1015,38 +1015,33 @@ void CTFProjectile_Cleaver::OnHit( CBaseEntity *pOther )
 	if ( TFGameRules() && TFGameRules()->IsTruceActive() && pOwner->IsTruceValidForEnt() )
 		return;
 
+	CBaseEntity *pLauncher = GetOriginalLauncher();
 	bool bIsCriticalHit = IsCritical();
-	bool bIsMiniCrit = false;
 	float flBleedTime = 5.0f;
 
 	float flLifeTime = gpGlobals->curtime - m_flCreationTime;
-	if ( flLifeTime >= FLIGHT_TIME_TO_MAX_DMG )
+	if ( flLifeTime >= FLIGHT_TIME_TO_MAX_DMG * 0.5f )
 	{
-		bIsMiniCrit = true;
+		// Reduce 1.5 seconds of charge time for long-range hits
+		auto pWeapon = dynamic_cast< CTFWeaponBase* >( pLauncher );
+		if ( pWeapon && pWeapon->HasEffectBarRegeneration() )
+			pWeapon->DecrementBarRegenTime( 1.5f );
 	}
 
 	// just do the bleed effect directly since the bleed
 	// attribute comes from the inflictor, which is the cleaver.
-	pPlayer->m_Shared.MakeBleed( pOwner, (CTFCleaver *)GetLauncher(), flBleedTime );
+	pPlayer->m_Shared.MakeBleed( pOwner, (CTFCleaver *)pLauncher, flBleedTime );
 
 	// Give 'em a love tap.
 	const trace_t *pTrace = &CBaseEntity::GetTouchTrace();
 	trace_t *pNewTrace = const_cast<trace_t*>( pTrace );
 
-	CBaseEntity *pInflictor = GetLauncher();
-	CTakeDamageInfo info;
-	info.SetAttacker( pOwner );
-	info.SetInflictor( pInflictor ); 
-	info.SetWeapon( pInflictor );
-	info.SetDamage( GetDamage() );
-	info.SetDamageCustom( bIsMiniCrit ? TF_DMG_CUSTOM_CLEAVER_CRIT : TF_DMG_CUSTOM_CLEAVER );
-	info.SetDamagePosition( GetAbsOrigin() );
 	int iDamageType = GetDamageType();
 	if ( bIsCriticalHit )
-	{
 		iDamageType |= DMG_CRITICAL;
-	}
-	info.SetDamageType( iDamageType );
+	
+	CTakeDamageInfo info( this, pOwner, pLauncher, GetDamage(), iDamageType, TF_DMG_CUSTOM_CLEAVER );
+	info.SetDamagePosition( GetAbsOrigin() );
 
 	// Hurt 'em.
 	Vector dir;

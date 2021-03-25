@@ -60,14 +60,7 @@ static ConVar cl_soundfile( "cl_soundfile", "sound/player/jingle.wav", FCVAR_ARC
 static ConVar cl_allowdownload ( "cl_allowdownload", "1", FCVAR_ARCHIVE, "Client downloads customization files" );
 static ConVar cl_downloadfilter( "cl_downloadfilter", "all", FCVAR_ARCHIVE, "Determines which files can be downloaded from the server (all, none, nosounds, mapsonly)" );
 
-#ifdef OSX
-	// OS X is barely making it due to virtual memory pressure on 32bit, our behavior of load new models -> unload
-	// unused is far too abusive for its estimated margin of maybe two or three bytes before crashing.
-	#define CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS "1"
-#else
-	#define CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS "0"
-#endif
-static ConVar cl_always_flush_models( "cl_always_flush_models", CONVAR_DEFAULT_ALWAYS_FLUSH_MODELS, FCVAR_INTERNAL_USE,
+static ConVar cl_always_flush_models( "cl_always_flush_models", "0", FCVAR_INTERNAL_USE,
                                       "If set, always flush models between map loads.  Useful on systems under memory pressure." );
 
 extern ConVar sv_downloadurl;
@@ -360,7 +353,8 @@ bool CClientState::SetSignonState ( int state, int count )
 	if ( state >= SIGNONSTATE_CONNECTED && m_NetChannel )
 	{
 		// tell server that we entered now that state
-		m_NetChannel->SendNetMsg( NET_SignonState( state, count) );
+		NET_SignonState msg(state, count);
+		m_NetChannel->SendNetMsg( msg );
 	}
 
 	return true;
@@ -624,29 +618,13 @@ float CClientState::GetFrameTime() const
 float CClientState::GetClientInterpAmount()
 {
 	// we need client cvar cl_interp_ratio
-	static const ConVar *s_cl_interp_ratio = NULL;
+	static const ConVar_ServerBounded* s_cl_interp_ratio = static_cast<const ConVar_ServerBounded*>(g_pCVar->FindVar("cl_interp_ratio"));
 	if ( !s_cl_interp_ratio )
 	{
-		s_cl_interp_ratio = g_pCVar->FindVar( "cl_interp_ratio" );
-		if ( !s_cl_interp_ratio )
-			return 0.1f;
+		return 0.03f;
 	}
-	static const ConVar *s_cl_interp = NULL;
-	if ( !s_cl_interp )
-	{
-		s_cl_interp = g_pCVar->FindVar( "cl_interp" );
-		if ( !s_cl_interp )
-			return 0.1f;
-	}
-		
-	float flInterpRatio = s_cl_interp_ratio->GetFloat();
-	float flInterp = s_cl_interp->GetFloat();
 
-	const ConVar_ServerBounded *pBounded = static_cast<const ConVar_ServerBounded*>( s_cl_interp_ratio );
-	if ( pBounded )
-		flInterpRatio = pBounded->GetFloat();
-	//#define FIXME_INTERP_RATIO
-	return max( flInterpRatio / cl_updaterate->GetFloat(), flInterp );
+	return s_cl_interp_ratio->GetInt() * cl_updateinterval->GetFloat();
 }
 
 //-----------------------------------------------------------------------------
@@ -1584,65 +1562,54 @@ void CClientState::CheckUpdatingSteamResources()
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: At a certain rate, this function will verify any unverified
 // file CRCs with the server.
 //-----------------------------------------------------------------------------
 void CClientState::CheckFileCRCsWithServer()
 {
-//! !FIXME! Stubbed this.  Several reasons:
-//!
-//! 1.) Removed the CRC functionality (because it was broken when we switched to use MD5's for hashes of
-//!     loose files, but the server only has CRC's of some files in the VPK headers.).  Currently the only
-//!     supported pure server mode is "trusted source."
-//! 2.) Sending MD5's of VPK's is a bit too restrictive for most use cases.  For example, if a client
-//!     has an extra VPK for custom content, the server doesn't know what to do with it.  Or if we
-//!     release an optional update, the VPK's might legitimately differ.
-//!
-//! Rich has pointed out that we really need pure server client work to be something that the client
-//! cannot easily bypass.  Currently that is the case.  But I need to ship the SteamPipe conversion now.
-//! We can revisit pure server security after that has shipped.
-//
-//	VPROF_( "CheckFileCRCsWithServer", 1, VPROF_BUDGETGROUP_OTHER_NETWORKING, false, BUDGETFLAG_CLIENT );
-//	const float flBatchInterval = 1.0f / 5.0f;
-//	const int nBatchSize = 5;
-//
-//	// Don't do this yet..
-//	if ( !m_bCheckCRCsWithServer )
-//		return;
-//
-//	if ( m_nSignonState != SIGNONSTATE_FULL )
-//		return;
-//
-//	// Only send a batch every so often.
-//	float flCurTime = Plat_FloatTime();
-//	if ( (flCurTime - m_flLastCRCBatchTime) < flBatchInterval )
-//		return;
-//
-//	m_flLastCRCBatchTime = flCurTime;
-//
-//	CUnverifiedFileHash rgUnverifiedFiles[nBatchSize];
-//	int count = g_pFileSystem->GetUnverifiedFileHashes( rgUnverifiedFiles, ARRAYSIZE( rgUnverifiedFiles ) );
-//	if ( count == 0 )
-//		return;
-//
-//	// Send the messages to the server.
-//	for ( int i=0; i < count; i++ )
-//	{
-//		CLC_FileCRCCheck crcCheck;
-//		V_strncpy( crcCheck.m_szPathID, rgUnverifiedFiles[i].m_PathID, sizeof( crcCheck.m_szPathID ) );
-//		V_strncpy( crcCheck.m_szFilename, rgUnverifiedFiles[i].m_Filename, sizeof( crcCheck.m_szFilename ) );
-//		crcCheck.m_nFileFraction = rgUnverifiedFiles[i].m_nFileFraction;
-//		crcCheck.m_MD5 = rgUnverifiedFiles[i].m_FileHash.m_md5contents;
-//		crcCheck.m_CRCIOs = rgUnverifiedFiles[i].m_FileHash.m_crcIOSequence;
-//		crcCheck.m_eFileHashType = rgUnverifiedFiles[i].m_FileHash.m_eFileHashType;
-//		crcCheck.m_cbFileLen = rgUnverifiedFiles[i].m_FileHash.m_cbFileLen;
-//		crcCheck.m_nPackFileNumber = rgUnverifiedFiles[i].m_FileHash.m_nPackFileNumber;
-//		crcCheck.m_PackFileID = rgUnverifiedFiles[i].m_FileHash.m_PackFileID;
-//
-//		m_NetChannel->SendNetMsg( crcCheck );
-//	}
+	// See comment in filetracker.cpp to see why we can't send hashes for TF.
+#if 0
+	VPROF_("CheckFileCRCsWithServer", 1, VPROF_BUDGETGROUP_OTHER_NETWORKING, false, BUDGETFLAG_CLIENT);
+	const float flBatchInterval = 1.0f / 5.0f;
+	const int nBatchSize = 5;
+
+	// Don't do this yet..
+	if (!m_bCheckCRCsWithServer)
+		return;
+
+	if (m_nSignonState != SIGNONSTATE_FULL)
+		return;
+
+	// Only send a batch every so often.
+	float flCurTime = Plat_FloatTime();
+	if ((flCurTime - m_flLastCRCBatchTime) < flBatchInterval)
+		return;
+
+	m_flLastCRCBatchTime = flCurTime;
+
+	CUnverifiedFileHash rgUnverifiedFiles[nBatchSize];
+	int count = g_pFileSystem->GetUnverifiedFileHashes(rgUnverifiedFiles, ARRAYSIZE(rgUnverifiedFiles));
+	if (count == 0)
+		return;
+
+	// Send the messages to the server.
+	for (int i = 0; i < count; i++)
+	{
+		CLC_FileCRCCheck crcCheck;
+		V_strncpy( crcCheck.m_szPathID, rgUnverifiedFiles[i].m_PathID, sizeof( crcCheck.m_szPathID ) );
+		V_strncpy( crcCheck.m_szFilename, rgUnverifiedFiles[i].m_Filename, sizeof( crcCheck.m_szFilename ) );
+		crcCheck.m_nFileFraction = rgUnverifiedFiles[i].m_nFileFraction;
+		crcCheck.m_MD5 = rgUnverifiedFiles[i].m_FileHash.m_md5contents;
+		crcCheck.m_CRCIOs = rgUnverifiedFiles[i].m_FileHash.m_crcIOSequence;
+		crcCheck.m_eFileHashType = rgUnverifiedFiles[i].m_FileHash.m_eFileHashType;
+		crcCheck.m_cbFileLen = rgUnverifiedFiles[i].m_FileHash.m_cbFileLen;
+		crcCheck.m_nPackFileNumber = rgUnverifiedFiles[i].m_FileHash.m_nPackFileNumber;
+		crcCheck.m_PackFileID = rgUnverifiedFiles[i].m_FileHash.m_PackFileID;
+
+		m_NetChannel->SendNetMsg(crcCheck);
+	}
+#endif
 }
 
 
@@ -1837,8 +1804,6 @@ void CClientState::FinishSignonState_New()
 
 	CL_InstallAndInvokeClientStringTableCallbacks();
 
-	materials->CacheUsedMaterials();
-
 	// force a consistency check
 	ConsistencyCheck( true );
 
@@ -1862,7 +1827,8 @@ void CClientState::FinishSignonState_New()
 	CL_SetSteamCrashComment();
 
 	// tell server that we entered now that state
-	m_NetChannel->SendNetMsg( NET_SignonState( m_nSignonState, m_nServerCount ) );
+	NET_SignonState msg(m_nSignonState, m_nServerCount);
+	m_NetChannel->SendNetMsg( msg );
 }
 
 

@@ -53,8 +53,8 @@ ConVar engine_no_focus_sleep( "engine_no_focus_sleep", "50", FCVAR_ARCHIVE );
 // sleep time when not focus
 #define NOT_FOCUS_SLEEP	50				
 
-#define DEFAULT_FPS_MAX	300
-#define DEFAULT_FPS_MAX_S "300"
+#define DEFAULT_FPS_MAX	400
+#define DEFAULT_FPS_MAX_S "400"
 static int s_nDesiredFPSMax = DEFAULT_FPS_MAX;
 static bool s_bFPSMaxDrivenByPowerSavings = false;
 
@@ -244,13 +244,13 @@ bool CEngine::FilterTime( double dt )
 	// Dedicated's tic_rate regulates server frame rate.  Don't apply fps filter here.
 	// Only do this restriction on the client. Prevents clients from accomplishing certain
 	// hacks by pausing their client for a period of time.
-	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 30 )
+	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 49 )
 	{
 		// Don't do anything if fps_max=0 (which means it's unlimited).
 		if ( fps_max.GetFloat() != 0.0f )
 		{
-			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 30 (or set to 0).\n" );
-			fps_max.SetValue( 30.0f );
+			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 49 (or set to 0).\n" );
+			fps_max.SetValue( 49.0f );
 		}
 	}
 
@@ -333,7 +333,7 @@ void CEngine::Frame( void )
 			m_flFrameTime = host_nexttick;
 		}
 
-		if ( FilterTime( m_flFrameTime )  )
+		if ( FilterTime( m_flFrameTime ) )
 		{
 			// Time to render our frame.
 			break;
@@ -341,14 +341,14 @@ void CEngine::Frame( void )
 
 		const bool bCustomBusyWait = host_timer_spin_ms.GetFloat() != 0;
 
-		if ( IsPC() && ( !sv.IsDedicated() || bCustomBusyWait) )
+		if ( IsPC() && ( !sv.IsDedicated() || bCustomBusyWait ) )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last two milliseconds to ensure very tight timing.
-			double fBusyWaitMS = 2.0f;
+			double fBusyWaitMS = IsWindows() ? 2.0 : 1.5;
 			double fWaitTime = m_flMinFrameTime - m_flFrameTime;
 			double fWaitEnd = m_flCurrentTime + fWaitTime;
-			if ( sv.IsDedicated() || bCustomBusyWait)
+			if ( sv.IsDedicated() || bCustomBusyWait )
 			{
 				fBusyWaitMS = host_timer_spin_ms.GetFloat();
 				fBusyWaitMS = MAX( fBusyWaitMS, 0.5 );
@@ -358,13 +358,14 @@ void CEngine::Frame( void )
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
 			int nSleepMS = (int)((m_flMinFrameTime - m_flFrameTime) * 1000 - fBusyWaitMS);
-			if ( nSleepMS > 3 )
+			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep(nSleepMS);
 			}
 
-			while (Sys_FloatTime() < fWaitEnd)
+			while (Plat_FloatTime() < fWaitEnd)
 			{
+				ThreadPause();
 				ThreadSleep();
 			}
 

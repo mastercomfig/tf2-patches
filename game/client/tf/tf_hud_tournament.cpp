@@ -130,6 +130,8 @@ void CHudTournament::Init( void )
 	m_flNextUpdate = gpGlobals->curtime;
 }
 
+ConVar tf_force_mannup_sound("tf_force_mannup_sound", "1", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -160,8 +162,7 @@ void CHudTournament::PlaySounds( int nTime )
 			}
 			break;
 		}
-		case 10:
-		{
+		case 15:
 			if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
 			{
 				if ( TFObjectiveResource()->GetMannVsMachineWaveCount() >= TFObjectiveResource()->GetMannVsMachineMaxWaveCount() )
@@ -170,7 +171,7 @@ void CHudTournament::PlaySounds( int nTime )
 				}
 				else if ( TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1 )
 				{
-					if ( GTFGCClientSystem()->GetLobby() && IsMannUpGroup( GTFGCClientSystem()->GetLobby()->GetMatchGroup() ) )
+					if ( GTFGCClientSystem()->GetLobby() && IsMannUpGroup( GTFGCClientSystem()->GetLobby()->GetMatchGroup() ) || tf_force_mannup_sound.GetBool() )
 					{
 						pLocalPlayer->EmitSound( "Announcer.MVM_Manned_Up" );
 					}
@@ -184,9 +185,11 @@ void CHudTournament::PlaySounds( int nTime )
 					pLocalPlayer->EmitSound( "Announcer.MVM_Wave_Start" );
 				}
 			}
-			else
+		case 10:
+		{
+			if (!TFGameRules() || !TFGameRules()->IsMannVsMachineMode())
 			{
-				pLocalPlayer->EmitSound( bCompetitiveMode ? "Announcer.CompGame1Begins10Seconds" : "Announcer.RoundBegins10Seconds" );
+				pLocalPlayer->EmitSound(bCompetitiveMode ? "Announcer.CompGame1Begins10Seconds" : "Announcer.RoundBegins10Seconds");
 			}
 			break;
 		}
@@ -1303,8 +1306,6 @@ CHudStopWatch::CHudStopWatch( const char *pElementName ) : CHudElement( pElement
 	m_pStopWatchPointsLabel = new CExLabel( this, "StopWatchPointsLabel", "" );
 	m_pStopWatchImage = new ImagePanel( this, "StopWatchImageCaptureTime" );
 	m_pStopWatchDescriptionLabel = new CExLabel( this, "StopWatchDescriptionLabel", "" );
-
-	ListenForGameEvent( "competitive_state_changed" );
 }
 
 //-----------------------------------------------------------------------------
@@ -1536,17 +1537,6 @@ void CHudStopWatch::OnTick( void )
 			SetDialogVariable( "stopwatchlabel", wzScoreVal );	
 		}
 	}
-}
-
-void CHudStopWatch::FireGameEvent( IGameEvent * event )
-{
-	if ( FStrEq( event->GetName(), "competitive_state_changed" ) )
-	{
-		InvalidateLayout( false, true );
-		return;
-	}
-
-	CHudElement::FireGameEvent( event );
 }
 
 //-----------------------------------------------------------------------------

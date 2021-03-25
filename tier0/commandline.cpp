@@ -40,7 +40,7 @@ public:
 
 	// Implements ICommandLine
 	virtual void		CreateCmdLine( const char *commandline  );
-	virtual void		CreateCmdLine( int argc, char **argv );
+	virtual void		CreateCmdLine( int argc, const char **argv );
 	virtual const char	*GetCmdLine( void ) const;
 	virtual	const char	*CheckParm( const char *psz, const char **ppszValue = 0 ) const;
 	// A bool return of whether param exists, useful for just checking if param that is just a flag is set
@@ -189,7 +189,7 @@ void CCommandLine::LoadParametersFromFile( const char *&pSrc, char *&pDst, int m
 //-----------------------------------------------------------------------------
 // Creates a command line from the arguments passed in
 //-----------------------------------------------------------------------------
-void CCommandLine::CreateCmdLine( int argc, char **argv )
+void CCommandLine::CreateCmdLine( int argc, const char **argv )
 {
 	char cmdline[ 2048 ];
 	cmdline[ 0 ] = 0;
@@ -226,10 +226,7 @@ void CCommandLine::CreateCmdLine( int argc, char **argv )
 //-----------------------------------------------------------------------------
 void CCommandLine::CreateCmdLine( const char *commandline )
 {
-	if ( m_pszCmdLine )
-	{
-		delete[] m_pszCmdLine;
-	}
+	delete[] m_pszCmdLine;
 
 	char szFull[ 4096 ];
 	szFull[0] = '\0';
@@ -631,8 +628,7 @@ void CCommandLine::SetParm( int nIndex, char const *pParm )
 		Assert( (nIndex >= 0) && (nIndex < m_nParmCount) );
 		if ( (nIndex >= 0) && (nIndex < m_nParmCount) )
 		{
-			if ( m_ppParms[nIndex] )
-				delete[] m_ppParms[nIndex];
+			delete[] m_ppParms[nIndex];
 			m_ppParms[nIndex] = strdup( pParm );
 		}
 

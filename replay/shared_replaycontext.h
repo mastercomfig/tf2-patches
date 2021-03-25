@@ -33,6 +33,8 @@ public:
 	virtual bool						Init( CreateInterfaceFn fnFactory );
 	virtual void						Shutdown();
 
+	bool								InitThreadPool();
+
 	virtual void						Think();
 
 	virtual bool						IsInitialized() const	{ return m_bInit; }
@@ -55,7 +57,6 @@ public:
 	bool								m_bInit;			// Initialized yet?  Set by outer class.
 
 private:
-	bool								InitThreadPool();
 	void								EnsureDirHierarchy();
 
 	IReplayContext						*m_pOwnerContext;

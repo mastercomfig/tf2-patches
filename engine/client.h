@@ -192,7 +192,7 @@ public:
 	float				GetFrameTime( void ) const;
 	void				SetFrameTime( float dt ) { m_frameTime = dt; }
 
-	float				GetClientInterpAmount();		// Formerly cl_interp, now based on cl_interp_ratio and cl_updaterate.
+	float				GetClientInterpAmount();		// Formerly cl_interp, now based on cl_interp_ratio and cl_updateinterval.
 		
 	void				Clear( void );
 

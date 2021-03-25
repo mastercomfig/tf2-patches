@@ -1252,6 +1252,8 @@ void CPopulationManager::WaveEnd( bool bSuccess )
 
 	if ( bSuccess )
 	{
+		TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed(MP_CONCEPT_MVM_WAVE_WIN, TF_TEAM_RED);
+
 		if ( m_bBonusRound )
 		{
 			if ( m_hBonusBoss )

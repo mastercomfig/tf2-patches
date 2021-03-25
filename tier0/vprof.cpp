@@ -520,14 +520,14 @@ void CVProfile::SumTimes( CVProfNode *pNode, int budgetGroupID )
 		{
 			double timeLessChildren = pNode->GetTotalTimeLessChildren();
 			
-			g_TimesLessChildren.insert( make_pair( pNode, timeLessChildren ) );
+			g_TimesLessChildren.emplace( pNode, timeLessChildren );
 			
 			map<const tchar *, size_t>::iterator iter;
 			iter = g_TimeSumsMap.find( pNode->GetName() ); // intenionally using address of string rather than string compare (toml 01-27-03)
 			if ( iter == g_TimeSumsMap.end() )
 			{
 				TimeSums_t timeSums = { pNode->GetName(), pNode->GetTotalCalls(), pNode->GetTotalTime(), timeLessChildren, pNode->GetPeakTime() };
-				g_TimeSumsMap.insert( make_pair( pNode->GetName(), g_TimeSums.size() ) );
+				g_TimeSumsMap.emplace( pNode->GetName(), g_TimeSums.size() );
 				g_TimeSums.push_back( timeSums );
 			}
 			else
@@ -1545,7 +1545,7 @@ static int g_ColorLookup[4] =
 	COLORMIN+((COLORMAX-COLORMIN)*2)/3, 
 };
 
-#define GET_BIT( val, bitnum ) ( ( val >> bitnum ) & 0x1 )
+#define GET_BIT( val, bitnum ) ( ( (val) >> (bitnum) ) & 0x1 )
 
 void CVProfile::GetBudgetGroupColor( int budgetGroupID, int &r, int &g, int &b, int &a )
 {

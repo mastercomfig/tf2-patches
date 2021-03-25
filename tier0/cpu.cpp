@@ -91,65 +91,11 @@ static bool CheckMMXTechnology(void)
 #endif
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: This is a bit of a hack because it appears 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-static bool IsWin98OrOlder()
-{
-#if defined( _X360 ) || defined( _PS3 ) || defined( POSIX )
-	return false;
-#else
-	bool retval = false;
-
-	OSVERSIONINFOEX osvi;
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	
-	BOOL bOsVersionInfoEx = GetVersionEx ((OSVERSIONINFO *) &osvi);
-	if( !bOsVersionInfoEx )
-	{
-		// If OSVERSIONINFOEX doesn't work, try OSVERSIONINFO.
-		
-		osvi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-		if ( !GetVersionEx ( (OSVERSIONINFO *) &osvi) )
-		{
-			Error( _T("IsWin98OrOlder:  Unable to get OS version information") );
-		}
-	}
-
-	switch (osvi.dwPlatformId)
-	{
-	case VER_PLATFORM_WIN32_NT:
-		// NT, XP, Win2K, etc. all OK for SSE
-		break;
-	case VER_PLATFORM_WIN32_WINDOWS:
-		// Win95, 98, Me can't do SSE
-		retval = true;
-		break;
-	case VER_PLATFORM_WIN32s:
-		// Can't really run this way I don't think...
-		retval = true;
-		break;
-	default:
-		break;
-	}
-
-	return retval;
-#endif
-}
-
-
 static bool CheckSSETechnology(void)
 {
 #if defined( _X360 ) || defined( _PS3 )
 	return true;
 #else
-	if ( IsWin98OrOlder() )
-	{
-		return false;
-	}
-
     unsigned long eax,ebx,edx,unused;
     if ( !cpuid(1,eax,ebx,unused,edx) )
 	{
@@ -222,12 +168,6 @@ bool CheckSSE42Technology(void)
 #if defined( _X360 ) || defined( _PS3 )
 	return false;
 #else
-	// SSE4.2 is an Intel-only feature
-
-	const char *pchVendor = GetProcessorVendorId();
-	if ( 0 != V_tier0_stricmp( pchVendor, "GenuineIntel" ) )
-		return false;
-
 	unsigned long eax,ebx,edx,ecx;
 	if( !cpuid(1,eax,ebx,ecx,edx) )
 		return false;

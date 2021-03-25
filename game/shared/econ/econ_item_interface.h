@@ -448,7 +448,9 @@ public:
 
 	// Helpers to look for specific attribute values
 	virtual CEconItemPaintKitDefinition *GetCustomPainkKitDefinition( void ) const { return GetItemDefinition() ? GetItemDefinition()->GetCustomPainkKitDefinition() : NULL; }
-	virtual bool GetCustomPaintKitWear( float &flWear ) const;
+	float m_flCachedWear = -1;
+	virtual bool GetCustomPaintKitWear( float &flWear );
+	virtual bool GetCustomPaintKitWear(float& flWear) const;
 
 	// IEconItemInterface common implementation.
 	virtual bool IsTradable() const;

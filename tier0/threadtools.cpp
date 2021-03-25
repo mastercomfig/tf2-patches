@@ -68,7 +68,7 @@ typedef void *LPVOID;
 // Must be last header...
 #include "tier0/memdbgon.h"
 
-#define THREADS_DEBUG 1
+//#define THREADS_DEBUG
 
 // Need to ensure initialized before other clients call in for main thread ID
 #ifdef _WIN32
@@ -77,7 +77,6 @@ typedef void *LPVOID;
 #endif
 
 #ifdef _WIN32
-ASSERT_INVARIANT(TT_SIZEOF_CRITICALSECTION == sizeof(CRITICAL_SECTION));
 ASSERT_INVARIANT(TT_INFINITE == INFINITE);
 #endif
 
@@ -205,10 +204,41 @@ void ThreadSleep(unsigned nMilliseconds)
 		timeBeginPeriod( 1 );
 	}
 #endif // IS_WINDOWS_PC
-
-	Sleep( nMilliseconds );
+	
+	if (nMilliseconds > 0)
+	{
+		SleepEx(nMilliseconds, true);
+	}
+	else
+	{
+		SwitchToThread();
+	}
 #elif defined(POSIX)
    usleep( nMilliseconds * 1000 ); 
+#endif
+}
+
+void ThreadSleepEx(unsigned nMilliseconds)
+{
+	// hint to CPU that we're spin waiting
+	ThreadPause();
+#ifdef _WIN32
+
+#ifdef IS_WINDOWS_PC
+	static bool bInitialized = false;
+	if (!bInitialized)
+	{
+		bInitialized = true;
+		// Set the timer resolution to 1 ms (default is 10.0, 15.6, 2.5, 1.0 or
+		// some other value depending on hardware and software) so that we can
+		// use Sleep( 1 ) to avoid wasting CPU time without missing our frame
+		// rate.
+		timeBeginPeriod(1);
+	}
+#endif // IS_WINDOWS_PC
+	SleepEx(nMilliseconds, true);
+#elif defined(POSIX)
+	usleep(nMilliseconds * 1000);
 #endif
 }
 
@@ -229,7 +259,7 @@ uint ThreadGetCurrentId()
 ThreadHandle_t ThreadGetCurrentHandle()
 {
 #ifdef _WIN32
-	return (ThreadHandle_t)GetCurrentThread();
+	return(ThreadHandle_t)GetCurrentThread();
 #elif defined(POSIX)
 	return (ThreadHandle_t)pthread_self();
 #endif
@@ -320,6 +350,7 @@ bool ThreadSetPriority( ThreadHandle_t hThread, int priority )
 
 void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask )
 {
+#if _X360
 	if ( !hThread )
 	{
 		hThread = ThreadGetCurrentHandle();
@@ -335,7 +366,7 @@ void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask )
 // 	    CPU_SET( cpuSet, i );
 // 	sched_setaffinity( hThread, sizeof( cpuSet ), &cpuSet );
 #endif
-
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -477,20 +508,18 @@ void ThreadSetDebugName( ThreadId_t id, const char *pszName )
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 
 #ifdef _WIN32
-ASSERT_INVARIANT( TW_FAILED == WAIT_FAILED );
-ASSERT_INVARIANT( TW_TIMEOUT  == WAIT_TIMEOUT );
-ASSERT_INVARIANT( WAIT_OBJECT_0 == 0 );
+ASSERT_INVARIANT(TW_FAILED == WAIT_FAILED);
+ASSERT_INVARIANT(TW_TIMEOUT == WAIT_TIMEOUT);
+ASSERT_INVARIANT(WAIT_OBJECT_0 == 0);
 
-int ThreadWaitForObjects( int nEvents, const HANDLE *pHandles, bool bWaitAll, unsigned timeout )
+int ThreadWaitForObjects(int nEvents, const HANDLE* pHandles, bool bWaitAll, unsigned timeout)
 {
-	return VCRHook_WaitForMultipleObjects( nEvents, pHandles, bWaitAll, timeout );
+    return VCRHook_WaitForMultipleObjects(nEvents, pHandles, bWaitAll, timeout);
 }
 #endif
-
 
 //-----------------------------------------------------------------------------
 // Used to thread LoadLibrary on the 360
@@ -512,11 +541,6 @@ PLATFORM_INTERFACE ThreadedLoadLibraryFunc_t GetThreadedLoadLibraryFunc()
 //-----------------------------------------------------------------------------
 
 CThreadSyncObject::CThreadSyncObject()
-#ifdef _WIN32
-  : m_hSyncObject( NULL ), m_bCreatedHandle(false)
-#elif defined(POSIX)
-  : m_bInitalized( false )
-#endif
 {
 }
 
@@ -524,33 +548,14 @@ CThreadSyncObject::CThreadSyncObject()
 
 CThreadSyncObject::~CThreadSyncObject()
 {
-#ifdef _WIN32
-   if ( m_hSyncObject && m_bCreatedHandle )
-   {
-      if ( !CloseHandle(m_hSyncObject) )
-	  {
-		  Assert( 0 );
-	  }
-   }
-#elif defined(POSIX)
-   if ( m_bInitalized )
-   {
-	pthread_cond_destroy( &m_Condition );
-        pthread_mutex_destroy( &m_Mutex );
-	m_bInitalized = false;
-   }
-#endif
+	m_bInitialized = false;
 }
 
 //---------------------------------------------------------
 
 bool CThreadSyncObject::operator!() const
 {
-#ifdef _WIN32
-   return !m_hSyncObject;
-#elif defined(POSIX)
-   return !m_bInitalized;
-#endif
+   return !m_bInitialized;
 }
 
 //---------------------------------------------------------
@@ -558,11 +563,7 @@ bool CThreadSyncObject::operator!() const
 void CThreadSyncObject::AssertUseable()
 {
 #ifdef THREADS_DEBUG
-#ifdef _WIN32
-   AssertMsg( m_hSyncObject, "Thread synchronization object is unuseable" );
-#elif defined(POSIX)
-   AssertMsg( m_bInitalized, "Thread synchronization object is unuseable" );
-#endif
+	AssertMsg(m_bInitialized, "Thread synchronization object is unusable");
 #endif
 }
 
@@ -571,62 +572,33 @@ void CThreadSyncObject::AssertUseable()
 bool CThreadSyncObject::Wait( uint32 dwTimeout )
 {
 #ifdef THREADS_DEBUG
-   AssertUseable();
+    AssertUseable();
 #endif
-#ifdef _WIN32
-   return ( VCRHook_WaitForSingleObject( m_hSyncObject, dwTimeout ) == WAIT_OBJECT_0 );
-#elif defined(POSIX)
-    pthread_mutex_lock( &m_Mutex );
-    bool bRet = false;
-    if ( m_cSet > 0 )
+    // Lock because we want to sync m_bSignaled
+    std::unique_lock<std::mutex> lock(m_Mutex);
+    bool bRet = m_bSignaled;
+	if (bRet || dwTimeout == 0)
+	{
+	    // Emulate context switch behavior seen in other waits
+		ThreadSleep(0);
+	}
+	else
+	{
+		if (dwTimeout == TT_INFINITE)
+        {
+	        m_Condition.wait(lock, [this] { return m_bSignaled; });
+	        bRet = true;
+        }
+        else
+        {
+	        bRet = m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled; });
+        }
+	}
+    if (m_bAutoReset && bRet)
     {
-		bRet = true;
-		m_bWakeForEvent = false;
+	    m_bSignaled = false;
     }
-    else
-    {
-		volatile int ret = 0;
-
-		while ( !m_bWakeForEvent && ret != ETIMEDOUT )
-		{
-			struct timeval tv;
-			gettimeofday( &tv, NULL );
-			volatile struct timespec tm;
-			
-			uint64 actualTimeout = dwTimeout;
-			
-			if ( dwTimeout == TT_INFINITE && m_bManualReset )
-				actualTimeout = 10; // just wait 10 msec at most for manual reset events and loop instead
-				
-			volatile uint64 nNanoSec = (uint64)tv.tv_usec*1000 + (uint64)actualTimeout*1000000;
-			tm.tv_sec = tv.tv_sec + nNanoSec /1000000000;
-			tm.tv_nsec = nNanoSec % 1000000000;
-
-			do
-			{   
-				ret = pthread_cond_timedwait( &m_Condition, &m_Mutex, (const timespec *)&tm );
-			} 
-			while( ret == EINTR );
-
-			bRet = ( ret == 0 );
-			
-			if ( m_bManualReset )
-			{
-				if ( m_cSet )
-					break;
-				if ( dwTimeout == TT_INFINITE && ret == ETIMEDOUT )
-					ret = 0; // force the loop to spin back around
-			}
-		}
-		
-		if ( bRet )
-			m_bWakeForEvent = false;
-    }
-    if ( !m_bManualReset && bRet )
-		m_cSet = 0;
-    pthread_mutex_unlock( &m_Mutex );
     return bRet;
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -635,33 +607,10 @@ bool CThreadSyncObject::Wait( uint32 dwTimeout )
 
 CThreadEvent::CThreadEvent( bool bManualReset )
 {
-#ifdef _WIN32
-    m_hSyncObject = CreateEvent( NULL, bManualReset, FALSE, NULL );
-	m_bCreatedHandle = true;
-    AssertMsg1(m_hSyncObject, "Failed to create event (error 0x%x)", GetLastError() );
-#elif defined( POSIX )
-    pthread_mutexattr_t Attr;
-    pthread_mutexattr_init( &Attr );
-    pthread_mutex_init( &m_Mutex, &Attr );
-    pthread_mutexattr_destroy( &Attr );
-    pthread_cond_init( &m_Condition, NULL );
-    m_bInitalized = true;
-    m_cSet = 0;
-	m_bWakeForEvent = false;
-    m_bManualReset = bManualReset;
-#else
-#error "Implement me"
-#endif
+	m_bAutoReset = !bManualReset;
+	m_bSignaled = false;
+	m_bInitialized = true;
 }
-
-#ifdef _WIN32
-CThreadEvent::CThreadEvent( HANDLE hHandle )
-{
-	m_hSyncObject = hHandle;
-	m_bCreatedHandle = false;
-	AssertMsg(m_hSyncObject, "Null event passed into constructor" );
-}
-#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -672,17 +621,116 @@ CThreadEvent::CThreadEvent( HANDLE hHandle )
 
 bool CThreadEvent::Set()
 {
-   AssertUseable();
-#ifdef _WIN32
-   return ( SetEvent( m_hSyncObject ) != 0 );
-#elif defined(POSIX)
-    pthread_mutex_lock( &m_Mutex );
-    m_cSet = 1;
-	m_bWakeForEvent = true;
-    int ret = pthread_cond_signal( &m_Condition );
-    pthread_mutex_unlock( &m_Mutex );
-    return ret == 0;
+#ifdef THREADS_DEBUG
+	AssertUseable();
 #endif
+
+    {
+        std::unique_lock<std::mutex> lock(m_Mutex);
+		if (m_bSignaled)
+		{
+			return true;
+		}
+		m_bSignaled = true;
+		std::shared_ptr<std::condition_variable_any> condition;
+		while (m_listeningConditions.PopItem(condition))
+		{
+			if (condition)
+			{
+				condition->notify_one();
+			}
+			condition.reset();
+		}
+    }
+	else
+	{
+		m_bSignaled = true;
+	}
+#endif
+
+	// If we are not going to notify a listener, then we can be less pessimistic and unlock now
+	// By pessimism, as we say above and in the below sections, we mean keeping the lock until the end of scope
+	// when we have already notified a condition variable which will be trying to get ahold of the lock before
+	// we reach the end of scope. Therefore, it's important that we unlock BEFORE we notify.
+	const size_t iListeners = m_listeningConditions.Size();
+	const bool bNoListeners = iListeners < 1;
+	if (bNoListeners)
+	{
+		lock.unlock();
+	}
+
+	if (m_bAutoReset)
+	{
+		// wait for events either holds a scoped_lock on all events (for wait all), or does a Check() which locks (for wait any)
+		// so, if we get to this point, it's because WaitForEvents got a lock and should be next in line
+		// this code is slightly duplicated below in the non-auto reset to avoid checking m_bAutoReset for each listener
+		if (!bNoListeners)
+		{
+		    std::shared_ptr<std::condition_variable_any> condition;
+	        while (m_listeningConditions.PopItem(condition))
+		    {
+			    if (condition)
+			    {
+				    // We aren't going to notify anything else, so unlock now.
+				    lock.unlock();
+				    condition->notify_one();
+				    condition.reset();
+				    // Since it's an auto reset, if we notify a listener, we've already let an event through, so don't let another one through.
+				    return true;
+			    }
+		    }
+
+		    // Be non-pessimistic after we loop through
+			lock.unlock();
+		}
+
+		m_Condition.notify_one();
+	}
+	else
+	{
+		// wait for events either holds a scoped_lock on all events (for wait all), or does a Check() which locks (for wait any)
+		// so, if we get to this point, it's because WaitForEvents got a lock and should be next in line
+		if (!bNoListeners)
+		{
+			bool bOneListener = iListeners == 1;
+	        std::shared_ptr<std::condition_variable_any> condition;
+			if (bOneListener)
+			{
+				m_listeningConditions.PopItem(condition);
+				if (condition)
+				{
+					lock.unlock();
+					condition->notify_one();
+					condition.reset();
+				}
+				else
+				{
+					bOneListener = false;
+				}
+			}
+			else
+			{
+				while (m_listeningConditions.PopItem(condition))
+				{
+					if (condition)
+					{
+						// TODO: unfortunately, with multiple, we have to take the pessimistic case here, since we will be notifying multiple listeners within this queue
+						condition->notify_one();
+						condition.reset();
+					}
+				}
+			}
+
+		    // At least be non-pessimistic after we loop through
+			if (!bOneListener)
+			{
+				lock.unlock();
+			}
+		}
+
+		m_Condition.notify_all();
+	}
+	return true;
 }
 
 //---------------------------------------------------------
@@ -690,17 +738,12 @@ bool CThreadEvent::Set()
 bool CThreadEvent::Reset()
 {
 #ifdef THREADS_DEBUG
-   AssertUseable();
+    AssertUseable();
 #endif
-#ifdef _WIN32
-   return ( ResetEvent( m_hSyncObject ) != 0 );
-#elif defined(POSIX)
-	pthread_mutex_lock( &m_Mutex );
-	m_cSet = 0;
-	m_bWakeForEvent = false;
-	pthread_mutex_unlock( &m_Mutex );
-	return true; 
-#endif
+	// Lock because we want to sync m_bSignaled
+    std::scoped_lock<std::mutex> lock(m_Mutex);
+    m_bSignaled = false;
+    return true;
 }
 
 //---------------------------------------------------------
@@ -708,76 +751,22 @@ bool CThreadEvent::Reset()
 bool CThreadEvent::Check()
 {
 #ifdef THREADS_DEBUG
-   AssertUseable();
+    AssertUseable();
 #endif
-	return Wait( 0 );
+    return Wait( 0 );
 }
 
-
+//---------------------------------------------------------
 
 bool CThreadEvent::Wait( uint32 dwTimeout )
 {
 	return CThreadSyncObject::Wait( dwTimeout );
 }
 
-#ifdef _WIN32
-//-----------------------------------------------------------------------------
-//
-// CThreadSemaphore
-//
-// To get Posix implementation, try http://www-128.ibm.com/developerworks/eserver/library/es-win32linux-sem.html
-//
-//-----------------------------------------------------------------------------
-
-CThreadSemaphore::CThreadSemaphore( long initialValue, long maxValue )
+void CThreadEvent::AddListener(std::shared_ptr<std::condition_variable_any> condition)
 {
-	if ( maxValue )
-	{
-		AssertMsg( maxValue > 0, "Invalid max value for semaphore" );
-		AssertMsg( initialValue >= 0 && initialValue <= maxValue, "Invalid initial value for semaphore" );
-
-		m_hSyncObject = CreateSemaphore( NULL, initialValue, maxValue, NULL );
-
-		AssertMsg1(m_hSyncObject, "Failed to create semaphore (error 0x%x)", GetLastError());
-	}
-	else
-	{
-		m_hSyncObject = NULL;
-	}
+	m_listeningConditions.PushItem(condition);
 }
-
-//---------------------------------------------------------
-
-bool CThreadSemaphore::Release( long releaseCount, long *pPreviousCount )
-{
-#ifdef THRDTOOL_DEBUG
-   AssertUseable();
-#endif
-   return ( ReleaseSemaphore( m_hSyncObject, releaseCount, pPreviousCount ) != 0 );
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-
-CThreadFullMutex::CThreadFullMutex( bool bEstablishInitialOwnership, const char *pszName )
-{
-   m_hSyncObject = CreateMutex( NULL, bEstablishInitialOwnership, pszName );
-
-   AssertMsg1( m_hSyncObject, "Failed to create mutex (error 0x%x)", GetLastError() );
-}
-
-//---------------------------------------------------------
-
-bool CThreadFullMutex::Release()
-{
-#ifdef THRDTOOL_DEBUG
-   AssertUseable();
-#endif
-   return ( ReleaseMutex( m_hSyncObject ) != 0 );
-}
-
-#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -1265,77 +1254,6 @@ MAP_THREAD_PROFILER_CALL( ThreadNotifySyncReleasing, __itt_notify_sync_releasing
 
 //-----------------------------------------------------------------------------
 //
-// CThreadMutex
-//
-//-----------------------------------------------------------------------------
-
-#ifndef POSIX
-CThreadMutex::CThreadMutex()
-{
-#ifdef THREAD_MUTEX_TRACING_ENABLED
-	memset( &m_CriticalSection, 0, sizeof(m_CriticalSection) );
-#endif
-	InitializeCriticalSectionAndSpinCount((CRITICAL_SECTION *)&m_CriticalSection, 4000);
-#ifdef THREAD_MUTEX_TRACING_SUPPORTED
-	// These need to be initialized unconditionally in case mixing release & debug object modules
-	// Lock and unlock may be emitted as COMDATs, in which case may get spurious output
-	m_currentOwnerID = m_lockCount = 0;
-	m_bTrace = false;
-#endif
-}
-
-CThreadMutex::~CThreadMutex()
-{
-	DeleteCriticalSection((CRITICAL_SECTION *)&m_CriticalSection);
-}
-#endif // !POSIX
-
-#if defined( _WIN32 ) && !defined( _X360 )
-typedef BOOL (WINAPI*TryEnterCriticalSectionFunc_t)(LPCRITICAL_SECTION);
-static CDynamicFunction<TryEnterCriticalSectionFunc_t> DynTryEnterCriticalSection( "Kernel32.dll", "TryEnterCriticalSection" );
-#elif defined( _X360 )
-#define DynTryEnterCriticalSection TryEnterCriticalSection
-#endif
-
-bool CThreadMutex::TryLock()
-{
-
-#if defined( _WIN32 )
-#ifdef THREAD_MUTEX_TRACING_ENABLED
-	uint thisThreadID = ThreadGetCurrentId();
-	if ( m_bTrace && m_currentOwnerID && ( m_currentOwnerID != thisThreadID ) )
-		Msg( "Thread %u about to try-wait for lock %p owned by %u\n", ThreadGetCurrentId(), (CRITICAL_SECTION *)&m_CriticalSection, m_currentOwnerID );
-#endif
-	if ( DynTryEnterCriticalSection != NULL )
-	{
-		if ( (*DynTryEnterCriticalSection )( (CRITICAL_SECTION *)&m_CriticalSection ) != FALSE )
-		{
-#ifdef THREAD_MUTEX_TRACING_ENABLED
-			if (m_lockCount == 0)
-			{
-				// we now own it for the first time.  Set owner information
-				m_currentOwnerID = thisThreadID;
-				if ( m_bTrace )
-					Msg( "Thread %u now owns lock 0x%p\n", m_currentOwnerID, (CRITICAL_SECTION *)&m_CriticalSection );
-			}
-			m_lockCount++;
-#endif
-			return true;
-		}
-		return false;
-	}
-	Lock();
-	return true;
-#elif defined( POSIX )
-	 return pthread_mutex_trylock( &m_Mutex ) == 0;
-#else
-#error "Implement me!"
-	return true;
-#endif
-}
-
-//-----------------------------------------------------------------------------
-//
 // CThreadFastMutex
 //
 //-----------------------------------------------------------------------------
@@ -1365,7 +1283,7 @@ void CThreadFastMutex::Lock( const uint32 threadId, unsigned nSpinSleepTime ) vo
 			ThreadPause();
 			if ( i % 1024 == 0 )
 			{
-				ThreadSleep( 0 );
+				ThreadSleep(0);
 			}
 		}
 
@@ -1387,7 +1305,7 @@ void CThreadFastMutex::Lock( const uint32 threadId, unsigned nSpinSleepTime ) vo
 				}
 
 				ThreadPause();
-				ThreadSleep( 0 );
+				ThreadSleep();
 			}
 
 		}
@@ -1438,6 +1356,481 @@ void CThreadRWLock::WaitForRead()
 	m_nPendingReaders--;
 }
 
+
+int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll, unsigned timeout)
+{
+	Assert(nEvents > 0);
+	if (nEvents == 1)
+	{
+		if (pEvents[0]->Wait(timeout))
+			return 0;
+		return TW_TIMEOUT;
+	}
+	bool bRet = false;
+	int iEventIndex = 0;
+
+	if (bWaitAll)
+	{
+		// We use the raw boolean because we have a lock on all events.
+		auto lPredSignaledAll = [nEvents, &pEvents]
+		{
+			for (int i = 0; i < nEvents; i++)
+			{
+				if (!pEvents[i]->m_bSignaled)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+		switch (nEvents)
+		{
+			case 2:
+			{
+				CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
+				// If we're already signaled, skip adding listeners
+				if (lPredSignaledAll())
+				{
+					bRet = true;
+				}
+				else if (timeout != 0)
+				{
+					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->AddListenerNoLock(condition);
+					}
+
+					if (timeout == TT_INFINITE)
+					{
+						condition->wait(lock, lPredSignaledAll);
+						bRet = true;
+					}
+					else
+					{
+						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAll);
+					}
+
+					// Clear out listeners
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->RemoveListenerNoLock(condition);
+					}
+					condition.reset();
+				}
+
+				// Auto reset, since this function is a wait too!
+				if (bRet)
+				{
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled = false;
+						}
+					}
+				}
+				break;
+			}
+			case 3:
+			{
+				CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
+				// If we're already signaled, skip adding listeners
+				if (lPredSignaledAll())
+				{
+					bRet = true;
+				}
+				else if (timeout != 0)
+				{
+					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->AddListenerNoLock(condition);
+					}
+
+					if (timeout == TT_INFINITE)
+					{
+						condition->wait(lock, lPredSignaledAll);
+						bRet = true;
+					}
+					else
+					{
+						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAll);
+					}
+
+					// Clear out listeners
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->RemoveListenerNoLock(condition);
+					}
+					condition.reset();
+				}
+
+				// Auto reset, since this function is a wait too!
+				if (bRet)
+				{
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled = false;
+						}
+					}
+				}
+				break;
+			}
+			case 4:
+			{
+				CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
+				// If we're already signaled, skip adding listeners
+				if (lPredSignaledAll())
+				{
+					bRet = true;
+				}
+				else if (timeout != 0)
+				{
+					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->AddListenerNoLock(condition);
+					}
+
+					if (timeout == TT_INFINITE)
+					{
+						condition->wait(lock, lPredSignaledAll);
+						bRet = true;
+					}
+					else
+					{
+						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAll);
+					}
+
+					// Clear out listeners
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->RemoveListenerNoLock(condition);
+					}
+					condition.reset();
+				}
+
+				// Auto reset, since this function is a wait too!
+				if (bRet)
+				{
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled = false;
+						}
+					}
+				}
+				break;
+			}
+			case 5:
+			{
+				CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
+				// If we're already signaled, skip adding listeners
+				if (lPredSignaledAll())
+				{
+					bRet = true;
+				}
+				else if (timeout != 0)
+				{
+					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->AddListenerNoLock(condition);
+					}
+
+					if (timeout == TT_INFINITE)
+					{
+						condition->wait(lock, lPredSignaledAll);
+						bRet = true;
+					}
+					else
+					{
+						bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAll);
+					}
+
+					// Clear out listeners
+					for (int i = 0; i < nEvents; i++)
+					{
+						pEvents[i]->RemoveListener(condition);
+					}
+					condition.reset();
+				}
+
+				// Auto reset, since this function is a wait too!
+				if (bRet)
+				{
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled = false;
+						}
+					}
+				}
+				break;
+			}
+			default:
+			{
+				Assert(0);
+				break;
+			}
+		}
+	}
+	else
+	{
+	    auto lPredSignaledAny = [nEvents, &pEvents, &iEventIndex]
+	    {
+		    for (int i = 0; i < nEvents; i++)
+		    {
+			    if (pEvents[i]->m_bSignaled)
+			    {
+				    iEventIndex = i;
+				    return true;
+			    }
+		    }
+
+		    return false;
+	    };
+
+		// UNDONE(mastercoms): TOO OPTIMISTIC: what if its signaled on this thread, but actually not signaled?
+#if 0
+		// Most optimistic case: we have signal state synced already.
+		if (lPredSignaledAny())
+		{
+		    if (pEvents[iEventIndex]->m_bAutoReset)
+			{
+				pEvents[iEventIndex]->Reset();
+			}
+			bRet = true;
+		}
+		else
+#endif
+		{
+			// UNDONE(mastercoms): benefit is dubious
+#if 0
+			auto lPredSignaledAnyCheck = [nEvents, &pEvents, &iEventIndex]
+		    {
+			    for (int i = 0; i < nEvents; i++)
+			    {
+				    if (pEvents[i]->Check())
+				    {
+					    iEventIndex = i;
+					    return true;
+				    }
+			    }
+
+			    return false;
+		    };
+			// Second optimistic case: we can do an initial check to minimize contention
+			if (lPredSignaledAnyCheck())
+			{
+				// Check handles auto reset
+				bRet = true;
+			}
+			else
+#endif
+			{
+				// Lock all at the same time, to prevent race conditions.
+				// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
+				switch (nEvents)
+				{
+				case 2:
+				{
+					CExtendedScopedLock<std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
+					// If we're already signaled, skip adding listeners
+					if (lPredSignaledAny())
+					{
+						bRet = true;
+					}
+					else if (timeout != 0)
+					{
+						std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->AddListenerNoLock(condition);
+						}
+
+						if (timeout == TT_INFINITE)
+						{
+							condition->wait(lock, lPredSignaledAny);
+							bRet = true;
+						}
+						else
+						{
+							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+						}
+
+						// Clear out listeners
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->RemoveListenerNoLock(condition);
+						}
+						condition.reset();
+					}
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						if (pEvents[iEventIndex]->m_bAutoReset)
+						{
+							pEvents[iEventIndex]->m_bSignaled = false;
+						}
+					}
+					break;
+				}
+				case 3:
+				{
+					CExtendedScopedLock<std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
+					// If we're already signaled, skip adding listeners
+					if (lPredSignaledAny())
+					{
+						bRet = true;
+					}
+					else if (timeout != 0)
+					{
+						std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->AddListenerNoLock(condition);
+						}
+
+						if (timeout == TT_INFINITE)
+						{
+							condition->wait(lock, lPredSignaledAny);
+							bRet = true;
+						}
+						else
+						{
+							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+						}
+
+						// Clear out listeners
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->RemoveListenerNoLock(condition);
+						}
+						condition.reset();
+					}
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						if (pEvents[iEventIndex]->m_bAutoReset)
+						{
+							pEvents[iEventIndex]->m_bSignaled = false;
+						}
+					}
+					break;
+				}
+				case 4:
+				{
+					CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
+					// If we're already signaled, skip adding listeners
+					if (lPredSignaledAny())
+					{
+						bRet = true;
+					}
+					else if (timeout != 0)
+					{
+						std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->AddListenerNoLock(condition);
+						}
+
+						if (timeout == TT_INFINITE)
+						{
+							condition->wait(lock, lPredSignaledAny);
+							bRet = true;
+						}
+						else
+						{
+							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+						}
+
+						// Clear out listeners
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->RemoveListenerNoLock(condition);
+						}
+						condition.reset();
+					}
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						if (pEvents[iEventIndex]->m_bAutoReset)
+						{
+							pEvents[iEventIndex]->m_bSignaled = false;
+						}
+					}
+					break;
+				}
+				case 5:
+				{
+					CExtendedScopedLock<std::mutex, std::mutex, std::mutex, std::mutex, std::mutex> lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
+					// If we're already signaled, skip adding listeners
+					if (lPredSignaledAny())
+					{
+						bRet = true;
+					}
+					else if (timeout != 0)
+					{
+						std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->AddListenerNoLock(condition);
+						}
+
+						if (timeout == TT_INFINITE)
+						{
+							condition->wait(lock, lPredSignaledAny);
+							bRet = true;
+						}
+						else
+						{
+							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout), lPredSignaledAny);
+						}
+
+						// Clear out listeners
+						for (int i = 0; i < nEvents; i++)
+						{
+							pEvents[i]->RemoveListenerNoLock(condition);
+						}
+						condition.reset();
+					}
+
+					// Auto reset, since this function is a wait too!
+					if (bRet)
+					{
+						if (pEvents[iEventIndex]->m_bAutoReset)
+						{
+							pEvents[iEventIndex]->m_bSignaled = false;
+						}
+					}
+					break;
+				}
+				default:
+				{
+					Assert(0);
+					break;
+				}
+				}
+			}
+		}
+	}
+	if (bRet)
+	{
+		return iEventIndex;
+	}
+	return TW_TIMEOUT;
+}
 
 void CThreadRWLock::LockForWrite()
 {
@@ -1521,7 +1914,7 @@ void CThreadSpinRWLock::LockForRead()
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-	oldValue.m_nReaders = m_lockInfo.m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 	oldValue.m_writerId = 0;
 	newValue.m_nReaders = oldValue.m_nReaders + 1;
 	newValue.m_writerId = 0;
@@ -1529,7 +1922,7 @@ void CThreadSpinRWLock::LockForRead()
 	if( m_nWriters == 0 && AssignIf( newValue, oldValue ) )
 		return;
 	ThreadPause();
-	oldValue.m_nReaders = m_lockInfo.m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 	newValue.m_nReaders = oldValue.m_nReaders + 1;
 
 	for ( i = 1000; i != 0; --i )
@@ -1537,7 +1930,7 @@ void CThreadSpinRWLock::LockForRead()
 		if( m_nWriters == 0 && AssignIf( newValue, oldValue ) )
 			return;
 		ThreadPause();
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 
@@ -1547,7 +1940,7 @@ void CThreadSpinRWLock::LockForRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 0 );
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 
@@ -1557,7 +1950,7 @@ void CThreadSpinRWLock::LockForRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 1 );
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 	}
 }
@@ -1566,11 +1959,11 @@ void CThreadSpinRWLock::UnlockRead()
 {
 	int i;
 
-	Assert( m_lockInfo.m_nReaders > 0 && m_lockInfo.m_writerId == 0 );
+	Assert( m_lockInfo.load().m_nReaders > 0 && m_lockInfo.load().m_writerId == 0 );
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-	oldValue.m_nReaders = m_lockInfo.m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 	oldValue.m_writerId = 0;
 	newValue.m_nReaders = oldValue.m_nReaders - 1;
 	newValue.m_writerId = 0;
@@ -1578,7 +1971,7 @@ void CThreadSpinRWLock::UnlockRead()
 	if( AssignIf( newValue, oldValue ) )
 		return;
 	ThreadPause();
-	oldValue.m_nReaders = m_lockInfo.m_nReaders;
+	oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 	newValue.m_nReaders = oldValue.m_nReaders - 1;
 
 	for ( i = 500; i != 0; --i )
@@ -1586,7 +1979,7 @@ void CThreadSpinRWLock::UnlockRead()
 		if( AssignIf( newValue, oldValue ) )
 			return;
 		ThreadPause();
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 
@@ -1596,7 +1989,7 @@ void CThreadSpinRWLock::UnlockRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 0 );
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 
@@ -1606,20 +1999,20 @@ void CThreadSpinRWLock::UnlockRead()
 			return;
 		ThreadPause();
 		ThreadSleep( 1 );
-		oldValue.m_nReaders = m_lockInfo.m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
 		newValue.m_nReaders = oldValue.m_nReaders - 1;
 	}
 }
 
 void CThreadSpinRWLock::UnlockWrite()
 {
-	Assert( m_lockInfo.m_writerId == ThreadGetCurrentId()  && m_lockInfo.m_nReaders == 0 );
+	Assert( m_lockInfo.load().m_writerId == ThreadGetCurrentId()  && m_lockInfo.load().m_nReaders == 0 );
 	static const LockInfo_t newValue = { 0, 0 };
 #if defined(_X360)
 	// X360TBD: Serious Perf implications, not yet. __sync();
 #endif
 	ThreadInterlockedExchange64(  (int64 *)&m_lockInfo, *((int64 *)&newValue) );
-	m_nWriters--;
+	--m_nWriters;
 }
 
 
@@ -1641,6 +2034,7 @@ CThread::CThread()
 #endif
 	m_threadId( 0 ),
 	m_result( 0 ),
+	m_pStackBase( nullptr ),
 	m_flags( 0 )
 {
 	m_szName[0] = 0;
@@ -2110,7 +2504,7 @@ CThread::ThreadProc_t CThread::GetThreadProc()
 
 unsigned __stdcall CThread::ThreadProc(LPVOID pv)
 {
-  std::auto_ptr<ThreadInit_t> pInit((ThreadInit_t *)pv);
+  std::unique_ptr<ThreadInit_t> pInit((ThreadInit_t *)pv);
   
 #ifdef _X360
         // Make sure all threads are consistent w.r.t floating-point math
@@ -2216,9 +2610,7 @@ unsigned CWorkerThread::GetCallParam( CFunctor **ppParamFunctor ) const
 int CWorkerThread::BoostPriority()
 {
 	int iInitialPriority = GetPriority();
-	const int iNewPriority = ThreadGetPriority( (ThreadHandle_t)GetThreadID() );
-	if (iNewPriority > iInitialPriority)
-		ThreadSetPriority( (ThreadHandle_t)GetThreadID(), iNewPriority);
+	SetPriority(iInitialPriority + 1);
 	return iInitialPriority;
 }
 
@@ -2227,7 +2619,6 @@ int CWorkerThread::BoostPriority()
 static uint32 __stdcall DefaultWaitFunc( int nEvents, CThreadEvent * const *pEvents, int bWaitAll, uint32 timeout )
 {
 	return ThreadWaitForEvents( nEvents, pEvents, bWaitAll!=0, timeout );
-//	return VCRHook_WaitForMultipleObjects( nHandles, (const void **)pHandles, bWaitAll, timeout );
 }
 
 
@@ -2280,16 +2671,9 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 	{
 		pfnWait = DefaultWaitFunc;
 	}
-
-#ifdef WIN32
-	CThreadEvent threadEvent( GetThreadHandle() );
-#endif
 	
 	CThreadEvent *waits[] =
 	{
-#ifdef WIN32
-		&threadEvent,
-#endif
 		&m_EventComplete
 	};
 	
@@ -2299,16 +2683,8 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 
 	do
 	{
-#ifdef WIN32
-		// Make sure the thread handle hasn't been closed
-		if ( !GetThreadHandle() )
-		{
-			result = WAIT_OBJECT_0 + 1;
-			break;
-		}
-#endif
 		result = (*pfnWait)((sizeof(waits) / sizeof(waits[0])), waits, false,
-			(timeout != TT_INFINITE) ? timeout : 30000);
+			(timeout != TT_INFINITE) ? timeout : 10000);
 
 		AssertMsg(timeout != TT_INFINITE || result != WAIT_TIMEOUT, "Possible hung thread, call to thread timed out");
 

@@ -2844,17 +2844,15 @@ void C_OP_DampenToCP::Operate( CParticleCollection *pParticles, float flStrength
 		SetVectorFromAttribute( vecParticlePosition_prev, xyz_prev ); 
 		Vector ofs;
 		ofs = vecParticlePosition - vecControlPoint;
-		float flDistance = ofs.Length();
+		float flDistance = ofs.LengthSqr();
 		float flDampenAmount;
-		if ( flDistance > m_flRange )
+		if ( flDistance > m_flRange * m_flRange )
 		{
 			continue;
 		}
-		else
-		{
-			flDampenAmount = flDistance  / m_flRange;
-			flDampenAmount = pow( flDampenAmount, m_flScale);
-		}
+		flDistance = FastSqrt(flDistance);
+		flDampenAmount = flDistance  / m_flRange;
+		flDampenAmount = pow( flDampenAmount, m_flScale);
 		
 		vParticleDelta = vecParticlePosition - vecParticlePosition_prev;
 		Vector vParticleDampened = vParticleDelta * flDampenAmount;
@@ -3075,11 +3073,12 @@ void C_OP_DistanceToCP::Operate( CParticleCollection *pParticles, float flStreng
 		const float *pXYZ = pParticles->GetFloatAttributePtr(PARTICLE_ATTRIBUTE_XYZ, i );
 		vecPosition2 = Vector(pXYZ[0], pXYZ[4], pXYZ[8]); 
 		Vector vecDelta = vecControlPoint1 - vecPosition2;
-		float flDistance = vecDelta.Length();
-		if ( m_bActiveRange && ( flDistance < m_flInputMin || flDistance > m_flInputMax ) )
+		float flDistance = vecDelta.LengthSqr();
+		if ( m_bActiveRange && ( flDistance < m_flInputMin * m_flInputMin || flDistance > m_flInputMax * m_flInputMax) )
 		{
 			continue;
 		}
+		flDistance = FastSqrt(flDistance);
 		if ( m_bLOS )
 		{
 			Vector vecEndPoint = vecPosition2;

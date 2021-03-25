@@ -609,8 +609,7 @@ void CTFFreezePanel::FireGameEvent( IGameEvent * event )
 				{					
 					pchNemesisText = g_pVGuiLocalize->Find( "#TF_FreezeNemesis" );
 				}
-				// UNDONE: We're not shipping this for now
-				/*else if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() && pTFKiller && pTFKiller->GetTeamNumber() == TF_TEAM_PVE_INVADERS )
+				else if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() && pTFKiller && pTFKiller->GetTeamNumber() == TF_TEAM_PVE_INVADERS )
 				{
 					const wchar_t *pwchHint = g_pVGuiLocalize->Find( VarArgs( "#TF_PVE_FreezePanelHint_%s", pTFKiller->GetPlayerClass()->GetClassIconName() ) );
 					if ( pwchHint && pwchHint[ 0 ] != L'\0' )
@@ -618,7 +617,7 @@ void CTFFreezePanel::FireGameEvent( IGameEvent * event )
 						pchNemesisText = pwchHint;
 						bAdvice = true;
 					}
-				}*/
+				}
 			}
 			break;
 		case SHOW_NEW_NEMESIS:

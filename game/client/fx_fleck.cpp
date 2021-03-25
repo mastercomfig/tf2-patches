@@ -112,8 +112,8 @@ public:
 			AddPointToBounds( center - extents, mins, maxs );
 			AddPointToBounds( center + extents, mins, maxs );
 			Vector size = maxs - mins;
-			float radius = size.Length();
-			if ( radius < MAX_RADIUS_BBOX_MERGE )
+			float radius = size.LengthSqr();
+			if ( radius < MAX_RADIUS_BBOX_MERGE * MAX_RADIUS_BBOX_MERGE)
 			{
 				pSystem->GetBinding().SetBBox( mins, maxs );
 				// put sort origin at center of the new box

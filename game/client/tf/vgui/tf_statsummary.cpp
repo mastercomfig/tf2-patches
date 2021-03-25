@@ -483,7 +483,7 @@ void CTFStatsSummaryPanel::SetStats( CUtlVector<ClassStats_t> &vecClassStats )
 	m_aClassStats = vecClassStats; 
 	if ( m_bControlsLoaded )
 	{
-		UpdateDialog();
+		UpdateDialog(false);
 	}
 }
 
@@ -846,7 +846,7 @@ void CTFStatsSummaryPanel::UpdateLeaderboard()
 //-----------------------------------------------------------------------------
 // Purpose: Updates the dialog
 //-----------------------------------------------------------------------------
-void CTFStatsSummaryPanel::UpdateDialog()
+void CTFStatsSummaryPanel::UpdateDialog(bool bUpdateTip)
 {
 	UpdateMainBackground();
 
@@ -880,7 +880,8 @@ void CTFStatsSummaryPanel::UpdateDialog()
 		return;
 	}
 
-	RandomSeed( Plat_MSTime() );
+	// TODO: safe random seed
+	//RandomSeed( Plat_MSTime() );
 
 	m_iTotalSpawns = 0;
 
@@ -921,8 +922,11 @@ void CTFStatsSummaryPanel::UpdateDialog()
 	UpdateBarCharts();
 	// fill out class details
 	UpdateClassDetails();
-	// update the tip
-	UpdateTip();
+	if (bUpdateTip)
+	{
+		// update the tip
+		UpdateTip();
+	}
 	// show or hide controls depending on if we're interactive or not
 	UpdateControls();		
 }

@@ -78,7 +78,7 @@ void C_TFProjectile_Rocket::CreateTrails( void )
 		int iHalloweenSpell = 0;
 		// if the owner is a Sentry, Check its owner
 		CBaseObject *pSentry = GetOwnerEntity() && GetOwnerEntity()->IsBaseObject() ? assert_cast<CBaseObject*>( GetOwnerEntity() ) : NULL;
-		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+		if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 		{
 			if ( pSentry )
 			{

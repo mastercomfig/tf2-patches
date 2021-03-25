@@ -16,7 +16,7 @@ $Configuration	"Debug"
 		$AdditionalIncludeDirectories		"$BASE,..\common"
 	}
 
-	$Linker	[$WIN32]
+	$Linker	[$WINDOWS]
 	{
 		$DebuggableAssembly					"Runtime tracking and disable optimizations (/ASSEMBLYDEBUG)"
 	}

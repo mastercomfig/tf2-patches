@@ -18,6 +18,7 @@
 #include "tier0/memdbgon.h"
 
 extern ConVar r_flashlight_version2;
+static ConVar r_force_fastpath("r_force_fastpath", "0", FCVAR_ARCHIVE, "", false, 0, false, 0, true, 0, true, 0, NULL);
 
 // FIXME: Need to make a dx9 version so that "CENTROID" works.
 BEGIN_VS_SHADER( WorldTwoTextureBlend, 
@@ -361,19 +362,27 @@ END_SHADER_PARAMS
 				!( params[BASETEXTURETRANSFORM]->MatrixIsIdentity() &&
 				params[BUMPTRANSFORM]->MatrixIsIdentity() );
 
-			bool bVertexShaderFastPath = !bHasTextureTransform;
-			if( params[DETAIL]->IsTexture() )
+			bool bVertexShaderFastPath;
+			if (r_force_fastpath.GetBool())
+			{
+				bVertexShaderFastPath = true;
+			}
+			else
+			{
+				bVertexShaderFastPath = !bHasTextureTransform;
+			}
+			if(!r_force_fastpath.GetBool() && params[DETAIL]->IsTexture() )
 			{
 				bVertexShaderFastPath = false;
 			}
-			if( pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING)!=0 )
+			if(!r_force_fastpath.GetBool() && pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING)!=0 )
 			{
 				bVertexShaderFastPath = false;
 			}
 
 			float color[4] = { 1.0, 1.0, 1.0, 1.0 };
 			ComputeModulationColor( color );
-			if( !( bVertexShaderFastPath && color[0] == 1.0f && color[1] == 1.0f && color[2] == 1.0f && color[3] == 1.0f ) )
+			if(!r_force_fastpath.GetBool() && !( bVertexShaderFastPath && color[0] == 1.0f && color[1] == 1.0f && color[2] == 1.0f && color[3] == 1.0f ) )
 			{
 				bVertexShaderFastPath = false;
 				s_pShaderAPI->SetVertexShaderConstant( VERTEX_SHADER_MODULATION_COLOR, color );

@@ -76,6 +76,7 @@ CMDLPanel::CMDLPanel( vgui::Panel *pParent, const char *pName ) : BaseClass( pPa
 	m_bDrawCollisionModel = false;
 	m_bWireFrame = false;
 	m_bGroundGrid = false;
+	m_bDoFlexes = true;
 	m_bLockView = false;
 	m_bLookAtCamera = true;
 	m_bThumbnailSafeZone = false;
@@ -138,6 +139,11 @@ void CMDLPanel::SetIgnoreDoubleClick( bool bState )
 void CMDLPanel::SetThumbnailSafeZone( bool bVisible )
 {
 	m_bThumbnailSafeZone = bVisible;
+}
+
+void CMDLPanel::SetDoFlexes(bool bFlex)
+{
+	m_bDoFlexes = bFlex;
 }
 
 //-----------------------------------------------------------------------------
@@ -439,7 +445,10 @@ void CMDLPanel::OnPaint3D()
 	// Draw the MDL
 	CStudioHdr studioHdr( g_pMDLCache->GetStudioHdr( m_RootMDL.m_MDL.GetMDL() ), g_pMDLCache );
 
-	SetupFlexWeights();
+	if (m_bDoFlexes)
+	{
+		SetupFlexWeights();
+	}
 
 	matrix3x4_t *pBoneToWorld = g_pStudioRender->LockBoneMatrices( studioHdr.numbones() );
 	m_RootMDL.m_MDL.SetUpBones( m_RootMDL.m_MDLToWorld, studioHdr.numbones(), pBoneToWorld, m_PoseParameters, m_SequenceLayers, m_nNumSequenceLayers );

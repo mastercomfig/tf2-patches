@@ -2962,16 +2962,23 @@ bool CDmeMesh::SetBaseStateToDelta( const CDmeVertexDeltaData *pDelta, CDmeVerte
 				switch ( pBaseData->GetType() )
 				{
 				case AT_FLOAT_ARRAY:
-					AddCorrectedDelta( CDmrArray< float >( pBaseData ), baseIndices, compList[ i ], baseFieldName );
+				    {
+					    CDmrArray< float > arr(pBaseData);
+					    AddCorrectedDelta(arr, baseIndices, compList[i], baseFieldName);
+				    }
 					break;
 				case AT_COLOR_ARRAY:
-					AddCorrectedDelta( CDmrArray< Vector >( pBaseData ), baseIndices, compList[ i ], baseFieldName );
+				case AT_VECTOR3_ARRAY:
+				    {
+					    CDmrArray< Vector > arr(pBaseData);
+					    AddCorrectedDelta(arr, baseIndices, compList[i], baseFieldName);
+				    }
 					break;
 				case AT_VECTOR2_ARRAY:
-					AddCorrectedDelta( CDmrArray< Vector2D >( pBaseData ), baseIndices, compList[ i ], baseFieldName );
-					break;
-				case AT_VECTOR3_ARRAY:
-					AddCorrectedDelta( CDmrArray< Vector >( pBaseData ), baseIndices, compList[ i ], baseFieldName );
+				    {
+					    CDmrArray< Vector2D > arr(pBaseData);
+					    AddCorrectedDelta(arr, baseIndices, compList[i], baseFieldName);					    
+				    }
 					break;
 				default:
 					break;
@@ -3829,17 +3836,27 @@ bool CDmeMesh::AddMaskedDelta(
 			switch ( pBaseData->GetType() )
 			{
 			case AT_FLOAT_ARRAY:
-				AddRawDelta( pDelta, CDmrArray< float >( pBaseData ), baseFieldIndex, weight, pMask );
+			    {
+				    CDmrArray< float > arr(pBaseData);
+				    AddRawDelta(pDelta, arr, baseFieldIndex, weight, pMask);
+			    }
 				break;
 			case AT_COLOR_ARRAY:
 				// TODO: Color is missing some algebraic operators
 //				AddRawDelta( pDelta, CDmrArray< Color >( pBaseData ), baseFieldIndex, weight, pMask );
 				break;
 			case AT_VECTOR2_ARRAY:
-				AddRawDelta( pDelta, CDmrArray< Vector2D >( pBaseData ), baseFieldIndex, weight, pMask );
+			    {
+				    CDmrArray< Vector2D > arr(pBaseData);
+				    AddRawDelta(pDelta, arr, baseFieldIndex, weight, pMask);
+			    }
+				
 				break;
 			case AT_VECTOR3_ARRAY:
-				AddRawDelta( pDelta, CDmrArray< Vector >( pBaseData ), baseFieldIndex, weight, pMask );
+			    {
+				    CDmrArray< Vector > arr(pBaseData);
+				    AddRawDelta(pDelta, arr, baseFieldIndex, weight, pMask);
+			    }
 				break;
 			default:
 				break;
@@ -4048,7 +4065,10 @@ bool CDmeMesh::InterpMaskedData(
 			switch ( paAttr->GetType() )
 			{
 			case AT_FLOAT_ARRAY:
-				InterpMaskedData( CDmrArray< float >( paAttr ), CDmrArrayConst< float >( pbAttr ).Get(), weight, pMask );
+			    {
+				    CDmrArray< float > arr(paAttr);
+				    InterpMaskedData(arr, CDmrArrayConst< float >(pbAttr).Get(), weight, pMask);
+			    }
 				break;
 			case AT_COLOR_ARRAY:
 				InterpMaskedData( CDmrArray< Vector4D >( paAttr ), CDmrArrayConst< Vector4D >( pbAttr ).Get(), weight, pMask );

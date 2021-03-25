@@ -1276,6 +1276,7 @@ void CParticleMgr::AddEffect( CNewParticleEffect *pEffect )
 	if ( pEffect->IsValid() && pEffect->m_pDef->IsViewModelEffect() )
 	{
 		ClientLeafSystem()->SetRenderGroup( pEffect->RenderHandle(), RENDER_GROUP_VIEW_MODEL_TRANSLUCENT );
+		ClientLeafSystem()->EnableBloatedBounds(pEffect->RenderHandle(), true);
 	}
 }
 
@@ -1298,6 +1299,7 @@ bool CParticleMgr::AddEffect( CParticleEffectBinding *pEffect, IParticleEffect *
 	// Add it to the leaf system.
 #if !defined( PARTICLEPROTOTYPE_APP )
 	ClientLeafSystem()->CreateRenderableHandle( pEffect );
+	ClientLeafSystem()->EnableBloatedBounds(pEffect->RenderHandle(), true);
 #endif
 
 	pEffect->m_ListIndex = m_Effects.AddToTail( pEffect );
@@ -1525,8 +1527,9 @@ void BeginSimulateParticles( void )
 	g_flStartSimTime = Plat_FloatTime();
 }
 
-
+#if MEASURE_PARTICLE_PERF
 static ConVar r_particle_sim_spike_threshold_ms( "r_particle_sim_spike_threshold_ms", "5" );
+#endif
 
 void EndSimulateParticles( void )
 {
@@ -1535,7 +1538,9 @@ void EndSimulateParticles( void )
 	{
 		g_nNumUSSpentSimulatingParticles += 1.0e6 * flETime;
 	}
+#if MEASURE_PARTICLE_PERF
 	g_pParticleSystemMgr->CommitProfileInformation( flETime > .001 * r_particle_sim_spike_threshold_ms.GetInt() );
+#endif
 }
 
 
@@ -1619,7 +1624,7 @@ int CParticleMgr::ComputeParticleDefScreenArea( int nInfoCount, RetireInfo_t *pI
 		Vector3DMultiplyPositionProjective( worldToPixels, vecCenter, vecScreenCenter );
 		float lSqr = vecCenter.DistToSqr( viewParticle.origin );
 
-		float flProjRadius = ( lSqr > flCullRadiusSqr ) ? 0.5f * flFocalDist * flCullRadius / sqrt( lSqr - flCullRadiusSqr ) : 1.0f;
+		float flProjRadius = ( lSqr > flCullRadiusSqr ) ? 0.5f * flFocalDist * flCullRadius / sqrtf( lSqr - flCullRadiusSqr ) : 1.0f;
 		flProjRadius *= viewParticle.width;
 
 		float flMinX = MAX( viewParticle.x, vecScreenCenter.x - flProjRadius );
@@ -1688,7 +1693,7 @@ bool CParticleMgr::RetireParticleCollections( CParticleSystemDefinition* pDef,
 }
 
 // Next, see if there are new particle systems that need early retirement
-static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "0", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "-10", FCVAR_ALLOWED_IN_COMPETITIVE );
 
 bool CParticleMgr::EarlyRetireParticleSystems( int nCount, ParticleSimListEntry_t *ppEffects )
 {
@@ -1744,7 +1749,18 @@ bool CParticleMgr::EarlyRetireParticleSystems( int nCount, ParticleSimListEntry_
 	{
 		CParticleSystemDefinition* pDef = ppDefs[i];
 		int nActualCount = ComputeParticleDefScreenArea( nCount, pInfo, &flScreenArea, pDef, *pViewSetup, worldToScreen, flFocalDist );
-		if ( flScreenArea > flMaxScreenArea )
+		bool bShouldRetire;
+		// If negative, then max screen area acts as a cap rather than a floor
+		// This is to accomodate particle "LOD" instead of the old way of retiring high fill particles
+		if ( flMaxScreenArea >= 0 )
+		{
+			bShouldRetire = flScreenArea > flMaxScreenArea;
+		}
+		else
+		{
+		    bShouldRetire = flScreenArea < -flMaxScreenArea;
+		}
+		if ( bShouldRetire )
 		{
 			if ( RetireParticleCollections( pDef, nActualCount, pInfo, flScreenArea, flMaxScreenArea ) )
 			{
@@ -1880,7 +1896,7 @@ void CParticleMgr::UpdateNewEffects( float flTimeDelta )
 			int nAltCore = IsX360() && particle_sim_alt_cores.GetInt();
 			if ( !m_pThreadPool[1] || nAltCore == 0 )
 			{
-				ParallelProcess( "CParticleMgr::UpdateNewEffects", particlesToSimulate.Base(), nCount, ProcessPSystem );
+				ParallelProcess( "CParticleMgr::UpdateNewEffects", particlesToSimulate.Base(), nCount, ProcessPSystem);
 			}
 			else
 			{

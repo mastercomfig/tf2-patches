@@ -4981,8 +4981,11 @@ bool CEconItemDefinition::BInitFromKV( KeyValues *pKVItem, CUtlVector<CUtlString
 	m_iInventoryImageSize[0] = atoi( m_pKVItem->GetString( "image_inventory_size_w", "128" ) );
 	m_iInventoryImageSize[1] = atoi( m_pKVItem->GetString( "image_inventory_size_h", "82" ) );
 	m_iInspectPanelDistance = m_pKVItem->GetInt( "inspect_panel_dist", 70 );
-	m_pszHolidayRestriction = m_pKVItem->GetString( "holiday_restriction", NULL );
-	m_nVisionFilterFlags = m_pKVItem->GetInt( "vision_filter_flags", 0 );
+	//m_pszHolidayRestriction = m_pKVItem->GetString( "holiday_restriction", NULL );
+	//m_nVisionFilterFlags = m_pKVItem->GetInt( "vision_filter_flags", 0 );
+	// Ignore holiday restrictions
+	m_pszHolidayRestriction = NULL;
+	m_nVisionFilterFlags = 0;
 	m_iSubType = atoi( m_pKVItem->GetString( "subtype", "0" ) );
 	m_pszBaseDisplayModel = m_pKVItem->GetString( "model_player", NULL );
 	m_iDefaultSkin = m_pKVItem->GetInt( "default_skin", -1 );
@@ -6673,7 +6676,7 @@ bool CEconItemSchema::BInitSchema( KeyValues *pKVRawDefinition, CUtlVector<CUtlS
 	}
 
 	// TF2 Paint Kits
-	// No included in schema file (Too Big).  Loaded Seperately
+	// No included in schema file (Too Big).  Loaded Separately
 	// Load the KV and add it to the pKVRawDefinition
 	KeyValues *pPaintkitKV = new KeyValues( "item_paintkit_definitions" );
 	SCHEMA_INIT_CHECK( pPaintkitKV->LoadFromFile( g_pFullFileSystem, "scripts/items/paintkits_master.txt", "GAME" ), "Unable to Load paintkits_master.txt KV File!" );

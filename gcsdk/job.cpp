@@ -124,7 +124,7 @@ void CJob::WaitForThreadFuncWorkItemBlocking()
 			// we can't shutdown the job while it's work item is currently running
 			// alot of work items refernce back into the job object
 			while ( m_pWaitingOnWorkItem->BIsRunning() )
-				ThreadSleep( 25 );
+				ThreadSleepEx( 25 );
 
 			m_pWaitingOnWorkItem = NULL;
 			break;

@@ -645,7 +645,8 @@ bool CL_ProcessPacketEntities ( SVC_PacketEntities *entmsg )
 		cl.CopyEntityBaseline( entmsg->m_nBaseline, nUpdateBaseline );
 
 		// send new baseline acknowledgement(as reliable)
-		cl.m_NetChannel->SendNetMsg( CLC_BaselineAck( cl.GetServerTickCount(), entmsg->m_nBaseline ), true );
+		CLC_BaselineAck msg(cl.GetServerTickCount(), entmsg->m_nBaseline);
+		cl.m_NetChannel->SendNetMsg( msg, true );
 		
 	}
 

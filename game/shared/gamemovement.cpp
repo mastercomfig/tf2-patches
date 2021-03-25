@@ -1020,7 +1020,7 @@ void CGameMovement::CheckParameters( void )
 			// Same thing but only do the sqrt if we have to.
 			if ( ( spd != 0.0 ) && ( spd > mv->m_flMaxSpeed*mv->m_flMaxSpeed ) )
 			{
-				float fRatio = mv->m_flMaxSpeed / sqrt( spd );
+				float fRatio = mv->m_flMaxSpeed / sqrtf( spd );
 				mv->m_flForwardMove *= fRatio;
 				mv->m_flSideMove    *= fRatio;
 				mv->m_flUpMove      *= fRatio;
@@ -2587,7 +2587,7 @@ int CGameMovement::TryPlayerMove( Vector *pFirstDest, trace_t *pFirstTrace )
 
 	for (bumpcount=0 ; bumpcount < numbumps; bumpcount++)
 	{
-		if ( mv->m_vecVelocity.Length() == 0.0 )
+		if ( mv->m_vecVelocity.LengthSqr() == 0.0 )
 			break;
 
 		// Assume we can move all the way from the current origin to the
@@ -3591,7 +3591,6 @@ bool CGameMovement::CheckWater( void )
 void CGameMovement::SetGroundEntity( trace_t *pm )
 {
 	CBaseEntity *newGround = pm ? pm->m_pEnt : NULL;
-
 	CBaseEntity *oldGround = player->GetGroundEntity();
 	Vector vecBaseVelocity = player->GetBaseVelocity();
 
@@ -4120,7 +4119,7 @@ void CGameMovement::FinishUnDuck( void )
 		player->ResetLatched();
 	}
 #else
-	player->ResetLatched();
+	//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 
@@ -4226,7 +4225,7 @@ void CGameMovement::FinishDuck( void )
 			player->ResetLatched();
 		}
 #else
-		player->ResetLatched();
+		//player->ResetLatched();
 #endif
 #endif // CLIENT_DLL
 	}
@@ -4550,7 +4549,9 @@ void CGameMovement::PlayerMove( void )
 {
 	VPROF( "CGameMovement::PlayerMove" );
 
+#if !defined(TF_DLL) && !defined(TF_CLIENT_DLL)
 	CheckParameters();
+#endif
 	
 	// clear output applied velocity
 	mv->m_outWishVel.Init();

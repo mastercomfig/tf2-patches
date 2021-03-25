@@ -582,7 +582,7 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	s_SteamGameServerAPIContext.Init();
 #endif
 
-	// init each (seperated for ease of debugging)
+	// init each (separated for ease of debugging)
 	if ( (engine = (IVEngineServer*)appSystemFactory(INTERFACEVERSION_VENGINESERVER, NULL)) == NULL )
 		return false;
 	if ( (g_pVoiceServer = (IVoiceServer*)appSystemFactory(INTERFACEVERSION_VOICESERVER, NULL)) == NULL )
@@ -2835,19 +2835,18 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 	// changes). Possible todo: put the responsibility on the bounded cvar to notify the engine when
 	// its virtualized value has changed.		
 	
-	player->m_nUpdateRate = Q_atoi( QUICKGETCVARVALUE("cl_updaterate") );
-	static const ConVar *pMinUpdateRate = g_pCVar->FindVar( "sv_minupdaterate" );
-	static const ConVar *pMaxUpdateRate = g_pCVar->FindVar( "sv_maxupdaterate" );
-	if ( pMinUpdateRate && pMaxUpdateRate )
-		player->m_nUpdateRate = clamp( player->m_nUpdateRate, (int) pMinUpdateRate->GetFloat(), (int) pMaxUpdateRate->GetFloat() );
+	player->m_fUpdateInterval = Q_atof( QUICKGETCVARVALUE("cl_updateinterval") );
+	static const ConVar *pMinUpdateInterval = g_pCVar->FindVar( "sv_minupdateinterval" );
+	static const ConVar *pMaxUpdateInterval = g_pCVar->FindVar( "sv_maxupdateinterval" );
+	if ( pMinUpdateInterval && pMaxUpdateInterval )
+		player->m_fUpdateInterval = clamp( player->m_fUpdateInterval,  pMinUpdateInterval->GetFloat(), pMaxUpdateInterval->GetFloat() );
 
 	bool useInterpolation = Q_atoi( QUICKGETCVARVALUE("cl_interpolate") ) != 0;
 	if ( useInterpolation )
 	{
-		float flLerpRatio = Q_atof( QUICKGETCVARVALUE("cl_interp_ratio") );
-		if ( flLerpRatio == 0 )
+		float flLerpRatio = (int) Q_atof( QUICKGETCVARVALUE("cl_interp_ratio") );
+		if ( flLerpRatio < 1.0f )
 			flLerpRatio = 1.0f;
-		float flLerpAmount = Q_atof( QUICKGETCVARVALUE("cl_interp") );
 
 		static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
 		static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
@@ -2857,11 +2856,10 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 		}
 		else
 		{
-			if ( flLerpRatio == 0 )
+			if ( flLerpRatio < 1.0f )
 				flLerpRatio = 1.0f;
 		}
-		// #define FIXME_INTERP_RATIO
-		player->m_fLerpTime = MAX( flLerpAmount, flLerpRatio / player->m_nUpdateRate );
+		player->m_fLerpTime = flLerpRatio * player->m_fUpdateInterval;
 	}
 	else
 	{

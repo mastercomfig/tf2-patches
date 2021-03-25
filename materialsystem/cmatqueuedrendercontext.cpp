@@ -24,7 +24,7 @@ ConVar mat_report_queue_status( "mat_report_queue_status", "0", FCVAR_MATERIAL_S
 // 
 //-----------------------------------------------------------------------------
 
-#if defined( _WIN32 )
+#if defined( _WIN32 ) && !defined( _WIN64 )
 void FastCopy( byte *pDest, const byte *pSrc, size_t nBytes )
 {
 	if ( !nBytes )
@@ -92,6 +92,7 @@ void FastCopy( byte *pDest, const byte *pSrc, size_t nBytes )
 #endif
 }
 #else
+// x64: No inline asm. Also this is fast on modern compilers with SSE2/3+ enabled.
 #define FastCopy memcpy
 #endif
 
@@ -1222,7 +1223,7 @@ int CMatQueuedRenderContext::GetMaxVerticesToRender( IMaterial *pMaterial )
 	g_pShaderAPI->ComputeVertexDescription( 0, materialFormat, temp );
 
 	int maxVerts = g_pShaderAPI->GetCurrentDynamicVBSize() / temp.m_ActualVertexSize;
-	if ( maxVerts > 65535 )
+	if (maxVerts > 65535)
 	{
 		maxVerts = 65535;
 	}
@@ -1236,7 +1237,7 @@ void CMatQueuedRenderContext::GetMaxToRender( IMesh *pMesh, bool bMaxUntilFlush,
 {
 	Assert( !bMaxUntilFlush );
 	*pMaxVerts = g_pShaderAPI->GetCurrentDynamicVBSize() / m_pQueuedMesh->GetVertexSize();
-	if ( *pMaxVerts > 65535 )
+	if (*pMaxVerts > 65535)
 	{
 		*pMaxVerts = 65535;
 	}

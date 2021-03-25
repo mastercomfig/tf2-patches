@@ -540,7 +540,7 @@ void COverlayMgr::AddFragmentListToRenderList( int nSortGroup, OverlayFragmentHa
 		pFragment->m_hNextRender = info.m_hFirstFragment;
 		info.m_hFirstFragment = i;
 
-		Assert( info.m_nVertexCount + nVertexCount < 65535 );
+		Assert(info.m_nVertexCount + nVertexCount < 65535);
 		info.m_nVertexCount += nVertexCount;
 		info.m_nIndexCount += 3 * (nVertexCount - 2);
 	}

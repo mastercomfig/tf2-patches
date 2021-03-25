@@ -527,7 +527,7 @@ char *studiohdr_t::pszNodeName( int iNode )
 	Assert( pVModel );
 
 	if ( pVModel->m_node.Count() <= iNode-1 )
-		return "Invalid node";
+		return (char*)"Invalid node";
 
 	return pVModel->m_group[ pVModel->m_node[iNode-1].group ].GetStudioHdr()->pszLocalNodeName( pVModel->m_node[iNode-1].index );
 }
@@ -800,15 +800,15 @@ const virtualmodel_t * CStudioHdr::ResetVModel( const virtualmodel_t *pVModel ) 
 	{
 		m_pVModel = (virtualmodel_t *)pVModel;
 		Assert( !pVModel->m_Lock.GetOwnerId() );
-		m_pStudioHdrCache.SetCount( m_pVModel->m_group.Count() );
+		const int iCount = m_pVModel->m_group.Count();
+		m_pStudioHdrCache.SetCount( iCount );
 
-		int i;
-		for (i = 0; i < m_pStudioHdrCache.Count(); i++)
+		for (int i = 0; i < iCount; i++)
 		{
 			m_pStudioHdrCache[ i ] = NULL;
 		}
 		
-		return const_cast<virtualmodel_t *>(pVModel);
+		return m_pVModel;
 	}
 	else
 	{
@@ -1171,7 +1171,7 @@ char *CStudioHdr::pszNodeName( int iNode )
 	}
 
 	if ( m_pVModel->m_node.Count() <= iNode-1 )
-		return "Invalid node";
+		return (char*)"Invalid node";
 
 	const studiohdr_t *pStudioHdr = GroupStudioHdr( m_pVModel->m_node[iNode-1].group );
 	
@@ -1715,7 +1715,6 @@ void CStudioHdr::CActivityToSequenceMapping::Initialize( CStudioHdr * __restrict
 	// This stack may potentially grow very large; so if you have problems with it, 
 	// go to a utlmap or similar structure.
 	unsigned int allocsize = (topActivity + 1) * sizeof(int);
-#define ALIGN_VALUE( val, alignment ) ( ( val + alignment - 1 ) & ~( alignment - 1 ) ) //  need macro for constant expression
 	allocsize = ALIGN_VALUE(allocsize,16);
 	int * __restrict seqsPerAct = static_cast<int *>(stackalloc(allocsize));
 	memset(seqsPerAct, 0, allocsize);

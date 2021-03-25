@@ -39,7 +39,8 @@
 #endif
 
 #define __STDC_LIMIT_MACROS
-#include <stdint.h>
+#include <cstdint>
+#include <utility>  // forward
 
 #include "wchartypes.h"
 #include "basetypes.h"
@@ -71,10 +72,8 @@
 #endif
 
 #include <malloc.h>
+#include <cstring>  // memset
 #include <new>
-
-// need this for memset
-#include <string.h>
 
 #include "tier0/valve_minmax_on.h"	// GCC 4.2.2 headers screw up our min/max defs.
 
@@ -402,7 +401,7 @@ typedef void * HINSTANCE;
 #define MAX_UNICODE_PATH MAX_PATH
 #endif
 
-#define MAX_UNICODE_PATH_IN_UTF8 MAX_UNICODE_PATH*4
+#define MAX_UNICODE_PATH_IN_UTF8 (MAX_UNICODE_PATH*4)
 
 #if !defined( offsetof )
 	#ifdef __GNUC__
@@ -413,7 +412,7 @@ typedef void * HINSTANCE;
 #endif // !defined( offsetof )
 
 
-#define ALIGN_VALUE( val, alignment ) ( ( val + alignment - 1 ) & ~( alignment - 1 ) ) //  need macro for constant expression
+#define ALIGN_VALUE( val, alignment ) ( ( (val) + (alignment) - 1 ) & ~( (alignment) - 1 ) ) //  need macro for constant expression
 
 // Used to step into the debugger
 #if defined( _WIN32 ) && !defined( _X360 )
@@ -996,12 +995,11 @@ inline T QWordSwapC( T dw )
 // The typically used methods.
 //-------------------------------------
 
-#if defined(__i386__) && !defined(VALVE_LITTLE_ENDIAN)
-#define VALVE_LITTLE_ENDIAN 1
-#endif
-
-#if defined( _SGI_SOURCE ) || defined( _X360 )
+// x64: Port from CS:GO.
+#if defined( _SGI_SOURCE ) || defined( _X360 ) || defined( _PS3 )
 #define	VALVE_BIG_ENDIAN 1
+#else
+#define VALVE_LITTLE_ENDIAN 1
 #endif
 
 // If a swapped float passes through the fpu, the bytes may get changed.
@@ -1414,37 +1412,13 @@ inline const char *GetPlatformExt( void )
 template <class T>
 inline T* Construct( T* pMemory )
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T);
+	return reinterpret_cast<T*>(::new( pMemory ) T); //-V572
 }
 
-template <class T, typename ARG1>
-inline T* Construct( T* pMemory, ARG1 a1 )
+template <class T, class... Args>
+inline T* Construct(T* pMemory, Args&&... args)
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1 ));
-}
-
-template <class T, typename ARG1, typename ARG2>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3, typename ARG4>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3, ARG4 a4 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3, a4 ));
-}
-
-template <class T, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
-inline T* Construct( T* pMemory, ARG1 a1, ARG2 a2, ARG3 a3, ARG4 a4, ARG5 a5 )
-{
-	return reinterpret_cast<T*>(::new( pMemory ) T( a1, a2, a3, a4, a5 ));
+	return reinterpret_cast<T*>(::new( pMemory ) T{ std::forward<Args>(args)... }); //-V572
 }
 
 template <class T, class P>
@@ -1468,7 +1442,7 @@ inline void ConstructThreeArg( T* pMemory, P1 const& arg1, P2 const& arg2, P3 co
 template <class T>
 inline T* CopyConstruct( T* pMemory, T const& src )
 {
-	return reinterpret_cast<T*>(::new( pMemory ) T(src));
+	return reinterpret_cast<T*>(::new( pMemory ) T(src)); //-V572
 }
 
 template <class T>

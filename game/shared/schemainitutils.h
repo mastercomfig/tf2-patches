@@ -13,6 +13,7 @@
 
 // used for initialization functions. Adds an error message if we're recording
 // them or returns false if we're not
+#ifdef DEBUG
 #define SCHEMA_INIT_CHECK( expr, ... )							\
 	if ( false == ( expr ) )											\
 	{																	\
@@ -22,12 +23,18 @@
 		{																\
 			AssertMsg( expr, "%s", msg.String() );						\
 		}																\
-		else															\
-		{																\
-			pVecErrors->AddToTail( msg );								\
-		}																\
 		return false;													\
 	}																	
+#else
+#define SCHEMA_INIT_CHECK( expr, ... )							\
+	if ( false == ( expr ) )											\
+	{																	\
+		CUtlString msg;													\
+		msg.Format( __VA_ARGS__ );										\
+		DevWarning( "%s\n", msg.String() );						        \
+		return false;													\
+	}		
+#endif
 
 #define SCHEMA_INIT_SUCCESS( )											\
 	( NULL == pVecErrors ) || ( 0 == pVecErrors->Count() )

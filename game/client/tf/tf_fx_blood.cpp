@@ -23,11 +23,18 @@
 #include "c_basetempentity.h"
 #include "tier0/vprof.h"
 
+static ConVar tf_fx_blood("tf_fx_blood", "1", 0, "Whether to spawn blood impact particle effects.");
+
 //-----------------------------------------------------------------------------
 // Purpose: Intercepts the blood spray message.
 //-----------------------------------------------------------------------------
 void TFBloodSprayCallback( Vector vecOrigin, Vector vecNormal, ClientEntityHandle_t hEntity )
 {
+	if (!tf_fx_blood.GetBool())
+	{
+		return;
+	}
+
 	QAngle	vecAngles;
 	VectorAngles( -vecNormal, vecAngles );
 
@@ -113,7 +120,6 @@ void TFBloodSprayCallback( Vector vecOrigin, Vector vecNormal, ClientEntityHandl
 
 	if ( flDistance < 400 )
 	{
-
 		DispatchParticleEffect( UTIL_IsLowViolence() ? "lowV_blood_spray_red_01" : "blood_spray_red_01", vecOrigin, vecAngles, pPlayer );
 	}
 	else

@@ -26,7 +26,7 @@ $Project
 	{
 		$Lib	vpklib
 		// So we can check the signature of the item schema.
-		$Lib	"$SRCDIR\lib\public\$PLATSUBDIR\2013\release\cryptlib" [$WINDOWS&&!$VS2015]
+		$Lib	"$SRCDIR\lib\public$PLATSUBDIR\2013\release\cryptlib" [$WINDOWS&&!$VS2015]
 		$Libexternal $LIBCOMMON/libcrypto [$OSXALL]
 		$Libexternal $LIBCOMMON/libcryptopp [$OSXALL]
 		$Libexternal "$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL]
@@ -44,11 +44,11 @@ $Project
 			$Configuration "Release" { $ExcludedFromBuild "Yes" }
 		}
 		
-		$File "$SRCDIR\lib\common\$PLATSUBDIR\2015\release\cryptlib.lib" [$WIN64]
+		$File "$SRCDIR\lib\common$PLATSUBDIR\2015\release\cryptlib.lib" [$WIN64]
 		{
 			$Configuration "Debug" 	{ $ExcludedFromBuild "Yes" }
 		}
-		$File "$SRCDIR\lib\common\$PLATSUBDIR\2015\debug\cryptlib.lib" [$WIN64]
+		$File "$SRCDIR\lib\common$PLATSUBDIR\2015\debug\cryptlib.lib" [$WIN64]
 		{
 			$Configuration "Release" { $ExcludedFromBuild "Yes" }
 		}

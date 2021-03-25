@@ -2119,6 +2119,8 @@ void CWave::ActiveWaveUpdate( void )
 	}
 }
 
+ConVar tf_force_mannup_sound("tf_force_mannup_sound", "1", FCVAR_DEVELOPMENTONLY | FCVAR_REPLICATED);
+
 //-------------------------------------------------------------------------
 void CWave::WaveCompleteUpdate( void )
 {
@@ -2163,7 +2165,7 @@ void CWave::WaveCompleteUpdate( void )
 
 		if ( TFGameRules() )
 		{
-			if ( GTFGCClientSystem()->GetMatch() && GTFGCClientSystem()->GetMatch()->m_eMatchGroup == k_nMatchGroup_MvM_MannUp )
+			if ( ( GTFGCClientSystem()->GetMatch() && GTFGCClientSystem()->GetMatch()->m_eMatchGroup == k_nMatchGroup_MvM_MannUp || tf_force_mannup_sound.GetBool() ) && RandomInt(1, 2) > 1 )
 			{
 				TFGameRules()->BroadcastSound( 255, "Announcer.MVM_Manned_Up_Wave_End" );
 			}

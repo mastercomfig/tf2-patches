@@ -3,7 +3,7 @@
 #include "tier0_strtools.h"
 
 
-#define TOLOWERC( x )  (( ( x >= 'A' ) && ( x <= 'Z' ) )?( x + 32 ) : x )
+#define TOLOWERC( x )  (( ( (x) >= 'A' ) && ( (x) <= 'Z' ) )?( (x) + 32 ) : x )
 extern "C"
 int	V_tier0_stricmp(const char *s1, const char *s2 )
 {

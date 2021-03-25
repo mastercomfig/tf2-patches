@@ -88,7 +88,7 @@ public:
 	virtual void		LaunchBall( void );
 	void				LaunchBallThink( void );
 
-	virtual float		InternalGetEffectBarRechargeTime( void ) { return 15.0; }
+	virtual float		InternalGetEffectBarRechargeTime( void ) { return 10.0; }
 	virtual int			GetEffectBarAmmo( void ) { return TF_AMMO_GRENADES1; }
 
 #ifdef GAME_DLL
@@ -160,7 +160,11 @@ public:
 
 	virtual float		GetShakeAmplitude( void )			{ return 0.0; }
 	virtual float		GetShakeRadius( void )				{ return 0.0; }
+
+	void				CreateBallTrail( void );
 	void				RemoveBallTrail( void );
+	
+	virtual void		IncrementDeflected( void );
 	
 	virtual bool		IsDestroyable( void ) OVERRIDE { return false; }
 

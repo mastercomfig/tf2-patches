@@ -893,12 +893,6 @@ extern ConVar tf_flag_caps_per_round;
 
 void cc_competitive_mode( IConVar *pConVar, const char *pOldString, float flOldValue )
 {
-	IGameEvent *event = gameeventmanager->CreateEvent( "competitive_state_changed" );
-	if ( event )
-	{
-		// Server-side here.  Client-side down below in the RecvProxy
-		gameeventmanager->FireEvent( event, true );
-	}
 }
 ConVar tf_competitive_preround_duration( "tf_competitive_preround_duration", "3", FCVAR_REPLICATED, "How long we stay in pre-round when in competitive games." );
 ConVar tf_competitive_preround_countdown_duration( "tf_competitive_preround_countdown_duration", "10.5", FCVAR_HIDDEN, "How long we stay in countdown when in competitive games." );
@@ -1131,13 +1125,6 @@ void RecvProxy_MatchSummary( const CRecvProxyData *pData, void *pStruct, void *p
 void RecvProxy_CompetitiveMode( const CRecvProxyData *pData, void *pStruct, void *pOut )
 {
 	*(bool*)(pOut) = ( pData->m_Value.m_Int > 0 );
-
-	IGameEvent *event = gameeventmanager->CreateEvent( "competitive_state_changed" );
-	if ( event )
-	{
-		// Client-side once it's actually happened
-		gameeventmanager->FireEventClientSide( event );
-	}
 }
 
 void RecvProxy_PlayerVotedForMap( const CRecvProxyData *pData, void *pStruct, void *pOut )
@@ -5489,12 +5476,17 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 	CBaseEntity *pInflictor = dmgInfo->GetInflictor();
 
 	// Check that the explosion can 'see' this entity.
-	Vector vecSpot = pEntity->BodyTarget( vecSrc, false );
+	//std::vector<Vector> vecSpots{pEntity->EyePosition(), pEntity->WorldSpaceCenter(), pEntity->GetAbsOrigin()};
+	std::vector<Vector> vecSpots{pEntity->EyePosition()};
+    static const float flInnerRadiusPct = 0.05f;
 	CTraceFilterIgnorePlayers filterPlayers( pInflictor, COLLISION_GROUP_PROJECTILE );
 	CTraceFilterIgnoreFriendlyCombatItems filterCombatItems( pInflictor, COLLISION_GROUP_PROJECTILE, pInflictor->GetTeamNumber() );
 	CTraceFilterChain filter( &filterPlayers, &filterCombatItems );
-
-	UTIL_TraceLine( vecSrc, vecSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
+	Vector vecOffset;
+	int totalChecks = 1;
+	int passedChecks = 0;
+	Vector vecMainSpot = pEntity->BodyTarget(vecSrc, false);
+	UTIL_TraceLine( vecSrc, vecMainSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
 	if ( tr.startsolid && tr.m_pEnt )
 	{
 		// Return when inside an enemy combat shield and tracing against a player of that team ("absorbed")
@@ -5503,12 +5495,48 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 
 		filterPlayers.SetPassEntity( tr.m_pEnt );
 		CTraceFilterChain filterSelf( &filterPlayers, &filterCombatItems );
-		UTIL_TraceLine( vecSrc, vecSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
+		UTIL_TraceLine( vecSrc, vecMainSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
 	}
-
-	// If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked
+	// If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked, so do a more robust check
 	if ( tr.fraction != 1.0 && tr.m_pEnt != pEntity )
-		return 0;
+	{
+		for (int x = -1; x <= 1; x += 2)
+	    {
+		    vecOffset.x = x * flInnerRadiusPct;
+	        for (int y = -1; y <= 1; y += 2)
+	        {
+			    vecOffset.y = y * flInnerRadiusPct;
+	            for (int z = -1; z <= 1; z += 2)
+	            {
+				    vecOffset.z = z * flInnerRadiusPct;
+				    for ( auto& vecSpot : vecSpots )
+				    {
+	                    UTIL_TraceLine( vecSrc + vecOffset, vecSpot, MASK_RADIUS_DAMAGE, &filter, &tr );
+	                    if ( tr.startsolid && tr.m_pEnt )
+	                    {
+		                    // Return when inside an enemy combat shield and tracing against a player of that team ("absorbed")
+		                    if ( tr.m_pEnt->IsCombatItem() && pEntity->InSameTeam( tr.m_pEnt ) && ( pEntity != tr.m_pEnt ) )
+			                    return 0;
+
+		                    filterPlayers.SetPassEntity( tr.m_pEnt );
+		                    CTraceFilterChain filterSelf( &filterPlayers, &filterCombatItems );
+		                    UTIL_TraceLine( vecSrc + vecOffset, vecSpot, MASK_RADIUS_DAMAGE, &filterSelf, &tr );
+	                    }
+
+					    totalChecks++;
+	                    // If we don't trace the whole way to the target, and we didn't hit the target entity, we're blocked
+	                    if ( tr.fraction != 1.0 && tr.m_pEnt != pEntity )
+		                    return 0;
+					    passedChecks++;
+				    }
+	            }
+	        }
+	    }
+	}
+	else
+	{
+	    passedChecks++;
+	}
 
 	// Adjust the damage - apply falloff.
 	float flAdjustedDamage = 0.0f;
@@ -5551,6 +5579,9 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 		}
 	}
 
+	// As a compromise, reduce the damage if we only did it on a robust check
+	flAdjustedDamage *= passedChecks / (float) totalChecks;
+
 	// If we end up doing 0 damage, exit now.
 	if ( flAdjustedDamage <= 0 )
 		return 0;
@@ -5566,7 +5597,7 @@ int CTFRadiusDamageInfo::ApplyToEntity( CBaseEntity *pEntity )
 	CTakeDamageInfo adjustedInfo = *dmgInfo;
 	adjustedInfo.SetDamage( flAdjustedDamage );
 
-	Vector dir = vecSpot - vecSrc;
+	Vector dir = vecMainSpot - vecSrc;
 	VectorNormalize( dir );
 
 	// If we don't have a damage force, manufacture one
@@ -6160,7 +6191,7 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 	// Use defense buffs if it's not a backstab or direct crush damage (telefrage, etc.)
 	if ( pVictim && info.GetDamageCustom() != TF_DMG_CUSTOM_BACKSTAB && ( info.GetDamageType() & DMG_CRUSH ) == 0 )
 	{
-		if ( pVictim->m_Shared.InCond( TF_COND_DEFENSEBUFF ) )
+		if ( !iPierceResists && pVictim->m_Shared.InCond( TF_COND_DEFENSEBUFF ) )
 		{
 			// We take no crits of any kind...
 			if( eBonusEffect == kBonusEffect_MiniCrit || eBonusEffect == kBonusEffect_Crit )
@@ -6308,9 +6339,9 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 					flRandomDamage *= 0.5f;
 				}
 				break;
-			case TF_WEAPON_PIPEBOMBLAUNCHER :	// Stickies
-			case TF_WEAPON_GRENADELAUNCHER :
-			case TF_WEAPON_CANNON :
+			case TF_WEAPON_PIPEBOMBLAUNCHER:	// Stickies
+			case TF_WEAPON_GRENADELAUNCHER:
+			case TF_WEAPON_CANNON:
 			case TF_WEAPON_STICKBOMB:
 				if ( !( bitsDamage & DMG_NOCLOSEDISTANCEMOD ) )
 				{
@@ -9719,6 +9750,85 @@ float CTFGameRules::FlItemRespawnTime( CItem *pItem )
 
 
 //-----------------------------------------------------------------------------
+// Purpose: remove disruptive characters from chat
+//-----------------------------------------------------------------------------
+int CleanChatText( char *pch )
+{
+	// convert to unicode
+	int cch = Q_strlen( pch );
+	int cubDest = (cch + 1 ) * sizeof( wchar_t );
+	wchar_t *pwch = (wchar_t *)stackalloc( cubDest );
+	int cwch = Q_UTF8ToUnicode( pch, pwch, cubDest ) / sizeof( wchar_t );
+
+	bool bCleansed = false;
+	int spaces = 0;
+
+	int nWalk = 0;
+	for( int i=0; i<cwch; ++i )
+	{
+		wchar_t wch = pwch[i];
+		wchar_t newwch = 0;
+
+		int evil = V_IsEvilCharacterW( wch );
+
+		if ( evil == 1 )
+		{
+			newwch = L'?';
+		}
+		else if ( evil == 2 )
+		{
+			newwch = L' ';
+		}
+
+		if ( newwch )
+		{
+			wch = newwch;
+
+			bCleansed = true;
+		}
+
+		if ( wch == L' ' )
+		{
+			if ( ++spaces > 4 ) // allow up to only 4 consecutive spaces
+			{
+				bCleansed = true;
+
+				continue;
+			}
+		}
+		else
+		{
+			spaces = 0;
+		}
+
+		pwch[nWalk] = wch;
+
+		++nWalk;
+	}
+
+	// Null terminate
+	pwch[nWalk-1] = L'\0';
+
+	// copy back, if necessary
+	if ( Q_StripPrecedingAndTrailingWhitespaceW( pwch ) || bCleansed )
+	{
+		Q_UnicodeToUTF8( pwch, pch, cch );
+	}
+
+	return bCleansed;
+}
+
+ConVar sv_chat_clean_text ( "mp_chat_clean_text", "1", FCVAR_NONE, "Prevent clients from sending disruptive characters in chat" );
+
+void CTFGameRules::CheckChatText( CBasePlayer *pPlayer, char *pText )
+{
+	if ( sv_chat_clean_text.GetBool() )
+	{
+		CleanChatText( pText );
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 const char *CTFGameRules::GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer )
@@ -11699,11 +11809,12 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
  	CBaseEntity *pInflictor = info.GetInflictor();
 	CBaseEntity *pKiller = info.GetAttacker();
 	CBasePlayer *pScorer = GetDeathScorer( pKiller, pInflictor, pVictim );
+	int iDamageCustom = info.GetDamageCustom();
 
 	const char *killer_weapon_name = "world";
 	*iWeaponID = TF_WEAPON_NONE;
 
-	if ( info.GetDamageCustom() == TF_DMG_CUSTOM_BURNING )
+	if ( iDamageCustom == TF_DMG_CUSTOM_BURNING )
 	{
 		// special-case burning damage, since persistent burning damage may happen after attacker has switched weapons
 		killer_weapon_name = "tf_weapon_flamethrower";
@@ -11720,7 +11831,7 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			}
 		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_BURNING_FLARE )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_BURNING_FLARE )
 	{
 		// special-case burning damage, since persistent burning damage may happen after attacker has switched weapons
 		killer_weapon_name = "tf_weapon_flaregun";
@@ -11730,12 +11841,9 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		{
 			CTFBaseRocket *pBaseRocket = dynamic_cast<CTFBaseRocket*>( pInflictor );
 
-			if ( pBaseRocket )
+			if ( pBaseRocket && pBaseRocket->GetDeflected() )
 			{
-				if ( pBaseRocket->GetDeflected() )
-				{
-					killer_weapon_name = "deflect_flare";
-				}
+				killer_weapon_name = "deflect_flare";
 			}
 		}
 
@@ -11750,7 +11858,7 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			}
 		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_FLARE_EXPLOSION )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_FLARE_EXPLOSION )
 	{
 		killer_weapon_name = "tf_weapon_detonator";
 		*iWeaponID = TF_WEAPON_FLAREGUN;
@@ -11758,16 +11866,13 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		if ( pInflictor && pInflictor->IsPlayer() == false )
 		{
 			CTFBaseRocket *pBaseRocket = dynamic_cast<CTFBaseRocket*>( pInflictor );
-			if ( pBaseRocket )
+			if ( pBaseRocket && pBaseRocket->GetDeflected() )
 			{
-				if ( pBaseRocket->GetDeflected() )
-				{
-					killer_weapon_name = "deflect_flare_detonator";
-				}
+				killer_weapon_name = "deflect_flare";
 			}
 		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_CHARGE_IMPACT )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_CHARGE_IMPACT )
 	{
 		CTFWearable *pWearable = dynamic_cast< CTFWearable * >( info.GetWeapon() );
 		if ( pWearable )
@@ -11785,44 +11890,44 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		// This may be stomped later if the kill was a headshot.
 		killer_weapon_name = "player_penetration";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_PICKAXE )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_PICKAXE )
 	{
 		killer_weapon_name = "pickaxe";
 		*iWeaponID = TF_WEAPON_SHOVEL;
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_CARRIED_BUILDING )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_CARRIED_BUILDING )
 	{
 		killer_weapon_name = "tf_weapon_building_carried_destroyed";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_HADOUKEN )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_HADOUKEN )
 	{
 		killer_weapon_name = "tf_weapon_taunt_pyro";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_HIGH_NOON )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_HIGH_NOON )
 	{
 		killer_weapon_name = "tf_weapon_taunt_heavy";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_GRAND_SLAM )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_GRAND_SLAM )
 	{
 		killer_weapon_name = "tf_weapon_taunt_scout";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_BARBARIAN_SWING )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_BARBARIAN_SWING )
 	{
 		killer_weapon_name = "tf_weapon_taunt_demoman";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_UBERSLICE )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_UBERSLICE )
 	{
 		killer_weapon_name = "tf_weapon_taunt_medic";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_FENCING )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_FENCING )
 	{
 		killer_weapon_name = "tf_weapon_taunt_spy";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_ARROW_STAB )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_ARROW_STAB )
 	{
 		killer_weapon_name = "tf_weapon_taunt_sniper";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_GRENADE )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_GRENADE )
 	{
 		CTFPlayer *pTFKiller = ToTFPlayer( pKiller );
 		if ( pTFKiller && pTFKiller->IsWormsGearEquipped() )
@@ -11834,39 +11939,53 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			killer_weapon_name = "tf_weapon_taunt_soldier";
 		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_ENGINEER_GUITAR_SMASH )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_ENGINEER_GUITAR_SMASH )
 	{
 		killer_weapon_name = "tf_weapon_taunt_guitar_kill";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_ALLCLASS_GUITAR_RIFF )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_ALLCLASS_GUITAR_RIFF )
 	{
 		killer_weapon_name = "tf_weapon_taunt_guitar_riff_kill";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_ENGINEER_ARM_KILL )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_ENGINEER_ARM_KILL )
 	{
 		killer_weapon_name = "robot_arm_blender_kill";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TELEFRAG )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TELEFRAG )
 	{
 		killer_weapon_name = "telefrag";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_BOOTS_STOMP )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_BOOTS_STOMP )
 	{
 		killer_weapon_name = "mantreads";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_BASEBALL )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_BASEBALL )
 	{
 		killer_weapon_name = "ball";
+
+		if ( pInflictor && pInflictor->IsPlayer() == false )
+		{
+			CTFWeaponBaseGrenadeProj *pBaseGrenade = dynamic_cast<CTFWeaponBaseGrenadeProj*>( pInflictor );
+			if ( pBaseGrenade && pBaseGrenade->GetDeflected() )
+			{
+				killer_weapon_name = "deflect_ball";
+			}
+		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_COMBO_PUNCH )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_CLEAVER ||
+			  iDamageCustom == TF_DMG_CUSTOM_CLEAVER_CRIT )
+	{
+		killer_weapon_name = "guillotine";
+	}
+	else if ( iDamageCustom == TF_DMG_CUSTOM_COMBO_PUNCH )
 	{
 		killer_weapon_name = "robot_arm_combo_kill";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_BLEEDING )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_BLEEDING )
 	{
 		killer_weapon_name = "tf_weapon_bleed_kill";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_PLAYER_SENTRY )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_PLAYER_SENTRY )
 	{
 		int nGigerCounter = 0; 
 		if ( pScorer )
@@ -11883,88 +12002,88 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			killer_weapon_name = "wrangler_kill";
 		}
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_DECAPITATION_BOSS )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_DECAPITATION_BOSS )
 	{
 		killer_weapon_name = "headtaker";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_EYEBALL_ROCKET )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_EYEBALL_ROCKET )
 	{
 		killer_weapon_name = "eyeball_rocket";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_STICKBOMB_EXPLOSION )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_STICKBOMB_EXPLOSION )
 	{
 		killer_weapon_name = "ullapool_caber_explosion";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_TAUNTATK_ARMAGEDDON )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_TAUNTATK_ARMAGEDDON )
 	{
 		killer_weapon_name = "armageddon";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SAPPER_RECORDER_DEATH )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SAPPER_RECORDER_DEATH )
 	{
 		killer_weapon_name = "recorder";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_MERASMUS_DECAPITATION )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_MERASMUS_DECAPITATION )
 	{
 		killer_weapon_name = "merasmus_decap";
 	}	
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_MERASMUS_ZAP )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_MERASMUS_ZAP )
 	{
 		killer_weapon_name = "merasmus_zap";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_MERASMUS_GRENADE )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_MERASMUS_GRENADE )
 	{
 		killer_weapon_name = "merasmus_grenade";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_MERASMUS_PLAYER_BOMB )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_MERASMUS_PLAYER_BOMB )
 	{
 		killer_weapon_name = "merasmus_player_bomb";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_CANNONBALL_PUSH )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_CANNONBALL_PUSH )
 	{
 		killer_weapon_name = "loose_cannon_impact";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_TELEPORT )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_TELEPORT )
 	{
 		killer_weapon_name = "spellbook_teleport";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_SKELETON )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_SKELETON )
 	{
 		killer_weapon_name = "spellbook_skeleton";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_MIRV )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_MIRV )
 	{
 		killer_weapon_name = "spellbook_mirv";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_METEOR )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_METEOR )
 	{
 		killer_weapon_name = "spellbook_meteor";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_LIGHTNING )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_LIGHTNING )
 	{
 		killer_weapon_name = "spellbook_lightning";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_FIREBALL )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_FIREBALL )
 	{
 		killer_weapon_name = "spellbook_fireball";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_MONOCULUS )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_MONOCULUS )
 	{
 		killer_weapon_name = "spellbook_boss";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_BLASTJUMP )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_BLASTJUMP )
 	{
 		killer_weapon_name = "spellbook_blastjump";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_BATS )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_BATS )
 	{
 		killer_weapon_name = "spellbook_bats";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_SPELL_TINY )
+	else if ( iDamageCustom == TF_DMG_CUSTOM_SPELL_TINY )
 	{
 		killer_weapon_name = "spellbook_athletic";
 	}
-	else if ( info.GetDamageCustom() == TF_DMG_CUSTOM_THROWABLE ||
-			  info.GetDamageCustom() == TF_DMG_CUSTOM_THROWABLE_KILL )			// Throwables
+	else if ( iDamageCustom == TF_DMG_CUSTOM_THROWABLE ||
+			  iDamageCustom == TF_DMG_CUSTOM_THROWABLE_KILL )			// Throwables
 	{
 		if ( pVictim && pVictim->GetHealth() <= 0 )
 		{
@@ -12035,6 +12154,18 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 				{
 					killer_weapon_name = "rocketlauncher_directhit";
 				}
+				else if ( *iWeaponID == TF_WEAPON_COMPOUND_BOW )
+				{
+					CTFProjectile_Arrow* pArrow = dynamic_cast<CTFProjectile_Arrow*>( pBaseRocket );
+					if ( pArrow && pArrow->IsAlight() )
+					{
+						killer_weapon_name = "huntsman_flyingburn";
+
+						// force death notice to use burning arrow headshot kill icon
+						if ( iDamageCustom == TF_DMG_CUSTOM_HEADSHOT )
+							*iWeaponID = TF_WEAPON_NONE;
+					}
+				}
 			}
 			else
 			{
@@ -12067,7 +12198,7 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 		}
 	}
 
-	if ( info.GetDamageCustom() == TF_DMG_CUSTOM_DEFENSIVE_STICKY )
+	if ( iDamageCustom == TF_DMG_CUSTOM_DEFENSIVE_STICKY )
 	{
 		killer_weapon_name = "sticky_resistance";
 	}
@@ -12187,7 +12318,7 @@ const char *CTFGameRules::GetKillingWeaponName( const CTakeDamageInfo &info, CTF
 			}
 		}
 	}
-	else if ( ( info.GetDamageCustom() == TF_DMG_CUSTOM_STANDARD_STICKY ) || ( info.GetDamageCustom() == TF_DMG_CUSTOM_AIR_STICKY_BURST ) )
+	else if ( ( iDamageCustom == TF_DMG_CUSTOM_STANDARD_STICKY ) || ( iDamageCustom == TF_DMG_CUSTOM_AIR_STICKY_BURST ) )
 	{
 		// let's look-up the secondary weapon to see what type of sticky launcher it is
 		if ( pScorer )
@@ -12929,7 +13060,10 @@ float CTFGameRules::FlPlayerFallDamage( CBasePlayer *pPlayer )
 		float flRatio = (float)pPlayer->GetMaxHealth() / 100.0;
 		flFallDamage *= flRatio;
 
-		flFallDamage *= random->RandomFloat( 0.8, 1.2 );
+		if (!tf_damage_disablespread.GetBool())
+		{
+			flFallDamage *= random->RandomFloat(0.8, 1.2);
+		}
 
 		int iCancelFallingDamage = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( pPlayer, iCancelFallingDamage, cancel_falling_damage );
@@ -16550,6 +16684,8 @@ void CTFGameRules::SetUpVisionFilterKeyValues( void )
 	//pKVFlag = new KeyValues( "2" );	//TF_VISION_FILTER_HALLOWEEN
 	//pKVBlock->AddSubKey( pKVFlag );
 
+	m_pkvVisionFilterTranslationsParticle = m_pkvVisionFilterTranslations->FindKey("particles");
+
 	// **************************************************************************************************
 	// SOUNDS
 	pKVBlock = new KeyValues( "sounds" );
@@ -16849,14 +16985,28 @@ const char* CTFGameRules::TranslateEffectForVisionFilter( const char *pchEffectT
 		return pchEffectName;
 	}
 
-	CUtlVector<const char *> vecNames;
-	vecNames.AddToTail( pchEffectName );
-
 	// Swap the effect if the local player has an item that allows them to see it (Pyro Goggles)
 	bool bWeaponsOnly = FStrEq( pchEffectType, "weapons" );
 	int nVisionOptInFlags = GetLocalPlayerVisionFilterFlags( bWeaponsOnly );
 
-	KeyValues *pkvParticles = m_pkvVisionFilterTranslations->FindKey( pchEffectType );
+	// TODO(mastercoms): make sure effects use normal by DEFAULT instead of adding a replacement
+	// if (nVisionOptInFlags == 0)
+	// {
+	//	return pchEffectName;
+	// }
+	// the madness below adds a cost to EVERY effect otherwise
+	CUtlVector<const char*> vecNames;
+	vecNames.AddToTail(pchEffectName);
+
+	KeyValues* pkvParticles;
+	if (V_stricmp("particles", pchEffectType))
+	{
+		pkvParticles = m_pkvVisionFilterTranslationsParticle;
+	}
+	else
+	{
+		pkvParticles = m_pkvVisionFilterTranslations->FindKey(pchEffectType);
+	}
 	if ( pkvParticles )
 	{
 		for ( KeyValues *pkvFlag = pkvParticles->GetFirstTrueSubKey(); pkvFlag != NULL; pkvFlag = pkvFlag->GetNextTrueSubKey() )
@@ -17894,6 +18044,12 @@ const char *CTFGameRules::GetTeamGoalString( int iTeam )
 
 CTFGameRules::~CTFGameRules()
 {
+	if (m_pkvVisionFilterTranslationsParticle)
+	{
+		// We don't delete, because it's deleted in the parent below.
+		m_pkvVisionFilterTranslationsParticle = NULL;
+	}
+
 	if ( m_pkvVisionFilterTranslations )
 	{
 		m_pkvVisionFilterTranslations->deleteThis();
@@ -20136,17 +20292,17 @@ void CTFGameRules::BetweenRounds_Think( void )
 		bool bStartFinalCountdown = ( PlayerReadyStatus_ShouldStartCountdown() || ( m_flRestartRoundTime > 0 && (int)( m_flRestartRoundTime - gpGlobals->curtime ) == mp_tournament_readymode_countdown.GetInt() ) );
 
 		// It's the FINAL COUNTDOOOWWWNNnnnnnnnnn
-		float flDropDeadTime = gpGlobals->curtime + mp_tournament_readymode_countdown.GetFloat() + 0.1f;
+		float flDelay = IsMannVsMachineMode() ? 15.f : mp_tournament_readymode_countdown.GetFloat();
+		float flDropDeadTime = gpGlobals->curtime + flDelay + 0.1f;
 		if ( bStartFinalCountdown && ( m_flRestartRoundTime < 0 || m_flRestartRoundTime >= flDropDeadTime ) )
 		{
-			float flDelay = IsMannVsMachineMode() ? 10.f : mp_tournament_readymode_countdown.GetFloat();
 			m_flRestartRoundTime.Set( gpGlobals->curtime + flDelay );
 			ShouldResetScores( true, true );
 			ShouldResetRoundsPlayed( true );
 
 			if ( IsCompetitiveMode() )
 			{
-				m_flCompModeRespawnPlayersAtMatchStart = gpGlobals->curtime + 2.0;
+				m_flCompModeRespawnPlayersAtMatchStart = gpGlobals->curtime + 2.0f;
 			}
 		}
 
@@ -20723,6 +20879,8 @@ void CTFGameRules::MatchSummaryEnd( void )
 	tf_bot_quota_mode.SetValue( tf_bot_quota_mode.GetDefault() );
 }
 
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "10", FCVAR_REPLICATED);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -20766,7 +20924,12 @@ int CTFGameRules::GetTeamAssignmentOverride( CTFPlayer *pTFPlayer, int iDesiredT
 			}
 
 			// Bootcamp mode can mix a lobby with ad-hoc joins
-			int nSlotsLeft = kMVM_DefendersTeamSize - nMatchPlayers - nAdHocDefenders;
+			int iTeamSize = kMVM_DefendersTeamSize;
+			if (tf_sv_mvm_forced_players.GetInt() > iTeamSize)
+			{
+				iTeamSize = tf_sv_mvm_forced_players.GetInt();
+			}
+			int nSlotsLeft = iTeamSize - nMatchPlayers - nAdHocDefenders;
 			if ( nSlotsLeft >= 1 )
 			{
 				Log( "MVM assigned %s to defending team (%d more slots remaining after us)\n", pTFPlayer->GetPlayerName(), nSlotsLeft-1 );
@@ -21253,6 +21416,15 @@ bool CTFGameRules::CanUpgradeWithAttrib( CTFPlayer *pPlayer, int iWeaponSlot, at
 		{
 			return ( iWeaponID == TF_WEAPON_MEDIGUN );
 		}
+	case 870: // impact radius pushback
+	case 871: // impact radius stun
+	case 872: // thermal thruster air launch
+	case 874: // item meter faster recharge rate
+	case 875: // explode on ignite
+	    {
+			// TODO(mastercoms): Jungle Inferno upgrades not implemented
+		    return false;
+	    }
 #ifdef STAGING_ONLY
 	case 553:	// rocket pack
 	case 558:	// mod flamethrower napalm

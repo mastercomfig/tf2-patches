@@ -842,6 +842,8 @@ bool IsCreepWaveMode( void ) const;
 	virtual Vector VecItemRespawnSpot( CItem *pItem );
 	virtual QAngle VecItemRespawnAngles( CItem *pItem );
 
+	virtual void CheckChatText( CBasePlayer *pPlayer, char *pText );
+
 	virtual const char *GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer );
 	void ClientSettingsChanged( CBasePlayer *pPlayer );
 	void ChangePlayerName( CTFPlayer *pPlayer, const char *pszNewName );
@@ -1118,6 +1120,7 @@ private:
 #else
 
 	KeyValues *m_pkvVisionFilterTranslations;
+	KeyValues *m_pkvVisionFilterTranslationsParticle;
 	KeyValues *m_pkvVisionFilterShadersMapWhitelist;
 
 	bool	m_bSillyGibs;
@@ -1466,7 +1469,7 @@ inline float CTFGameRules::ItemTesting_GetBotAnimSpeed( void )
 		pHostTimescale = cvar->FindVar( "host_timescale" );
 	}
 
-	if ( pHostTimescale )
+	if ( pHostTimescale && pHostTimescale->GetFloat() > 0 )
 		return (m_flItemTesting_BotAnimSpeed * pHostTimescale->GetFloat());
 	return m_flItemTesting_BotAnimSpeed;
 }

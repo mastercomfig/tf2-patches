@@ -214,12 +214,11 @@ static ConVar sv_voicecodec( "sv_voicecodec", "vaudio_celt", 0,
                              "vaudio_celt - Newer CELT codec\n"
                              "steam - Use Steam voice API" );
 
-
-ConVar  sv_mincmdrate( "sv_mincmdrate", "10", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdrate. 0 == unlimited." );
-ConVar  sv_maxcmdrate( "sv_maxcmdrate", "66", FCVAR_REPLICATED, "(If sv_mincmdrate is > 0), this sets the maximum value for cl_cmdrate." );
-ConVar  sv_client_cmdrate_difference( "sv_client_cmdrate_difference", "20", FCVAR_REPLICATED, 
-	"cl_cmdrate is moved to within sv_client_cmdrate_difference units of cl_updaterate before it "
-	"is clamped between sv_mincmdrate and sv_maxcmdrate." );
+ConVar  sv_mincmdinterval("sv_mincmdinterval", "0.015", FCVAR_REPLICATED, "This sets the minimum value for cl_cmdinterval. 0 == unlimited.");
+ConVar  sv_maxcmdinterval("sv_maxcmdinterval", "0.015", FCVAR_REPLICATED, "(If sv_mincmdinterval is > 0), this sets the maximum value for cl_cmdinterval.");
+ConVar  sv_client_cmdinterval_difference("sv_client_cmdinterval_difference", "0", FCVAR_REPLICATED,
+	"cl_cmdinterval is moved to within sv_client_cmdinterval_difference units of cl_updateinterval before it "
+	"is clamped between sv_mincmdinterval and sv_maxcmdinterval.");
 
 ConVar  sv_client_min_interp_ratio( "sv_client_min_interp_ratio", "1", FCVAR_REPLICATED, 
 								   "This can be used to limit the value of cl_interp_ratio for connected clients "
@@ -230,8 +229,8 @@ ConVar  sv_client_min_interp_ratio( "sv_client_min_interp_ratio", "1", FCVAR_REP
 ConVar  sv_client_max_interp_ratio( "sv_client_max_interp_ratio", "5", FCVAR_REPLICATED, 
 								   "This can be used to limit the value of cl_interp_ratio for connected clients "
 								   "(only while they are connected). If sv_client_min_interp_ratio is -1, "
-								   "then this cvar has no effect."
-								   );
+									"then this cvar has no effect.",
+									true, 2, false, 5);
 ConVar  sv_client_predict( "sv_client_predict", "-1", FCVAR_REPLICATED, 
 	"This can be used to force the value of cl_predict for connected clients "
 	"(only while they are connected).\n"
@@ -1824,7 +1823,13 @@ void CGameServer::CopyTempEntities( CFrameSnapshot* pSnapshot )
 //   are running many instances anyway. It's off in Dota and CSGO dedicated servers.
 //
 // Bruce also had a patch to disable this in //ValveGames/staging/game/tf/cfg/unencrypted/print_instance_config.py
-static ConVar sv_parallel_sendsnapshot( "sv_parallel_sendsnapshot", "0" );
+static ConVar sv_parallel_sendsnapshot( "sv_parallel_sendsnapshot", 
+#ifndef SWDS
+	"1"
+#else
+    "0",
+#endif 
+);
 
 static void SV_ParallelSendSnapshot( CGameClient *& pClient )
 {
@@ -2909,6 +2914,12 @@ void SV_Frame( bool finalTick )
 		return;
 	}
 
+	// let the steam auth server process new connections
+	if ( IsPC() && sv.IsMultiplayer() )
+	{
+		Steam3Server().RunFrame();
+	}
+
 	g_ServerGlobalVariables.frametime = host_state.interval_per_tick;
 
 	bool bIsSimulating = SV_IsSimulating();
@@ -2955,11 +2966,5 @@ void SV_Frame( bool finalTick )
 
 	// lock string tables
 	networkStringTableContainerServer->Lock( true );
-
-	// let the steam auth server process new connections
-	if ( IsPC() && sv.IsMultiplayer() )
-	{
-		Steam3Server().RunFrame();
-	}
 }
 

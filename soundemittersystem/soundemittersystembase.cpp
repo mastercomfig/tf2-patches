@@ -77,6 +77,24 @@ public:
 		Assert(0);
 	}
 
+	void	SetSeedScoped(int iSeed)
+	{
+		// Never call this from the client or game!
+		Assert(0);
+	}
+
+	void RandomStartScope()
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+	}
+
+	void RandomEndScope()
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+	}
+
 	// Generates random numbers
 	float	RandomFloat( float flMinVal = 0.0f, float flMaxVal = 1.0f )
 	{
@@ -91,6 +109,20 @@ public:
 	float	RandomFloatExp( float flMinVal = 0.0f, float flMaxVal = 1.0f, float flExponent = 1.0f )
 	{
 		return ::RandomFloatExp( flMinVal, flMaxVal, flExponent );
+	}
+
+	float RandomFloatScoped(float flMinVal = 0.0f, float flMaxVal = 1.0f)
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+		return RandomFloat(flMinVal, flMaxVal);
+	}
+
+	int RandomIntScoped(int iMinVal, int iMaxVal)
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+		return RandomInt(iMinVal, iMaxVal);
 	}
 
 };
@@ -830,7 +862,7 @@ soundlevel_t CSoundEmitterSystemBase::LookupSoundLevel( const char *soundname )
 void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPreload, bool bIsOverride /*=false*/, bool bRefresh /*=false*/ )
 {
 	CSoundScriptFile sf;
-	sf.hFilename = filesystem->FindOrAddFileName( filename );
+	sf.hFilename = filesystem->FindOrAddFileName(filename);
 	sf.dirty = false;
 
 	int scriptindex = m_SoundKeyValues.AddToTail( sf );
@@ -841,7 +873,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 
 	// Open the soundscape data file, and abort if we can't
 	KeyValues *kv = new KeyValues( "" );
-	if ( filesystem->LoadKeyValues( *kv, IFileSystem::TYPE_SOUNDEMITTER, filename, "GAME" ) )
+	if (filesystem->LoadKeyValues( *kv, IFileSystem::TYPE_SOUNDEMITTER, filename, "GAME" ) )
 	{
 		// parse out all of the top level sections and save their names
 		KeyValues *pKeys = kv;
@@ -875,13 +907,13 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 				UtlHashHandle_t lookup = m_Sounds.Insert( pEntry ); // insert returns existing item if found
 				if ( m_Sounds[ lookup ] != pEntry )
 				{
-					if ( bIsOverride )
+					if ( bIsOverride || bRefresh )
 					{
 						MEM_ALLOC_CREDIT();
 
 						// Store off the old sound if it's not already an "override" from another file!!!
 						// Otherwise, just whack it again!!!
-						if ( !m_Sounds[ lookup ]->IsOverride() )
+						if ( bIsOverride && !m_Sounds[ lookup ]->IsOverride() )
 						{
 							m_SavedOverrides.AddToTail( m_Sounds[ lookup ] );
 						}
@@ -891,15 +923,11 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 						}
 
 						InitSoundInternalParameters( pKeys->GetName(), pKeys, pEntry->m_SoundParams );
-						pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initting.
+						pEntry->m_SoundParams.SetShouldPreload(bIsOverride ? bPreload : m_Sounds[lookup]->m_SoundParams.ShouldPreload()); // this gets handled by game code after initing.
 
-						m_Sounds.ReplaceKey( lookup, pEntry );
+                        m_Sounds.ReplaceKey( lookup, pEntry );
 
 						++replaceCount;
-					}
-					else if ( bRefresh )
-					{
-						InitSoundInternalParameters( pKeys->GetName(), pKeys, m_Sounds[ lookup ]->m_SoundParams );
 					}
 #if 0
 					else
@@ -913,7 +941,7 @@ void CSoundEmitterSystemBase::AddSoundsFromFile( const char *filename, bool bPre
 					MEM_ALLOC_CREDIT();
 
 					InitSoundInternalParameters( pKeys->GetName(), pKeys, pEntry->m_SoundParams );
-					pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initting.
+					pEntry->m_SoundParams.SetShouldPreload( bPreload ); // this gets handled by game code after initing.
 				}
 			}
 			pKeys = pKeys->GetNextKey();
@@ -956,22 +984,25 @@ void CSoundEmitterSystemBase::ReloadSoundEntriesInList( IFileList *pFilesToReloa
 {
 	int i, c;
 	c = m_SoundKeyValues.Count();
-	CUtlVector< const char * > processed;
-	for ( i = 0; i < c ; i++ )
+	CUtlVector< char* > processed;
+	for ( i = 0; i < c; i++ )
 	{
 		const char *pszFileName = GetSoundScriptName( i );
+		char* pszFilename = V_strdup(pszFileName);
 		if ( pszFileName && pszFileName[0] )
 		{
-			if ( processed.Find( pszFileName) == processed.InvalidIndex() && pFilesToReload->IsFileInList( pszFileName ) )
+			if ( processed.Find(pszFilename) == processed.InvalidIndex() && pFilesToReload->IsFileInList( pszFileName ) )
 			{
-				Msg( "Reloading sound file '%s' due to pure settings.\n", pszFileName );
-
-				AddSoundsFromFile( pszFileName, false, false, true );
-				
-				// Now mark this file name as being reloaded
-				processed.AddToTail( pszFileName );
+				// Mark this file name to be reloaded
+				processed.AddToTail( pszFilename );
 			}
 		}
+	}
+
+	for ( auto& pszFileName : processed )
+	{
+		Msg("Reloading sound file '%s' due to pure settings.\n", pszFileName);
+		AddSoundsFromFile(pszFileName, false, false, true);
 	}
 }
 
@@ -1022,7 +1053,7 @@ int CSoundEmitterSystemBase::CheckForMissingWavFiles( bool verbose )
 			if ( name[0] == CHAR_SENTENCE )
 				continue;
 			Q_snprintf( testfile, sizeof( testfile ), "sound/%s", PSkipSoundChars( name ) );
-			if ( filesystem->FileExists( testfile ) )
+			if (filesystem->FileExists( testfile ) )
 				continue;
 
 			internal->SetHadMissingWaveFiles( true );
@@ -1114,7 +1145,7 @@ const char *CSoundEmitterSystemBase::GetSourceFileForSound( int index ) const
 		return "";
 	}
 	static char fn[ 512 ];
-	if ( filesystem->String( m_SoundKeyValues[ scriptindex ].hFilename, fn, sizeof( fn ) ))
+	if (filesystem->String( m_SoundKeyValues[ scriptindex ].hFilename, fn, sizeof( fn ) ))
 	{
 		return fn;
 	}
@@ -1261,7 +1292,7 @@ const char *CSoundEmitterSystemBase::GetSoundScriptName( int index ) const
 		return NULL;
 
 	static char fn[ 512 ];
-	if ( filesystem->String( m_SoundKeyValues[ index ].hFilename, fn, sizeof( fn ) ) )
+	if (filesystem->String( m_SoundKeyValues[ index ].hFilename, fn, sizeof( fn ) ) )
 	{
 		return fn;
 	}

@@ -331,7 +331,7 @@ static void BuildSingleCubemap( const char *pVTFName, const Vector &vecOrigin,
 
 	if ( ivt )
 	{
-		char *argv[64];
+		const char *argv[64];
 		int iArg = 0;
 		argv[iArg++] = "";
 		argv[iArg++] = "-quiet";
@@ -803,7 +803,7 @@ Take a cubemap at each "cubemap" entity in the current map.
 */
 // HOLY CRAP THIS NEEDS TO BE CLEANED UP
 
-//Added these to seperate from R_BuildCubemapSamples to a) clean it up abit and b) fix the issue where if it fails, mouse is disabled.
+//Added these to separate from R_BuildCubemapSamples to a) clean it up a bit and b) fix the issue where if it fails, mouse is disabled.
 static bool saveShadows = true;
 static bool bDrawWater = true;
 static int nSaveLightStyle = -1;

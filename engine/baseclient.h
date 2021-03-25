@@ -95,7 +95,9 @@ public:
 
 	virtual	void	SetRate( int nRate, bool bForce );
 	virtual	int		GetRate( void ) const;
-	
+
+	virtual void	SetUpdateInterval(float fUpdateInterval, bool bForce);
+	virtual float	GetUpdateInterval(void) const;
 	virtual void	SetUpdateRate( int nUpdateRate, bool bForce );
 	virtual int		GetUpdateRate( void ) const;
 
@@ -271,13 +273,6 @@ public:
 	double         m_fNextMessageTime;   
 	// Default time to wait for next message
 	float          m_fSnapshotInterval;  
-
-	enum
-	{
-		SNAPSHOT_SCRATCH_BUFFER_SIZE = 160000,
-	};
-
-	unsigned int		m_SnapshotScratchBuffer[ SNAPSHOT_SCRATCH_BUFFER_SIZE / 4 ];
 
 private:
 	void				StartTrace( bf_write &msg );

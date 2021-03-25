@@ -136,9 +136,8 @@ using namespace vgui;
 unsigned long GetRam()
 {
 #ifdef WIN32
-	MEMORYSTATUS stat;
-	GlobalMemoryStatus( &stat );
-	return (stat.dwTotalPhys / (1024 * 1024));
+	MEMORYSTATUSEX stat = { sizeof(stat) };
+	return GlobalMemoryStatusEx(&stat) ? stat.ullTotalPhys / (1024 * 1024) : 0;
 #elif defined(OSX)
 	int mib[2] = { CTL_HW, HW_MEMSIZE };
 	u_int namelen = sizeof(mib) / sizeof(mib[0]);
@@ -191,28 +190,13 @@ void DisplaySystemVersion( char *osversion, int maxlen )
 {
 #ifdef WIN32
 	osversion[ 0 ] = 0;
-	OSVERSIONINFOEX osvi;
-	BOOL bOsVersionInfoEx;
-	
-	// Try calling GetVersionEx using the OSVERSIONINFOEX structure.
-	//
-	// If that fails, try using the OSVERSIONINFO structure.
-	
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	
-	bOsVersionInfoEx = GetVersionEx ((OSVERSIONINFO *) &osvi);
+	OSVERSIONINFOEX osvi = { sizeof(osvi) };
+	BOOL bOsVersionInfoEx = GetVersionEx ((OSVERSIONINFO *) &osvi);
 
 	if( !bOsVersionInfoEx )
 	{
-		// If OSVERSIONINFOEX doesn't work, try OSVERSIONINFO.
-		
-		osvi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-		if (! GetVersionEx ( (OSVERSIONINFO *) &osvi) )
-		{
-			Q_strncpy( osversion, "Unable to get Version", maxlen );
-			return;
-		}
+		Q_strncpy( osversion, "Unable to get OS Version", maxlen );
+		return;
 	}
 	
 	switch (osvi.dwPlatformId)
@@ -220,30 +204,63 @@ void DisplaySystemVersion( char *osversion, int maxlen )
 	case VER_PLATFORM_WIN32_NT:
 		
 		// Test for the product.
-		
-		if ( osvi.dwMajorVersion <= 4 )
+		if ( osvi.dwMajorVersion == 6 )
 		{
-			Q_strncat ( osversion, "NT ", maxlen, COPY_ALL_CHARACTERS );
+			if ( osvi.dwMinorVersion == 0 )
+			{
+				Q_strncat( osversion, osvi.wProductType == VER_NT_WORKSTATION ? "Windows Vista " : "Windows Server 2008 ", maxlen, COPY_ALL_CHARACTERS );
+			}
+			else if ( osvi.dwMinorVersion == 1 )
+			{
+				Q_strncat( osversion, osvi.wProductType == VER_NT_WORKSTATION ? "Windows 7 " : "Windows Server 2008 R2 ", maxlen, COPY_ALL_CHARACTERS );
+			}
+			else if ( osvi.dwMinorVersion == 2 )
+			{
+				Q_strncat( osversion, osvi.wProductType == VER_NT_WORKSTATION ? "Windows 8 " : "Windows Server 2012 ", maxlen, COPY_ALL_CHARACTERS );
+			}
+			else if ( osvi.dwMinorVersion == 3 )
+			{
+				Q_strncat( osversion, osvi.wProductType == VER_NT_WORKSTATION ? "Windows 8.1 " : "Windows Server 2012 R2 ", maxlen, COPY_ALL_CHARACTERS );
+			}
+			else
+			{
+				Q_strncat( osversion, "N/A ", maxlen, COPY_ALL_CHARACTERS );
+			}
 		}
-		
-		if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0 )
+		else if ( osvi.dwMajorVersion == 10 )
 		{
-			Q_strncat ( osversion, "2000 ", maxlen, COPY_ALL_CHARACTERS );
+			if ( osvi.dwMinorVersion == 0 )
+			{
+				Q_strncat( osversion, osvi.wProductType == VER_NT_WORKSTATION ? "Windows 10 " : "Windows Server 2016 ", maxlen, COPY_ALL_CHARACTERS );
+			}
+			else
+			{
+				Q_strncat( osversion, "N/A ", maxlen, COPY_ALL_CHARACTERS );
+			}
 		}
-		
-		if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 )
+		else
 		{
-			Q_strncat ( osversion, "XP ", maxlen, COPY_ALL_CHARACTERS );
+			Q_strncat( osversion, "N/A ", maxlen, COPY_ALL_CHARACTERS );
 		}
 		
 		// Display version, service pack (if any), and build number.
 		
 		char build[256];
-		Q_snprintf (build, sizeof( build ), "%s (Build %d) version %d.%d",
-			osvi.szCSDVersion,
-			osvi.dwBuildNumber & 0xFFFF,
-			osvi.dwMajorVersion,
-			osvi.dwMinorVersion );
+		if ( osvi.szCSDVersion[0] )
+		{
+			Q_snprintf( build, sizeof(build), "%s (Build %lu) version %lu.%lu",
+				osvi.szCSDVersion,
+				osvi.dwBuildNumber & 0xFFFF,
+				osvi.dwMajorVersion,
+				osvi.dwMinorVersion );
+		}
+		else
+		{
+			Q_snprintf( build, sizeof(build), "(Build %lu) version %lu.%lu",
+				osvi.dwBuildNumber & 0xFFFF,
+				osvi.dwMajorVersion,
+				osvi.dwMinorVersion );
+		}
 		Q_strncat ( osversion, build, maxlen, COPY_ALL_CHARACTERS );
 		break;
 		
@@ -1833,8 +1850,8 @@ void CBugUIPanel::OnSubmit()
 	Q_snprintf( misc, sizeof( misc ), "Convars:\n\tskill:  %i\n\tnet:  rate %i update %i cmd %i latency %i msec\n\thost_thread_mode:  %i\n\tsv_alternateticks:  %i\n\tai_strong_optimizations:  %i\n", 
 		skill.GetInt(),
 		cl_rate->GetInt(),
-		(int)cl_updaterate->GetFloat(),
-		(int)cl_cmdrate->GetFloat(),
+		(int)(1.0f / cl_updateinterval->GetFloat()),
+		(int)(1.0f / cl_cmdinterval->GetFloat()),
 		latency,
 		host_thread_mode.GetInt(),
 		sv_alternateticks.GetInt(),
@@ -2687,41 +2704,28 @@ void CBugUIPanel::OnKeyCodePressed(KeyCode code)
 // Load game-specific bug reporter defaults as params
 void CBugUIPanel::ParseDefaultParams( void )
 {
-	const char *szDefaults = "scripts/bugreporter_defaults.txt";
-
-	FileHandle_t hLocal = g_pFileSystem->Open( szDefaults, "rb" );
-	if ( FILESYSTEM_INVALID_HANDLE == hLocal )
+	CUtlBuffer buffer(0, 0, CUtlBuffer::TEXT_BUFFER);
+	if (!g_pFileSystem->ReadFile("scripts/bugreporter_defaults.txt", NULL, buffer))
 	{
 		return;
 	}
 
-	// load file into a null-terminated buffer
-	int fileSize = g_pFileSystem->Size(hLocal);
-	char *buffer = (char*)MemAllocScratch(fileSize + 1);
-
-	Assert(buffer);
-
-	g_pFileSystem->Read(buffer, fileSize, hLocal); // read into local buffer
-	buffer[fileSize] = 0; // null terminate file as EOF
-	g_pFileSystem->Close( hLocal );	// close file after reading
-
-	char token[64];
-	const char *pfile = COM_ParseFile(buffer, token, sizeof( token ) );
-
-	while ( pfile )
+	char token[256];
+	const char* pfile = COM_ParseFile((const char*)buffer.Base(), token, sizeof(token));
+	while (pfile)
 	{
-		bool success = AutoFillToken( token, false );
-		if ( !success )
+		bool success = AutoFillToken(token, false);
+		if (!success)
 		{
 			// Try partials
-			success = AutoFillToken( token, true );
-			if ( !success )
+			success = AutoFillToken(token, true);
+			if (!success)
 			{
-				Msg( "Unable to determine where to set default bug parameter '%s', ignoring...\n", token );
+				Msg("Unable to determine where to set default bug parameter '%s', ignoring...\n", token);
 			}
 		}
 
-		pfile = COM_ParseFile(pfile, token, sizeof( token ) );
+		pfile = COM_ParseFile(pfile, token, sizeof(token));
 	}
 }
 

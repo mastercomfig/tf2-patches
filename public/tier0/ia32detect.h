@@ -67,10 +67,10 @@ public:
 
 	struct misc_t
 	{
-		byte	Brand;
-		byte	CLFLUSH;
-		byte	Reserved;
-		byte	APICId;
+		BYTE	Brand;
+		BYTE	CLFLUSH;
+		BYTE	Reserved;
+		BYTE	APICId;
 	};
 
 	struct feature_t
@@ -117,7 +117,7 @@ public:
 	version_t version;
 	misc_t misc;
 	feature_t feature;
-	byte *cache;
+	unsigned char *cache;
 
 	ia32detect ()
 	{
@@ -184,7 +184,7 @@ public:
 	{
 		tchar b[128];
 
-		_stprintf(b, _T("%d.%d.%d %s XVersion(%d.%d)"), 
+		_stprintf(b, _T("%u.%u.%u %s XVersion(%u.%u)"), 
 			version.Family, version.Model, version.Stepping, type_text(), version.XFamily, version.XModel);
 
 		return tstring(b);
@@ -273,7 +273,7 @@ private:
 				c[(d >> i) & 0xFF] = true;
 	}
 
-	void init2 (byte count)
+	void init2 (BYTE count)
 	{
 		uint32 d[4];
 		bool c[256];
@@ -313,7 +313,7 @@ private:
 			if (c[ci2])
 				m++;
 
-		cache = new byte[m];
+		cache = new BYTE[m];
 
 		m = 0;
 

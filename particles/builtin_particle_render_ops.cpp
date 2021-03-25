@@ -1585,7 +1585,7 @@ void C_OP_RenderSpritesTrail::Render( IMatRenderContext *pRenderContext, CPartic
 
 		g_pParticleSystemMgr->TallyParticlesRendered( nParticlesInBatch * 4 * 3, nParticlesInBatch * 6 * 3 );
 
-		IMesh* pMesh = pRenderContext->GetDynamicMesh( true );
+		IMesh* pMesh = pRenderContext->GetDynamicMesh( false);
 		CMeshBuilder meshBuilder;
 		meshBuilder.Begin( pMesh, MATERIAL_TRIANGLES, nParticlesInBatch * 4, nParticlesInBatch * 6 );
 		info.m_nVertexOffset = 0;

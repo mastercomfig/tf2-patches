@@ -1535,7 +1535,7 @@ CConfirmCustomizeTextureDialog::CConfirmCustomizeTextureDialog( vgui::Panel *par
 				for (int j = 0 ; j < palette.Count() ; ++j )
 				{
 					pPalette->AddToTail( palette[j] );
-					Msg( "pPalette->AddToTail( Color( %d, %d, %d, 255 ) );\n", palette[j].r(), palette[j].g(), palette[j].b() );
+					Msg( "pPalette->AddToTail( Color( %u, %u, %u, 255 ) );\n", palette[j].r(), palette[j].g(), palette[j].b() );
 				}
 				Msg( "\n" );
 			}

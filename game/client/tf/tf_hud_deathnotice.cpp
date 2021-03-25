@@ -985,13 +985,27 @@ void CTFHudDeathNotice::OnGameEvent( IGameEvent *event, int iDeathNoticeMsg )
 		case TF_DMG_CUSTOM_HEADSHOT_DECAPITATION:
 		case TF_DMG_CUSTOM_HEADSHOT:
 			{
-				if ( FStrEq( event->GetString( "weapon" ), "ambassador" ) )
+				const char *killer_weapon_name = event->GetString( "weapon" );
+
+				if ( 0 == Q_strcmp( killer_weapon_name, "ambassador" ) )
 				{
 					Q_strncpy( msg.szIcon, "d_ambassador_headshot", ARRAYSIZE( msg.szIcon ) );
 				}
-				else if ( FStrEq( event->GetString( "weapon" ), "huntsman" ) )
+				else if ( 0 == Q_strcmp( killer_weapon_name, "huntsman" ) )
 				{
 					Q_strncpy( msg.szIcon, "d_huntsman_headshot", ARRAYSIZE( msg.szIcon ) );
+				}
+				else if ( 0 == Q_strcmp( killer_weapon_name, "huntsman_flyingburn" ) )
+				{
+					Q_strncpy( msg.szIcon, "d_huntsman_flyingburn_headshot", ARRAYSIZE( msg.szIcon ) );
+				}
+				else if ( 0 == Q_strcmp( killer_weapon_name, "deflect_arrow" ) )
+				{
+					Q_strncpy( msg.szIcon, "d_deflect_huntsman_headshot", ARRAYSIZE( msg.szIcon ) );
+				}
+				else if ( 0 == Q_strcmp( killer_weapon_name, "deflect_huntsman_flyingburn" ) )
+				{
+					Q_strncpy( msg.szIcon, "d_deflect_huntsman_flyingburn_headshot", ARRAYSIZE( msg.szIcon ) );
 				}
 				else
 				{
@@ -1026,7 +1040,7 @@ void CTFHudDeathNotice::OnGameEvent( IGameEvent *event, int iDeathNoticeMsg )
 
 		case TF_DMG_CUSTOM_FLYINGBURN:
 			// special-case if the player is killed from a burning arrow as the killing blow
-			Q_strncpy( msg.szIcon, "d_huntsman_flyingburn", ARRAYSIZE( msg.szIcon ) );
+			Q_strncpy( msg.szIcon, 0 == Q_strcmp( event->GetString( "weapon" ), "deflect_huntsman_flyingburn" ) ? "d_deflect_huntsman_flyingburn" : "d_huntsman_flyingburn", ARRAYSIZE( msg.szIcon ) );
 			msg.wzInfoText[0] = 0;
 			break;
 

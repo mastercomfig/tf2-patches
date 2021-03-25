@@ -462,11 +462,11 @@ void OnChangeThreadAffinity( IConVar *var, const char *pOldValue, float flOldVal
 {
 	if ( g_pThreadPool->NumThreads() )
 	{
-		g_pThreadPool->Distribute( threadpool_affinity.GetBool() );
+		g_pThreadPool->Distribute( threadpool_affinity.GetBool(), NULL, false );
 	}
 }
 
-ConVar threadpool_affinity( "threadpool_affinity", "1", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
+ConVar threadpool_affinity( "threadpool_affinity", ( IsX360() ) ? "1" : "0", 0, "Enable setting affinity", 0, 0, 0, 0, &OnChangeThreadAffinity );
 
 #if 0
 extern ConVar threadpool_reserve;
@@ -583,15 +583,15 @@ jmp_buf     host_enddemo;
 
 static ConVar	host_profile( "host_profile","0" );
 
-ConVar	host_limitlocal( "host_limitlocal", "0", 0, "Apply cl_cmdrate and cl_updaterate to loopback connection" );
+ConVar	host_limitlocal( "host_limitlocal", "0", 0, "Apply cl_cmdinterval and cl_updateinterval to loopback connection" );
 ConVar	host_framerate( "host_framerate","0", 0, "Set to lock per-frame time elapse." );
-ConVar	host_timescale( "host_timescale","1.0", FCVAR_REPLICATED, "Prescale the clock by this amount." );
+ConVar	host_timescale( "host_timescale","0", FCVAR_REPLICATED, "Prescale the clock by this amount." );
 ConVar	host_speeds( "host_speeds","0", 0, "Show general system running times." );		// set for running times
 
 ConVar	host_flush_threshold( "host_flush_threshold", "20", 0, "Memory threshold below which the host should flush caches between server instances" );
 
 void HostTimerSpinMsChangedCallback( IConVar *var, const char *pOldString, float flOldValue );
-ConVar host_timer_spin_ms( "host_timer_spin_ms", "0", FCVAR_NONE, "Use CPU busy-loop for improved timer precision (dedicated only)", HostTimerSpinMsChangedCallback );
+ConVar host_timer_spin_ms( "host_timer_spin_ms", IsWindows() ? "1.5" : "0", FCVAR_NONE, "Use CPU busy-loop for improved timer precision (dedicated only)", HostTimerSpinMsChangedCallback );
 
 void HostTimerSpinMsChangedCallback( IConVar *var, const char *pOldString, float flOldValue )
 {
@@ -1892,11 +1892,11 @@ void Host_AccumulateTime( float dt )
 
 		host_frametime_unbounded = host_frametime;
 	}
-	else if (host_timescale.GetFloat() > 0 
+	else if (host_timescale.GetFloat() > 0
 #if !defined(SWDS)
 		&& ( CanCheat() || demoplayer->IsPlayingBack() ) 
 #endif
-		)
+		) [[unlikely]]
 	{
 		float fullscale = host_timescale.GetFloat();
 
@@ -2747,9 +2747,9 @@ void CheckSpecialCheatVars()
 	if ( !mat_picmip )
 		mat_picmip = g_pCVar->FindVar( "mat_picmip" );
 
-	// In multiplayer, don't allow them to set mat_picmip > 2.	
+	// In multiplayer, don't allow them to set mat_picmip > 4.
 	if ( mat_picmip )
-		CheckVarRange_Generic( mat_picmip, -1, 2 );
+		CheckVarRange_Generic( mat_picmip, -1, 4 );
 	
 	CheckVarRange_r_rootlod();
 	CheckVarRange_r_lod();
@@ -3176,7 +3176,7 @@ void _Host_RunFrame (float time)
 
 // threaded path only supported in listen server
 #ifndef SWDS
-		if ( !IsEngineThreaded() )
+		if ( !IsEngineThreaded() ) // TODO(maximsmol): we might want this
 #endif
 		{
 #ifndef SWDS
@@ -3773,14 +3773,14 @@ void Host_InitProcessor( void )
 	const CPUInformation& pi = *GetCPUInformation();
 
 	// Compute Frequency in Mhz: 
-	char* szFrequencyDenomination = "Mhz";
+	char* szFrequencyDenomination = (char*)"Mhz";
 	double fFrequency = pi.m_Speed / 1000000.0;
 
 	// Adjust to Ghz if nessecary:
 	if( fFrequency > 1000.0 )
 	{
 		fFrequency /= 1000.0;
-		szFrequencyDenomination = "Ghz";
+		szFrequencyDenomination = (char*)"Ghz";
 	}
 
 	char szFeatureString[256];
@@ -3797,6 +3797,21 @@ void Host_InitProcessor( void )
 	{
 		if( MathLib_SSE2Enabled() ) Q_strncat(szFeatureString, "SSE2 ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
 		else					   Q_strncat(szFeatureString, "(SSE2) ", sizeof( szFeatureString ), COPY_ALL_CHARACTERS );
+	}
+	
+	if (pi.m_bSSE3)
+	{
+		Q_strncat(szFeatureString, "(SSE3) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE41)
+	{
+		Q_strncat(szFeatureString, "(SSE4.1) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
+	}
+
+	if (pi.m_bSSE42)
+	{
+		Q_strncat(szFeatureString, "(SSE4.2) ", sizeof(szFeatureString), COPY_ALL_CHARACTERS);
 	}
 
 	if( pi.m_bMMX )
@@ -3818,10 +3833,18 @@ void Host_InitProcessor( void )
 	// Remove the trailing space.  There will always be one.
 	szFeatureString[Q_strlen(szFeatureString)-1] = '\0';
 
+	constexpr char cpuBitnessMode[] =
+#ifdef PLATFORM_64BITS
+		"x86-64";
+#else
+		"x86";
+#endif
+
 	// Dump CPU information:
 	if( pi.m_nLogicalProcessors == 1 )
 	{
-		ConDMsg( "1 CPU, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "1 %s CPU, Frequency: %.01f %s,  Features: %s\n", 
+			cpuBitnessMode,
 			fFrequency,
 			szFrequencyDenomination,
 			szFeatureString
@@ -3835,8 +3858,9 @@ void Host_InitProcessor( void )
 			Q_snprintf(buffer, sizeof( buffer ), " (%i physical)", (int) pi.m_nPhysicalProcessors );
 		}
 
-		ConDMsg( "%i CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
+		ConDMsg( "%i %s CPUs%s, Frequency: %.01f %s,  Features: %s\n", 
 			(int)pi.m_nLogicalProcessors,
+			cpuBitnessMode,
 			buffer,
 			fFrequency,
 			szFrequencyDenomination,
@@ -3962,7 +3986,7 @@ bool DLL_LOCAL Host_IsValidSignature( const char *pFilename, bool bAllowUnknown 
 			while ( !Steam3Client().SteamUtils()->IsAPICallCompleted(hAPICall, &bAPICallFailed) )
 			{
 				SteamAPI_RunCallbacks();
-				ThreadSleep( 1 );
+				ThreadSleepEx( 1 );
 			}
 
 			if( bAPICallFailed )
@@ -4104,8 +4128,17 @@ void Host_Init( bool bDedicated )
 		startParams.iAffinityTable[1] = XBOX_PROCESSOR_4;
 		ThreadSetAffinity( NULL, 1 );
 	}
+	// Dedicated servers should not explicitly set the main thread's affinity so that machines running multiple 
+	// copies of the dedicated server can load-balance properly. 
+	// For now on the PC we use SetThreadIdealProcessor instead of explicity affinity
+	else if (!bDedicated && IsPC())
+	{
+		// this will set ideal processor on each thread
+		startParams.fDistribute = TRS_TRUE;
+		//startParams.iThreadPriority = 1;
+	}
 	if ( g_pThreadPool )
-		g_pThreadPool->Start( startParams, "CmpJob" );
+		g_pThreadPool->Start( startParams );
 
 	// From const.h, the loaded game .dll will give us the correct value which is transmitted to the client
 	host_state.interval_per_tick = DEFAULT_TICK_INTERVAL;
@@ -4139,6 +4172,11 @@ void Host_Init( bool bDedicated )
 	TRACEINIT( Key_Init(), Key_Shutdown() );
 #endif
 
+	extern void InitMixerControls();
+	extern void ShutdownMixerControls();
+
+	TRACEINIT( InitMixerControls(), ShutdownMixerControls() );
+
 	// Check for special -dev flag
 	if ( CommandLine()->FindParm( "-dev" ) || ( CommandLine()->FindParm( "-allowdebug" ) && !CommandLine()->FindParm( "-nodev" ) ) )
 	{
@@ -4156,6 +4194,10 @@ void Host_Init( bool bDedicated )
 	{
 		// stop the various windows error message boxes from showing up (used by the auto-builder so it doesn't block on error) 
 		Sys_NoCrashDialog();
+	}
+	else
+	{
+	    Sys_FixAlignment();
 	}
 
 	TRACEINIT( NET_Init( bDedicated ), NET_Shutdown() );     

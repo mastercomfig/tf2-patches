@@ -171,6 +171,10 @@ inline CPerformanceController *CL_GetPerformanceController()
 
 inline IThreadPool *CL_GetThreadPool()
 {
+	if (g_pClientReplayContextInternal->m_pShared->m_pThreadPool == NULL)
+	{
+		g_pClientReplayContextInternal->m_pShared->InitThreadPool();
+	}
 	return g_pClientReplayContextInternal->m_pShared->m_pThreadPool;
 }
 

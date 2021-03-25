@@ -10,12 +10,14 @@
 #pragma once
 #endif
 
+#include "cmodel.h"
 #include "istudiorender.h"
 #include "tier3/tier3.h"
 #include "studio.h"
 #include "tier1/delegates.h"
 #include "tier1/memstack.h"
 #include "studiorender.h"
+#include "tslist.h"
 
 
 //-----------------------------------------------------------------------------
@@ -30,8 +32,6 @@ class CStudioRender;
 //-----------------------------------------------------------------------------
 extern IStudioDataCache *g_pStudioDataCache;
 extern CStudioRender *g_pStudioRenderImp;
-
-IMaterial* GetModelSpecificDecalMaterial( IMaterial* pDecalMaterial );
 
 //-----------------------------------------------------------------------------
 // Internal config structure
@@ -71,6 +71,50 @@ struct StudioRenderContext_t
 	OverrideType_t			m_nForcedMaterialType;
 };
 
+//-----------------------------------------------------------------------------
+// All the data needed to add a decal
+//-----------------------------------------------------------------------------
+struct StudioRenderDecalInfo_t
+{
+    StudioDecalHandle_t handle;
+    studiohdr_t* pStudioHdr;
+	matrix3x4_t* pBoneToWorld;
+    Ray_t ray;
+    Vector decalUp;
+    IMaterial* pDecalMaterial;
+    float radius;
+    int body;
+    bool noPokethru;
+    int maxLODToDecal;
+
+	StudioRenderDecalInfo_t();
+
+    StudioRenderDecalInfo_t(
+        StudioDecalHandle_t inHandle,
+        studiohdr_t* inStudioHdr,
+		matrix3x4_t* inBoneToWorld,
+		const Ray_t& inRay,
+		const Vector& inDecalUp,
+        IMaterial* inDecalMaterial,
+        float inRadius,
+        int inBody,
+        bool inNoPokeThru,
+        int inMaxLODToDecal) :
+        handle(inHandle),
+        pStudioHdr(inStudioHdr),
+        pBoneToWorld(inBoneToWorld),
+        ray(inRay),
+        decalUp(inDecalUp),
+        pDecalMaterial(inDecalMaterial),
+        radius(inRadius),
+        body(inBody),
+        noPokethru(inNoPokeThru),
+        maxLODToDecal(inMaxLODToDecal)
+    {
+    }
+
+	StudioRenderDecalInfo_t& operator=(const StudioRenderDecalInfo_t& other) = default;
+};
 
 //-----------------------------------------------------------------------------
 // Helper to queue up calls if necessary
@@ -84,7 +128,7 @@ struct StudioRenderContext_t
 	}																	\
 	else																\
 	{																	\
-		pCallQueue->QueueCall( pObject, &ClassName::FuncName, ##__VA_ARGS__ );	\
+		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
 	}
 
 #define QUEUE_STUDIORENDER_CALL_RC( FuncName, ClassName, pObject, pRenderContext, ... )	\
@@ -95,7 +139,7 @@ struct StudioRenderContext_t
 	}																	\
 	else																\
 	{																	\
-		pCallQueue->QueueCall( pObject, &ClassName::FuncName, ##__VA_ARGS__ );	\
+		pCallQueue->QueueFunctor( StudioRenderFunctor( pObject, &ClassName::FuncName, ##__VA_ARGS__ ) );	\
 	}
 
 
@@ -143,7 +187,9 @@ public:
 	virtual void DrawStaticPropShadows( const DrawModelInfo_t &drawInfo, const matrix3x4_t &modelToWorld, int flags );
 	virtual void ForcedMaterialOverride( IMaterial *newMaterial, OverrideType_t nOverrideType = OVERRIDE_NORMAL );
 	DELEGATE_TO_OBJECT_1( StudioDecalHandle_t, CreateDecalList, studiohwdata_t *, g_pStudioRenderImp );
+	virtual void DestroyDecals();
 	virtual void DestroyDecalList( StudioDecalHandle_t handle );
+	virtual void AddDecals();
 	virtual void AddDecal( StudioDecalHandle_t handle, studiohdr_t *pStudioHdr, matrix3x4_t *pBoneToWorld, const Ray_t & ray, const Vector& decalUp, IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal = ADDDECAL_TO_ALL_LODS );
 	virtual void ComputeLighting( const Vector* pAmbient, int lightCount, LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting );
 	virtual void ComputeLightingConstDirectional( const Vector* pAmbient, int lightCount, LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting, float flDirectionalAmount );
@@ -231,6 +277,9 @@ private:
 	// Used by the lighting computation methods,
 	// this is only here to prevent constructors in lightpos_t from being repeatedly run
 	lightpos_t m_pLightPos[MAXLIGHTCOMPUTE];
+
+	CTSQueue<StudioDecalHandle_t> m_removeDecalRequests;
+	CTSQueue<StudioRenderDecalInfo_t*> m_addDecalRequests;
 };
 
 

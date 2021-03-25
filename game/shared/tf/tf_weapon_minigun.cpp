@@ -633,6 +633,8 @@ void CTFMinigun::AttackEnemyProjectiles( void )
 
 					EmitSound( "Halloween.HeadlessBossAxeHitWorld" );
 
+					GetTFPlayerOwner()->SpeakConceptIfAllowed(MP_CONCEPT_ROCKET_DESTOYED);
+
 					CTF_GameStats.Event_PlayerAwardBonusPoints( pPlayer, NULL, 2 );
 
 					// Weaker version has a longer cooldown
@@ -1004,14 +1006,11 @@ float CTFMinigun::GetWeaponSpread( void )
 {
 	float flSpread = BaseClass::GetWeaponSpread();
 
-	// How long have we been spun up - sans the min period required to fire
-	float flPreFireWindUp = GetWindUpDuration() - TF_MINIGUN_SPINUP_TIME;
-	// DevMsg( "PreFireTime: %.2f\n", flPreFireWindUp );
+	// How long have we been spun up
+	float flSpinTime = GetWindUpDuration();
 
-	if ( GetFiringDuration() < TF_MINIGUN_PENALTY_PERIOD && flPreFireWindUp < 1.f )
+	if ( flSpinTime < TF_MINIGUN_PENALTY_PERIOD )
 	{
-		// If we've spun up - prior to pressing fire - reduce accuracy penalty
-		float flSpinTime = Max( flPreFireWindUp, GetFiringDuration() );
 		const float flMaxSpread = 1.5f;
 		float flMod = RemapValClamped( flSpinTime, 0.f, TF_MINIGUN_PENALTY_PERIOD, flMaxSpread, 1.f );
 		// DevMsg( "SpreadMod: %.2f\n", flMod );

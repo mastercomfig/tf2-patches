@@ -342,8 +342,10 @@ public:
 
 	virtual ~AlgorithmParametersBase() CRYPTOPP_THROW
 	{
-#ifdef CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE
+#if defined(CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE)
 		if (!std::uncaught_exception())
+#elif defined(CRYPTOPP_UNCAUGHT_EXCEPTIONS_AVAILABLE)
+		if (!std::uncaught_exceptions())
 #else
 		try
 #endif
@@ -351,7 +353,7 @@ public:
 			if (m_throwIfNotUsed && !m_used)
 				throw ParameterNotUsed(m_name);
 		}
-#ifndef CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE
+#if !defined(CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE) && !defined(CRYPTOPP_UNCAUGHT_EXCEPTIONS_AVAILABLE)
 		catch(const Exception&)
 		{
 		}

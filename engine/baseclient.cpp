@@ -37,7 +37,7 @@
 extern IServerGameDLL	*serverGameDLL;
 extern ConVar tv_enable;
 
-ConVar sv_namechange_cooldown_seconds( "sv_namechange_cooldown_seconds", "30.0", FCVAR_NONE, "When a client name change is received, wait N seconds before allowing another name change" );
+ConVar sv_namechange_cooldown_seconds( "sv_namechange_cooldown_seconds", "300.0", FCVAR_NONE, "When a client name change is received, wait N seconds before allowing another name change" );
 ConVar sv_netspike_on_reliable_snapshot_overflow( "sv_netspike_on_reliable_snapshot_overflow", "0", FCVAR_NONE, "If nonzero, the server will dump a netspike trace if a client is dropped due to reliable snapshot overflow" );
 ConVar sv_netspike_sendtime_ms( "sv_netspike_sendtime_ms", "0", FCVAR_NONE, "If nonzero, the server will dump a netspike trace if it takes more than N ms to prepare a snapshot to a single client.  This feature does take some CPU cycles, so it should be left off when not in use." );
 ConVar sv_netspike_output( "sv_netspike_output", "1", FCVAR_NONE, "Where the netspike data be written?  Sum of the following values: 1=netspike.txt, 2=ordinary server log" );
@@ -199,11 +199,21 @@ void CBaseClient::SetUserCVar( const char *pchCvar, const char *value)
 	m_ConVars->SetString( pchCvar, value );
 }
 
-void CBaseClient::SetUpdateRate(int udpaterate, bool bForce)
+void CBaseClient::SetUpdateInterval(float fUpdateInterval, bool bForce)
 {
-	udpaterate = clamp( udpaterate, 1, 100 );
+	m_fSnapshotInterval = min(fUpdateInterval, 0.1f);
+}
 
-	m_fSnapshotInterval = 1.0f / udpaterate;
+float CBaseClient::GetUpdateInterval() const
+{
+	return m_fSnapshotInterval;
+}
+
+void CBaseClient::SetUpdateRate(int updaterate, bool bForce)
+{
+	updaterate = max(updaterate, 10);
+
+	m_fSnapshotInterval = 1.0f / (float) updaterate;
 }
 
 int CBaseClient::GetUpdateRate(void) const
@@ -352,6 +362,88 @@ void CBaseClient::Inactivate( void )
 }
 
 //---------------------------------------------------------------------------
+// Purpose: remove disruptive characters from player name
+//---------------------------------------------------------------------------
+bool CleanPlayerName( char *pch )
+{
+	// convert to unicode
+	int cch = Q_strlen( pch );
+	int cubDest = (cch + 1 ) * sizeof( wchar_t );
+	wchar_t *pwch = (wchar_t *)stackalloc( cubDest );
+	int cwch = Q_UTF8ToUnicode( pch, pwch, cubDest ) / sizeof( wchar_t );
+
+	bool bCleansed = false;
+	int spaces = 0;
+
+	int nWalk = 0;
+	for( int i=0; i<cwch; ++i )
+	{
+		wchar_t wch = pwch[i];
+		wchar_t newwch = 0;
+
+		switch ( wch )
+		{
+		case L'#':	// remove '#' if at first position
+			if ( i == 0 )
+				newwch = L'?';
+			break;
+		case L'%':
+		case L'~':
+			newwch = L'?';
+			break;
+		default:
+			int evil = V_IsEvilCharacterW( wch );
+
+			if ( evil == 1 )
+			{
+				newwch = L'?';
+			}
+			else if ( evil == 2 )
+			{
+				newwch = L' ';
+			}
+			break;
+		}
+
+		if ( newwch )
+		{
+			wch = newwch;
+
+			bCleansed = true;
+		}
+
+		if ( wch == L' ' )
+		{
+			if ( ++spaces > 4 ) // allow up to only 4 consecutive spaces
+			{
+				bCleansed = true;
+
+				continue;
+			}
+		}
+		else
+		{
+			spaces = 0;
+		}
+
+		pwch[nWalk] = wch;
+
+		++nWalk;
+	}
+
+	// Null terminate
+	pwch[nWalk-1] = L'\0';
+
+	// copy back, if necessary
+	if ( Q_StripPrecedingAndTrailingWhitespaceW( pwch ) || bCleansed )
+	{
+		Q_UnicodeToUTF8( pwch, pch, cch );
+	}
+
+	return bCleansed;
+}
+
+//---------------------------------------------------------------------------
 // Purpose: Determine whether or not a character should be ignored in a player's name.
 //---------------------------------------------------------------------------
 inline bool BIgnoreCharInName ( unsigned char cChar, bool bIsFirstCharacter )
@@ -374,18 +466,10 @@ void ValidateName( char *pszName, int nBuffSize )
 	}
 	else
 	{
-		Q_RemoveAllEvilCharacters( pszName );
-
-		const unsigned char *pChar = (unsigned char *)pszName;
-
-		// also skip characters we're going to ignore
-		while ( *pChar && ( isspace(*pChar) || BIgnoreCharInName( *pChar, true ) ) )
-		{
-			++pChar;
-		}
+		CleanPlayerName( pszName );
 
 		// did we get all the way to the end of the name without a non-whitespace character?
-		if ( *pChar == '\0' )
+		if ( Q_strlen( pszName ) <= 0 )
 		{
 			Q_snprintf( pszName, nBuffSize, "unnamed" );
 		}
@@ -419,14 +503,7 @@ void CBaseClient::SetName(const char * playerName)
 
 	while ( *pFrom && pTo < pLimit )
 	{
-		// Don't copy '%' or '~' chars across
-		// Don't copy '#' chars across if they would go into the first position in the name
-		// Don't allow color codes ( less than COLOR_MAX )
-		if ( !BIgnoreCharInName( *pFrom, pTo == &m_Name[0] ) )
-		{
-			*pTo++ = *pFrom;
-		}
-
+		*pTo++ = *pFrom;
 		pFrom++;
 	}
 	*pTo = 0;
@@ -675,9 +752,8 @@ bool CBaseClient::SendServerInfo( void )
 	COM_TimestampedLog( " CBaseClient::SendServerInfo" );
 
 	// supporting smaller stack
-	byte *buffer = (byte *)MemAllocScratch( NET_MAX_PAYLOAD );
-
-	bf_write msg( "SV_SendServerinfo->msg", buffer, NET_MAX_PAYLOAD );
+	net_scratchbuffer_t scratch;
+	bf_write msg( "SV_SendServerinfo->msg", scratch.GetBuffer(), NET_MAX_PAYLOAD );
 
 	// Only send this message to developer console, or multiplayer clients.
 	if ( developer.GetBool() || m_Server->IsMultiplayer() )
@@ -742,14 +818,11 @@ bool CBaseClient::SendServerInfo( void )
 	// send server info as one data block
 	if ( !m_NetChannel->SendData( msg ) )
 	{
-		MemFreeScratch();
 		Disconnect("Server info data overflow");
 		return false;
 	}
 		
 	COM_TimestampedLog( " CBaseClient::SendServerInfo(finished)" );
-
-	MemFreeScratch();
 
 	return true;
 }
@@ -1141,6 +1214,8 @@ void CBaseClient::TraceNetworkMsg( int nBits, char const *fmt, ... )
 	m_Trace.m_Records.AddToTail( t );
 }
 
+static ConVar sv_multiplayer_maxtempentities("sv_multiplayer_maxtempentities", "32");
+
 void CBaseClient::SendSnapshot( CClientFrame *pFrame )
 {
 	// never send the same snapshot twice
@@ -1164,24 +1239,34 @@ void CBaseClient::SendSnapshot( CClientFrame *pFrame )
 
 	bool bFailedOnce = false;
 write_again:
-	bf_write msg( "CBaseClient::SendSnapshot", m_SnapshotScratchBuffer, sizeof( m_SnapshotScratchBuffer ) );
+	net_scratchbuffer_t scratch;
+	bf_write msg("CBaseClient::SendSnapshot",
+		scratch.GetBuffer(), scratch.Size());
 
 	TRACE_PACKET( ( "SendSnapshot(%d)\n", pFrame->tick_count ) );
 
 	// now create client snapshot packet
-	CClientFrame *deltaFrame = GetDeltaFrame( m_nDeltaTick ); // NULL if delta_tick is not found
+	CClientFrame* deltaFrame = m_nDeltaTick < 0 ? NULL : GetDeltaFrame(m_nDeltaTick); // NULL if delta_tick is not found
 	if ( !deltaFrame )
 	{
 		// We need to send a full update and reset the instanced baselines
 		OnRequestFullUpdate();
 	}
 
+	if (IsTracing())
+	{
+		StartTrace(msg);
+	}
+
 	// send tick time
-	NET_Tick tickmsg( pFrame->tick_count, host_frametime_unbounded, host_frametime_stddeviation );
-
-	StartTrace( msg );
-
-	tickmsg.WriteToBuffer( msg );
+	{
+		NET_Tick tickmsg(pFrame->tick_count, host_frametime_unbounded, host_frametime_stddeviation);
+		if (!tickmsg.WriteToBuffer(msg))
+		{
+			Disconnect("#GameUI_Disconnect_TickMessage");
+			return;
+		}
+	}
 
 	if ( IsTracing() )
 	{
@@ -1213,8 +1298,8 @@ write_again:
 	}
 			
 	// send all unreliable temp entities between last and current frame
-	// send max 64 events in multi player, 255 in SP
-	int nMaxTempEnts = m_Server->IsMultiplayer() ? 64 : 255;
+	// send max 32 events in multi player, 255 in SP
+	int nMaxTempEnts = m_Server->IsMultiplayer() ? sv_multiplayer_maxtempentities.GetInt() : 255;
 	m_Server->WriteTempEntities( this, pFrame->GetSnapshot(), m_pLastSnapshot.GetObject(), msg, nMaxTempEnts );
 
 	if ( IsTracing() )
@@ -1431,7 +1516,7 @@ void CBaseClient::UpdateUserSettings()
 	SetRate( rate, false );
 
 	// set server to client update rate
-	SetUpdateRate( m_ConVars->GetInt( "cl_updaterate", 20), false );
+	SetUpdateInterval( m_ConVars->GetFloat( "cl_updateinterval", 0.015f), false );
 
 	SetMaxRoutablePayloadSize( m_ConVars->GetInt( "net_maxroutable", MAX_ROUTABLE_PAYLOAD ) );
 

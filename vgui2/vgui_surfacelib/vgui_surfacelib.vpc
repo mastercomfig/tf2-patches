@@ -18,7 +18,7 @@ $Project "vgui_surfacelib"
 		$File	"FontManager.cpp"
 		$File	"FontEffects.cpp"
 		$File	"FontEffects.h"
-		$File	"Win32Font.cpp"			[$WIN32 && !$X360]
+		$File	"Win32Font.cpp"			[$WINDOWS && !$X360]
 		$File	"Win32Font_x360.cpp"	[$X360]
 		$File	"osxfont.cpp"			[$OSXALL]
 		$File	"linuxfont.cpp"			[$LINUXALL]
@@ -39,7 +39,7 @@ $Project "vgui_surfacelib"
 		$File	"$SRCDIR\public\mathlib\vector2d.h"
 		$File	"$SRCDIR\public\vstdlib\vstdlib.h"
 		$File	"$SRCDIR\common\vgui_surfacelib\vguifont.h"
-		$File	"$SRCDIR\common\vgui_surfacelib\Win32Font.h" [$WIN32]
+		$File	"$SRCDIR\common\vgui_surfacelib\Win32Font.h" [$WINDOWS]
 		$File	"$SRCDIR\common\vgui_surfacelib\osxfont.h" [$OSXALL]
 	}
 }

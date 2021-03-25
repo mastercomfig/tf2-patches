@@ -177,7 +177,7 @@ struct HFX_PURE_INTERFACE IHapticEffectParamGroup
 // for each variable you want to be accessible through
 // parameter filetypes or set/get functions. These macros will make the variable
 // you specify.
-// specify a seperate membername for readability.
+// specify a separate membername for readability.
 // REMEMBER: name should be no longer than 6 letters, membername can be as long as you want.
 #define HFX_PARAMETER_FLOAT(name, membername) \
 	HFX_PARAMETER_ID(float_##name); \

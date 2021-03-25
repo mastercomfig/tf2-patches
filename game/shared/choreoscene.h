@@ -118,7 +118,6 @@ public:
 
 	// Simulation
 	void			Think( float curtime );
-	float			LoopThink( float curtime );
 	void			ProcessActiveListEntry( ActiveList *entry );
 	// Retrieves time in simulation
 	float			GetTime( void );

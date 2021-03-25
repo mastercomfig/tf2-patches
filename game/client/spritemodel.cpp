@@ -77,7 +77,7 @@ static int ValidateWRect(const wrect_t *prc)
 
 	if ((prc->left >= prc->right) || (prc->top >= prc->bottom))
 	{
-		//!!!UNDONE Dev only warning msg
+		Assert(0);
 		return false;
 	}
 

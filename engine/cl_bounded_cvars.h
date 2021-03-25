@@ -15,8 +15,8 @@
 
 
 extern ConVar_ServerBounded *cl_rate;
-extern ConVar_ServerBounded *cl_cmdrate;
-extern ConVar_ServerBounded *cl_updaterate;
+extern ConVar_ServerBounded *cl_cmdinterval;
+extern ConVar_ServerBounded* cl_updateinterval;
 
 
 #endif // CL_BOUNDED_CVARS_H

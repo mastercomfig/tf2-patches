@@ -1371,46 +1371,533 @@ void WorldSpaceSlerp(
 }
 
 
+void SlerpBonesSpeedy(
+	const CStudioHdr* pStudioHdr,
+	QuaternionAligned q1[MAXSTUDIOBONES],
+	Vector pos1[MAXSTUDIOBONES],
+	mstudioseqdesc_t& seqdesc,  // source of q2 and pos2
+	int sequence,
+	const QuaternionAligned q2[MAXSTUDIOBONES],
+	const Vector pos2[MAXSTUDIOBONES],
+	float s,
+	int boneMask)
+{
+	if (s <= 0.0f)
+		return;
+	if (s > 1.0f)
+	{
+		s = 1.0f;
+	}
+
+	if (seqdesc.flags & STUDIO_WORLD)
+	{
+		WorldSpaceSlerp(pStudioHdr, q1, pos1, seqdesc, sequence, q2, pos2, s, boneMask);
+		return;
+	}
+
+	int			i;
+	virtualmodel_t* pVModel = pStudioHdr->GetVirtualModel();
+	const virtualgroup_t* RESTRICT pSeqGroup = NULL;
+	if (pVModel)
+	{
+		pSeqGroup = pVModel->pSeqGroup(sequence);
+	}
+
+	// Build weightlist for all bones
+	int nBoneCount = pStudioHdr->numbones();
+	float* RESTRICT pS2 = (float*)stackalloc(nBoneCount * sizeof(float)); // 16-byte aligned
+
+
+	if (pSeqGroup) // hoist this branch outside of the inner loop for speed (even correctly predicted branches are an eight cycle latency)
+	{
+		for (i = 0; i < nBoneCount; i++)
+		{
+			// skip unused bones
+			if (!(pStudioHdr->boneFlags(i) & boneMask) ||
+				pSeqGroup->boneMap[i] < 0)
+			{
+				pS2[i] = 0.0f;
+			}
+			else
+			{
+				// boneMap[i] is not a float, don't be lured by the siren call of fcmp
+				pS2[i] = s * seqdesc.weight(pSeqGroup->boneMap[i]);
+			}
+		}
+	}
+	else // !pSeqGroup
+	{
+		for (i = 0; i < nBoneCount; i++)
+		{
+			// skip unused bones
+			if (!(pStudioHdr->boneFlags(i) & boneMask))
+			{
+				pS2[i] = 0.0f;
+			}
+			else
+			{
+				pS2[i] = s * seqdesc.weight(i);	// blend in based on this bones weight
+			}
+		}
+	}
+
+	float weight;
+	int nBoneCountRoundedFour = (nBoneCount) & (~(3));
+	if (seqdesc.flags & STUDIO_DELTA)
+	{
+		// do as many as we can four at a time, then take care of stragglers.
+		for (i = 0; i < nBoneCountRoundedFour; i += 4)
+		{
+			// drag the next cache line in
+			PREFETCH360(q1, i * 16 + 128);
+			PREFETCH360(pos1, i * 16 + 128);
+			PREFETCH360(q2, i * 16 + 128);
+			PREFETCH360(pos2, i * 16 + 128);
+
+			fltx4 weightfour = LoadAlignedSIMD(pS2 + i); // four weights
+
+			FourQuaternions q1four, q2four;
+			FourQuaternions result;
+
+			q1four.LoadAndSwizzleAligned(q1 + i); // four quaternions
+			q2four.LoadAndSwizzleAligned(q2 + i); // four quaternions
+
+			if (seqdesc.flags & STUDIO_POST)
+			{
+
+				// result = q1 * ( weight * q2 ) 
+				result = q1four.MulAc(weightfour, q2four);
+			}
+			else
+			{
+
+				// result = ( s * q1 ) * q2
+				result = q2four.ScaleMul(weightfour, q1four);
+			}
+
+			// mask out unused channels, replacing them with original data
+			{
+				fltx4 tinyScales = CmpLeSIMD(weightfour, Four_Zeros);
+				result.x = MaskedAssign(tinyScales, q1four.x, result.x);
+				result.y = MaskedAssign(tinyScales, q1four.y, result.y);
+				result.z = MaskedAssign(tinyScales, q1four.z, result.z);
+				result.w = MaskedAssign(tinyScales, q1four.w, result.w);
+			}
+
+
+			result.SwizzleAndStoreAlignedMasked(q1 + i, CmpGtSIMD(weightfour, Four_Zeros));
+
+			fltx4 originalpos1simd[4], pos1simd[4], pos2simd[4];
+			originalpos1simd[0] = pos1simd[0] = LoadUnalignedSIMD(pos1[i + 0].Base());
+			originalpos1simd[1] = pos1simd[1] = LoadUnalignedSIMD(pos1[i + 1].Base());
+			originalpos1simd[2] = pos1simd[2] = LoadUnalignedSIMD(pos1[i + 2].Base());
+			originalpos1simd[3] = pos1simd[3] = LoadUnalignedSIMD(pos1[i + 3].Base());
+			pos2simd[0] = LoadUnalignedSIMD(pos2[i + 0].Base());
+			pos2simd[1] = LoadUnalignedSIMD(pos2[i + 1].Base());
+			pos2simd[2] = LoadUnalignedSIMD(pos2[i + 2].Base());
+			pos2simd[3] = LoadUnalignedSIMD(pos2[i + 3].Base());
+
+			fltx4 splatweights[4] = { SplatXSIMD(weightfour),
+									  SplatYSIMD(weightfour),
+									  SplatZSIMD(weightfour),
+									  SplatWSIMD(weightfour) };
+
+			fltx4 Zero = Four_Zeros;
+			pos1simd[0] = MaddSIMD(pos2simd[0], splatweights[0], pos1simd[0]);
+			splatweights[0] = (fltx4)CmpGtSIMD(splatweights[0], Zero);
+			pos1simd[1] = MaddSIMD(pos2simd[1], splatweights[1], pos1simd[1]);
+			splatweights[1] = (fltx4)CmpGtSIMD(splatweights[1], Zero);
+			pos1simd[2] = MaddSIMD(pos2simd[2], splatweights[2], pos1simd[2]);
+			splatweights[2] = (fltx4)CmpGtSIMD(splatweights[2], Zero);
+			pos1simd[3] = MaddSIMD(pos2simd[3], splatweights[3], pos1simd[3]);
+			splatweights[3] = (fltx4)CmpGtSIMD(splatweights[3], Zero);
+
+			// mask out unweighted bones
+			/*
+			if (pS2[i+0] > 0)
+				StoreUnaligned3SIMD( pos1[i + 0].Base(), pos1simd[0] );
+			if (pS2[i+1] > 0)
+				StoreUnaligned3SIMD( pos1[i + 1].Base(), pos1simd[1] );
+			if (pS2[i+2] > 0)
+				StoreUnaligned3SIMD( pos1[i + 2].Base(), pos1simd[2] );
+			if (pS2[i+3] > 0)
+				StoreUnaligned3SIMD( pos1[i + 3].Base(), pos1simd[3] );
+			*/
+			StoreUnaligned3SIMD(pos1[i + 0].Base(), MaskedAssign((fltx4)splatweights[0], pos1simd[0], originalpos1simd[0]));
+			StoreUnaligned3SIMD(pos1[i + 1].Base(), MaskedAssign((fltx4)splatweights[1], pos1simd[1], originalpos1simd[1]));
+			StoreUnaligned3SIMD(pos1[i + 2].Base(), MaskedAssign((fltx4)splatweights[2], pos1simd[2], originalpos1simd[2]));
+			StoreUnaligned3SIMD(pos1[i + 3].Base(), MaskedAssign((fltx4)splatweights[3], pos1simd[3], originalpos1simd[3]));
+
+		}
+
+		// take care of stragglers
+		for (false; i < nBoneCount; i++)
+		{
+			weight = pS2[i];
+			if (weight <= 0.0f)
+				continue;
+
+			if (seqdesc.flags & STUDIO_POST)
+			{
+#ifndef _X360
+				QuaternionMA(q1[i], weight, q2[i], q1[i]);
+#else
+				fltx4 q1simd = LoadUnalignedSIMD(q1[i].Base());
+				fltx4 q2simd = LoadAlignedSIMD(q2[i]);
+				fltx4 result = QuaternionMASIMD(q1simd, weight, q2simd);
+				StoreUnalignedSIMD(q1[i].Base(), result);
+#endif
+				// FIXME: are these correct?
+				pos1[i][0] = pos1[i][0] + pos2[i][0] * weight;
+				pos1[i][1] = pos1[i][1] + pos2[i][1] * weight;
+				pos1[i][2] = pos1[i][2] + pos2[i][2] * weight;
+			}
+			else
+			{
+#ifndef _X360
+				QuaternionSM(weight, q2[i], q1[i], q1[i]);
+#else
+				fltx4 q1simd = LoadUnalignedSIMD(q1[i].Base());
+				fltx4 q2simd = LoadAlignedSIMD(q2[i]);
+				fltx4 result = QuaternionSMSIMD(weight, q2simd, q1simd);
+				StoreUnalignedSIMD(q1[i].Base(), result);
+#endif
+
+				// FIXME: are these correct?
+				pos1[i][0] = pos1[i][0] + pos2[i][0] * weight;
+				pos1[i][1] = pos1[i][1] + pos2[i][1] * weight;
+				pos1[i][2] = pos1[i][2] + pos2[i][2] * weight;
+			}
+		}
+		return;
+	}
+
+	//// SLERP PHASE
+
+	// Some bones need to be slerped with alignment.
+	// Others do not.
+	// Some need to be ignored altogether.
+	// Build arrays indicating which are which. 
+	// This is the corral approach. Another approach
+	// would be to compute both the aligned and unaligned
+	// slerps of each bone in the first pass through the 
+	// array, and then do a masked selection of each 
+	// based on the masks. However there really isn't 
+	// a convenient way to turn the int flags that
+	// specify which approach to take, into fltx4 masks.
+
+	// float * RESTRICT pS2 = (float*)stackalloc( nBoneCount * sizeof(float) );
+	int* RESTRICT aBonesSlerpAlign = (int*)stackalloc(nBoneCount * sizeof(int));
+	float* RESTRICT aBonesSlerpAlignWeights = (float*)stackalloc(nBoneCount * sizeof(float));
+	int* RESTRICT aBonesSlerpNoAlign = (int*)stackalloc(nBoneCount * sizeof(int));
+	float* RESTRICT aBonesSlerpNoAlignWeights = (float*)stackalloc(nBoneCount * sizeof(float));
+	int numBonesSlerpAlign = 0;
+	int numBonesSlerpNoAlign = 0;
+
+	// BoneQuaternionAligned * RESTRICT testOutput = (BoneQuaternionAligned *)stackalloc(nBoneCount * sizeof(BoneQuaternionAligned));
+
+	// sweep forward through the array and determine where to corral each bone.
+	for (i = 0; i < nBoneCount; ++i)
+	{
+		float weight = pS2[i];
+		if (weight == 1.0f)
+		{
+			q1[i] = q2[i];
+			pos1[i] = pos2[i];
+		}
+		else if (weight > 0.0f) // ignore small bones
+		{
+			if (pStudioHdr->boneFlags(i) & BONE_FIXED_ALIGNMENT)
+			{
+				aBonesSlerpNoAlign[numBonesSlerpNoAlign] = i;
+				aBonesSlerpNoAlignWeights[numBonesSlerpNoAlign] = weight;
+				++numBonesSlerpNoAlign;
+			}
+			else
+			{
+				aBonesSlerpAlign[numBonesSlerpAlign] = i;
+				aBonesSlerpAlignWeights[numBonesSlerpAlign] = weight;
+				++numBonesSlerpAlign;
+			}
+		}
+	}
+
+	// okay, compute all the aligned, and all the unaligned bones, four at
+	// a time if possible.
+	const fltx4 One = Four_Ones;
+	/////////////////
+	// // // Aligned!
+	nBoneCountRoundedFour = (numBonesSlerpAlign) & ~3;
+	for (i = 0; i < nBoneCountRoundedFour; i += 4)
+	{
+		// drag the next cache line in
+		PREFETCH360(q1, i * 16 + 128);
+		PREFETCH360(pos1, i * sizeof(*pos1) + 128);
+		PREFETCH360(q2, i * 16 + 128);
+		PREFETCH360(pos2, i * sizeof(*pos2) + 128);
+
+		fltx4 weights = LoadAlignedSIMD(aBonesSlerpAlignWeights + i);
+		fltx4 oneMinusWeight = SubSIMD(One, weights);
+
+		// position component:
+		// pos1[i][0] = pos1[i][0] * s1 + pos2[i][0] * weight;
+		fltx4 pos1simd[4];
+		fltx4 pos2simd[4];
+		pos1simd[0] = LoadUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 0]].Base());
+		pos1simd[1] = LoadUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 1]].Base());
+		pos1simd[2] = LoadUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 2]].Base());
+		pos1simd[3] = LoadUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 3]].Base());
+		pos2simd[0] = LoadUnaligned3SIMD(pos2[aBonesSlerpAlign[i + 0]].Base());
+		pos2simd[1] = LoadUnaligned3SIMD(pos2[aBonesSlerpAlign[i + 1]].Base());
+		pos2simd[2] = LoadUnaligned3SIMD(pos2[aBonesSlerpAlign[i + 2]].Base());
+		pos2simd[3] = LoadUnaligned3SIMD(pos2[aBonesSlerpAlign[i + 3]].Base());
+
+		pos1simd[0] = MulSIMD(SplatXSIMD(oneMinusWeight), pos1simd[0]);
+		pos1simd[1] = MulSIMD(SplatYSIMD(oneMinusWeight), pos1simd[1]);
+		pos1simd[2] = MulSIMD(SplatZSIMD(oneMinusWeight), pos1simd[2]);
+		pos1simd[3] = MulSIMD(SplatWSIMD(oneMinusWeight), pos1simd[3]);
+
+		fltx4 posWriteMasks[4]; // don't overwrite where there was zero weight
+		{
+			fltx4 splatweights[4];
+			fltx4 Zero = Four_Zeros;
+			splatweights[0] = SplatXSIMD(weights);
+			splatweights[1] = SplatYSIMD(weights);
+			splatweights[2] = SplatZSIMD(weights);
+			splatweights[3] = SplatWSIMD(weights);
+
+			pos1simd[0] = MaddSIMD(splatweights[0], pos2simd[0], pos1simd[0]);
+			posWriteMasks[0] = (fltx4)CmpGtSIMD(splatweights[0], Zero);
+			pos1simd[1] = MaddSIMD(splatweights[1], pos2simd[1], pos1simd[1]);
+			posWriteMasks[1] = (fltx4)CmpGtSIMD(splatweights[1], Zero);
+			pos1simd[2] = MaddSIMD(splatweights[2], pos2simd[2], pos1simd[2]);
+			posWriteMasks[2] = (fltx4)CmpGtSIMD(splatweights[2], Zero);
+			pos1simd[3] = MaddSIMD(splatweights[3], pos2simd[3], pos1simd[3]);
+			posWriteMasks[3] = (fltx4)CmpGtSIMD(splatweights[3], Zero);
+		}
+
+
+		FourQuaternions q1four, q2four, result;
+		q1four.LoadAndSwizzleAligned(q1 + aBonesSlerpAlign[i + 0],
+			q1 + aBonesSlerpAlign[i + 1],
+			q1 + aBonesSlerpAlign[i + 2],
+			q1 + aBonesSlerpAlign[i + 3]);
+
+#if 0
+		// FIXME: the SIMD slerp doesn't handle quaternions that have opposite signs
+		q2four.LoadAndSwizzleAligned(q2 + aBonesSlerpAlign[i + 0],
+			q2 + aBonesSlerpAlign[i + 1],
+			q2 + aBonesSlerpAlign[i + 2],
+			q2 + aBonesSlerpAlign[i + 3]);
+		result = q2four.Slerp(q1four, oneMinusWeight);
+#else
+		// force the quaternions to be the same sign (< 180 degree separation)
+		QuaternionAligned q20, q21, q22, q23;
+		QuaternionAlign(q1[aBonesSlerpAlign[i + 0]], q2[aBonesSlerpAlign[i + 0]], q20);
+		QuaternionAlign(q1[aBonesSlerpAlign[i + 1]], q2[aBonesSlerpAlign[i + 1]], q21);
+		QuaternionAlign(q1[aBonesSlerpAlign[i + 2]], q2[aBonesSlerpAlign[i + 2]], q22);
+		QuaternionAlign(q1[aBonesSlerpAlign[i + 3]], q2[aBonesSlerpAlign[i + 3]], q23);
+		q2four.LoadAndSwizzleAligned(&q20, &q21, &q22, &q23);
+		result = q2four.SlerpNoAlign(q1four, oneMinusWeight);
+#endif
+
+		result.SwizzleAndStoreAligned(q1 + aBonesSlerpAlign[i + 0],
+			q1 + aBonesSlerpAlign[i + 1],
+			q1 + aBonesSlerpAlign[i + 2],
+			q1 + aBonesSlerpAlign[i + 3]);
+
+		StoreUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 0]].Base(), pos1simd[0]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 1]].Base(), pos1simd[1]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 2]].Base(), pos1simd[2]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpAlign[i + 3]].Base(), pos1simd[3]);
+	}
+
+	// handle stragglers
+	for (i; i < numBonesSlerpAlign; ++i)
+	{
+		QuaternionAligned q3;
+		weight = aBonesSlerpAlignWeights[i];
+		int k = aBonesSlerpAlign[i];
+
+		float s1 = 1.0 - weight;
+
+#ifdef _X360
+		fltx4  q1simd, q2simd, result;
+		q1simd = LoadAlignedSIMD(q1[k].Base());
+		q2simd = LoadAlignedSIMD(q2[k]);
+#endif
+
+#ifndef _X360
+		QuaternionSlerp(q2[k], q1[k], s1, q3);
+#else
+		result = QuaternionSlerpSIMD(q2simd, q1simd, s1);
+#endif
+
+#ifndef _X360
+		q1[k][0] = q3[0];
+		q1[k][1] = q3[1];
+		q1[k][2] = q3[2];
+		q1[k][3] = q3[3];
+#else
+		StoreAlignedSIMD(q1[k].Base(), result);
+#endif
+
+		pos1[k][0] = pos1[k][0] * s1 + pos2[k][0] * weight;
+		pos1[k][1] = pos1[k][1] * s1 + pos2[k][1] * weight;
+		pos1[k][2] = pos1[k][2] * s1 + pos2[k][2] * weight;
+	}
+	///////////////////
+	// // // Unaligned!
+	nBoneCountRoundedFour = (numBonesSlerpNoAlign) & ~3;
+	for (i = 0; i < nBoneCountRoundedFour; i += 4)
+	{
+		// drag the next cache line in
+		PREFETCH360(q1, i * 16 + 128);
+		PREFETCH360(pos1, i * sizeof(*pos1) + 128);
+		PREFETCH360(q2, i * 16 + 128);
+		PREFETCH360(pos2, i * sizeof(*pos2) + 128);
+
+		fltx4 weights = LoadAlignedSIMD(aBonesSlerpNoAlignWeights + i);
+		fltx4 oneMinusWeight = SubSIMD(One, weights);
+
+		// position component:
+		// pos1[i][0] = pos1[i][0] * s1 + pos2[i][0] * weight;
+		fltx4 pos1simd[4];
+		fltx4 pos2simd[4];
+		pos1simd[0] = LoadUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 0]].Base());
+		pos1simd[1] = LoadUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 1]].Base());
+		pos1simd[2] = LoadUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 2]].Base());
+		pos1simd[3] = LoadUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 3]].Base());
+		pos2simd[0] = LoadUnaligned3SIMD(pos2[aBonesSlerpNoAlign[i + 0]].Base());
+		pos2simd[1] = LoadUnaligned3SIMD(pos2[aBonesSlerpNoAlign[i + 1]].Base());
+		pos2simd[2] = LoadUnaligned3SIMD(pos2[aBonesSlerpNoAlign[i + 2]].Base());
+		pos2simd[3] = LoadUnaligned3SIMD(pos2[aBonesSlerpNoAlign[i + 3]].Base());
+
+		pos1simd[0] = MulSIMD(SplatXSIMD(oneMinusWeight), pos1simd[0]);
+		pos1simd[1] = MulSIMD(SplatYSIMD(oneMinusWeight), pos1simd[1]);
+		pos1simd[2] = MulSIMD(SplatZSIMD(oneMinusWeight), pos1simd[2]);
+		pos1simd[3] = MulSIMD(SplatWSIMD(oneMinusWeight), pos1simd[3]);
+
+		pos1simd[0] = MaddSIMD(SplatXSIMD(weights), pos2simd[0], pos1simd[0]);
+		pos1simd[1] = MaddSIMD(SplatYSIMD(weights), pos2simd[1], pos1simd[1]);
+		pos1simd[2] = MaddSIMD(SplatZSIMD(weights), pos2simd[2], pos1simd[2]);
+		pos1simd[3] = MaddSIMD(SplatWSIMD(weights), pos2simd[3], pos1simd[3]);
+
+		FourQuaternions q1four, q2four, result;
+		q1four.LoadAndSwizzleAligned(q1 + aBonesSlerpNoAlign[i + 0],
+			q1 + aBonesSlerpNoAlign[i + 1],
+			q1 + aBonesSlerpNoAlign[i + 2],
+			q1 + aBonesSlerpNoAlign[i + 3]);
+		q2four.LoadAndSwizzleAligned(q2 + aBonesSlerpNoAlign[i + 0],
+			q2 + aBonesSlerpNoAlign[i + 1],
+			q2 + aBonesSlerpNoAlign[i + 2],
+			q2 + aBonesSlerpNoAlign[i + 3]);
+
+		result = q2four.SlerpNoAlign(q1four, oneMinusWeight);
+
+		result.SwizzleAndStoreAligned(q1 + aBonesSlerpNoAlign[i + 0],
+			q1 + aBonesSlerpNoAlign[i + 1],
+			q1 + aBonesSlerpNoAlign[i + 2],
+			q1 + aBonesSlerpNoAlign[i + 3]);
+
+		StoreUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 0]].Base(), pos1simd[0]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 1]].Base(), pos1simd[1]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 2]].Base(), pos1simd[2]);
+		StoreUnaligned3SIMD(pos1[aBonesSlerpNoAlign[i + 3]].Base(), pos1simd[3]);
+	}
+	// handle stragglers
+	for (i; i < numBonesSlerpNoAlign; ++i)
+	{
+		weight = aBonesSlerpNoAlignWeights[i];
+		int k = aBonesSlerpNoAlign[i];
+
+		float s1 = 1.0 - weight;
+
+#ifdef _X360
+		fltx4  q1simd, q2simd, result;
+		q1simd = LoadAlignedSIMD(q1[k].Base());
+		q2simd = LoadAlignedSIMD(q2[k]);
+#endif
+
+#ifndef _X360
+		QuaternionAligned q3;
+		QuaternionSlerpNoAlign(q2[k], q1[k], s1, q3);
+#else
+		result = QuaternionSlerpNoAlignSIMD(q2simd, q1simd, s1);
+#endif
+
+#ifndef _X360
+		q1[k][0] = q3[0];
+		q1[k][1] = q3[1];
+		q1[k][2] = q3[2];
+		q1[k][3] = q3[3];
+#else
+		StoreAlignedSIMD(q1[k].Base(), result);
+#endif
+
+		pos1[k][0] = pos1[k][0] * s1 + pos2[k][0] * weight;
+		pos1[k][1] = pos1[k][1] * s1 + pos2[k][1] * weight;
+		pos1[k][2] = pos1[k][2] * s1 + pos2[k][2] * weight;
+	}
+}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: blend together q1,pos1 with q2,pos2.  Return result in q1,pos1.  
 //			0 returns q1, pos1.  1 returns q2, pos2
 //-----------------------------------------------------------------------------
-void SlerpBones( 
-	const CStudioHdr *pStudioHdr,
-	Quaternion q1[MAXSTUDIOBONES], 
-	Vector pos1[MAXSTUDIOBONES], 
-	mstudioseqdesc_t &seqdesc,  // source of q2 and pos2
-	int sequence, 
-	const QuaternionAligned q2[MAXSTUDIOBONES], 
-	const Vector pos2[MAXSTUDIOBONES], 
+void SlerpBones(
+	const CStudioHdr* pStudioHdr,
+	Quaternion q1[MAXSTUDIOBONES],
+	Vector pos1[MAXSTUDIOBONES],
+	mstudioseqdesc_t& seqdesc,  // source of q2 and pos2
+	int sequence,
+	const QuaternionAligned q2[MAXSTUDIOBONES],
+	const Vector pos2[MAXSTUDIOBONES],
 	float s,
-	int boneMask )
+	int boneMask)
 {
-	if (s <= 0.0f) 
+
+	// Test for 16-byte alignment, and if present, use the speedy SIMD version.
+	if ((reinterpret_cast<uintp>(q1) & 0x0F) == 0 &&
+		(reinterpret_cast<uintp>(q2) & 0x0F) == 0)
+	{
+		return SlerpBonesSpeedy(pStudioHdr,
+			reinterpret_cast<QuaternionAligned*>(q1),
+			pos1,
+			seqdesc,
+			sequence,
+			q2,
+			pos2,
+			s,
+			boneMask
+		);
+	}
+
+
+	if (s <= 0.0f)
 		return;
 	if (s > 1.0f)
 	{
-		s = 1.0f;		
+		s = 1.0f;
 	}
 
 	if (seqdesc.flags & STUDIO_WORLD)
 	{
-		WorldSpaceSlerp( pStudioHdr, q1, pos1, seqdesc, sequence, q2, pos2, s, boneMask );
-		return;
+		WorldSpaceSlerp(pStudioHdr, q1, pos1, seqdesc, sequence, q2, pos2, s, boneMask);
 	}
 
 	int			i, j;
-	virtualmodel_t *pVModel = pStudioHdr->GetVirtualModel();
-	const virtualgroup_t *pSeqGroup = NULL;
+	virtualmodel_t* pVModel = pStudioHdr->GetVirtualModel();
+	const virtualgroup_t* pSeqGroup = NULL;
 	if (pVModel)
 	{
-		pSeqGroup = pVModel->pSeqGroup( sequence );
+		pSeqGroup = pVModel->pSeqGroup(sequence);
 	}
 
 	// Build weightlist for all bones
 	int nBoneCount = pStudioHdr->numbones();
-	float *pS2 = (float*)stackalloc( nBoneCount * sizeof(float) );
+	float* pS2 = (float*)stackalloc(nBoneCount * sizeof(float));
 	for (i = 0; i < nBoneCount; i++)
 	{
 		// skip unused bones
@@ -1420,16 +1907,16 @@ void SlerpBones(
 			continue;
 		}
 
-		if ( !pSeqGroup )
+		if (!pSeqGroup)
 		{
-			pS2[i] = s * seqdesc.weight( i );	// blend in based on this bones weight
+			pS2[i] = s * seqdesc.weight(i);	// blend in based on this bones weight
 			continue;
 		}
 
 		j = pSeqGroup->boneMap[i];
-		if ( j >= 0 )
+		if (j >= 0)
 		{
-			pS2[i] = s * seqdesc.weight( j );	// blend in based on this bones weight
+			pS2[i] = s * seqdesc.weight(j);	// blend in based on this bones weight
 		}
 		else
 		{
@@ -1438,45 +1925,47 @@ void SlerpBones(
 	}
 
 	float s1, s2;
-	if ( seqdesc.flags & STUDIO_DELTA )
+	if (seqdesc.flags & STUDIO_DELTA)
 	{
-		for ( i = 0; i < nBoneCount; i++ )
+		for (i = 0; i < nBoneCount; i++)
 		{
 			s2 = pS2[i];
-			if ( s2 <= 0.0f )
+			if (s2 <= 0.0f)
 				continue;
 
-			if ( seqdesc.flags & STUDIO_POST )
+			if (seqdesc.flags & STUDIO_POST)
 			{
-#if 0
-				QuaternionMA( q1[i], s2, q2[i], q1[i] );
+#ifndef _X360
+				QuaternionMA(q1[i], s2, q2[i], q1[i]);
 #else
-				fltx4 q1simd = LoadUnalignedSIMD( q1[i].Base() );
-				fltx4 q2simd = LoadAlignedSIMD( q2[i] );
-				fltx4 result = QuaternionMASIMD( q1simd, s2, q2simd );
-				StoreUnalignedSIMD( q1[i].Base(), result );
+				fltx4 q1simd = LoadUnalignedSIMD(q1[i].Base());
+				fltx4 q2simd = LoadAlignedSIMD(q2[i]);
+				fltx4 result = QuaternionMASIMD(q1simd, s2, q2simd);
+				StoreUnalignedSIMD(q1[i].Base(), result);
 #endif
-				// FIXME: are these correct?
-				pos1[i][0] = pos1[i][0] + pos2[i][0] * s2;
-				pos1[i][1] = pos1[i][1] + pos2[i][1] * s2;
-				pos1[i][2] = pos1[i][2] + pos2[i][2] * s2;
 			}
 			else
 			{
-#if 0
-				QuaternionSM( s2, q2[i], q1[i], q1[i] );
+#ifndef _X360
+				QuaternionSM(s2, q2[i], q1[i], q1[i]);
 #else
-				fltx4 q1simd = LoadUnalignedSIMD( q1[i].Base() );
-				fltx4 q2simd = LoadAlignedSIMD( q2[i] );
-				fltx4 result = QuaternionSMSIMD( s2, q2simd, q1simd );
-				StoreUnalignedSIMD( q1[i].Base(), result );
+				fltx4 q1simd = LoadUnalignedSIMD(q1[i].Base());
+				fltx4 q2simd = LoadAlignedSIMD(q2[i]);
+				fltx4 result = QuaternionSMSIMD(s2, q2simd, q1simd);
+				StoreUnalignedSIMD(q1[i].Base(), result);
 #endif
 
-				// FIXME: are these correct?
-				pos1[i][0] = pos1[i][0] + pos2[i][0] * s2;
-				pos1[i][1] = pos1[i][1] + pos2[i][1] * s2;
-				pos1[i][2] = pos1[i][2] + pos2[i][2] * s2;
 			}
+			// do this explicitly to make the scheduling better
+			// (otherwise it might think pos1 and pos2 overlap,
+			// and thus save one before starting the next)
+			float x, y, z;
+			x = pos1[i][0] + pos2[i][0] * s2;
+			y = pos1[i][1] + pos2[i][1] * s2;
+			z = pos1[i][2] + pos2[i][2] * s2;
+			pos1[i][0] = x;
+			pos1[i][1] = y;
+			pos1[i][2] = z;
 		}
 		return;
 	}
@@ -1485,40 +1974,40 @@ void SlerpBones(
 	for (i = 0; i < nBoneCount; i++)
 	{
 		s2 = pS2[i];
-		if ( s2 <= 0.0f )
+		if (s2 <= 0.0f)
 			continue;
 
 		s1 = 1.0 - s2;
 
-#if 1
+#ifdef _X360
 		fltx4  q1simd, q2simd, result;
-		q1simd = LoadUnalignedSIMD( q1[i].Base() );
-		q2simd = LoadAlignedSIMD( q2[i] );
+		q1simd = LoadUnalignedSIMD(q1[i].Base());
+		q2simd = LoadAlignedSIMD(q2[i]);
 #endif
-		if ( pStudioHdr->boneFlags(i) & BONE_FIXED_ALIGNMENT )
+		if (pStudioHdr->boneFlags(i) & BONE_FIXED_ALIGNMENT)
 		{
-#if 0
-			QuaternionSlerpNoAlign( q2[i], q1[i], s1, q3 );
+#ifndef _X360
+			QuaternionSlerpNoAlign(q2[i], q1[i], s1, q3);
 #else
-			result = QuaternionSlerpNoAlignSIMD( q2simd, q1simd, s1 );
+			result = QuaternionSlerpNoAlignSIMD(q2simd, q1simd, s1);
 #endif
 		}
 		else
 		{
-#if 0
-			QuaternionSlerp( q2[i], q1[i], s1, q3 );
+#ifndef _X360
+			QuaternionSlerp(q2[i], q1[i], s1, q3);
 #else
-			result = QuaternionSlerpSIMD( q2simd, q1simd, s1 );
+			result = QuaternionSlerpSIMD(q2simd, q1simd, s1);
 #endif
 		}
 
-#if 0
+#ifndef _X360
 		q1[i][0] = q3[0];
 		q1[i][1] = q3[1];
 		q1[i][2] = q3[2];
 		q1[i][3] = q3[3];
 #else
-		StoreUnalignedSIMD( q1[i].Base(), result );
+		StoreUnalignedSIMD(q1[i].Base(), result);
 #endif
 
 		pos1[i][0] = pos1[i][0] * s1 + pos2[i][0] * s2;
@@ -1526,8 +2015,6 @@ void SlerpBones(
 		pos1[i][2] = pos1[i][2] * s1 + pos2[i][2] * s2;
 	}
 }
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Inter-animation blend.  Assumes both types are identical.

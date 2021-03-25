@@ -32,6 +32,8 @@ const char *CLC_VoiceData::ToString(void) const
 	return s_text;
 }
 
+CTSPool< net_scratchbuffer_t::buffer_t > net_scratchbuffer_t::sm_NetScratchBuffers;
+
 bool CLC_VoiceData::WriteToBuffer( bf_write &buffer )
 {
 	buffer.WriteUBitLong( GetType(), NETMSG_TYPE_BITS );
@@ -458,6 +460,62 @@ bool CLC_FileMD5Check::WriteToBuffer( bf_write &buffer )
 
 	buffer.WriteBytes( m_MD5.bits, MD5_DIGEST_LENGTH );
 	return !buffer.IsOverflowed();
+}
+
+void CLC_FileCRCCheck::SetPath(const char* path)
+{
+	int iCode = FindCommonPathID(path);
+	if (iCode == -1)
+	{
+		m_iCodePath = -1;
+		V_strncpy(m_szPathID, path, sizeof(m_szPathID));
+	}
+	else
+	{
+		m_iCodePath = iCode;
+	}
+}
+
+const char* CLC_FileCRCCheck::GetPath()
+{
+	int iCode = m_iCodePath;
+	if ((iCode >= 0) && (iCode < ARRAYSIZE(g_MostCommonPathIDs)))
+	{
+		return g_MostCommonPathIDs[iCode];
+	}
+
+	Assert(iCode == -1);
+	return m_szPathID;
+}
+
+void CLC_FileCRCCheck::SetFileName(const char* fileName)
+{
+	int iCode = FindCommonPrefix(fileName);
+	if (iCode == -1)
+	{
+		m_iCodeFilename = -1;
+		V_strncpy(m_szFilename, fileName, sizeof(m_szFilename));
+	}
+	else
+	{
+		m_iCodeFilename = iCode;
+		V_strncpy(m_szFilename, &fileName[V_strlen(g_MostCommonPrefixes[iCode]) + 1], sizeof(m_szFilename));
+	}
+}
+
+const char* CLC_FileCRCCheck::GetFileName()
+{
+	// FIXME(mastercoms): unresolved external va symbol
+#if 0
+	int iCode = m_iCodeFilename;
+	if ((iCode >= 0) && (iCode < ARRAYSIZE(g_MostCommonPrefixes)))
+	{
+		return va("%s%c%s", g_MostCommonPrefixes[iCode], CORRECT_PATH_SEPARATOR, m_szFilename);
+	}
+
+	Assert(iCode == -1);
+#endif
+	return m_szFilename;
 }
 
 bool CLC_FileMD5Check::ReadFromBuffer( bf_read &buffer )

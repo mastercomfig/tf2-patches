@@ -25,6 +25,7 @@
 #if defined( _WIN32 ) && !defined( _X360 )
 #include <xmmintrin.h>
 #endif
+#include "utldict.h"
 #include "tier0/dbg.h"
 
 
@@ -388,7 +389,11 @@ private:
 
 	typedef CUtlFixedLinkedList< DecalLRU_t >::IndexType_t DecalLRUListIndex_t;
 
+	CUtlMap< IMaterial*, IMaterial* > m_ModelDecalMaterials;
+
 private:
+	IMaterial* GetModelSpecificDecalMaterial(IMaterial* pDecalMaterial);
+
 	void SetLightingRenderState();
 
 	int R_StudioRenderModel( IMatRenderContext *pRenderContext, int skin, int body, int hitboxset, void /*IClientEntity*/ *pEntity, 

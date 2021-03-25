@@ -1333,7 +1333,7 @@ void C_BaseAnimating::DelayedInitModelEffects( void )
 					{
 						// Halloween Spell Effect Check
 						int iHalloweenSpell = 0;
-						if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+						if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 						{
 							// if the owner is a Sentry, Check its owner
 							if ( GetOwnerEntity() && GetOwnerEntity()->IsBaseObject() )
@@ -2033,18 +2033,21 @@ bool C_BaseAnimating::PutAttachment( int number, const matrix3x4_t &attachmentTo
 		return false;
 
 	CAttachmentData *pAtt = &m_Attachments[number-1];
-	if ( gpGlobals->frametime > 0 && pAtt->m_nLastFramecount > 0 && pAtt->m_nLastFramecount == gpGlobals->framecount - 1 )
+	if ( gpGlobals->frametime > 0 && pAtt->m_nLastFramecount > 0 && pAtt->m_nLastFramecount < gpGlobals->framecount )
 	{
 		Vector vecPreviousOrigin, vecOrigin;
 		MatrixPosition( pAtt->m_AttachmentToWorld, vecPreviousOrigin );
 		MatrixPosition( attachmentToWorld, vecOrigin );
-		pAtt->m_vOriginVelocity = (vecOrigin - vecPreviousOrigin) / gpGlobals->frametime;
+		pAtt->m_vOriginVelocity = (vecOrigin - vecPreviousOrigin) / (gpGlobals->frametime * (gpGlobals->framecount - pAtt->m_nLastFramecount));
+		if (!pAtt->m_vOriginVelocity.IsZero(0.00001f))
+		{
+			pAtt->m_nLastFramecount = gpGlobals->framecount;
+		}
 	}
 	else
 	{
 		pAtt->m_vOriginVelocity.Init();
 	}
-	pAtt->m_nLastFramecount = gpGlobals->framecount;
 	pAtt->m_bAnglesComputed = false;
 	pAtt->m_AttachmentToWorld = attachmentToWorld;
 
@@ -2146,6 +2149,21 @@ bool C_BaseAnimating::GetAttachment( int number, matrix3x4_t& matrix )
 		return false;
 
 	matrix = m_Attachments[number-1].m_AttachmentToWorld;
+	return true;
+}
+
+bool C_BaseAnimating::GetAttachmentNoRecalc(int number, matrix3x4_t& matrix)
+{
+	if (number < 1 || number > m_Attachments.Count())
+		return false;
+
+	// allow visual effects (eg. particles) to be a frame behind bone setup so that there are not messy dependencies.
+	CAttachmentData* pAtt = &m_Attachments[number - 1];
+	const bool bShouldUpdate = pAtt->m_nLastFramecount < gpGlobals->framecount - 1;
+	if (bShouldUpdate && !CalcAttachments())
+		return false;
+
+	matrix = pAtt->m_AttachmentToWorld;
 	return true;
 }
 
@@ -2628,9 +2646,9 @@ void C_BaseAnimating::CalculateIKLocks( float currentTime )
 
 					// debugoverlay->AddBoxOverlay( origin, Vector( -1, -1, -1 ), Vector( 1, 1, 1 ), QAngle( 0, 0, 0 ), 255, 0, 0, 0, 0 );
 
-					float d = (pTarget->est.pos - origin).Length();
+					float d = (pTarget->est.pos - origin).LengthSqr();
 
-					if ( d >= flDist)
+					if ( d >= flDist * flDist)
 						continue;
 
 					flDist = d;
@@ -2728,7 +2746,7 @@ ConVar cl_warn_thread_contested_bone_setup("cl_warn_thread_contested_bone_setup"
 // Marked this developmentonly because it currently crashes, and users are enabling it and complaining because of
 // course.  Once this actually works it should just be FCVAR_INTERNAL_USE.
 // UNDONE(mastercoms)
-ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "1", FCVAR_INTERNAL_USE,
+ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "0", FCVAR_INTERNAL_USE,
                               "Enable parallel processing of C_BaseAnimating::SetupBones()" );
 
 //-----------------------------------------------------------------------------
@@ -2737,7 +2755,7 @@ ConVar cl_threaded_bone_setup("cl_threaded_bone_setup", "1", FCVAR_INTERNAL_USE,
 
 static void SetupBonesOnBaseAnimating( C_BaseAnimating *&pBaseAnimating )
 {
-	if ( !pBaseAnimating->GetMoveParent() )
+	if ( pBaseAnimating && !pBaseAnimating->GetMoveParent() )
 		pBaseAnimating->SetupBones( NULL, -1, -1, gpGlobals->curtime );
 }
 
@@ -2852,9 +2870,23 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 	}
 #endif
 
-	AUTO_LOCK( m_BoneSetupLock );
+	// If we're setting up LOD N, we have set up all lower LODs also
+	// because lower LODs always use subsets of the bones of higher LODs.
+	int nLOD = 0;
+	int nMask = BONE_USED_BY_VERTEX_LOD0;
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		if (boneMask & nMask)
+			break;
+	}
+	for (; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1)
+	{
+		boneMask |= nMask;
+	}
 
-	if ( g_bInThreadedBoneSetup )
+	AUTO_LOCK(m_BoneSetupLock);
+
+	if (g_bInThreadedBoneSetup)
 	{
 		m_BoneSetupLock.Unlock();
 	}
@@ -2863,7 +2895,8 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 	{
 		// Clear out which bones we've touched this frame if this is 
 		// the first time we've seen this object this frame.
-		if ( LastBoneChangedTime() >= m_flLastBoneSetupTime )
+		// BUGBUG: Time can go backward due to prediction, catch that here until a better solution is found
+		if ( LastBoneChangedTime() >= m_flLastBoneSetupTime || currentTime < m_flLastBoneSetupTime)
 		{
 			m_BoneAccessor.SetReadableBones( 0 );
 			m_BoneAccessor.SetWritableBones( 0 );
@@ -2889,7 +2922,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		g_PreviousBoneSetups.AddToTail( this );
 	}
 
-	// Keep track of everthing asked for over the entire frame
+	// Keep track of everything asked for over the entire frame
 	m_iAccumulatedBoneMask |= boneMask;
 
 	// Make sure that we know that we've already calculated some bone stuff this time around.
@@ -2905,7 +2938,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			return false;
 
 		// Setup our transform based on render angles and origin.
-		matrix3x4_t parentTransform;
+		ALIGN16 matrix3x4_t parentTransform ALIGN16_POST;
 		AngleMatrix( GetRenderAngles(), GetRenderOrigin(), parentTransform );
 
 		// Load the boneMask with the total of what was asked for last frame.
@@ -2922,7 +2955,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		}
 		else
 		{
-			TrackBoneSetupEnt( this );
+			TrackBoneSetupEnt(this);
 			
 			// This is necessary because it's possible that CalculateIKLocks will trigger our move children
 			// to call GetAbsOrigin(), and they'll use our OLD bone transforms to get their attachments
@@ -2959,20 +2992,18 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			memset( q, 0xFF, sizeof(q) );
 #endif
 
-			int bonesMaskNeedRecalc = boneMask | oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
-
 			if ( m_pIk )
 			{
 				if (Teleported() || IsNoInterpolationFrame())
 					m_pIk->ClearTargets();
 
-				m_pIk->Init( hdr, GetRenderAngles(), GetRenderOrigin(), currentTime, gpGlobals->framecount, bonesMaskNeedRecalc );
+				m_pIk->Init( hdr, GetRenderAngles(), GetRenderOrigin(), currentTime, gpGlobals->framecount, boneMask );
 			}
 
 			// Let pose debugger know that we are blending
 			g_pPoseDebugger->StartBlending( this, hdr );
 
-			StandardBlendingRules( hdr, pos, q, currentTime, bonesMaskNeedRecalc );
+			StandardBlendingRules( hdr, pos, q, currentTime, boneMask);
 
 			CBoneBitList boneComputed;
 			// don't calculate IK on ragdolls
@@ -2986,7 +3017,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 				m_pIk->SolveDependencies( pos, q, m_BoneAccessor.GetBoneArrayForWrite(), boneComputed );
 			}
 
-			BuildTransformations( hdr, pos, q, parentTransform, bonesMaskNeedRecalc, boneComputed );
+			BuildTransformations( hdr, pos, q, parentTransform, boneMask, boneComputed );
 			
 			RemoveFlag( EFL_SETTING_UP_BONES );
 			ControlMouth( hdr );
@@ -5815,7 +5846,7 @@ int C_BaseAnimating::LookupPoseParameter( CStudioHdr *pstudiohdr, const char *sz
 
 	for (int i = 0; i < pstudiohdr->GetNumPoseParameters(); i++)
 	{
-		if (stricmp( pstudiohdr->pPoseParameter( i ).pszName(), szName ) == 0)
+		if (V_stricmp( pstudiohdr->pPoseParameter( i ).pszName(), szName ) == 0)
 		{
 			return i;
 		}

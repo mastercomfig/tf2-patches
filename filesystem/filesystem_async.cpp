@@ -668,24 +668,21 @@ void CBaseFileSystem::InitAsync()
 		ThreadPoolStartParams_t params;
 		params.iThreadPriority = 0;
 		params.bIOThreads = true;
-		params.nThreadsMax = 4; // Limit count of IO threads to a maximum of 4.
+		params.nThreads = 1; // Single I/O thread
 		if ( IsX360() )
 		{
 			// override defaults
 			// 360 has a single i/o thread on the farthest proc
-			params.nThreads = 1;
 			params.fDistribute = TRS_TRUE;
 			params.bUseAffinityTable = true;
 			params.iAffinityTable[0] = XBOX_PROCESSOR_3;
 		}
 		else if( IsPC() )
 		{
-			// override defaults
-			// maximum # of async I/O thread on PC is 2
-			params.nThreads = 1;
+			params.nStackSize = 256 * 1024;
 		}
 
-		if ( !m_pThreadPool->Start( params, "IOJob" ) )
+		if ( !m_pThreadPool->Start( params, "FsAsyncIO" ) )
 		{
 			SafeRelease( m_pThreadPool );
 		}

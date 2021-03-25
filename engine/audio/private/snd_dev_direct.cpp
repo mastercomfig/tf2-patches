@@ -52,7 +52,8 @@ typedef enum {SIS_SUCCESS, SIS_FAILURE, SIS_NOTAVAIL} sndinitstat;
 #define DSSPEAKER_5POINT1_SURROUND 9
 #endif
 
-HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS, IUnknown FAR *pUnkOuter);
+using DirectSoundCreateFunction = decltype(&DirectSoundCreate);
+DirectSoundCreateFunction pDirectSoundCreate;
 
 extern void ReleaseSurround(void);
 extern bool MIX_ScaleChannelVolume( paintbuffer_t *ppaint, channel_t *pChannel, int volume[CCHANVOLUMES], int mixchans );
@@ -333,38 +334,26 @@ IAudioDevice *Audio_CreateDirectSoundDevice( void )
 	return NULL;
 }
 
-int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int lpaintedtime )
+int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int paintedtime )
 {
-	//  soundtime - total full samples that have been played out to hardware at dmaspeed
-	//  paintedtime - total full samples that have been mixed at speed
-	//  endtime - target for full samples in mixahead buffer at speed
-	//  samps - size of output buffer in full samples
-	
-	int mixaheadtime = mixAheadTime * DeviceDmaSpeed();
-	int endtime = soundtime + mixaheadtime;
+	//  soundtime - total samples that have been played out to hardware at dmaspeed
+	//  paintedtime - total samples that have been mixed at speed
+	//  endtime - target for samples in mixahead buffer at speed
+	int endtime = soundtime + mixAheadTime * DeviceDmaSpeed();
 
-	if ( endtime <= lpaintedtime )
+	if (endtime <= paintedtime)
 		return endtime;
 
-	uint nSamples = endtime - lpaintedtime;
-	if ( nSamples & 0x3 )
+	int samps = max(1, DeviceSampleCount() / DeviceChannels());
+
+	if ((int)(endtime - soundtime) > samps)
+		endtime = soundtime + samps;
+
+	if ((endtime - paintedtime) & 0x3)
 	{
 		// The difference between endtime and painted time should align on 
 		// boundaries of 4 samples.  This is important when upsampling from 11khz -> 44khz.
-		nSamples += (4 - (nSamples & 3));
-	}
-	// clamp to min 512 samples per mix
-	if ( nSamples > 0 && nSamples < 512 )
-	{
-		nSamples = 512;
-	}
-	endtime = lpaintedtime + nSamples;
-
-	int fullsamps = DeviceSampleCount() / DeviceChannels();
-	if ( (endtime - soundtime) > fullsamps)
-	{
-		endtime = soundtime + fullsamps;
-		endtime += (4 - (endtime & 3));
+		endtime -= (endtime - paintedtime) & 0x3;
 	}
 
 	DWORD	dwStatus;
@@ -735,14 +724,15 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 	
 	if (!m_hInstDS)
 	{
-		m_hInstDS = LoadLibrary("dsound.dll");
+		// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+		m_hInstDS = LoadLibraryExW(L"dsound.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 		if (m_hInstDS == NULL)
 		{
 			Warning( "Couldn't load dsound.dll\n");
 			return SIS_FAILURE;
 		}
 
-		pDirectSoundCreate = (long (__stdcall *)(struct _GUID *,struct IDirectSound ** ,struct IUnknown *))GetProcAddress(m_hInstDS,"DirectSoundCreate");
+		pDirectSoundCreate = (DirectSoundCreateFunction)GetProcAddress(m_hInstDS,"DirectSoundCreate");
 		if (!pDirectSoundCreate)
 		{
 			Warning( "Couldn't get DS proc addr\n");

@@ -63,6 +63,7 @@ CON_COMMAND( mat_texture_outline_fonts, "Outline fonts textures." )
 CFontTextureCache::CFontTextureCache() 
 	: m_CharCache(0, 256, CacheEntryLessFunc)
 {
+	V_memset(m_CommonCharCache, 0, sizeof(m_CommonCharCache));
 	Clear();
 }
 
@@ -95,6 +96,12 @@ void CFontTextureCache::Clear()
 	}
 	m_FontPages.SetLessFunc( DefLessFunc( vgui::HFont ) );
 	m_FontPages.RemoveAll();
+
+	for (int i = 0; i < ARRAYSIZE(m_CommonCharCache); i++)
+	{
+		delete m_CommonCharCache[i];
+		m_CommonCharCache[i] = 0;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -208,62 +215,107 @@ bool CFontTextureCache::GetTextureForChars( vgui::HFont font, vgui::FontDrawType
 		
 		for ( int i = 0; i < numChars; i++ )
 		{
-			CacheEntry_t cacheItem;
-			cacheItem.font = font;
-			cacheItem.wch = wch[i];
-			HCacheEntry cacheHandle = m_CharCache.Find( cacheItem );
-			if ( ! m_CharCache.IsValidIndex( cacheHandle ) )
-			{
-				// All characters must come out of the same font
-				if ( winFont != FontManager().GetFontForChar( font, wch[i] ) )
-					return false;
+			wchar_t wideChar = wch[i];
 
+			int* pCachePage;
+			float* pCacheCoords;
+
+			// profiling dicatated that avoiding the naive font/char RB lookup was beneficial
+			// instead waste a little memory to get all the western language chars to be direct
+			if (wideChar < MAX_COMMON_CHARS && font < ARRAYSIZE(m_CommonCharCache))
+			{
+				// dominant amount of simple chars are instant direct lookup
+				CommonChar_t* pCommonChars = m_CommonCharCache[font];
+				if (!pCommonChars)
+				{
+					// missing
+					if (winFont != FontManager().GetFontForChar(font, wideChar))
+					{
+						// all characters in string must come out of the same font
+						return false;
+					}
+
+					// init and insert
+					pCommonChars = new CommonChar_t;
+					memset(pCommonChars, 0, sizeof(CommonChar_t));
+					m_CommonCharCache[font] = pCommonChars;
+				}
+				pCachePage = &pCommonChars->details[wideChar].page;
+				pCacheCoords = pCommonChars->details[wideChar].texCoords;
+			}
+			else
+			{
+				// extended chars are a costlier lookup
+				// page and char form a unique key to find in cache
+				CacheEntry_t cacheItem;
+				cacheItem.font = font;
+				cacheItem.wch = wideChar;
+				HCacheEntry cacheHandle = m_CharCache.Find(cacheItem);
+				if (!m_CharCache.IsValidIndex(cacheHandle))
+				{
+					// missing
+					if (winFont != FontManager().GetFontForChar(font, wideChar))
+					{
+						// all characters in string must come out of the same font
+						return false;
+					}
+
+					// init and insert
+					cacheItem.texCoords[0] = 0;
+					cacheItem.texCoords[1] = 0;
+					cacheItem.texCoords[2] = 0;
+					cacheItem.texCoords[3] = 0;
+					cacheHandle = m_CharCache.Insert(cacheItem);
+					Assert(m_CharCache.IsValidIndex(cacheHandle));
+				}
+				pCachePage = &m_CharCache[cacheHandle].page;
+				pCacheCoords = m_CharCache[cacheHandle].texCoords;
+			}
+
+			if (pCacheCoords[2] == 0 && pCacheCoords[3] == 0)
+			{
+				// invalid page, setup for page allocation
 				// get the char details
 				int a, b, c;
-				winFont->GetCharABCWidths( wch[i], a, b, c );
-				int fontWide = max( b, 1 );
-				int fontTall = max( winFont->GetHeight(), 1 );
-				if ( winFont->GetUnderlined() )
+				winFont->GetCharABCWidths(wideChar, a, b, c);
+				int fontWide = MAX(b, 1);
+				int fontTall = MAX(winFont->GetHeight(), 1);
+				if (winFont->GetUnderlined())
 				{
-					fontWide += ( a + c );
+					fontWide += (a + c);
 				}
 
 				// Get a texture to render into
 				int page, drawX, drawY, twide, ttall;
-				if ( !AllocatePageForChar( fontWide, fontTall, page, drawX, drawY, twide, ttall ) )
+				if (!AllocatePageForChar(fontWide, fontTall, page, drawX, drawY, twide, ttall))
+				{
 					return false;
+				}
 
 				// accumulate data to pass to GetCharsRGBA below
-				newEntries[	numNewChars ].page		= page;
-				newEntries[	numNewChars ].drawX		= drawX;
-				newEntries[	numNewChars ].drawY		= drawY;
-				newChars[	numNewChars ].wch		= wch[i];
-				newChars[	numNewChars ].fontWide	= fontWide;
-				newChars[	numNewChars ].fontTall	= fontTall;
-				newChars[	numNewChars ].offset	= 4*totalNewCharTexels;
-				totalNewCharTexels += fontWide*fontTall;
-				maxNewCharTexels = max( maxNewCharTexels, fontWide*fontTall );
+				newEntries[numNewChars].page = page;
+				newEntries[numNewChars].drawX = drawX;
+				newEntries[numNewChars].drawY = drawY;
+				newChars[numNewChars].wch = wideChar;
+				newChars[numNewChars].fontWide = fontWide;
+				newChars[numNewChars].fontTall = fontTall;
+				newChars[numNewChars].offset = 4 * totalNewCharTexels;
+				totalNewCharTexels += fontWide * fontTall;
+				maxNewCharTexels = MAX(maxNewCharTexels, fontWide * fontTall);
 				numNewChars++;
 
-				// set the cache info
-				cacheItem.page = page;
+				// the 0.5 texel offset is done in CMatSystemTexture::SetMaterial()
+				pCacheCoords[0] = (float)((double)drawX / ((double)twide));
+				pCacheCoords[1] = (float)((double)drawY / ((double)ttall));
+				pCacheCoords[2] = (float)((double)(drawX + fontWide) / (double)twide);
+				pCacheCoords[3] = (float)((double)(drawY + fontTall) / (double)ttall);
 
-				// the 0.5 texel offset is done in CMatSystemTexture::SetMaterial() / CMatSystemSurface::StartDrawing()
-				double adjust =  0.0f;
-
-				cacheItem.texCoords[0] = (float)( (double)drawX / ((double)twide + adjust) );
-				cacheItem.texCoords[1] = (float)( (double)drawY / ((double)ttall + adjust) );
-				cacheItem.texCoords[2] = (float)( (double)(drawX + fontWide) / (double)twide );
-				cacheItem.texCoords[3] = (float)( (double)(drawY + fontTall) / (double)ttall );
-
-				m_CharCache.Insert(cacheItem);
-				cacheHandle = m_CharCache.Find( cacheItem );
-				Assert( m_CharCache.IsValidIndex( cacheHandle ) );
+				*pCachePage = page;
 			}
-			
-			int page = m_CharCache[cacheHandle].page;
-			textureID[i] = m_PageList[page].textureID[typePage];
-			texCoords[i] = m_CharCache[cacheHandle].texCoords;
+
+			// give data to caller
+			textureID[i] = m_PageList[*pCachePage].textureID[typePage];
+			texCoords[i] = pCacheCoords;
 		}
 
 		// Generate texture data for all newly-encountered characters

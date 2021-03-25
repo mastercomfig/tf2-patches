@@ -241,6 +241,9 @@ public:
 	static CTFProjectile_SentryRocket *Create( const Vector &vecOrigin, const QAngle &vecAngles, CBaseEntity *pOwner = NULL, CBaseEntity *pScorer = NULL );	
 
 	virtual void Spawn();
+	
+	// prevent sentry rockets from setting their original launcher to a flamethrower when deflected
+	virtual void SetLauncher( CBaseEntity *pLauncher ) OVERRIDE { m_hLauncher = pLauncher; }
 };
 
 #endif // TF_OBJ_SENTRYGUN_H

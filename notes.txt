@@ -1,7 +1,0 @@
-Follow steps here: https://pastebin.com/TDaSx0Fp.
-
-You don't need to follow the patch instructions since they have already been done in my own way.
-
-Set Client as startup project.
-
-Set VALVE_NO_AUTO_P4=true in system environment variables.

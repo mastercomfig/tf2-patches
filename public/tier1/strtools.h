@@ -835,6 +835,9 @@ bool V_IsMeanSpaceW( wchar_t wch );
 // and we simply don't accept
 bool V_IsDeprecatedW( wchar_t wch );
 
+// disruptive characters
+int V_IsEvilCharacterW( wchar_t wch );
+
 //-----------------------------------------------------------------------------
 // generic unique name helper functions
 //-----------------------------------------------------------------------------
@@ -1280,6 +1283,8 @@ size_t Q_URLDecode( OUT_CAP(nDecodeDestLen) char *pchDecodeDest, int nDecodeDest
 
 // Strip white space at the beginning and end of a string
 int V_StrTrim( char *pStr );
+
+void V_SecureClean( void *pBuf, size_t len );
 
 
 #endif	// TIER1_STRTOOLS_H

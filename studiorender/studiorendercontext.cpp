@@ -40,6 +40,38 @@ void StudioChangeCallback( IConVar *var, const char *pOldValue, float flOldValue
 
 static ConVar studio_queue_mode( "studio_queue_mode", "1", 0, "", StudioChangeCallback );
 
+//-----------------------------------------------------------------------------
+// Queue helper
+//-----------------------------------------------------------------------------
+class CRenderDataFunctorAllocator
+{
+public:
+	CRenderDataFunctorAllocator() : m_pRenderContext(NULL) {}
+
+	void BeginFrame(IMatRenderContext* pRenderContext)
+	{
+		m_pRenderContext = pRenderContext;
+	}
+
+	void EndFrame()
+	{
+		m_pRenderContext = NULL;
+	}
+
+	void* Alloc(size_t bytes)
+	{
+		void* p = m_pRenderContext->LockRenderData(bytes);
+		m_pRenderContext->UnlockRenderData(p); // Unlock is fine, always queued mode
+		return p;
+	}
+
+private:
+	IMatRenderContext* m_pRenderContext;
+};
+
+CRenderDataFunctorAllocator g_RenderDataAllocator;
+CCustomizedFunctorFactory<CRenderDataFunctorAllocator, CRefCounted1<CFunctor, CRefCountServiceDestruct< CRefST > > > g_StudioRenderFunctorFactory;
+#define StudioRenderFunctor(...) g_StudioRenderFunctorFactory.CreateFunctor( __VA_ARGS__ )
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -98,6 +130,9 @@ bool CStudioRenderContext::Connect( CreateInterfaceFn factory )
 	{
 		Msg("StudioRender failed to connect to a required system\n" );
 	}
+
+	g_StudioRenderFunctorFactory.SetAllocator(&g_RenderDataAllocator);
+
 	return ( g_pMaterialSystem && g_pMaterialSystemHardwareConfig && g_pStudioDataCache );
 }
 
@@ -1918,13 +1953,31 @@ void CStudioRenderContext::BeginFrame( void )
 		m_RC.m_Config.m_bEnableHWMorph = false;
 	}
 
-	m_RC.m_Config.m_bStatsMode = false;
+	// Tell CStudioRender we're beginning a new frame:
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+	ICallQueue* pCallQueue = pRenderContext->GetCallQueue();
+	if (!pCallQueue || studio_queue_mode.GetInt() == 0)
+		g_pStudioRenderImp->PrecacheGlint();
+	else
+	{
+		g_RenderDataAllocator.BeginFrame(pRenderContext);
+		pCallQueue->QueueCall(g_pStudioRenderImp, &CStudioRender::PrecacheGlint);
+	}
+	AddDecals();
+	DestroyDecals();
 
-	g_pStudioRenderImp->PrecacheGlint();
+	m_RC.m_Config.m_bStatsMode = false;
 }
 
 void CStudioRenderContext::EndFrame( void )
 {
+	// Tell render allocator the frame is done:
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+	ICallQueue* pCallQueue = pRenderContext->GetCallQueue();
+	if (pCallQueue && studio_queue_mode.GetInt() != 0)
+	{
+		g_RenderDataAllocator.EndFrame();
+	}
 }
 
 
@@ -2309,6 +2362,9 @@ void CStudioRenderContext::DrawModel( DrawModelResults_t *pResults, const DrawMo
 				flex.m_pFlexDelayedWeights = rdFlexDelayed.Base();
 			}
 		}
+
+		// FIXME(mastercoms): crashes
+		//pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags));
 		pCallQueue->QueueCall( g_pStudioRenderImp, &CStudioRender::DrawModel, info, m_RC, pBoneToWorld, flex, flags );
 	}
 
@@ -2335,8 +2391,17 @@ void CStudioRenderContext::DrawModel( DrawModelResults_t *pResults, const DrawMo
 
 void CStudioRenderContext::DrawModelArray( const DrawModelInfo_t &drawInfo, int arrayCount, model_array_instance_t *pInstanceData, int instanceStride, int flags )
 {
-	// UNDONE: Support queue mode?
-	g_pStudioRenderImp->DrawModelArray( drawInfo, m_RC, arrayCount, pInstanceData, instanceStride, flags );
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+
+	ICallQueue* pCallQueue = pRenderContext->GetCallQueue();
+	if (!pCallQueue || studio_queue_mode.GetInt() == 0)
+	{
+		g_pStudioRenderImp->DrawModelArray(drawInfo, m_RC, arrayCount, pInstanceData, instanceStride, flags);
+	}
+	else
+	{
+		pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModelArray, drawInfo, m_RC, arrayCount, pInstanceData, instanceStride, flags));
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2358,7 +2423,7 @@ void CStudioRenderContext::DrawModelStaticProp( const DrawModelInfo_t& info, con
 	else
 	{
 		InvokeBindProxies( info );
-		pCallQueue->QueueCall( g_pStudioRenderImp, &CStudioRender::DrawModelStaticProp, info, m_RC, modelToWorld, flags );
+		pCallQueue->QueueFunctor( StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::DrawModelStaticProp, info, m_RC, modelToWorld, flags) );
 	}
 }
 
@@ -2399,57 +2464,78 @@ void CStudioRenderContext::AddShadow( IMaterial* pMaterial, void* pProxyData,
 
 		CMatRenderData< FlashlightState_t > rdFlashlight( pRenderContext, 1, pFlashlightState );
 		CMatRenderData< VMatrix > rdMatrix( pRenderContext, 1, pWorldToTexture );
-		pCallQueue->QueueCall( g_pStudioRenderImp, &CStudioRender::AddShadow, pMaterial, 
-			(void*)NULL, rdFlashlight.Base(), rdMatrix.Base(), pFlashlightDepthTexture );
+		pCallQueue->QueueFunctor( StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::AddShadow, pMaterial, 
+			(void*)NULL, rdFlashlight.Base(), rdMatrix.Base(), pFlashlightDepthTexture) );
 	}
 }
 
 void CStudioRenderContext::ClearAllShadows()
 {
-	QUEUE_STUDIORENDER_CALL( ClearAllShadows, CStudioRender, g_pStudioRenderImp );
+    CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+    ICallQueue* pCallQueue = pRenderContext->GetCallQueue();
+    if (!pCallQueue || studio_queue_mode.GetInt() == 0)
+    {
+        g_pStudioRenderImp->ClearAllShadows();
+    }
+    else
+    {
+        pCallQueue->QueueFunctor(StudioRenderFunctor(g_pStudioRenderImp, &CStudioRender::ClearAllShadows));
+    }
 }
 
+void CStudioRenderContext::DestroyDecals()
+{
+	StudioDecalHandle_t handle;
+	while (m_removeDecalRequests.PopItem(&handle))
+	{
+		if (handle)
+		{
+			QUEUE_STUDIORENDER_CALL(DestroyDecalList, CStudioRender, g_pStudioRenderImp, handle);
+		}
+	}
+}
 
 //-----------------------------------------------------------------------------
 // Methods related to decals
 //-----------------------------------------------------------------------------
 void CStudioRenderContext::DestroyDecalList( StudioDecalHandle_t handle )
 {
-	QUEUE_STUDIORENDER_CALL( DestroyDecalList, CStudioRender, g_pStudioRenderImp, handle );
+	m_removeDecalRequests.PushItem(handle);
+}
+
+void CStudioRenderContext::AddDecals()
+{
+	StudioRenderDecalInfo_t* pDecalInfo;
+	CMatRenderContextPtr pRenderContext(g_pMaterialSystem);
+    while (m_addDecalRequests.PopItem(&pDecalInfo))
+    {
+		if (pDecalInfo)
+		{
+			StudioRenderDecalInfo_t decalInfo = *pDecalInfo;
+			if (decalInfo.handle)
+			{
+				Assert(pRenderContext->IsRenderData(decalInfo.pBoneToWorld));
+				QUEUE_STUDIORENDER_CALL_RC(AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext,
+					decalInfo.handle, m_RC, decalInfo.pBoneToWorld, decalInfo.pStudioHdr, decalInfo.ray, decalInfo.decalUp, decalInfo.pDecalMaterial, decalInfo.radius,
+					decalInfo.body, decalInfo.noPokethru, decalInfo.maxLODToDecal);
+			}
+		}
+    }
+}
+
+StudioRenderDecalInfo_t::StudioRenderDecalInfo_t() : handle(nullptr), pStudioHdr(nullptr), pBoneToWorld(nullptr), ray(Ray_t()), decalUp(Vector()),
+                                                     pDecalMaterial(nullptr),
+                                                     radius(0), body(0),
+                                                     noPokethru(false),
+                                                     maxLODToDecal(0)
+{
 }
 
 void CStudioRenderContext::AddDecal( StudioDecalHandle_t handle, studiohdr_t *pStudioHdr, 
-	matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
-	IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
+                                     matrix3x4_t *pBoneToWorld, const Ray_t& ray, const Vector& decalUp, 
+                                     IMaterial* pDecalMaterial, float radius, int body, bool noPokethru, int maxLODToDecal )
 {
-	// This substition always has to be done in the main thread, so do it here.
-	pDecalMaterial = GetModelSpecificDecalMaterial( pDecalMaterial );
-
-	CMatRenderContextPtr pRenderContext( g_pMaterialSystem );
-	Assert( pRenderContext->IsRenderData( pBoneToWorld ) );
-	QUEUE_STUDIORENDER_CALL_RC( AddDecal, CStudioRender, g_pStudioRenderImp, pRenderContext, 
-		handle, m_RC, pBoneToWorld, pStudioHdr, ray, decalUp, pDecalMaterial, radius, 
-		body, noPokethru, maxLODToDecal );
-}
-
-// Function to do replacement because we always need to do this from the main thread.
-IMaterial* GetModelSpecificDecalMaterial( IMaterial* pDecalMaterial )
-{
-	Assert( ThreadInMainThread() );
-	// Since we're adding this to a studio model, check the decal to see if 
-	// there's an alternate form used for static props...
-	bool found;
-	IMaterialVar* pModelMaterialVar = pDecalMaterial->FindVar( "$modelmaterial", &found, false );
-	if ( found )
-	{
-		IMaterial* pModelMaterial = g_pMaterialSystem->FindMaterial( pModelMaterialVar->GetStringValue(), TEXTURE_GROUP_DECAL, false );
-		if ( !IsErrorMaterial( pModelMaterial ) )
-		{
-			return pModelMaterial;
-		}
-	}
-
-	return pDecalMaterial;
+	m_addDecalRequests.PushItem(new StudioRenderDecalInfo_t(handle, pStudioHdr, pBoneToWorld, ray, decalUp, pDecalMaterial, radius, body, noPokethru, maxLODToDecal));
 }
 
 

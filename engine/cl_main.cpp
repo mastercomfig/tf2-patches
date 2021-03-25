@@ -173,6 +173,11 @@ void CL_ReloadFilesInList( IFileList *pFilesToReload )
 
 	ResourceLocker crashPreventer;
 
+	// Handle KeyValues
+	// TODO: only reload paths we need to reload
+	// this is still better than completely disabling the KV cache...
+	KeyValuesSystem()->InvalidateCache();
+
 	// Handle materials..
 	materials->ReloadFilesInList( pFilesToReload );
 
@@ -1055,7 +1060,10 @@ void CL_FullyConnected( void )
 	// Purge the preload stores, oreder is critical
 	g_pMDLCache->ShutdownPreloadData();
 
-	// NOTE: purposely disabling for singleplayer, memory spike causing issues, preload's stay in
+	// NOTE: purposely disabling...
+	// THIS IS A BAD THING, so purposely disabled... it saves a few MB that otherwise prevents a bunch of hitchy sync i/o during gameplay.
+	// Also, memory spike causing issues, so preload's stay in
+	// This may show up on the memory users, and the preloads can be made smaller, or maybe accidentally too large, but ditching them is not the right thing to do.
 	// UNDONE: discard preload for TF to save memory
 	// g_pFileSystem->DiscardPreloadData();
 
@@ -1687,7 +1695,7 @@ CON_COMMAND_F( startmovie, "Start recording movie frames.", FCVAR_DONTRECORD )
 		ConMsg( " jpeg_quality nnn = set jpeq quality to nnn (range 1 to 100), default %d\n", DEFAULT_JPEG_QUALITY );
 		ConMsg( " ]\n" );
 		ConMsg( "examples:\n" );
-		ConMsg( "   startmovie testmovie jpg wav jpeg_qality 75\n" );
+		ConMsg( "   startmovie testmovie jpg wav jpeg_quality 75\n" );
 #ifdef USE_WEBM_FOR_REPLAY
 		ConMsg( "   startmovie testmovie webm\n" );
 #else
@@ -2233,15 +2241,15 @@ void CL_Move(float accumulated_extra_samples, bool bFinalTick )
 	if ( cl.IsActive() )
 	{
 		// use full update rate when active
-		float commandInterval = 1.0f / cl_cmdrate->GetFloat();
+		float commandInterval = cl_cmdinterval->GetFloat();
 		float maxDelta = min ( host_state.interval_per_tick, commandInterval );
-		float delta = clamp( (float)(net_time - cl.m_flNextCmdTime), 0.0f, maxDelta );
+		double delta = clamp<double>( net_time - cl.m_flNextCmdTime, 0.0, (double)maxDelta );
 		cl.m_flNextCmdTime = net_time + commandInterval - delta;
 	}
 	else
 	{
 		// during signon process send only 5 packets/second
-		cl.m_flNextCmdTime = net_time + ( 1.0f / 5.0f );
+		cl.m_flNextCmdTime = net_time + ( 1.0 / 5.0 );
 	}
 
 }
@@ -2408,7 +2416,11 @@ int CL_GetBackgroundLevelIndex( int nNumChapters )
 
 	if ( sv_unlockedchapters.GetInt() >= ( nNumChapters-1 ) )
 	{
-		RandomSeed( Plat_MSTime() );
+		// TODO: safe random seed?
+		if (!V_stricmp(COM_GetModDirectory(), "tf") && !V_stricmp(COM_GetModDirectory(), "tfbeta"))
+		{
+			RandomSeed(Plat_MSTime());
+		}
 		g_iRandomChapterIndex = iChapterIndex = RandomInt( 1, nNumChapters );
 	}
 
@@ -2695,8 +2707,8 @@ void CL_SetSteamCrashComment()
 	Q_snprintf( misc, sizeof( misc ), "skill:%i rate %i update %i cmd %i latency %i msec", 
 		skill.GetInt(),
 		cl_rate->GetInt(),
-		(int)cl_updaterate->GetFloat(),
-		(int)cl_cmdrate->GetFloat(),
+		(int) (1.0f / cl_updateinterval->GetFloat()),
+		(int) (1.0f / cl_cmdinterval->GetFloat()),
 		latency
 	);
 
@@ -2748,7 +2760,7 @@ void CL_InitLanguageCvar()
 }
 
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue );
-ConVar cl_cloud_settings( "cl_cloud_settings", "1", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
+ConVar cl_cloud_settings( "cl_cloud_settings", "0", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue )
 {
 	// !! bug do i need to do something linux-wise here.
@@ -2768,6 +2780,7 @@ void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOl
 
 void CL_InitCloudSettingsCvar()
 {
+#ifdef VALVE_PURE
 	if ( IsPC()	&& Steam3Client().SteamRemoteStorage() )
 	{
 		int iCloudSettings = STEAMREMOTESTORAGE_CLOUD_OFF;
@@ -2777,6 +2790,7 @@ void CL_InitCloudSettingsCvar()
 		cl_cloud_settings.SetValue( iCloudSettings );
 	}
 	else
+#endif
 	{
 		// If not on PC or steam not available, set to 0 to make sure no replication occurs or is attempted
 		cl_cloud_settings.SetValue( STEAMREMOTESTORAGE_CLOUD_OFF );

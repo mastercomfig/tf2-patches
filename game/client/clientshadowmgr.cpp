@@ -106,7 +106,7 @@
 static ConVar r_flashlightdrawfrustum( "r_flashlightdrawfrustum", "0" );
 static ConVar r_flashlightmodels( "r_flashlightmodels", "1" );
 static ConVar r_shadowrendertotexture( "r_shadowrendertotexture", "0" );
-static ConVar r_flashlight_version2( "r_flashlight_version2", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+static ConVar r_flashlight_version2("r_flashlight_version2", "1", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY);
 
 ConVar r_flashlightdepthtexture( "r_flashlightdepthtexture", "1", FCVAR_ALLOWED_IN_COMPETITIVE );
 
@@ -1349,7 +1349,11 @@ bool CClientShadowMgr::Init()
 
 	Vector dir( 0.1, 0.1, -1 );
 	SetShadowDirection(dir);
+#ifdef TF_CLIENT_DLL
+	SetShadowDistance( 25 );
+#else
 	SetShadowDistance( 50 );
+#endif
 
 	SetShadowBlobbyCutoffArea( 0.005 );
 
@@ -1637,7 +1641,7 @@ void CClientShadowMgr::RestoreRenderState()
 	}
 
 	SetShadowColor( m_AmbientLightColor.r, m_AmbientLightColor.g, m_AmbientLightColor.b );
-	m_bRenderTargetNeedsClear = true;
+	//m_bRenderTargetNeedsClear = true;
 }
 
 
@@ -2310,7 +2314,7 @@ inline ShadowType_t CClientShadowMgr::GetActualShadowCastType( IClientRenderable
 class CShadowLeafEnum : public ISpatialLeafEnumerator
 {
 public:
-	bool EnumerateLeaf( int leaf, int context )
+	bool EnumerateLeaf( int leaf, intptr_t context )
 	{
 		m_LeafList.AddToTail( leaf );
 		return true;

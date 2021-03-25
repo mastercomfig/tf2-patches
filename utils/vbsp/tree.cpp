@@ -145,7 +145,7 @@ void PrintTree_r (node_t *node, int depth)
 /*
 =========================================================
 
-NODES THAT DON'T SEPERATE DIFFERENT CONTENTS CAN BE PRUNED
+NODES THAT DON'T SEPARATE DIFFERENT CONTENTS CAN BE PRUNED
 
 =========================================================
 */

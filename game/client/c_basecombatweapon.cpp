@@ -156,6 +156,7 @@ void C_BaseCombatWeapon::OnDataChanged( DataUpdateType_t updateType )
 	}
 	else // weapon carried by other player or not at all
 	{
+		// TODO: investigate
 		int overrideModelIndex = CalcOverrideModelIndex();
 		if( overrideModelIndex != -1 && overrideModelIndex != GetModelIndex() )
 		{

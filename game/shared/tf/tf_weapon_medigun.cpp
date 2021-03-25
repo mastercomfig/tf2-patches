@@ -203,8 +203,8 @@ ConVar hud_medichealtargetmarker ( "hud_medichealtargetmarker", "0", FCVAR_ARCHI
 
 const char *g_pszMedigunHealSounds[MEDIGUN_NUM_CHARGE_TYPES] =
 {
-	"WeaponMedigun.Healing",			// MEDIGUN_CHARGE_INVULN = 0,
-	"WeaponMedigun.Healing",			// MEDIGUN_CHARGE_CRITICALBOOST,
+	"WeaponMedigun.HealingHealer",			// MEDIGUN_CHARGE_INVULN = 0,
+	"WeaponMedigun.HealingHealer",			// MEDIGUN_CHARGE_CRITICALBOOST,
 	"Weapon_Quick_Fix.Healing",			// MEDIGUN_CHARGE_MEGAHEAL,
 	"WeaponMedigun_Vaccinator.Healing",	// MEDIGUN_CHARGE_RESIST,
 };
@@ -323,7 +323,7 @@ void CWeaponMedigun::Precache()
 	BaseClass::Precache();
 	PrecacheModel( "models/weapons/c_models/c_proto_backpack/c_proto_backpack.mdl" );
 	PrecacheScriptSound( "WeaponMedigun.NoTarget" );
-	PrecacheScriptSound( "WeaponMedigun.Healing" );
+	PrecacheScriptSound( "WeaponMedigun.HealingHealer" );
 	PrecacheScriptSound( "Weapon_Quick_Fix.Healing" );
 	PrecacheScriptSound( "WeaponMedigun.Charged" );
 	PrecacheParticleSystem( "medicgun_invulnstatus_fullcharge_blue" );
@@ -629,8 +629,8 @@ void CWeaponMedigun::MaintainTargetInSlot()
 	// If it's brush built, use absmins/absmaxs
 	pTarget->CollisionProp()->CalcNearestPoint( vecSrc, &vecPoint );
 
-	float flDistance = (vecPoint - vecSrc).Length();
-	if ( flDistance < GetStickRange() )
+	float flDistance = (vecPoint - vecSrc).LengthSqr();
+	if ( flDistance < GetStickRange() * GetStickRange() )
 	{
 		if ( m_flNextTargetCheckTime > gpGlobals->curtime )
 			return;

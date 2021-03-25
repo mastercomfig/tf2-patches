@@ -266,8 +266,12 @@ void CEconItemSystem::ParseItemSchemaFile( const char *pFilename )
 		FOR_EACH_VEC( vecErrors, nError )
 		{
 			// we want this to be an Error because several
-			// places rely on loading a valid item schema 
+			// places rely on loading a valid item schema
+#ifdef VALVE_PURE
 			Error( "%s\n", vecErrors[nError].String() );
+#else
+			Warning("%s\n", vecErrors[nError].String());
+#endif
 		}
 	}
 }
@@ -492,7 +496,7 @@ public:
 #if ( defined( GAME_DLL ) || defined( CLIENT_DLL ) ) && ( defined( _DEBUG ) || defined( STAGING_ONLY ) )
 		const bool bUseGCCopy = items_game_use_gc_copy.GetBool();
 #else
-		const bool bUseGCCopy = true;
+	    const bool bUseGCCopy = true;
 #endif
 
 		if ( bUseGCCopy == false && k_EUniversePublic != GetUniverse() )

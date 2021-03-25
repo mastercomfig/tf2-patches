@@ -5573,7 +5573,10 @@ void CTFPlayerShared::OnAddHalloweenKartCage( void )
 	if ( !m_pOuter->m_hHalloweenKartCage )
 	{
 		m_pOuter->m_hHalloweenKartCage = C_PlayerAttachedModel::Create( "models/props_halloween/bumpercar_cage.mdl", m_pOuter, 0, vec3_origin, PAM_PERMANENT, 0 );
-		m_pOuter->m_hHalloweenKartCage->FollowEntity( m_pOuter, true );
+		if (m_pOuter->m_hHalloweenKartCage)
+		{
+			m_pOuter->m_hHalloweenKartCage->FollowEntity(m_pOuter, true);
+		}
 	}
 #else
 	AddCond( TF_COND_FREEZE_INPUT );
@@ -7034,6 +7037,7 @@ void CTFPlayerShared::OnRemoveDisguised( void )
 		TFPlayerClassData_t *pData = GetPlayerClassData( TF_CLASS_SPY );
 		int iIndex = modelinfo->GetModelIndex( pData->GetModelName() );
 
+		// TODO: investigate
 		m_pOuter->SetModelIndex( iIndex );
 	}
 
@@ -10095,8 +10099,8 @@ void CTFPlayer::FireBullet( CTFWeaponBase *pWpn, const FireBulletsInfo_t &info, 
 }
 
 #ifdef CLIENT_DLL
-static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "0", FCVAR_CHEAT, "Draw impact debris effects." );
-static ConVar tf_impactwatertime( "tf_impactwatertime", "1.0f", FCVAR_CHEAT, "Draw impact debris effects." );
+static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "1", 0, "Limit time between new water impact effects." );
+static ConVar tf_impactwatertime( "tf_impactwatertime", "0.1f", 0, "Time between water impact effects." );
 #endif
 
 //-----------------------------------------------------------------------------
@@ -10460,6 +10464,10 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 
 	// If we have an item with a move speed modification, apply it to the final speed.
 	CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed );
+	if (m_Shared.GetActiveTFWeapon())
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(m_Shared.GetActiveTFWeapon(), maxfbspeed, mult_player_movespeed_active);
+	}
 
 	if ( m_Shared.IsShieldEquipped() )
 	{
@@ -11532,7 +11540,7 @@ void CTFPlayer::OnEmitFootstepSound( const CSoundParameters& params, const Vecto
 	if ( !ShouldDrawThisPlayer() && !m_Shared.IsStealthed() && !m_Shared.InCond( TF_COND_DISGUISED ) )
 	{
 		int iHalloweenFootstepType = 0;
-		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+		if ( true || TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 		{
 			CALL_ATTRIB_HOOK_INT( iHalloweenFootstepType, halloween_footstep_type );
 		}
@@ -12151,26 +12159,18 @@ bool CTFPlayer::CanAirDash( void ) const
 	if ( m_Shared.InCond( TF_COND_HALLOWEEN_SPEED_BOOST ) )
 		return true;
 
-	bool bScout = GetPlayerClass()->IsClass( TF_CLASS_SCOUT );
-	if ( !bScout )
-		return false;
+	int iNoAirDash = 0;
+	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
+
+	int iDashCount = ( !iNoAirDash && GetPlayerClass()->IsClass( TF_CLASS_SCOUT ) ) ? tf_scout_air_dash_count.GetInt() : 0;
 
 	if ( m_Shared.InCond( TF_COND_SODAPOPPER_HYPE ) )
 	{
-		if ( m_Shared.GetAirDash() < 5 )
-			return true;
-		else
- 			return false;
+		iDashCount += 4;
 	}
 
-	int iDashCount = tf_scout_air_dash_count.GetInt();
 	CALL_ATTRIB_HOOK_INT( iDashCount, air_dash_count );
 	if ( m_Shared.GetAirDash() >= iDashCount ) 
-		return false;
-
-	int iNoAirDash = 0;
-	CALL_ATTRIB_HOOK_INT( iNoAirDash, set_scout_doublejump_disabled );
-	if ( 1 == iNoAirDash )
 		return false;
 
 	return true;
@@ -12733,13 +12733,15 @@ int CTFPlayerShared::GetSequenceForDeath( CBaseAnimating* pRagdoll, bool bBurnin
 {
 	if ( !pRagdoll )
 		return -1;
-
+	
+#ifdef VALVE_PURE
 	if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
 	{
 		if ( m_pOuter && ( m_pOuter->GetTeamNumber() == TF_TEAM_PVE_INVADERS ) )
 			return -1;
 	}
-
+#endif
+	
 	int iDeathSeq = -1;
 // 	if ( bBurning )
 // 	{

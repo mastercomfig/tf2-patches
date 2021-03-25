@@ -26,6 +26,24 @@ public:
 		Assert(0);
 	}
 
+	void	SetSeedScoped(int iSeed)
+	{
+		// Never call this from the client or game!
+		Assert(0);
+	}
+
+	void RandomStartScope()
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+	}
+
+	void RandomEndScope()
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+	}
+
 	// Generates random numbers
 	float	RandomFloat( float flMinVal = 0.0f, float flMaxVal = 1.0f )
 	{
@@ -40,6 +58,20 @@ public:
 	int		RandomInt( int iMinVal, int iMaxVal )
 	{
 		return ::RandomInt( iMinVal, iMaxVal );
+	}
+
+	float RandomFloatScoped(float flMinVal = 0.0f, float flMaxVal = 1.0f)
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+		return RandomFloat(flMinVal, flMaxVal);
+	}
+
+	int RandomIntScoped(int iMinVal, int iMaxVal)
+	{
+		// Can't set seed, so no scope
+		Assert(0);
+		return RandomInt(iMinVal, iMaxVal);
 	}
 };
 

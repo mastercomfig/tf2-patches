@@ -30,6 +30,7 @@
 
 #else	// Client specific.
 
+    #include "prediction.h"
 	#include "c_tf_player.h"
 	#include "c_te_effect_dispatch.h"
 	#include "c_tf_gamestats.h"
@@ -125,7 +126,7 @@ void CTFWeaponBaseGun::PrimaryAttack( void )
 		if ( GetOwner() && GetAmmoPerShot() > GetOwner()->GetAmmoCount( m_iPrimaryAmmoType ) )
 		{
 			WeaponSound( EMPTY );
-			m_flNextPrimaryAttack = gpGlobals->curtime + flFireDelay;
+			m_flNextPrimaryAttack += flFireDelay;
 			return;
 		}
 	}
@@ -159,8 +160,29 @@ void CTFWeaponBaseGun::PrimaryAttack( void )
 
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	CBaseEntity* pProj = FireProjectile( pPlayer );
-	ModifyProjectile( pProj );
+	int32 fireTimes = flFireDelay > 0.0f ? (int)((gpGlobals->curtime - m_flNextPrimaryAttack) / flFireDelay) + 1 : 1;
+	const int32 iFireTimes = fireTimes;
+	if (fireTimes == 1)
+	{
+		CBaseEntity* pProj = FireProjectile(pPlayer);
+		ModifyProjectile(pProj);
+	}
+	else
+	{
+		while (fireTimes-- > 0)
+		{
+			if ((UsesClipsForAmmo1() && m_iClip1 <= 0) || (!UsesClipsForAmmo1() && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0))
+			{
+				HandleFireOnEmpty();
+				break;
+			}
+			else
+			{
+				CBaseEntity* pProj = FireProjectile(pPlayer);
+				ModifyProjectile(pProj);
+			}
+		}
+	}
 
 	if ( !UsesClipsForAmmo1() )
 	{
@@ -181,7 +203,7 @@ void CTFWeaponBaseGun::PrimaryAttack( void )
 	}
 
 	// Set next attack times.
-	m_flNextPrimaryAttack = gpGlobals->curtime + flFireDelay;
+	m_flNextPrimaryAttack += iFireTimes * flFireDelay;
 
 	// Don't push out secondary attack, because our secondary fire
 	// systems are all separate from primary fire (sniper zooming, demoman pipebomb detonating, etc)
@@ -352,7 +374,6 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 			pPlayer->DoAnimationEvent( PLAYERANIMEVENT_ATTACK_PRIMARY );
 		}
 		break;
-
 	case TF_PROJECTILE_NONE:
 	default:
 		// do nothing!
@@ -363,6 +384,12 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 	RemoveProjectileAmmo( pPlayer );
 
 	m_flLastFireTime = gpGlobals->curtime;
+#ifdef CLIENT_DLL
+	if (prediction->IsFirstTimePredicted())
+#endif
+	{
+		m_iConsecutiveShots++;
+	}
 
 	DoFireEffects();
 
@@ -383,7 +410,6 @@ CBaseEntity *CTFWeaponBaseGun::FireProjectile( CTFPlayer *pPlayer )
 //-----------------------------------------------------------------------------
 void CTFWeaponBaseGun::RemoveProjectileAmmo( CTFPlayer *pPlayer )
 {
-
 	if ( m_iClip1 != -1 )
 	{
 		m_iClip1 -= GetAmmoPerShot();
@@ -548,6 +574,47 @@ CBaseEntity *CTFWeaponBaseGun::FireRocket( CTFPlayer *pPlayer, int iRocketType )
 
 	return pProjectile;
 
+#endif
+
+	return NULL;
+}
+
+#ifdef GAME_DLL
+ConVar tf_fireball_damage("tf_fireball_damage", "25", FCVAR_CHEAT, "Dragon's Fury fireball damage.");
+ConVar tf_fireball_speed("tf_fireball_speed", "3000", FCVAR_CHEAT, "Dragon's Fury fireball damage.");
+#endif
+
+//-----------------------------------------------------------------------------
+// Purpose: Fire a fire ball
+//-----------------------------------------------------------------------------
+CBaseEntity* CTFWeaponBaseGun::FireBallOfFire(CTFPlayer* pPlayer)
+{
+	PlayWeaponShootSound();
+
+	// Server only - create the fireball.
+#ifdef GAME_DLL
+	Vector vecSrc;
+	QAngle angForward;
+	Vector vecOffset(23.5f, -8.0f, -3.0f);
+	if (pPlayer->GetFlags() & FL_DUCKING)
+	{
+		vecOffset.z = 8.0f;
+	}
+	GetProjectileFireSetup(pPlayer, vecOffset, &vecSrc, &angForward, false);
+
+	trace_t trace;
+	Vector vecEye = pPlayer->EyePosition();
+	CTraceFilterSimple traceFilter(this, COLLISION_GROUP_NONE);
+	UTIL_TraceLine(vecEye, vecSrc, MASK_SOLID_BRUSHONLY, &traceFilter, &trace);
+
+	CTFProjectile_EnergyBall* pProjectile = CTFProjectile_EnergyBall::Create(trace.endpos, angForward, tf_fireball_speed.GetFloat(), 0.0f, pPlayer, pPlayer);
+	if (pProjectile)
+	{
+		pProjectile->SetLauncher(this);
+		pProjectile->SetCritical(IsCurrentAttackACrit());
+		pProjectile->SetDamage(tf_fireball_damage.GetFloat());
+	}
+	return pProjectile;
 #endif
 
 	return NULL;
@@ -733,7 +800,13 @@ CBaseEntity *CTFWeaponBaseGun::FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombTy
 		GetCustomProjectileModel( &attrCustomModelName );
 		if ( attrCustomModelName.has_value() )
 		{
+			Vector vecMins = pProjectile->CollisionProp()->OBBMinsPreScaled();
+			Vector vecMaxs = pProjectile->CollisionProp()->OBBMaxsPreScaled();
+
 			pProjectile->SetModel( attrCustomModelName.value().c_str() );
+
+			// keep original size
+			UTIL_SetSize( pProjectile, vecMins, vecMaxs );
 		}
 
 	}

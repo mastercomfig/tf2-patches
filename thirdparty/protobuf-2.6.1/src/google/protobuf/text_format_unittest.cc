@@ -586,7 +586,7 @@ TEST_F(TextFormatTest, ParseConcatenatedString) {
   // Compare.
   EXPECT_EQ("foobar", proto_.optional_string());
 
-  // Create a parse string with multiple parts on seperate lines.
+  // Create a parse string with multiple parts on separate lines.
   parse_string = "optional_string: \"foo\"\n"
                  "\"bar\"\n";
 

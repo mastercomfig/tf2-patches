@@ -145,7 +145,7 @@ void CMapReslistGenerator::BuildMapList()
 	bool bUseMapListFile = bUseMap ? false : CommandLine()->FindParm("-usereslistfile") != 0;
 
 	// Build the map list
-	if ( !BuildGeneralMapList( &m_Maps, bUseMapListFile, pMapFile, "reslists", &m_iCurrentMap ) )
+	if ( !BuildGeneralMapList( &m_Maps, bUseMapListFile, pMapFile, (char*)"reslists", &m_iCurrentMap ) )
 	{
 		m_bLoggingEnabled = false;
 	}

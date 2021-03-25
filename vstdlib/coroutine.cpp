@@ -262,6 +262,7 @@ public:
 		m_pStackHigh = m_pStackLow = NULL;
 		m_cubSavedStack = 0;
 		m_pFunc = NULL;
+		m_pvParam = NULL;
 		m_pchName = "(none)";
 		m_iJumpCode = 0;
 		m_pchDebugMsg = NULL;
@@ -657,7 +658,10 @@ bool Internal_Coroutine_Continue( HCoroutine hCoroutine, const char *pchDebugMsg
 	__asm mov topofexceptionchain, eax
 	if ( GCoroutineMgr().m_topofexceptionchain == 0 )
 		GCoroutineMgr().m_topofexceptionchain = topofexceptionchain;
-	else
+	// UNDONE(maximsmol) we will now only crash if it was actually a coroutine that yielded from a try-catch,
+	// without this check we fail because of try-catch blocks from thirdparty/external code
+	// TODO(maximsmol) not sure what we're supposed to set the GCoroutineMgr().topofexceptionchain to here, but there seem to be no issues
+	else if ( bInCoroutineAlready )
 	{
 		Assert( topofexceptionchain == GCoroutineMgr().m_topofexceptionchain );
 	}

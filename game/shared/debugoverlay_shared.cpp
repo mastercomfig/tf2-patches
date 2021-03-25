@@ -231,7 +231,7 @@ void NDebugOverlay::Text( const Vector &origin, const char *text, bool bViewChec
 		trace_t tr;
 		UTIL_TraceLine(player->GetAbsOrigin(), origin, MASK_OPAQUE, NULL, COLLISION_GROUP_NONE, &tr);
 		
-		if ((tr.endpos - origin).Length() > 10)
+		if ((tr.endpos - origin).LengthSqr() > 100)
 			return;
 	}
 

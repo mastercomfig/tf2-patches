@@ -84,7 +84,7 @@ static CSceneTokenProcessor g_SceneTokenProcessor;
 ISceneTokenProcessor *tokenprocessor = &g_SceneTokenProcessor;
 
 // a simple case insensitive string pool
-// the final pool contains all the unique strings seperated by a null
+// the final pool contains all the unique strings separated by a null
 class CChoreoStringPool : public IChoreoStringPool
 {
 public:
@@ -370,7 +370,7 @@ bool CSceneImage::CreateSceneImageFile( CUtlBuffer &targetBuffer, char const *pc
 
 	if ( !bQuiet )
 	{
-		Msg( "Scenes: String Table: %llu bytes\n", (uint64)(stringOffsets.Count() * sizeof( int )) );
+		Msg( "Scenes: String Table: %zu bytes\n", stringOffsets.Count() * sizeof( int ) );
 		Msg( "Scenes: String Pool: %d bytes\n", stringPool.TellMaxPut() );
 	}
 

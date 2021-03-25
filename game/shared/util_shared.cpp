@@ -157,8 +157,11 @@ float SharedRandomFloat( const char *sharedname, float flMinVal, float flMaxVal,
 	Assert( CBaseEntity::GetPredictionRandomSeed() != -1 );
 
 	int seed = SeedFileLineHash( CBaseEntity::GetPredictionRandomSeed(), sharedname, additionalSeed );
-	RandomSeed( seed );
-	return RandomFloat( flMinVal, flMaxVal );
+	RandomStartScope();
+	RandomSeedScoped(seed);
+	const float Random = RandomFloatScoped(flMinVal, flMaxVal);
+	RandomEndScope();
+	return Random;
 }
 
 int SharedRandomInt( const char *sharedname, int iMinVal, int iMaxVal, int additionalSeed /*=0*/ )
@@ -166,8 +169,11 @@ int SharedRandomInt( const char *sharedname, int iMinVal, int iMaxVal, int addit
 	Assert( CBaseEntity::GetPredictionRandomSeed() != -1 );
 
 	int seed = SeedFileLineHash( CBaseEntity::GetPredictionRandomSeed(), sharedname, additionalSeed );
-	RandomSeed( seed );
-	return RandomInt( iMinVal, iMaxVal );
+	RandomStartScope();
+	RandomSeedScoped( seed );
+	const int Random = RandomIntScoped(iMinVal, iMaxVal);
+	RandomEndScope();
+	return Random;
 }
 
 Vector SharedRandomVector( const char *sharedname, float minVal, float maxVal, int additionalSeed /*=0*/ )
@@ -175,13 +181,15 @@ Vector SharedRandomVector( const char *sharedname, float minVal, float maxVal, i
 	Assert( CBaseEntity::GetPredictionRandomSeed() != -1 );
 
 	int seed = SeedFileLineHash( CBaseEntity::GetPredictionRandomSeed(), sharedname, additionalSeed );
-	RandomSeed( seed );
+	RandomStartScope();
+	RandomSeedScoped(seed);
 	// HACK:  Can't call RandomVector/Angle because it uses rand() not vstlib Random*() functions!
 	// Get a random vector.
 	Vector vRandom;
 	vRandom.x = RandomFloat( minVal, maxVal );
 	vRandom.y = RandomFloat( minVal, maxVal );
 	vRandom.z = RandomFloat( minVal, maxVal );
+	RandomEndScope();
 	return vRandom;
 }
 
@@ -190,14 +198,15 @@ QAngle SharedRandomAngle( const char *sharedname, float minVal, float maxVal, in
 	Assert( CBaseEntity::GetPredictionRandomSeed() != -1 );
 
 	int seed = SeedFileLineHash( CBaseEntity::GetPredictionRandomSeed(), sharedname, additionalSeed );
-	RandomSeed( seed );
-
+	RandomStartScope();
+	RandomSeedScoped(seed);
 	// HACK:  Can't call RandomVector/Angle because it uses rand() not vstlib Random*() functions!
 	// Get a random vector.
 	Vector vRandom;
 	vRandom.x = RandomFloat( minVal, maxVal );
 	vRandom.y = RandomFloat( minVal, maxVal );
 	vRandom.z = RandomFloat( minVal, maxVal );
+	RandomEndScope();
 	return QAngle( vRandom.x, vRandom.y, vRandom.z );
 }
 

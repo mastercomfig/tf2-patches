@@ -69,6 +69,7 @@ public:
 
 	virtual void FireBullet( CTFPlayer *pPlayer );
 	CBaseEntity *FireRocket( CTFPlayer *pPlayer, int iRocketType=0 );
+	CBaseEntity* FireBallOfFire(CTFPlayer* pPlayer);
 	CBaseEntity *FireNail( CTFPlayer *pPlayer, int iSpecificNail );
 	virtual CBaseEntity *FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombType );
 	CBaseEntity *FireFlare( CTFPlayer *pPlayer );

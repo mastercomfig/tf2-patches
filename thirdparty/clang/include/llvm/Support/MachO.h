@@ -16,7 +16,7 @@
 
 #include "llvm/Support/DataTypes.h"
 
-// NOTE: The enums in this file are intentially named to be different than those
+// NOTE: The enums in this file are intentionally named to be different than those
 // in the headers in /usr/include/mach (on darwin systems) to avoid conflicts
 // with those macros.
 namespace llvm {

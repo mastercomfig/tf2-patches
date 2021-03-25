@@ -374,6 +374,7 @@ public:
 	{
 		m_bIsInitialized = false;
 		m_bShouldReloadSymbols = false;
+		m_hProcess = nullptr;
 		m_hDbgHelpDll = NULL;
 		m_szPDBSearchPath = NULL;
 		m_pSymInitialize = SymInitialize_DummyFn;
@@ -411,8 +412,7 @@ public:
 			::FreeLibrary( m_hNTDllDll );
 #endif
 
-		if( m_szPDBSearchPath != NULL )
-			delete []m_szPDBSearchPath;
+		delete []m_szPDBSearchPath;
 	}
 
 	static BOOL CALLBACK UnloadSymbolsCallback( PSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext )
@@ -450,8 +450,7 @@ public:
 	{
 		AUTO_LOCK( m_Mutex );
 
-		if( m_szPDBSearchPath != NULL )
-			delete []m_szPDBSearchPath;
+		delete []m_szPDBSearchPath;
 
 		if( szSemicolonSeparatedList == NULL )
 		{
@@ -720,7 +719,8 @@ public:
 
 		// get the function pointer directly so that we don't have to include the .lib, and that
 		// we can easily change it to using our own dll when this code is used on win98/ME/2K machines
-		m_hDbgHelpDll = ::LoadLibrary( "DbgHelp.dll" );
+		// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+		m_hDbgHelpDll = LoadLibraryExW(L"DbgHelp.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 		if ( !m_hDbgHelpDll )
 		{
 			//it's possible it's just way too early to initialize (as shown with attempts at using these tools in the memory allocator)
@@ -792,7 +792,8 @@ public:
 
 
 #if defined( USE_CAPTURESTACKBACKTRACE )
-		m_hNTDllDll = ::LoadLibrary( "ntdll.dll" );
+		// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  This value requires KB2533623 to be installed.
+		m_hNTDllDll = ::LoadLibraryExW(L"ntdll.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 
 		m_pCaptureStackBackTrace = (PFN_CaptureStackBackTrace) ::GetProcAddress( m_hNTDllDll, "RtlCaptureStackBackTrace" );
 		if( m_pCaptureStackBackTrace == NULL )
@@ -1511,10 +1512,7 @@ CStackTop_CopyParentStack::~CStackTop_CopyParentStack( void )
 	Assert( (CStackTop_Base *)g_StackTop == this );
 	g_StackTop = m_pPrevTop;
 
-	if( m_pParentStackTrace != NULL )
-	{
-		delete []m_pParentStackTrace;
-	}
+	delete[]m_pParentStackTrace;
 #endif
 }
 

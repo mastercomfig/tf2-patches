@@ -510,7 +510,7 @@ void Shared_ParseListOfCompileCommands( void )
 	DebugOut( "%d compiles\n", g_CompileCommands.Count() );
 }
 
-void SetupPaths( int argc, char **argv )
+void SetupPaths( int argc, const char **argv )
 {
 	GetTempPath( sizeof( g_WorkerTempPath ), g_WorkerTempPath );
 	strcat( g_WorkerTempPath, "texturecompiletemp\\" );
@@ -647,7 +647,7 @@ int TextureCompile_Main( int argc, char* argv[] )
 
 	SetupDebugFile();
 	numthreads = 1; // holy shit batman!
-	SetupPaths( argc, argv );
+	SetupPaths( argc, const_cast<const char**>(argv) );
 	
 	// Master, start accepting connections.
 	// Worker, make a connection.

@@ -373,6 +373,11 @@ NAMESPACE_END
 #define CRYPTOPP_DISABLE_UNCAUGHT_EXCEPTION
 #endif
 
+#if !defined(CRYPTOPP_DISABLE_UNCAUGHT_EXCEPTION) && (defined(_MSC_VER) && _MSC_VER >= 1900)
+#define CRYPTOPP_DISABLE_UNCAUGHT_EXCEPTION
+#define CRYPTOPP_UNCAUGHT_EXCEPTIONS_AVAILABLE
+#endif
+
 #ifndef CRYPTOPP_DISABLE_UNCAUGHT_EXCEPTION
 #define CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE
 #endif
@@ -703,7 +708,7 @@ NAMESPACE_END
 #endif // CRYPTOPP_CXX11_NOEXCEPT
 
 // OK to comment the following out, but please report it so we can fix it.
-#if (defined(__cplusplus) && (__cplusplus >= 199711L)) && !defined(CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE)
+#if (defined(__cplusplus) && (__cplusplus >= 199711L)) && !defined(CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE) && !defined(CRYPTOPP_UNCAUGHT_EXCEPTIONS_AVAILABLE)
 # error "std::uncaught_exception is not available. This is likely a configuration error."
 #endif
 

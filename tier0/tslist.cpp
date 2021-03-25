@@ -52,13 +52,13 @@ class CQueueOps : public CTestOps
 	void Push( int item )
 	{
 		g_TestQueue.PushItem( item );
-		g_nPushes++;
+		++g_nPushes;
 	}
 	bool Pop( int *pResult )
 	{
 		if ( g_TestQueue.PopItem( pResult ) )
 		{
-			g_nPops++;
+			++g_nPops;
 			return true;
 		}
 		return false;
@@ -78,13 +78,13 @@ class CListOps : public CTestOps
 	void Push( int item )
 	{
 		g_TestList.PushItem( item );
-		g_nPushes++;
+		++g_nPushes;
 	}
 	bool Pop( int *pResult )
 	{
 		if ( g_TestList.PopItem( pResult ) )
 		{
-			g_nPops++;
+			++g_nPops;
 			return true;
 		}
 		return false;
@@ -138,11 +138,11 @@ void ValidateBuckets()
 unsigned PopThreadFunc( void *)
 {
 	ThreadSetDebugName( "PopThread" );
-	g_nPopThreads++;
-	g_nThreads++;
+	++g_nPopThreads;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	int ignored;
 	for (;;)
@@ -154,34 +154,34 @@ unsigned PopThreadFunc( void *)
 				// Pop the rest 
 				while ( g_pTestOps->Pop( &ignored ) )
 				{
-					ThreadSleep( 0 );
+					ThreadSleepEx();
 				}
 				break;
 			}
 		}
 	}
-	g_nThreads--;
-	g_nPopThreads--;
+	--g_nThreads;
+	--g_nPopThreads;
 	return 0;
 }
 
 unsigned PushThreadFunc( void * )
 {
 	ThreadSetDebugName( "PushThread" );
-	g_nPushThreads++;
-	g_nThreads++;
+	++g_nPushThreads;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 
 	while ( g_nTested < NUM_TEST )
 	{
 		g_pTestOps->Push( g_nTested );
-		g_nTested++;
+		++g_nTested;
 	}
-	g_nThreads--;
-	g_nPushThreads--;
+	--g_nThreads;
+	--g_nPushThreads;
 	return 0;
 }
 
@@ -200,12 +200,12 @@ void TestWait()
 {
 	while ( g_nThreads < NUM_THREADS )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	g_bStart = true;
 	while ( g_nThreads > 0 )
 	{
-		ThreadSleep( 50 );
+		ThreadSleepEx(50);
 	}
 }
 
@@ -309,13 +309,13 @@ void PushPopInterleavedTest()
 unsigned PushPopInterleavedTestThreadFunc( void * )
 {
 	ThreadSetDebugName( "PushPopThread" );
-	g_nThreads++;
+	++g_nThreads;
 	while ( !g_bStart )
 	{
-		ThreadSleep( 0 );
+		ThreadSleepEx();
 	}
 	PushPopInterleavedTestGuts();
-	g_nThreads--;
+	--g_nThreads;
 	return 0;
 }
 

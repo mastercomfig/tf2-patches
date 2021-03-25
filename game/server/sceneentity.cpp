@@ -3617,7 +3617,7 @@ class CSceneFindNearestMarkFilter : public IEntityFindFilter
 {
 public:
 
-	CSceneFindNearestMarkFilter( const CBaseEntity *pActor, const Vector &vecPos2, float flMaxRadius = MAX_TRACE_LENGTH )
+	CSceneFindNearestMarkFilter( const CBaseEntity *pActor, const Vector &vecPos2, float flMaxRadius = 8192.0f )
 	{
 		m_vecPos2 = vecPos2;
 

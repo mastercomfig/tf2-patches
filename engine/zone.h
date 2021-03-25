@@ -24,6 +24,8 @@ void Hunk_Check (void);
 
 int Hunk_MallocSize();
 int Hunk_Size();
+int Hunk_MaxSize();
+int Hunk_Available();
 
 void Hunk_Print();
 
