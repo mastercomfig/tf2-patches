@@ -10,36 +10,12 @@
 
 #include "stdafx.h"
 #include <direct.h>
+#include <system_error>
 #include "tier1/strtools.h"
 #include "tier0/icommandline.h"
 
-
-char* GetLastErrorString()
+namespace
 {
-	static char err[2048];
-	
-	LPVOID lpMsgBuf;
-	FormatMessage( 
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-		FORMAT_MESSAGE_FROM_SYSTEM | 
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR) &lpMsgBuf,
-		0,
-		NULL 
-	);
-
-	strncpy( err, (char*)lpMsgBuf, sizeof( err ) );
-	LocalFree( lpMsgBuf );
-
-	err[ sizeof( err ) - 1 ] = 0;
-
-	return err;
-}
-
-
 void MakeFullPath( const char *pIn, char *pOut, int outLen )
 {
 	if ( pIn[0] == '/' || pIn[0] == '\\' || pIn[1] == ':' )
@@ -54,55 +30,58 @@ void MakeFullPath( const char *pIn, char *pOut, int outLen )
 		Q_strncat( pOut, pIn, outLen, COPY_ALL_CHARACTERS );
 	}
 }
+}  // namespace
+
+extern "C" __declspec(dllimport) unsigned long __stdcall GetLastError(void);
 
 int main(int argc, char* argv[])
 {
-	char dllName[512];
-
 	CommandLine()->CreateCmdLine( argc, const_cast<const char **>(argv) );
 
 	// check whether they used the -both switch. If this is specified, vrad will be run
 	// twice, once with -hdr and once without
-	int both_arg=0;
-	for(int arg=1;arg<argc;arg++)
-		if (Q_stricmp(argv[arg],"-both")==0)
+	ptrdiff_t both_arg{ 0 };
+	for (ptrdiff_t arg{ 1 }; arg < argc; arg++)
+	{
+		if (Q_stricmp(argv[arg], "-both") == 0)
 		{
-			both_arg=arg;
+			both_arg = arg;
 		}
+	}
 
-	char fullPath[512], redirectFilename[512];
+	char fullPath[MAX_PATH], redirectFilename[MAX_PATH];
 	MakeFullPath( argv[0], fullPath, sizeof( fullPath ) );
 	Q_StripFilename( fullPath );
 	Q_snprintf( redirectFilename, sizeof( redirectFilename ), "%s\\%s", fullPath, "vrad.redirect" );
 
 	// First, look for vrad.redirect and load the dll specified in there if possible.
-	CSysModule *pModule = NULL;
-	FILE *fp = fopen( redirectFilename, "rt" );
+	char dllName[MAX_PATH];
+	CSysModule* pModule{ nullptr };
+	FILE* fp{ fopen(redirectFilename, "rt") };
 	if ( fp )
 	{
 		if ( fgets( dllName, sizeof( dllName ), fp ) )
 		{
-			char *pEnd = strstr( dllName, "\n" );
+			char* pEnd{ strstr(dllName, "\n") };
 			if ( pEnd )
-				*pEnd = 0;
+				*pEnd = '\0';
 
 			pModule = Sys_LoadModule( dllName );
 			if ( pModule )
 				printf( "Loaded alternate VRAD DLL (%s) specified in vrad.redirect.\n", dllName );
 			else
-				printf( "Can't find '%s' specified in vrad.redirect.\n", dllName );
+				fprintf( stderr, "Can't find '%s' specified in vrad.redirect.\n", dllName );
 		}
 		
 		fclose( fp );
 	}
 
-	int returnValue = 0;
+	int rc{ 0 };
 	
-	for(int mode=0;mode<2;mode++)
+	for (int mode{ 0 }; mode < 2; mode++)
 	{
 		if (mode && (! both_arg))
 			continue;
-		
 
 		// If it didn't load the module above, then use the 
 		if ( !pModule )
@@ -113,33 +92,36 @@ int main(int argc, char* argv[])
 		
 		if( !pModule )
 		{
-			printf( "vrad_launcher error: can't load %s\n%s", dllName, GetLastErrorString() );
+			const auto error = std::system_category().message( static_cast<int>(::GetLastError()) );
+			fprintf( stderr, "vrad_launcher error: can't load %s\n%s", dllName, error.c_str() );
 			return 1;
 		}
 		
-		CreateInterfaceFn fn = Sys_GetFactory( pModule );
+		CreateInterfaceFn fn{ Sys_GetFactory( pModule ) };
 		if( !fn )
 		{
-			printf( "vrad_launcher error: can't get factory from vrad_dll.dll\n" );
+			const auto error = std::system_category().message( static_cast<int>(::GetLastError()) );
+			fprintf( stderr, "vrad_launcher error: can't get factory from vrad_dll.dll\n%s", error.c_str() );
 			Sys_UnloadModule( pModule );
 			return 2;
 		}
-		
-		int retCode = 0;
-		IVRadDLL *pDLL = (IVRadDLL*)fn( VRAD_INTERFACE_VERSION, &retCode );
+
+		auto *pDLL = static_cast<IVRadDLL*>( fn( VRAD_INTERFACE_VERSION, nullptr ) );
 		if( !pDLL )
 		{
-			printf( "vrad_launcher error: can't get IVRadDLL interface from vrad_dll.dll\n" );
+			fprintf( stderr, "vrad_launcher error: can't get IVRadDLL interface from vrad_dll.dll\n" );
 			Sys_UnloadModule( pModule );
 			return 3;
 		}
 		
 		if (both_arg)
-			strcpy(argv[both_arg],(mode)?"-hdr":"-ldr");
-		returnValue = pDLL->main( argc, argv );
-		Sys_UnloadModule( pModule );
-		pModule=0;
-	}
-	return returnValue;
-}
+			strcpy(argv[both_arg], mode ? "-hdr" : "-ldr");
 
+		rc = pDLL->main( argc, argv );
+
+		Sys_UnloadModule( pModule );
+		pModule = nullptr;
+	}
+
+	return rc;
+}

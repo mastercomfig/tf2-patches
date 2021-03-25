@@ -5,42 +5,42 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#include <stdio.h>
+#include <cstdio>
+#include <system_error>
 #include "tier1/interface.h"
 #include "ilaunchabledll.h"
 
+extern "C" __declspec(dllimport) unsigned long __stdcall GetLastError(void);
 
 int main( int argc, char **argv )
 {
-	const char *pModuleName = "vtex_dll.dll";
+	constexpr char pModuleName[]{ "vtex_dll.dll" };
 	
-	CSysModule *pModule = Sys_LoadModule( pModuleName );
+	CSysModule* pModule{ Sys_LoadModule(pModuleName) };
 	if ( !pModule )
 	{
-		printf( "Can't load %s.", pModuleName );
+		const auto error = std::system_category().message(static_cast<int>(::GetLastError()));
+		fprintf( stderr, "Can't load %s\n%s", pModuleName, error.c_str() );
 		return 1;
 	}
 
-	CreateInterfaceFn fn = Sys_GetFactory( pModule );
+	CreateInterfaceFn fn{ Sys_GetFactory(pModule) };
 	if ( !fn )
 	{
-		printf( "Can't get factory from %s.", pModuleName );
+		fprintf( stderr, "Can't get factory from %s.", pModuleName );
 		Sys_UnloadModule( pModule );
 		return 1;
 	}
 
-	ILaunchableDLL *pInterface = (ILaunchableDLL*)fn( LAUNCHABLE_DLL_INTERFACE_VERSION, NULL );
-	if ( !pInterface )
+	auto *pDll = static_cast<ILaunchableDLL*>( fn( LAUNCHABLE_DLL_INTERFACE_VERSION, nullptr ) );
+	if ( !pDll )
 	{
-		printf( "Can't get '%s' interface from %s.", LAUNCHABLE_DLL_INTERFACE_VERSION, pModuleName );
+		fprintf( stderr, "Can't get '%s' interface from %s.", LAUNCHABLE_DLL_INTERFACE_VERSION, pModuleName );
 		Sys_UnloadModule( pModule );
 		return 1;
 	}
 
-	int iRet = pInterface->main( argc, argv );
+	const int rc{ pDll->main(argc, argv) };
 	Sys_UnloadModule( pModule );
-	return iRet;
+	return rc;
 }
-
-
-
