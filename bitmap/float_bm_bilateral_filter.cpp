@@ -47,9 +47,8 @@ static unsigned TBFCalculationThreadFN( void *ctx1 )
 						float exp1=(ix*ix+iy*iy)*(1.0/(2.0*ctx->radius_in_pixels*.033));
 						float g=exp(-exp1);
 						// calculate the "similarity" term. We use a triangle filter
-						float s=1.0;
 						float cdiff=fabs(centerp-this_p);
-						s= (cdiff>ctx->edge_threshold_value)?0:
+						float s=(cdiff>ctx->edge_threshold_value)?0:
 							FLerp(1,0,0,ctx->edge_threshold_value,cdiff);
 						sum_weights += s*g;
 						filter_sum += s*g*this_p;
