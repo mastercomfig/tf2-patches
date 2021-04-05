@@ -1116,7 +1116,7 @@ $Project "engine"
 
 		$ImpLibexternal steam_api
 
-		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
+		$ImpLib	"$SRCDIR\external\curl"	  [$OSXALL]
 
 		$Libexternal	"libz"
 		$Libexternal 	"$SRCDIR\lib\common\$(CRYPTOPPDIR)\libcrypto" [$LINUXALL&&!$DEDICATED]

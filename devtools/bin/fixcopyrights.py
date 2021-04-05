@@ -68,7 +68,6 @@ rDirsToSkip = [
 	'GL',
 	'maya',
 	'miles',
-	'curl',
 	'ihfx',
 	'lxma',
 	'modo',

@@ -204,9 +204,9 @@ $Project "replay"
 		$Libexternal libpng [!$VS2015]
 		$Libexternal $LIBCOMMON/libpng [$VS2015]
 
-		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
+		$ImpLib	"$SRCDIR\external\curl"	  [$OSXALL]
 
-		$Lib	"$LIBCOMMON\libcurl" [$WINDOWS&&!$VS2015]
+		$Lib	"$SRCDIR\external\lib\win32\libcurl" [$WINDOWS&&!$VS2015]
 		$Lib   "libz" [$WINDOWS]
 
 		$Libexternal	libz [$LINUXALL]
