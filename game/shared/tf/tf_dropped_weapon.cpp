@@ -67,7 +67,6 @@ CTFDroppedWeapon::CTFDroppedWeapon()
 #endif // CLIENT_DLL
 
 	m_flChargeLevel.Set( 0.f );
-	m_flChargeBeginTime.Set( 0.f );
 }
 
 //-----------------------------------------------------------------------------
