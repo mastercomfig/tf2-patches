@@ -18,6 +18,7 @@
 #include "tf_player.h"
 #include "tf_weaponbase.h"
 #include "tf_weapon_medigun.h"
+#include "tf_weapon_compound_bow.h"
 #include "tf_gamerules.h"
 #include "tf_weapon_bottle.h"
 #endif // GAME_DLL
@@ -66,6 +67,7 @@ CTFDroppedWeapon::CTFDroppedWeapon()
 #endif // CLIENT_DLL
 
 	m_flChargeLevel.Set( 0.f );
+	m_flChargeBeginTime.Set( 0.f );
 }
 
 //-----------------------------------------------------------------------------
@@ -601,6 +603,12 @@ void CTFDroppedWeapon::InitPickedUpWeapon( CTFPlayer *pPlayer, CTFWeaponBase *pW
 	// Make sure engineer don't gain metal by picking up weapon
 	pPlayer->SetAmmoCount( nCurrentMetal, TF_AMMO_METAL );
 	pWeapon->Energy_SetEnergy( m_flEnergy );
+
+	CTFCompoundBow *pCompoundBow = dynamic_cast< CTFCompoundBow* >( pWeapon );
+	if ( pCompoundBow )
+	{
+		pCompoundBow->WeaponReset();
+	}
 
 	CWeaponMedigun *pMedigun = dynamic_cast< CWeaponMedigun* >( pWeapon );
 	if ( pMedigun )
