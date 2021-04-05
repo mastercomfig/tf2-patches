@@ -388,10 +388,10 @@ void CBuildingStatusItem::OnTick()
 			m_pWrenchIcon->SetVisible( bAlertTrayFullyDeployed );
 			break;
 
-			// do not show low health for mini-sentry
+			// show building health for normal sentry and mini-sentry
 		case BUILDING_HUD_ALERT_LOW_HEALTH:
 		case BUILDING_HUD_ALERT_VERY_LOW_HEALTH:
-			bShowAlertTray = pObj->IsMiniBuilding() == false;
+			bShowAlertTray = true;
 			m_pWrenchIcon->SetVisible( bAlertTrayFullyDeployed && bShowAlertTray );
 			break;
 
