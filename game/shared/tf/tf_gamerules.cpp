@@ -21166,6 +21166,11 @@ bool CTFGameRules::CanUpgradeWithAttrib( CTFPlayer *pPlayer, int iWeaponSlot, at
 			if ( bHideDmgUpgrades )
 				return false;
 
+			// No damage bonus on rocket jumper or sticky jumper
+			if (( iWeaponID == TF_WEAPON_ROCKETLAUNCHER && !pPlayer->IsAllowedToPickUpFlag() ) ||
+				( iWeaponID == TF_WEAPON_PIPEBOMBLAUNCHER && !pPlayer->IsAllowedToPickUpFlag() ) )
+				return false;
+
 			// Some classes get a weaker dmg upgrade
 			if ( nQuality == MVM_UPGRADE_QUALITY_LOW )
 			{
@@ -21224,6 +21229,12 @@ bool CTFGameRules::CanUpgradeWithAttrib( CTFPlayer *pPlayer, int iWeaponSlot, at
 		break;
 	// case 8:		// "heal rate bonus"
 	case 10:	// "ubercharge rate bonus"
+	case 180:	// "heal on kill"
+		{
+			return ( !( iWeaponID == TF_WEAPON_ROCKETLAUNCHER && !pPlayer->IsAllowedToPickUpFlag() ) ||
+					 !( iWeaponID == TF_WEAPON_PIPEBOMBLAUNCHER && !pPlayer->IsAllowedToPickUpFlag() ) );
+		}
+		break;
 	case 314:	// "uber duration bonus"
 	case 481:	// "canteen specialist"
 	case 482:	// "overheal expert"
