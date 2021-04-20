@@ -354,7 +354,7 @@ public:
 	double GetCurTime();		
 	int GetPrevCalls();
 	double GetPrevTime();
-	int	GetTotalCalls();
+	unsigned GetTotalCalls();
 	double GetTotalTime();		
 	double GetPeakTime();		
 
@@ -921,7 +921,7 @@ inline const tchar *CVProfNode::GetName()
 
 //-------------------------------------
 
-inline int	CVProfNode::GetTotalCalls()		
+inline unsigned	CVProfNode::GetTotalCalls()		
 { 
 	return m_nTotalCalls; 
 }

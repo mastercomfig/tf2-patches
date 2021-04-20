@@ -1289,13 +1289,14 @@ inline Vector VectorLerp(const Vector& src1, const Vector& src2, vec_t t )
 inline Vector &AllocTempVector()
 {
 	static Vector s_vecTemp[128];
-	static CInterlockedInt s_nIndex;
+	static CInterlockedUInt s_nIndex;
+	constexpr size_t maxIndexMask = sizeof(s_vecTemp) / sizeof(s_vecTemp[0]) - 1;
 
-	int nIndex;
+	unsigned nIndex;
 	for (;;)
 	{
-		int nOldIndex = s_nIndex;
-		nIndex = ( (nOldIndex + 0x10001) & 0x7F );
+		unsigned nOldIndex = s_nIndex;
+		nIndex = ( (nOldIndex + 0x10001U) & maxIndexMask );
 
 		if ( s_nIndex.AssignIf( nOldIndex, nIndex ) )
 		{
@@ -1303,7 +1304,7 @@ inline Vector &AllocTempVector()
 		}
 		ThreadPause();
 	} 
-	return s_vecTemp[nIndex & 0xffff];
+	return s_vecTemp[nIndex & maxIndexMask];
 }
 
 
@@ -2415,7 +2416,7 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 
 FORCEINLINE vec_t InvRSquared( const float* v )
 {
-	return 1.0 / MAX( 1.0, v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
+	return 1.0F / MAX( 1.0F, v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
 }
 
 FORCEINLINE vec_t InvRSquared( const Vector &v )

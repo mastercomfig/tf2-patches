@@ -18,17 +18,13 @@
 #include <assert.h>
 
 #ifdef _WIN32
-#pragma warning(disable:4073)
+#pragma warning( disable:4073 )
 #pragma init_seg( lib )
 #endif
 
-#pragma warning(push, 1)
-#pragma warning(disable:4786)
-#pragma warning(disable:4530)
 #include <map>
 #include <vector>
 #include <algorithm>
-#pragma warning(pop)
 
 #include "tier0/valve_on.h"
 #include "tier0/vprof.h"
@@ -850,14 +846,14 @@ void CVProfile::DumpNodes( CVProfNode *pNode, int indent, bool bAverageAndCountO
 
 		if( bAverageAndCountOnly )
 		{
-			Msg( _T("  %10.3f %9.2f      %8d"), 
+			Msg( _T("  %10.3f %9.2f      %8u"), 
 						 ( pNode->GetTotalCalls() > 0 ) ? pNode->GetTotalTime() / (double)NumFramesSampled() : 0, 
 						 ( pNode->GetTotalCalls() > 0 ) ? dNodeTime / (double)NumFramesSampled() : 0, 
 						 pNode->GetTotalCalls()  );
 		}
 		else
 		{
-			Msg( _T("  %10.3f %9.2f      %10.3f %6.2f      %10.3f %6.2f   %8d %6.2f"), 
+			Msg( _T("  %10.3f %9.2f      %10.3f %6.2f      %10.3f %6.2f   %8u %6.2f"), 
 						 pNode->GetTotalTime(), dNodeTime,
 						 ( pNode->GetTotalCalls() > 0 ) ? pNode->GetTotalTime() / (double)NumFramesSampled() : 0, 
 						 ( pNode->GetTotalCalls() > 0 ) ? dNodeTime / (double)NumFramesSampled() : 0, 

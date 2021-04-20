@@ -67,10 +67,10 @@ public:
 
 	struct misc_t
 	{
-		byte	Brand;
-		byte	CLFLUSH;
-		byte	Reserved;
-		byte	APICId;
+		::byte	Brand;
+		::byte	CLFLUSH;
+		::byte	Reserved;
+		::byte	APICId;
 	};
 
 	struct feature_t
@@ -117,7 +117,7 @@ public:
 	version_t version;
 	misc_t misc;
 	feature_t feature;
-	byte *cache;
+	::byte *cache;
 
 	ia32detect ()
 	{
@@ -279,7 +279,7 @@ private:
 				c[(d >> i) & 0xFF] = true;
 	}
 
-	void init2 (byte count)
+	void init2 (::byte count)
 	{
 		uint32 d[4];
 		bool c[256];
@@ -319,7 +319,7 @@ private:
 			if (c[ci2])
 				m++;
 
-		cache = new byte[m];
+		cache = new ::byte[m];
 
 		m = 0;
 

@@ -108,7 +108,7 @@ protected:
 		HashEntry_t(unsigned int _hash, ConCommandBase * _cmd)
 			: m_uiKey(_hash), m_Data(_cmd) {};
 
-		HashEntry_t(){};
+		HashEntry_t() : m_uiKey(0) {};
 	};
 
 	typedef CUtlFixedLinkedList<HashEntry_t> datapool_t;
@@ -177,9 +177,9 @@ CConCommandHash::Next( const CConCommandHash::CCommandHashIterator_t &iter ) con
 	int bucketCount = m_aBuckets.Count();
 	for ( int bucket = iter.bucket+1 ; bucket < bucketCount ; ++bucket )
 	{
-		CCommandHashHandle_t next = m_aBuckets[bucket]; // get the head of the bucket
-		if (next != invalidIndex)
-			return CCommandHashIterator_t( bucket, next );
+		CCommandHashHandle_t nexth = m_aBuckets[bucket]; // get the head of the bucket
+		if ( nexth != invalidIndex )
+			return CCommandHashIterator_t( bucket, nexth );
 	}
 
 	// if we're here, there's no more data to be had

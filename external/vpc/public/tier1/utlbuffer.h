@@ -14,8 +14,6 @@
 #pragma once
 #endif
 
-#include "unitlib/unitlib.h" // just here for tests - remove before checking in!!!
-
 #include "tier1/utlmemory.h"
 #include "tier1/byteswap.h"
 #include <stdarg.h>
@@ -41,7 +39,7 @@ public:
 	struct ConversionArray_t
 	{
 		char m_nActualChar;
-		char *m_pReplacementString;
+		const char *m_pReplacementString;
 	};
 
 	CUtlCharConversion( char nEscapeChar, const char *pDelimiter, int nCount, ConversionArray_t *pArray );
@@ -60,7 +58,7 @@ protected:
 	struct ConversionInfo_t
 	{
 		int m_nLength;
-		char *m_pReplacementString;
+		const char *m_pReplacementString;
 	};
 
 	char m_nEscapeChar;
@@ -104,7 +102,7 @@ CUtlCharConversion *GetNoEscCharConversion();
 	SetOverflowFuncs( static_cast <UtlBufferOverflowFunc_t>( _get ), static_cast <UtlBufferOverflowFunc_t>( _put ) )
 
 
-#define FMSTRRETTYPE static const char *
+#define FMSTRRETTYPE const char *
 #ifdef LINUX
 // gcc 4.3 is techinically correct and doesn't like the storage specifier,
 // unfortunately, that makes gcc on the mac and VS wind up with multiply defined
@@ -115,15 +113,15 @@ CUtlCharConversion *GetNoEscCharConversion();
 typedef unsigned short ushort;
 
 template < class A >
-static const char *GetFmtStr( int nRadix = 10, bool bPrint = true ) { Assert( 0 ); return ""; }
+inline const char *GetFmtStr( int nRadix = 10, bool bPrint = true ) { Assert( 0 ); return ""; }
 
-template <> FMSTRRETTYPE GetFmtStr< short >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%hd"; }
-template <> FMSTRRETTYPE GetFmtStr< ushort >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%hu"; }
-template <> FMSTRRETTYPE GetFmtStr< int >		( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%d"; }
-template <> FMSTRRETTYPE GetFmtStr< uint >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 || nRadix == 16 ); return nRadix == 16 ? "%x" : "%u"; }
-template <> FMSTRRETTYPE GetFmtStr< int64 >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%lld"; }
-template <> FMSTRRETTYPE GetFmtStr< float >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%f"; }
-template <> FMSTRRETTYPE GetFmtStr< double >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return bPrint ? "%.15lf" : "%lf"; } // force Printf to print DBL_DIG=15 digits of precision for doubles - defaults to FLT_DIG=6
+template <> inline FMSTRRETTYPE GetFmtStr< short >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%hd"; }
+template <> inline FMSTRRETTYPE GetFmtStr< ushort >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%hu"; }
+template <> inline FMSTRRETTYPE GetFmtStr< int >		( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%d"; }
+template <> inline FMSTRRETTYPE GetFmtStr< uint >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 || nRadix == 16 ); return nRadix == 16 ? "%x" : "%u"; }
+template <> inline FMSTRRETTYPE GetFmtStr< int64 >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%lld"; }
+template <> inline FMSTRRETTYPE GetFmtStr< float >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return "%f"; }
+template <> inline FMSTRRETTYPE GetFmtStr< double >	( int nRadix, bool bPrint ) { Assert( nRadix == 10 ); return bPrint ? "%.15lf" : "%lf"; } // force Printf to print DBL_DIG=15 digits of precision for doubles - defaults to FLT_DIG=6
 
 
 //-----------------------------------------------------------------------------

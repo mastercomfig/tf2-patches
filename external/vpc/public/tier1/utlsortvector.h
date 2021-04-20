@@ -46,6 +46,8 @@ template <class T, class LessFunc = CUtlSortVectorDefaultLess<T>, class BaseVect
 class CUtlSortVector : public BaseVector
 {
 public:
+	using BaseVector::Base;
+	using BaseVector::Count;
 
 	// constructor
 	CUtlSortVector( int nGrowSize = 0, int initSize = 0 );

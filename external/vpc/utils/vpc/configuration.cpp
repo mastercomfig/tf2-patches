@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 static KeywordName_t s_KeywordNameTable[] =
 {
 	{"$General",				KEYWORD_GENERAL},
@@ -275,10 +277,10 @@ void VPC_Keyword_FileConfiguration()
 				if ( !pToken || !pToken[0] )
 					g_pVPC->VPCSyntaxError();
 
-				char buff[MAX_SYSTOKENCHARS];
-				if ( g_pVPC->GetScript().ParsePropertyValue( NULL, buff, sizeof( buff ) ) )
+				char buff2[MAX_SYSTOKENCHARS];
+				if ( g_pVPC->GetScript().ParsePropertyValue( NULL, buff2, sizeof( buff2 ) ) )
 				{
-					g_pVPC->GetProjectGenerator()->FileExcludedFromBuild( Sys_StringToBool( buff ) );
+					g_pVPC->GetProjectGenerator()->FileExcludedFromBuild( Sys_StringToBool( buff2 ) );
 				}
 
 				continue;

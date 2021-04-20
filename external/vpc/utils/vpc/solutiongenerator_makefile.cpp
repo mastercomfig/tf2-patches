@@ -7,6 +7,8 @@
 #include "vpc.h"
 #include "dependencies.h"
 
+#include "tier0/memdbgon.h"
+
 
 extern void V_MakeAbsoluteCygwinPath( char *pOut, int outLen, const char *pRelativePath );
 

@@ -9,10 +9,12 @@
 #include "baseprojectdatacollector.h"
 #include "tier0/fasttimer.h"
 
+#include "tier0/memdbgon.h"
+
 
 #define VPC_CRC_CACHE_VERSION 3
 
-extern char *g_IncludeSeparators[2];
+extern const char *g_IncludeSeparators[2];
 
 static const char *g_pDependencyRelevantProperties[] =
 {
@@ -81,6 +83,7 @@ static inline bool IsSourceFile( const char *pFilename )
 CDependency::CDependency( CProjectDependencyGraph *pDependencyGraph ) :
 	m_pDependencyGraph( pDependencyGraph )
 {
+	m_Type = k_eDependencyType_Unknown;
 	m_iDependencyMark = m_pDependencyGraph->m_iDependencyMark - 1;
 	m_bCheckedIncludes = false;
 	m_nCacheModificationTime = m_nCacheFileSize = 0;
@@ -192,6 +195,7 @@ CDependency_Project::CDependency_Project( CProjectDependencyGraph *pDependencyGr
 	: CDependency( pDependencyGraph )
 {
 	m_iProjectIndex = -1;
+	m_szStoredScriptName[0] = '\0';
 }
 
 
@@ -452,7 +456,7 @@ public:
 			includes.AddToTail( szFixed );
 		}
 		
-		free( pFileData );		
+		free( pFileData );
 	}
 
 	void SetupIncludeDirectories( CSpecificConfig *pConfig, const char *szScriptName )
@@ -561,6 +565,7 @@ public:
 
 CProjectDependencyGraph::CProjectDependencyGraph()
 {
+	m_nFilesParsedForIncludes = 0;
 	m_iDependencyMark = 0;
 	m_bFullDependencySet = false;
 	m_bHasGeneratedDependencies = false;
@@ -786,8 +791,8 @@ bool CProjectDependencyGraph::VisitProject( projectIndex_t iProject, const char 
 		V_StrSubst( pFilename, "$(TargetName)", sTargetNameReplacement, sReplaced, sizeof( sReplaced ) );
 		V_MakeAbsolutePath( sAbsImportLibrary, sizeof( sAbsImportLibrary ), sReplaced );
 
-		CDependency *pImportLibrary = FindOrCreateDependency( sAbsImportLibrary );
-		pImportLibrary->m_Dependencies.AddToTail( pProject );
+		CDependency *pImportLibraryDep = FindOrCreateDependency( sAbsImportLibrary );
+		pImportLibraryDep->m_Dependencies.AddToTail( pProject );
 	}
 
 	return true;
@@ -1090,6 +1095,10 @@ void CProjectDependencyGraph::MarkAllCacheEntriesValid()
 class CGameFilterProjectIterator : public IProjectIterator
 {
 public:
+	CGameFilterProjectIterator() : m_pAllProjectsList(NULL), m_pOutProjectsList(NULL)
+	{
+	}
+
 	virtual bool VisitProject( projectIndex_t iProject, const char *szProjectName )
 	{
 		char szAbsolute[MAX_PATH];

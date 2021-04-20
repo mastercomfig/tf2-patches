@@ -74,8 +74,8 @@ bool gbCheckNotMultithreaded = true;
 
 // Need to ensure initialized before other clients call in for main thread ID
 #ifdef _WIN32
-#pragma warning(disable:4073)
-#pragma init_seg(lib)
+#pragma warning( disable:4073 )
+#pragma init_seg( lib )
 #endif
 
 #ifdef _WIN32
@@ -444,8 +444,8 @@ ThreadHandle_t CreateSimpleThread( ThreadFunc_t pfnThread, void *pParam, unsigne
 bool ReleaseThreadHandle( ThreadHandle_t hThread )
 {
 #ifdef _WIN32
-	bool bRetVal = ( CloseHandle( hThread ) != 0 );
 	RemoveThreadHandleToIDMap( (HANDLE)hThread );
+	bool bRetVal = ( CloseHandle( hThread ) != 0 );
 	return bRetVal;
 #else
 	return true;
@@ -688,7 +688,7 @@ void ThreadSetDebugName( ThreadHandle_t hThread, const char *pszName )
 			{
 				RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR *)&info);
 			}
-			__except (EXCEPTION_CONTINUE_EXECUTION)
+			__except (EXCEPTION_EXECUTE_HANDLER)
 			{
 			}
 		}
@@ -2601,6 +2601,7 @@ PLATFORM_INTERFACE void SetCurThreadPS3( CThread *pThread )
 	g_pCurThread = pThread;
 }
 #else
+#include <memory>
 // The CThread implementation needs to be inlined for performance on the PS3 - It makes a difference of more than 1ms/frame
 // for other platforms, we include the .inl in the .cpp file where it existed before
 #include "../public/tier0/threadtools.inl"

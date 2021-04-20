@@ -44,7 +44,6 @@
 
 #if defined( ENABLE_RUNTIME_STACK_TRANSLATION )
 #pragma optimize( "g", off ) //variable argument functions seem to screw up stack walking unless this optimization is disabled
-#pragma warning( disable: 4748 )  // Turn off the warning telling us that optimizations are off if /GS is on
 #endif
 
 DEFINE_LOGGING_CHANNEL_NO_TAGS( LOG_LOADING, "LOADING" );
@@ -411,11 +410,13 @@ public:
 
 	CHardwareBreakPoint()
 	{
-		m_eOperation = BRK_SET;
 		m_pvAddress = 0;
 		m_hThread = 0;
+		m_eType = BREAKPOINT_EXECUTE;
+		m_eSize = BREAKPOINT_SIZE_1;
 		m_hThreadEvent = 0;
 		m_nRegister = 0;
+		m_eOperation = BRK_SET;
 		m_bSuccess = false;
 	}
 

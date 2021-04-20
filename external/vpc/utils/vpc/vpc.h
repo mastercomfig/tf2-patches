@@ -39,7 +39,6 @@
 DECLARE_LOGGING_CHANNEL( LOG_VPC );
 
 #if defined( WIN32 )
-#include <atlbase.h>
 #include <io.h>
 #endif // WIN32
 
@@ -190,7 +189,7 @@ public:
 	CVPC();
 	~CVPC();
 
-	bool		Init( int argc, char **argv );
+	bool		Init( int argc, const char **argv );
 	void		Shutdown( bool bHasError = false );
 
 	void		VPCError( PRINTF_FORMAT_STRING const char *pFormat, ... );
@@ -317,7 +316,7 @@ private:
 	void					ResolveMacrosInStringInternal( char const *pString, char *pOutBuff, int outBuffSize, bool bStringIsConditional );
 
 	void					HandleSingleCommandLineArg( const char *pArg );
-	void					ParseBuildOptions( int argc, char *argv[] );
+	void					ParseBuildOptions( int argc, const char *argv[] );
 
 	bool					CheckBinPath( char *pOutBinPath, int outBinPathSize );
 	bool					RestartFromCorrectLocation( bool *pIsChild );
@@ -370,7 +369,7 @@ private:
 	int						m_FilesMissing;
 
 	int						m_nArgc;
-	char					**m_ppArgv;
+	const char				**m_ppArgv;
 
 	CColorizedLoggingListener	m_LoggingListener;
 
@@ -454,7 +453,7 @@ extern const char			*g_pOption_AdditionalIncludeDirectories;	// "$AdditionalIncl
 extern const char			*g_pOption_AdditionalProjectDependencies;	// "$AdditionalProjectDependencies"
 extern const char			*g_pOption_AdditionalOutputFiles;			// "$AdditionalOutputFiles"
 extern const char			*g_pOption_PreprocessorDefinitions;			// "$PreprocessorDefinitions"
-extern char					*g_IncludeSeparators[2];
+extern const char			*g_IncludeSeparators[2];
 
 extern 	void				VPC_ParseGroupScript( const char *pScriptName );
 

@@ -741,17 +741,17 @@ void CCvar::RevertFlaggedConVars( int nFlag )
 		if ( var->IsCommand() )
 			continue;
 
-		ConVar *cvar = ( ConVar * )var;
+		ConVar *conVar = ( ConVar * )var;
 
-		if ( !cvar->IsFlagSet( nFlag ) )
+		if ( !conVar->IsFlagSet( nFlag ) )
 			continue;
 
 		// It's == to the default value, don't count
-		if ( !V_stricmp( cvar->GetDefault(), cvar->GetString() ) )
+		if ( !V_stricmp( conVar->GetDefault(), conVar->GetString() ) )
 			continue;
 
-		cvar->Revert();
-		// DevMsg( "%s = \"%s\" (reverted)\n", cvar->GetName(), cvar->GetString() );
+		conVar->Revert();
+		// DevMsg( "%s = \"%s\" (reverted)\n", conVar->GetName(), conVar->GetString() );
 	}
 }
 

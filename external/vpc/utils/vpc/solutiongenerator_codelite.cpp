@@ -8,6 +8,8 @@
 #include "dependencies.h"
 #include "utlgraph.h"
 
+#include "tier0/memdbgon.h"
+
 class CSolutionGenerator_CodeLite : public IBaseSolutionGenerator {
 public:
 	CSolutionGenerator_CodeLite() {

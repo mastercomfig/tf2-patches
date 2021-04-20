@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 #undef PROPERTYNAME
 #define PROPERTYNAME( X, Y ) { X##_##Y, #X, #Y },
 static PropertyName_t s_PS3PropertyNames[] =
@@ -51,7 +53,8 @@ bool CProjectGenerator_PS3::WriteFile( CProjectFile *pFile )
 bool CProjectGenerator_PS3::WriteFolder( CProjectFolder *pFolder )
 {
 	m_XMLWriter.PushNode( "Filter" );
-	m_XMLWriter.Write( CFmtStrMax( "Name=\"%s\"", m_XMLWriter.FixupXMLString( pFolder->m_Name.Get() ) ) );
+	CUtlString name = m_XMLWriter.FixupXMLString( pFolder->m_Name.Get() );
+	m_XMLWriter.Write( CFmtStrMax( "Name=\"%s\"", name.String() ) );
 	m_XMLWriter.Write( ">" );
 
 	for ( int iIndex = pFolder->m_Folders.Head(); iIndex != pFolder->m_Folders.InvalidIndex(); iIndex = pFolder->m_Folders.Next( iIndex ) )
@@ -88,7 +91,10 @@ bool CProjectGenerator_PS3::WritePreBuildEventTool( CPreBuildEventTool *pPreBuil
 		switch ( pPreBuildEventTool->m_PropertyStates.m_Properties[i].m_pToolProperty->m_nPropertyId )
 		{
 		case PS3_PREBUILDEVENT_CommandLine:
-			m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", m_XMLWriter.FixupXMLString( pPreBuildEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() ) ) );
+			{
+				CUtlString cl = m_XMLWriter.FixupXMLString( pPreBuildEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", cl.String() ) );
+			}
 			break;
 
 		case PS3_PREBUILDEVENT_Description:
@@ -123,7 +129,10 @@ bool CProjectGenerator_PS3::WriteCustomBuildTool( CCustomBuildTool *pCustomBuild
 		switch ( pCustomBuildTool->m_PropertyStates.m_Properties[i].m_pToolProperty->m_nPropertyId )
 		{
 		case PS3_CUSTOMBUILDSTEP_CommandLine:
-			m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", m_XMLWriter.FixupXMLString( pCustomBuildTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() ) ) );
+			{
+				CUtlString cl = m_XMLWriter.FixupXMLString( pCustomBuildTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", cl.String() ) );
+			}
 			break;
 
 		case PS3_CUSTOMBUILDSTEP_Description:
@@ -395,7 +404,7 @@ bool CProjectGenerator_PS3::WriteSNCCompilerTool( CCompilerTool *pCompilerTool )
 		case PS3_SNCCOMPILER_CreateUsePrecompiledHeader:
 			if ( nOrdinalValue == 1 )
 			{
-				additionalOptions += CFmtStrMax( "--create_pch=&quot;%s&quot; ", pCompilerTool->m_PropertyStates.GetProperty( PS3_SNCCOMPILER_PrecompiledHeaderFile )->m_StringValue );
+				additionalOptions += CFmtStrMax( "--create_pch=&quot;%s&quot; ", pCompilerTool->m_PropertyStates.GetProperty( PS3_SNCCOMPILER_PrecompiledHeaderFile )->m_StringValue.String() );
 			}
 			else if ( nOrdinalValue == 2 )
 			{
@@ -403,7 +412,7 @@ bool CProjectGenerator_PS3::WriteSNCCompilerTool( CCompilerTool *pCompilerTool )
 			}
 			else if ( nOrdinalValue == 3 )
 			{
-				additionalOptions += CFmtStrMax( "--use_pch=&quot;%s&quot; ", pCompilerTool->m_PropertyStates.GetProperty( PS3_SNCCOMPILER_PrecompiledHeaderFile )->m_StringValue );
+				additionalOptions += CFmtStrMax( "--use_pch=&quot;%s&quot; ", pCompilerTool->m_PropertyStates.GetProperty( PS3_SNCCOMPILER_PrecompiledHeaderFile )->m_StringValue.String() );
 			}
 			break;
 
@@ -453,7 +462,10 @@ bool CProjectGenerator_PS3::WriteGCCCompilerTool( CCompilerTool *pCompilerTool )
 		switch ( pCompilerTool->m_PropertyStates.m_Properties[i].m_pToolProperty->m_nPropertyId )
 		{
 		case PS3_GCCCOMPILER_AdditionalIncludeDirectories:
-			m_XMLWriter.Write( CFmtStrMax( "AdditionalIncludeDirectories=\"%s\"", m_XMLWriter.FixupXMLString( pCompilerTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() ) ) );
+			{
+				CUtlString aid = m_XMLWriter.FixupXMLString( pCompilerTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "AdditionalIncludeDirectories=\"%s\"", aid.String() ) );
+			}
 			break;
 
 		case PS3_GCCCOMPILER_PreprocessorDefinitions:
@@ -687,7 +699,10 @@ bool CProjectGenerator_PS3::WritePreLinkEventTool( CPreLinkEventTool *pPreLinkEv
 		switch ( pPreLinkEventTool->m_PropertyStates.m_Properties[i].m_pToolProperty->m_nPropertyId )
 		{
 		case PS3_PRELINKEVENT_CommandLine:
-			m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", m_XMLWriter.FixupXMLString( pPreLinkEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() ) ) );
+			{
+				CUtlString cl = m_XMLWriter.FixupXMLString( pPreLinkEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", cl.String() ) );
+			}
 			break;
 
 		case PS3_PRELINKEVENT_Description:
@@ -818,11 +833,11 @@ bool CProjectGenerator_PS3::WriteSNCLinkerTool( CLinkerTool *pLinkerTool )
 		case PS3_SNCLINKER_GenerateMapFile:
 			if ( nOrdinalValue == 1 )
 			{
-				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; ", pLinkerTool->m_PropertyStates.GetProperty( PS3_SNCLINKER_MapFileName )->m_StringValue );
+				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; ", pLinkerTool->m_PropertyStates.GetProperty( PS3_SNCLINKER_MapFileName )->m_StringValue.String() );
 			}
 			else if ( nOrdinalValue == 2 )
 			{
-				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; -sn-full-map ", pLinkerTool->m_PropertyStates.GetProperty( PS3_SNCLINKER_MapFileName )->m_StringValue );
+				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; -sn-full-map ", pLinkerTool->m_PropertyStates.GetProperty( PS3_SNCLINKER_MapFileName )->m_StringValue.String() );
 			}
 			break;
 
@@ -930,7 +945,7 @@ bool CProjectGenerator_PS3::WriteGCCLinkerTool( CLinkerTool *pLinkerTool )
 		case PS3_GCCLINKER_GenerateMapFile:
 			if ( nOrdinalValue == 1 )
 			{
-				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; ", pLinkerTool->m_PropertyStates.GetProperty( PS3_GCCLINKER_MapFileName )->m_StringValue );
+				additionalOptions += CFmtStrMax( "-Map=&quot;%s&quot; ", pLinkerTool->m_PropertyStates.GetProperty( PS3_GCCLINKER_MapFileName )->m_StringValue.String() );
 			}
 			break;
 
@@ -1015,7 +1030,10 @@ bool CProjectGenerator_PS3::WritePostBuildEventTool( CPostBuildEventTool *pPostB
 		switch ( pPostBuildEventTool->m_PropertyStates.m_Properties[i].m_pToolProperty->m_nPropertyId )
 		{
 		case PS3_POSTBUILDEVENT_CommandLine:
-			m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", m_XMLWriter.FixupXMLString( pPostBuildEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() ) ) );
+			{
+				CUtlString cl = m_XMLWriter.FixupXMLString( pPostBuildEventTool->m_PropertyStates.m_Properties[i].m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "CommandLine=\"%s\"", cl.String() ) );
+			}
 			break;
 
 		case PS3_POSTBUILDEVENT_Description:

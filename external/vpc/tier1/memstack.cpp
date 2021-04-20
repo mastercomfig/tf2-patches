@@ -25,8 +25,8 @@
 #include "tier0/memdbgon.h"
 
 #ifdef _WIN32
-#pragma warning(disable:4073)
-#pragma init_seg(lib)
+#pragma warning( disable:4073 )
+#pragma init_seg( lib )
 #endif
 
 static volatile bool bSpewAllocations = false; // TODO: Register CMemoryStacks with g_pMemAlloc, so it can spew a summary
@@ -51,7 +51,8 @@ CMemoryStack::CMemoryStack()
 	#endif
 #endif
  	m_maxSize( 0 ),
-	m_bRegisteredAllocation( false )
+	m_bRegisteredAllocation( false ),
+	m_bPhysical( false )
 {
 	m_pszAllocOwner = strdup( "CMemoryStack unattributed" );
 }

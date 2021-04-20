@@ -333,6 +333,8 @@ HKeySymbol CKeyValuesSystem::GetSymbolForString( const char *name, bool bCreate 
 	return (-1);
 }
 
+extern int	_V_stricmp_NegativeForUnequal(const char* s1, const char* s2);
+
 //-----------------------------------------------------------------------------
 // Purpose: symbol table access (used for key names)
 //-----------------------------------------------------------------------------
@@ -370,8 +372,8 @@ HKeySymbol CKeyValuesSystem::GetSymbolForStringCaseSensitive( HKeySymbol &hCaseI
 			while ( int nAlternativeStringIndex = MEM_4BYTES_FROM_0_AND_3BYTES( *pnCaseResolveIndex ) )
 			{
 				pCompareString = (char *)m_Strings.GetBase() + nAlternativeStringIndex;
-				int iResult = strcmp( name, pCompareString );
-				if ( !iResult )
+				int r = strcmp( name, pCompareString );
+				if ( !r )
 				{
 					// found an exact match
 					return (HKeySymbol)nAlternativeStringIndex;

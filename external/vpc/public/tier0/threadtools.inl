@@ -24,6 +24,7 @@ m_threadId( 0 ),
 m_threadZombieId( 0 ) ,
 #endif
 m_result( 0 ),
+m_pStackBase( NULL ),
 m_flags( 0 )
 {
 	m_szName[0] = 0;
@@ -515,7 +516,7 @@ INLINE_ON_PS3 void* CThread::ThreadProc(LPVOID pv)
 #if defined( POSIX ) || defined( _PS3 )
 	ThreadInit_t *pInit = reinterpret_cast<ThreadInit_t*>(pv);
 #else
-	std::auto_ptr<ThreadInit_t> pInit((ThreadInit_t *)pv);
+	std::unique_ptr<ThreadInit_t> pInit((ThreadInit_t *)pv);
 #endif
 
 #ifdef _X360

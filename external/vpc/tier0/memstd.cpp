@@ -2119,7 +2119,7 @@ void CStdMemAlloc::DumpStatsFileBase( char const *pchFileBase )
 
 IVirtualMemorySection * CStdMemAlloc::AllocateVirtualMemorySection( size_t numMaxBytes )
 {
-#if defined( _GAMECONSOLE ) || defined( _WIN32 )
+#if defined( _GAMECONSOLE )
 	extern IVirtualMemorySection * VirtualMemoryManager_AllocateVirtualMemorySection( size_t numMaxBytes );
 	return VirtualMemoryManager_AllocateVirtualMemorySection( numMaxBytes );
 #else

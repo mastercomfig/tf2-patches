@@ -13,8 +13,7 @@
 #define stricmp strcasecmp
 #endif
 
-#pragma warning( disable : 4996 )
-#pragma warning( disable : 4127 )
+#include "tier0/memdbgon.h"
 
 #define MAX_INCLUDE_STACK_DEPTH 10
 
@@ -404,7 +403,7 @@ bool CheckVPCExeCRC( char *pVPCCRCCheckString, const char *szFilename, char *pEr
 
 	// Calculate the CRC from the contents of the file.
 	CRC32_t nCRCFromFileContents = CRC32_ProcessSingleBuffer( pBuffer, cbVPCExe );
-	delete [] pBuffer;
+	free( pBuffer );
 
 	// Compare them.
 	if ( nCRCFromFileContents != nReferenceCRC )
@@ -507,7 +506,7 @@ bool VPC_CheckProjectDependencyCRCs( const char *pProjectFilename, const char *p
 }
 
 
-int VPC_OldeStyleCRCChecks( int argc, char **argv )
+int VPC_OldeStyleCRCChecks( int argc, const char **argv )
 {
 	for ( int i=1; (i+2) < argc; )
 	{
@@ -549,7 +548,7 @@ int VPC_OldeStyleCRCChecks( int argc, char **argv )
 }
 
 
-int VPC_CommandLineCRCChecks( int argc, char **argv )
+int VPC_CommandLineCRCChecks( int argc, const char **argv )
 {
 	if ( argc < 2 )
 	{

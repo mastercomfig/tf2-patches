@@ -5,6 +5,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 CGeneratorDefinition::CGeneratorDefinition()
 {
 	Clear();
@@ -222,7 +224,7 @@ void CGeneratorDefinition::AssignIdentifiers()
 				pPropertyName++;
 			}
 
-			CUtlString prefixString = CFmtStr( "%s_%s", pPrefix, pToolName );
+			CUtlString prefixString = CUtlString{ CFmtStr( "%s_%s", pPrefix, pToolName ) };
 
 			bool bFound = false;
 			for ( int k = 0; k < nTotalPropertyNames && !bFound; k++ )

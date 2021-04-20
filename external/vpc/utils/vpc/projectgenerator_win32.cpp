@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 #undef PROPERTYNAME
 #define PROPERTYNAME( X, Y ) { X##_##Y, #X, #Y },
 static PropertyName_t s_Win32PropertyNames[] =
@@ -51,7 +53,8 @@ bool CProjectGenerator_Win32::WriteFile( CProjectFile *pFile )
 bool CProjectGenerator_Win32::WriteFolder( CProjectFolder *pFolder )
 {
 	m_XMLWriter.PushNode( "Filter" );
-	m_XMLWriter.Write( CFmtStrMax( "Name=\"%s\"", m_XMLWriter.FixupXMLString( pFolder->m_Name.Get() ) ) );
+	CUtlString name = m_XMLWriter.FixupXMLString( pFolder->m_Name.Get() );
+	m_XMLWriter.Write( CFmtStrMax( "Name=\"%s\"", name.String() ) );
 	m_XMLWriter.Write( ">" );
 
 	for ( int iIndex = pFolder->m_Files.Head(); iIndex != pFolder->m_Files.InvalidIndex(); iIndex = pFolder->m_Files.Next( iIndex ) )
@@ -329,7 +332,10 @@ bool CProjectGenerator_Win32::WriteProperty( const PropertyState_t *pPropertySta
 			break;
 
 		case PT_STRING:
-			m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, m_XMLWriter.FixupXMLString( pPropertyState->m_StringValue.Get() ) ) );
+			{
+				CUtlString s = m_XMLWriter.FixupXMLString( pPropertyState->m_StringValue.Get() );
+				m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, s.String() ) );
+			}
 			break;
 
 		case PT_LIST:

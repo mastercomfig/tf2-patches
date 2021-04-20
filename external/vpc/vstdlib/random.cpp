@@ -126,7 +126,7 @@ int CUniformRandomStream::GenerateRandomNumber()
 	{
 		DebuggerBreakIfDebugging();
 		Warning("CUniformRandomStream had an array overrun: tried to write to element %d of 0..31. Contact Tom or Elan.\n", j);
-		j = ( j % NTAB ) & 0x7fffffff;
+		j = ( j % NTAB ) & (NTAB - 1);
 	}
 
 	m_iy=m_iv[j];

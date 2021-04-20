@@ -390,9 +390,9 @@ inline bool IsFinite( const vec_t &f )
 extern "C" 
 {
 #endif
-	double __cdecl fabs(double);
+	_Check_return_ double __cdecl fabs( _In_ double );
 	//_CRT_JIT_INTRINSIC  _CRTIMP float  __cdecl fabsf( __in float  _X);
-	float __cdecl fabsf( _In_ float );
+	_Check_return_ float __cdecl fabsf( _In_ float );
 #ifdef __cplusplus
 }
 #endif
@@ -434,13 +434,13 @@ inline float FloatMakeNegative( vec_t f )
 // FIXME: why are these here?  Hardly anyone actually needs them.
 struct color24
 {
-	byte r, g, b;
+	::byte r, g, b;
 };
 
 typedef struct color32_s
 {
 	bool operator!=( const struct color32_s &other ) const;
-	byte r, g, b, a; 
+	::byte r, g, b, a;
 
 	// assign and copy by using the whole register rather
 	// than byte-by-byte copy. (No, the compiler is not
