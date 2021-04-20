@@ -103,7 +103,7 @@ $Configuration "Release"
 		$EnableFloatingPointExceptions
 
 		// Language
-		//$LanguageStandard					"Preview - Features from the Latest C++ Working Draft (std:c++latest)"
+		$LanguageStandard					"ISO C++17 Standard (std:c++17)"
 		$DisableLanguageExtensions
 		$DefaultCharUnsigned
 		$TreatWCHAR_TAsBuiltInType
@@ -112,22 +112,8 @@ $Configuration "Release"
 		$OpenMPSupport
 
 		// Precompiled Headers
-		$Create/UsePrecompiledHeader		"Not Using Precompiled Headers"
 		$Create/UsePCHThroughFile
 		$PrecompiledHeaderFile
-
-		// Output Files
-		$ExpandAttributedSource
-		$AssemblerOutput
-		$ASMListLocation					"$(IntDir)/"
-		$ObjectFileName						"$(IntDir)/"
-		$ProgramDatabaseFileName			"$(IntDir)/"
-		$GenerateXMLDocumentationFiles		"No"
-		$XMLDocumentationFileName
-
-		// Browse Information
-		$EnableBrowseInformation			"None"
-		$BrowseFile							"$(IntDir)/"
 
 		// Advanced
 		$CallingConvention
@@ -140,7 +126,6 @@ $Configuration "Release"
 		$UndefineAllPreprocessorDefinitions
 		$UseFullPaths						"Yes (/FC)"
 		$OmitDefaultLibraryNames
-		$ErrorReporting						"Prompt Immediately (/errorReport:prompt)"
 
 		$AdditionalOptions					"/Zm750"
 		// Enable extra debugging information. This switch requires VS 2013 Update 3.
@@ -158,7 +143,6 @@ $Configuration "Release"
 		$ShowProgress						"Not Set"
 		$Version
 		$EnableIncrementalLinking			"No (/INCREMENTAL:NO)"
-		$SuppressStartupBanner				"Yes (/NOLOGO)"
 		$IgnoreImportLibrary
 		$RegisterOutput
 		$AdditionalLibraryDirectories		"$LIBCOMMON;$LIBPUBLIC"
@@ -261,7 +245,6 @@ $Configuration "Release"
 	$ManifestTool
 	{
 		// General
-		$SuppressStartupBanner				"Yes (/nologo)"
 		$VerboseOutput
 		$AssemblyIdentity
 		$UseUNICODEResponseFiles
@@ -293,7 +276,6 @@ $Configuration "Release"
 	$XMLDocumentGenerator
 	{
 		// General
-		$SuppressStartupBanner				"Yes (/nologo)"
 		$ValidateIntelliSense
 		$AdditionalDocumentFiles
 		$OutputDocumentFile
@@ -303,8 +285,6 @@ $Configuration "Release"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"	
-		$OutputFile							"$(OutDir)/$OUTBINNAME.bsc"
 		$AdditionalOptions
 	}
 

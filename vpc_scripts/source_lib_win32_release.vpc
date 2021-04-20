@@ -101,7 +101,7 @@ $Configuration "Release"
 		$EnableFloatingPointExceptions
 
 		// Language
-		//$LanguageStandard					"Preview - Features from the Latest C++ Working Draft (std:c++latest)"
+		$LanguageStandard					"ISO C++17 Standard (std:c++17)"
 		$DisableLanguageExtensions
 		$DefaultCharUnsigned
 		$TreatWCHAR_TAsBuiltInType			"Yes (/Zc:wchar_t)"
@@ -110,22 +110,8 @@ $Configuration "Release"
 		$OpenMPSupport						"No"
 
 		// Precompiled Headers
-		$Create/UsePrecompiledHeader		"Not Using Precompiled Headers"
 		$Create/UsePCHThroughFile
 		$PrecompiledHeaderFile
-
-		// Output Files
-		$ExpandAttributedSource				"No"
-		$AssemblerOutput					"No Listing"
-		$ASMListLocation					"$(IntDir)/"
-		$ObjectFileName						"$(IntDir)/"
-		$ProgramDatabaseFileName			"$(IntDir)/"
-		$GenerateXMLDocumentationFiles		"No"
-		$XMLDocumentationFileName
-
-		// Browse Information
-		$EnableBrowseInformation			"None"
-		$BrowseFile							"$(IntDir)/"
 
 		// Advanced
 		$CallingConvention
@@ -138,7 +124,6 @@ $Configuration "Release"
 		$UndefineAllPreprocessorDefinitions
 		$UseFullPaths						"Yes (/FC)"
 		$OmitDefaultLibraryNames
-		$ErrorReporting						"Prompt Immediately (/errorReport:prompt)"
 
 		// Enable extra debugging information. This switch requires VS 2013 Update 3.
 		// With VS 2013 make sure that Edit-And-Continue is disabled in the debugger settings so that
@@ -156,7 +141,6 @@ $Configuration "Release"
 		$OutputFile							"$OUTLIBDIR\$OUTLIBNAME.lib"
 		$AdditionalDependencies
 		$AdditionalLibraryDirectories
-		$SuppressStartupBanner				"Yes (/NOLOGO)"
 		$ModuleDefinitionFileName
 		$IgnoreAllDefaultLibraries
 		$IgnoreSpecificLibrary
@@ -172,7 +156,6 @@ $Configuration "Release"
 	$XMLDocumentGenerator
 	{
 		// General
-		$SuppressStartupBanner				"Yes (/nologo)"
 		$ValidateIntelliSense
 		$AdditionalDocumentFiles
 		$OutputDocumentFile
@@ -182,8 +165,6 @@ $Configuration "Release"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"	
-		$OutputFile							"$(OutDir)/$OUTLIBNAME.bsc"
 		$AdditionalOptions
 	}
 

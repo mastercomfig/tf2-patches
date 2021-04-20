@@ -82,3 +82,6 @@ UpgradeLog*.htm
 
 # ignore generated protobufs
 generated_proto*/
+
+# ignore local build vpc
+devtools/bin/vpc.exe
