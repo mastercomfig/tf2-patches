@@ -95,7 +95,7 @@ $Configuration "Debug"
 		$EnableFloatingPointExceptions
 
 		// Language
-		//$LanguageStandard					"Preview - Features from the Latest C++ Working Draft (std:c++latest)"
+		$LanguageStandard					"ISO C++17 Standard (std:c++17)"
 		$DisableLanguageExtensions
 		$DefaultCharUnsigned
 		$TreatWCHAR_TAsBuiltInType
@@ -104,22 +104,8 @@ $Configuration "Debug"
 		$OpenMPSupport
 
 		// Precompiled Headers
-		$Create/UsePrecompiledHeader		"Not Using Precompiled Headers"
 		$Create/UsePCHThroughFile
 		$PrecompiledHeaderFile
-
-		// Output Files
-		$ExpandAttributedSource
-		$AssemblerOutput
-		$ASMListLocation					"$(IntDir)/"
-		$ObjectFileName						"$(IntDir)/"
-		$ProgramDatabaseFileName			"$(IntDir)/"
-		$GenerateXMLDocumentationFiles		"No"
-		$XMLDocumentationFileName
-
-		// Browse Information
-		$EnableBrowseInformation			"None"
-		$BrowseFile							"$(IntDir)/"
 
 		// Advanced
 		$CallingConvention
@@ -132,7 +118,6 @@ $Configuration "Debug"
 		$UndefineAllPreprocessorDefinitions
 		$UseFullPaths						"Yes (/FC)"
 		$OmitDefaultLibraryNames
-		$ErrorReporting						"Prompt Immediately (/errorReport:prompt)"
 
 		$AdditionalOptions					"/Zm750"
 	}
@@ -235,7 +220,6 @@ $Configuration "Debug"
 	$ManifestTool
 	{
 		// General
-		$SuppressStartupBanner				"Yes (/nologo)"
 		$VerboseOutput
 		$AssemblyIdentity
 		$UseUNICODEResponseFiles
@@ -267,7 +251,6 @@ $Configuration "Debug"
 	$XMLDocumentGenerator
 	{
 		// General
-		$SuppressStartupBanner				"Yes (/nologo)"
 		$ValidateIntelliSense
 		$AdditionalDocumentFiles
 		$OutputDocumentFile
@@ -277,8 +260,6 @@ $Configuration "Debug"
 
 	$BrowseInformation
 	{
-		$SuppressStartupBanner				"Yes (/nologo)"	
-		$OutputFile							"$(OutDir)/$OUTBINNAME.bsc"
 		$AdditionalOptions
 	}
 

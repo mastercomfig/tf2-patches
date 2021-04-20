@@ -338,3 +338,6 @@ generated_proto*/
 !src/lib/public/x64/tier3.lib
 !src/lib/public/x64/vpklib.lib
 !src/lib/public/x64/vstdlib.lib
+
+# ignore local build vpc
+devtools/bin/vpc.exe

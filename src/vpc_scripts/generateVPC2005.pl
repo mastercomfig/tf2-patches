@@ -274,7 +274,7 @@ my(%configOptionsMultiValue) = (
 		"EnableEnhancedInstructionSet"		=>	"EnableEnhancedInstructionSet",
 		"FloatingPointModel"			=>	"FloatingPointModel",
 		"FloatingPointExceptions"		=>	"EnableFloatingPointExceptions",
-		"LanguageStandard"              =>  "LanguageStandard"
+		"LanguageStandard"			=>	"LanguageStandard"
 
 		# Language
 		"DisableLanguageExtensions"		=>	"DisableLanguageExtensions",
