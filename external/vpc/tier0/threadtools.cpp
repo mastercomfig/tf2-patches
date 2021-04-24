@@ -72,12 +72,6 @@ bool gbCheckNotMultithreaded = true;
 
 #define DEBUG_ERROR(XX) Assert(0)
 
-// Need to ensure initialized before other clients call in for main thread ID
-#ifdef _WIN32
-#pragma warning( disable:4073 )
-#pragma init_seg( lib )
-#endif
-
 #ifdef _WIN32
 ASSERT_INVARIANT(TT_SIZEOF_CRITICALSECTION == sizeof(CRITICAL_SECTION));
 ASSERT_INVARIANT(TT_INFINITE == INFINITE);

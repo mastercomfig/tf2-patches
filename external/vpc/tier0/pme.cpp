@@ -50,7 +50,7 @@ void InitPME( void )
 	}
 
 #ifdef VPROF_ENABLED
-	g_VProfCurrentProfile.PMEInitialized( bInit );
+	GetVProfCurrentProfile().PMEInitialized( bInit );
 #endif
 }
 
@@ -66,7 +66,7 @@ void ShutdownPME( void )
 	}
 
 #ifdef VPROF_ENABLED
-	g_VProfCurrentProfile.PMEInitialized( false );
+	GetVProfCurrentProfile().PMEInitialized( false );
 #endif
 }
 

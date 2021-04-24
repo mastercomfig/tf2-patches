@@ -204,7 +204,7 @@ PLATFORM_INTERFACE IMemAlloc * g_pMemAllocInternalPS3;
 
 #else // !_PS3
 
-MEM_INTERFACE IMemAlloc *g_pMemAlloc;
+MEM_INTERFACE IMemAlloc *GetMemoryAllocator();
 
 #endif
 
@@ -216,23 +216,23 @@ MEM_INTERFACE IMemAlloc *g_pMemAlloc;
 #endif
 inline void *MemAlloc_Alloc( size_t nSize )
 { 
-	return g_pMemAlloc->RegionAlloc( MEMALLOC_REGION, nSize );
+	return GetMemoryAllocator()->RegionAlloc( MEMALLOC_REGION, nSize );
 }
 
 inline void *MemAlloc_Alloc( size_t nSize, const char *pFileName, int nLine )
 { 
-	return g_pMemAlloc->RegionAlloc( MEMALLOC_REGION, nSize, pFileName, nLine );
+	return GetMemoryAllocator()->RegionAlloc( MEMALLOC_REGION, nSize, pFileName, nLine );
 }
 #else
 #undef MEMALLOC_REGION
 inline void *MemAlloc_Alloc( size_t nSize )
 { 
-	return g_pMemAlloc->IndirectAlloc( nSize );
+	return GetMemoryAllocator()->IndirectAlloc( nSize );
 }
 
 inline void *MemAlloc_Alloc( size_t nSize, const char *pFileName, int nLine )
 { 
-	return g_pMemAlloc->IndirectAlloc( nSize, pFileName, nLine );
+	return GetMemoryAllocator()->IndirectAlloc( nSize, pFileName, nLine );
 }
 #endif
 
@@ -262,7 +262,7 @@ inline void *MemAlloc_AllocAlignedUnattributed( size_t size, size_t align )
 
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	return g_pMemAlloc->AllocAlign( size, align );
+	return GetMemoryAllocator()->AllocAlign( size, align );
 
 #else
 
@@ -292,7 +292,7 @@ inline void *MemAlloc_AllocAlignedFileLine( size_t size, size_t align, const cha
 
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	return g_pMemAlloc->AllocAlign( size, align, pszFile, nLine );
+	return GetMemoryAllocator()->AllocAlign( size, align, pszFile, nLine );
 
 #else
 
@@ -330,7 +330,7 @@ inline void *MemAlloc_ReallocAligned( void *ptr, size_t size, size_t align )
 
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	return g_pMemAlloc->ReallocAlign( ptr, size, align );
+	return GetMemoryAllocator()->ReallocAlign( ptr, size, align );
 
 #else
 
@@ -346,13 +346,13 @@ inline void *MemAlloc_ReallocAligned( void *ptr, size_t size, size_t align )
 
 	// See if we have enough space
 	size_t nOffset = (size_t)ptr - (size_t)pAlloc;
-	size_t nOldSize = g_pMemAlloc->GetSize( pAlloc );
+	size_t nOldSize = GetMemoryAllocator()->GetSize( pAlloc );
 	if ( nOldSize >= size + nOffset )
 		return ptr;
 
 	pResult = MemAlloc_AllocAligned( size, align );
 	memcpy( pResult, ptr, nOldSize - nOffset );
-	g_pMemAlloc->Free( pAlloc );
+	GetMemoryAllocator()->Free( pAlloc );
 	return pResult;
 
 #endif
@@ -362,7 +362,7 @@ inline void MemAlloc_FreeAligned( void *pMemBlock )
 {
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	g_pMemAlloc->Free( pMemBlock );
+	GetMemoryAllocator()->Free( pMemBlock );
 
 #else
 
@@ -379,7 +379,7 @@ inline void MemAlloc_FreeAligned( void *pMemBlock )
 	// pAlloc is the pointer to the start of memory block
 	pAlloc = *( (void **)pAlloc );
 
-	g_pMemAlloc->Free( pAlloc );
+	GetMemoryAllocator()->Free( pAlloc );
 
 #endif
 }
@@ -388,7 +388,7 @@ inline void MemAlloc_FreeAligned( void *pMemBlock, const char *pszFile, int nLin
 {
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	g_pMemAlloc->Free( pMemBlock, pszFile, nLine );
+	GetMemoryAllocator()->Free( pMemBlock, pszFile, nLine );
 
 #else
 
@@ -404,7 +404,7 @@ inline void MemAlloc_FreeAligned( void *pMemBlock, const char *pszFile, int nLin
 
 	// pAlloc is the pointer to the start of memory block
 	pAlloc = *( (void **)pAlloc );
-	g_pMemAlloc->Free( pAlloc, pszFile, nLine );
+	GetMemoryAllocator()->Free( pAlloc, pszFile, nLine );
 
 #endif
 }
@@ -413,7 +413,7 @@ inline size_t MemAlloc_GetSizeAligned( void *pMemBlock )
 {
 #ifdef MEMALLOC_SUPPORTS_ALIGNED_ALLOCATIONS
 
-	return g_pMemAlloc->GetSize( pMemBlock );
+	return GetMemoryAllocator()->GetSize( pMemBlock );
 
 #else
 
@@ -429,7 +429,7 @@ inline size_t MemAlloc_GetSizeAligned( void *pMemBlock )
 
 	// pAlloc is the pointer to the start of memory block
 	pAlloc = *((void **)pAlloc );
-	return g_pMemAlloc->GetSize( pAlloc ) - ( (::byte *)pMemBlock - (::byte *)pAlloc );
+	return GetMemoryAllocator()->GetSize( pAlloc ) - ( (::byte *)pMemBlock - (::byte *)pAlloc );
 
 #endif
 }
@@ -476,10 +476,10 @@ public:
 
 #if (defined(_DEBUG) || defined(USE_MEM_DEBUG))
 #define MEM_ALLOC_CREDIT_(tag)	CMemAllocAttributeAlloction memAllocAttributeAlloction( tag, __LINE__ )
-#define MemAlloc_PushAllocDbgInfo( pszFile, line ) g_pMemAlloc->PushAllocDbgInfo( pszFile, line )
-#define MemAlloc_PopAllocDbgInfo() g_pMemAlloc->PopAllocDbgInfo()
-#define MemAlloc_RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) g_pMemAlloc->RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
-#define MemAlloc_RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) g_pMemAlloc->RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
+#define MemAlloc_PushAllocDbgInfo( pszFile, line ) GetMemoryAllocator()->PushAllocDbgInfo( pszFile, line )
+#define MemAlloc_PopAllocDbgInfo() GetMemoryAllocator()->PopAllocDbgInfo()
+#define MemAlloc_RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) GetMemoryAllocator()->RegisterAllocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
+#define MemAlloc_RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime ) GetMemoryAllocator()->RegisterDeallocation( pFileName, nLine, nLogicalSize, nActualSize, nTime )
 #else
 #define MEM_ALLOC_CREDIT_(tag)	((void)0)
 #define MemAlloc_PushAllocDbgInfo( pszFile, line ) ((void)0)
@@ -574,7 +574,7 @@ struct MemAllocFileLine_t
 	{ \
 		AUTO_LOCK_FM( *g_p##tag##AllocsMutex ); \
 		MemAllocFileLine_t fileLine = { g_psz##tag##Alloc, 0 }; \
-		g_pMemAlloc->GetActualDbgInfo( fileLine.pszFile, fileLine.line ); \
+		GetMemoryAllocator()->GetActualDbgInfo( fileLine.pszFile, fileLine.line ); \
 		if ( fileLine.pszFile != g_psz##tag##Alloc ) \
 		{ \
 			g_p##tag##Allocs->Insert( p, fileLine ); \

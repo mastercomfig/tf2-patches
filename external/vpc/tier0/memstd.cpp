@@ -216,9 +216,6 @@ void *operator new[] ( unsigned int nSize, int nBlockUse, const char *pFileName,
 //-----------------------------------------------------------------------------
 // Singleton...
 //-----------------------------------------------------------------------------
-#pragma warning( disable:4074 ) // warning C4074: initializers put in compiler reserved initialization area
-#pragma init_seg( compiler )
-
 #if MEM_SBH_ENABLED
 CSmallBlockPool< CStdMemAlloc::CFixedAllocator< MBYTES_PRIMARY_SBH, true> >::SharedData_t CSmallBlockPool< CStdMemAlloc::CFixedAllocator< MBYTES_PRIMARY_SBH, true> >::gm_SharedData CONSTRUCT_EARLY;
 #ifdef MEMALLOC_USE_SECONDARY_SBH
@@ -229,21 +226,17 @@ CSmallBlockPool< CStdMemAlloc::CVirtualAllocator >::SharedData_t CSmallBlockPool
 #endif
 #endif // MEM_SBH_ENABLED
 
-static CStdMemAlloc s_StdMemAlloc CONSTRUCT_EARLY;
+IMemAlloc* GetMemoryAllocator()
+{
+	static CStdMemAlloc stdMemAlloc CONSTRUCT_EARLY;
+	return &stdMemAlloc;
+}
 
 #ifdef _PS3
 
 MemOverrideRawCrtFunctions_t *g_pMemOverrideRawCrtFns;
-IMemAlloc *g_pMemAllocInternalPS3 = &s_StdMemAlloc;
+IMemAlloc *g_pMemAllocInternalPS3 = NULL;
 PLATFORM_OVERRIDE_MEM_ALLOC_INTERNAL_PS3_IMPL
-
-#else // !_PS3
-
-#ifndef TIER0_VALIDATE_HEAP
-IMemAlloc *g_pMemAlloc = &s_StdMemAlloc;
-#else
-IMemAlloc *g_pActualAlloc = &s_StdMemAlloc;
-#endif
 
 #endif // _PS3
 
@@ -253,7 +246,7 @@ CStdMemAlloc::CStdMemAlloc()
 	m_bInCompact( false )
 {
 #ifdef _PS3
-	g_pMemAllocInternalPS3 = &s_StdMemAlloc;
+	g_pMemAllocInternalPS3 = GetMemoryAllocator();
 	PLATFORM_OVERRIDE_MEM_ALLOC_INTERNAL_PS3.m_pMemAllocCached = &s_StdMemAlloc;
 	malloc_managed_size mms;
 	mms.current_inuse_size = 0x12345678;

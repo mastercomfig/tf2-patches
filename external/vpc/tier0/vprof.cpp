@@ -17,11 +17,6 @@
 
 #include <assert.h>
 
-#ifdef _WIN32
-#pragma warning( disable:4073 )
-#pragma init_seg( lib )
-#endif
-
 #include <map>
 #include <vector>
 #include <algorithm>
@@ -64,7 +59,11 @@ bool g_VProfSignalSpike;
 
 //-----------------------------------------------------------------------------
 
-CVProfile g_VProfCurrentProfile;
+CVProfile& GetVProfCurrentProfile()
+{
+	static CVProfile vprofCurrentProfile CONSTRUCT_EARLY;
+	return vprofCurrentProfile;
+}
 
 int CVProfNode::s_iCurrentUniqueNodeID = 0;
 
@@ -113,12 +112,12 @@ void CVProfNode::EnterScope()
 	{
 		m_Timer.Start();
 #ifndef _X360
-		if ( g_VProfCurrentProfile.UsePME() )
+		if ( GetVProfCurrentProfile().UsePME() )
 		{
 			m_L2Cache.Start();
 		}
 #else // 360 code:
-		if ( g_VProfCurrentProfile.UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
+		if ( GetVProfCurrentProfile().UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
 		{
 			m_PMCData.Start();
 		}
@@ -126,13 +125,13 @@ void CVProfNode::EnterScope()
 		if ( (m_iBitFlags & kCPUTrace) != 0)
 		{
 			// this node is to be recorded. Which recording mode are we in?
-			switch ( g_VProfCurrentProfile.GetCPUTraceMode() )
+			switch ( GetVProfCurrentProfile().GetCPUTraceMode() )
 			{
 			case CVProfile::kFirstHitNode:
 			case CVProfile::kAllNodesInFrame_Recording:
 			case CVProfile::kAllNodesInFrame_RecordingMultiFrame:
 				// we are presently recording.
-				if ( !XTraceStartRecording( g_VProfCurrentProfile.GetCPUTraceFilename() ) )
+				if ( !XTraceStartRecording( GetVProfCurrentProfile().GetCPUTraceFilename() ) )
 				{
 					Msg( "XTraceStartRecording failed, error code %d\n", GetLastError() );
 				}
@@ -147,7 +146,7 @@ void CVProfNode::EnterScope()
 #endif
 
 #ifdef VPROF_VTUNE_GROUP
-		g_VProfCurrentProfile.PushGroup( m_BudgetGroupID );
+		GetVProfCurrentProfile().PushGroup( m_BudgetGroupID );
 #endif
 	}
 }
@@ -161,13 +160,13 @@ bool CVProfNode::ExitScope()
 		m_Timer.End();
 		m_CurFrameTime += m_Timer.GetDuration();
 #ifndef _X360
-		if ( g_VProfCurrentProfile.UsePME() )
+		if ( GetVProfCurrentProfile().UsePME() )
 		{
 			m_L2Cache.End();
 			m_iCurL2CacheMiss += m_L2Cache.GetL2CacheMisses();
 		}
 #else // 360 code:
-		if ( g_VProfCurrentProfile.UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
+		if ( GetVProfCurrentProfile().UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
 		{
 			m_PMCData.End();
 			m_iCurL2CacheMiss   += m_PMCData.GetL2CacheMisses();
@@ -177,7 +176,7 @@ bool CVProfNode::ExitScope()
 		if ( (m_iBitFlags & kCPUTrace) != 0 )
 		{
 			// this node is enabled to be recorded. What mode are we in?
-			switch ( g_VProfCurrentProfile.GetCPUTraceMode() )
+			switch ( GetVProfCurrentProfile().GetCPUTraceMode() )
 			{
 			case CVProfile::kFirstHitNode:
 			{
@@ -185,14 +184,14 @@ bool CVProfNode::ExitScope()
 				if ( XTraceStopRecording() )
 				{
 					Msg( "CPU trace finished.\n" );
-					if ( g_VProfCurrentProfile.TraceCompleteEvent() )
+					if ( GetVProfCurrentProfile().TraceCompleteEvent() )
 					{
 						// signal VXConsole that trace is completed
 						XBX_rTraceComplete();
 					}
 				}
 				// don't trace again next frame, overwriting the file.
-				g_VProfCurrentProfile.SetCPUTraceEnabled( CVProfile::kDisabled );
+				GetVProfCurrentProfile().SetCPUTraceEnabled( CVProfile::kDisabled );
 				break;
 			}
 
@@ -202,9 +201,9 @@ bool CVProfNode::ExitScope()
 				// one-off recording. stop now.
 				if ( XTraceStopRecording() )
 				{
-					if ( g_VProfCurrentProfile.GetCPUTraceMode() == CVProfile::kAllNodesInFrame_RecordingMultiFrame )
+					if ( GetVProfCurrentProfile().GetCPUTraceMode() == CVProfile::kAllNodesInFrame_RecordingMultiFrame )
 					{
-						Msg( "%.3f msec in %s\n", m_CurFrameTime.GetMillisecondsF(), g_VProfCurrentProfile.GetCPUTraceFilename() );
+						Msg( "%.3f msec in %s\n", m_CurFrameTime.GetMillisecondsF(), GetVProfCurrentProfile().GetCPUTraceFilename() );
 					}
 					else
 					{
@@ -213,7 +212,7 @@ bool CVProfNode::ExitScope()
 				}
 				
 				// Spew time info for file to allow figuring it out later
-				g_VProfCurrentProfile.LatchMultiFrame( m_CurFrameTime.GetLongCycles() );
+				GetVProfCurrentProfile().LatchMultiFrame( m_CurFrameTime.GetLongCycles() );
 				
 #if 0 // This doesn't want to work on the xbox360-- MoveFile not available or file still being put down to disk?
 				char suffix[ 32 ];
@@ -221,7 +220,7 @@ bool CVProfNode::ExitScope()
 
 				char fn[ 512 ];
 
-				strncpy( fn, g_VProfCurrentProfile.GetCPUTraceFilename(), sizeof( fn ) );
+				strncpy( fn, GetVProfCurrentProfile().GetCPUTraceFilename(), sizeof( fn ) );
 
 				char *p = strrchr( fn, '.' );
 				if ( *p )
@@ -231,7 +230,7 @@ bool CVProfNode::ExitScope()
 				strncat( fn, suffix, sizeof( fn ) );
 				strncat( fn, ".pix2", sizeof( fn ) );
 			
-				BOOL bSuccess = MoveFile( g_VProfCurrentProfile.GetCPUTraceFilename(), fn );
+				BOOL bSuccess = MoveFile( GetVProfCurrentProfile().GetCPUTraceFilename(), fn );
 				if ( !bSuccess )
 				{
 					DWORD eCode = GetLastError();
@@ -241,13 +240,13 @@ bool CVProfNode::ExitScope()
 
 				// we're still recording until the frame is done.
 				// but, increment the index.
-				g_VProfCurrentProfile.IncrementMultiTraceIndex();
+				GetVProfCurrentProfile().IncrementMultiTraceIndex();
 				break;
 			}
 
 			}
 			
-			// g_VProfCurrentProfile.IsCPUTraceEnabled() && 
+			// GetVProfCurrentProfile().IsCPUTraceEnabled() && 
 
 
 		}
@@ -255,7 +254,7 @@ bool CVProfNode::ExitScope()
 #endif
 
 #ifdef VPROF_VTUNE_GROUP
-		g_VProfCurrentProfile.PopGroup();
+		GetVProfCurrentProfile().PopGroup();
 #endif
 	}
 	return ( m_nRecursions == 0 );
@@ -271,13 +270,13 @@ void CVProfNode::Pause()
 		m_CurFrameTime += m_Timer.GetDuration();
 
 #ifndef _X360
-		if ( g_VProfCurrentProfile.UsePME() )
+		if ( GetVProfCurrentProfile().UsePME() )
 		{
 			m_L2Cache.End();
 			m_iCurL2CacheMiss += m_L2Cache.GetL2CacheMisses();
 		}
 #else // 360 code:
-		if ( g_VProfCurrentProfile.UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
+		if ( GetVProfCurrentProfile().UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
 		{
 			m_PMCData.End();
 			m_iCurL2CacheMiss   += m_PMCData.GetL2CacheMisses();
@@ -304,12 +303,12 @@ void CVProfNode::Resume()
 		m_Timer.Start();
 
 #ifndef _X360
-		if ( g_VProfCurrentProfile.UsePME() )
+		if ( GetVProfCurrentProfile().UsePME() )
 		{
 			m_L2Cache.Start();
 		}
 #else
-		if ( g_VProfCurrentProfile.UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
+		if ( GetVProfCurrentProfile().UsePME() || ((m_iBitFlags & kRecordL2) != 0) ) 
 		{
 			m_PMCData.Start();
 		}
@@ -997,15 +996,15 @@ void CVProfile::VXProfileStart()
 	if ( m_UpdateMode & VPROF_UPDATE_BUDGET )
 	{
 		// update budget profiling
-		numGroups = g_VProfCurrentProfile.GetNumBudgetGroups();
+		numGroups = GetVProfCurrentProfile().GetNumBudgetGroups();
 		if ( numGroups > XBX_MAX_PROFILE_COUNTERS )
 		{
 			numGroups = XBX_MAX_PROFILE_COUNTERS;
 		}
 		for ( i=0; i<numGroups; i++ )
 		{
-			names[i] = g_VProfCurrentProfile.GetBudgetGroupName( i );
-			g_VProfCurrentProfile.GetBudgetGroupColor( i, r, g, b, a );
+			names[i] = GetVProfCurrentProfile().GetBudgetGroupName( i );
+			GetVProfCurrentProfile().GetBudgetGroupColor( i, r, g, b, a );
 			colors[i] = XMAKECOLOR( r, g, b );
 		}
 
@@ -1018,12 +1017,12 @@ void CVProfile::VXProfileStart()
 		// update texture profiling
 		numGroups = 0;
 		counterGroup = (m_UpdateMode & VPROF_UPDATE_TEXTURE_GLOBAL) ? COUNTER_GROUP_TEXTURE_GLOBAL : COUNTER_GROUP_TEXTURE_PER_FRAME;
-		for ( i=0; i<g_VProfCurrentProfile.GetNumCounters(); i++ )
+		for ( i=0; i<GetVProfCurrentProfile().GetNumCounters(); i++ )
 		{
-			if ( g_VProfCurrentProfile.GetCounterGroup( i ) == counterGroup )
+			if ( GetVProfCurrentProfile().GetCounterGroup( i ) == counterGroup )
 			{	
 				// strip undesired prefix
-				pGroupName = g_VProfCurrentProfile.GetCounterName( i );
+				pGroupName = GetVProfCurrentProfile().GetCounterName( i );
 				if ( !stricmp( pGroupName, "texgroup_frame_" ) )
 				{
 					pGroupName += 15;
@@ -1034,7 +1033,7 @@ void CVProfile::VXProfileStart()
 				}
 				names[numGroups] = pGroupName;
 
-				g_VProfCurrentProfile.GetBudgetGroupColor( numGroups, r, g, b, a );
+				GetVProfCurrentProfile().GetBudgetGroupColor( numGroups, r, g, b, a );
 				colors[numGroups] = XMAKECOLOR( r, g, b );
 
 				numGroups++;
@@ -1069,14 +1068,14 @@ void CVProfile::VXProfileUpdate()
 	if ( m_UpdateMode & VPROF_UPDATE_BUDGET )
 	{
 		// send the cpu counters
-		numGroups = g_VProfCurrentProfile.GetNumBudgetGroups();
+		numGroups = GetVProfCurrentProfile().GetNumBudgetGroups();
 		if ( numGroups > XBX_MAX_PROFILE_COUNTERS )
 		{
 			numGroups = XBX_MAX_PROFILE_COUNTERS;
 		}
 		memset( groupData, 0, numGroups * sizeof( unsigned int ) );
 
-		CVProfNode *pNode = g_VProfCurrentProfile.GetRoot();
+		CVProfNode *pNode = GetVProfCurrentProfile().GetRoot();
 		if ( pNode && pNode->GetChild() )
 		{
 			switch ( m_ReportMode )
@@ -1104,12 +1103,12 @@ void CVProfile::VXProfileUpdate()
 		// send the texture counters
 		numGroups = 0;
 		counterGroup = ( m_UpdateMode & VPROF_UPDATE_TEXTURE_GLOBAL ) ? COUNTER_GROUP_TEXTURE_GLOBAL : COUNTER_GROUP_TEXTURE_PER_FRAME;
-		for ( i = 0; i < g_VProfCurrentProfile.GetNumCounters(); i++ )
+		for ( i = 0; i < GetVProfCurrentProfile().GetNumCounters(); i++ )
 		{
-			if ( g_VProfCurrentProfile.GetCounterGroup( i ) == counterGroup )
+			if ( GetVProfCurrentProfile().GetCounterGroup( i ) == counterGroup )
 			{
 				// get the size in bytes
-				groupData[numGroups++] = g_VProfCurrentProfile.GetCounterValue( i );
+				groupData[numGroups++] = GetVProfCurrentProfile().GetCounterValue( i );
 				if ( numGroups == XBX_MAX_PROFILE_COUNTERS )
 				{
 					break;
@@ -1153,9 +1152,9 @@ static void VXBuildNodeList_r( CVProfNode *pNode, xVProfNodeItem_t *pNodeList, i
 	// add to list
 	pNodeList[*pNumNodes].pName = (const char *)pNode->GetName();
 
-	pNodeList[*pNumNodes].pBudgetGroupName = g_VProfCurrentProfile.GetBudgetGroupName( pNode->GetBudgetGroupID() );
+	pNodeList[*pNumNodes].pBudgetGroupName = GetVProfCurrentProfile().GetBudgetGroupName( pNode->GetBudgetGroupID() );
 	int r, g, b, a;
-	g_VProfCurrentProfile.GetBudgetGroupColor( pNode->GetBudgetGroupID(), r, g, b, a );
+	GetVProfCurrentProfile().GetBudgetGroupColor( pNode->GetBudgetGroupID(), r, g, b, a );
 	pNodeList[*pNumNodes].budgetGroupColor = XMAKECOLOR( r, g, b );
 
 	pNodeList[*pNumNodes].totalCalls = pNode->GetTotalCalls();

@@ -82,8 +82,8 @@
 
 #define VPROF_ONLY( expression )	( expression )
 
-#define VPROF_ENTER_SCOPE( name )			g_VProfCurrentProfile.EnterScope( name, 1, VPROF_BUDGETGROUP_OTHER_UNACCOUNTED, false, 0 )
-#define VPROF_EXIT_SCOPE()					g_VProfCurrentProfile.ExitScope()
+#define VPROF_ENTER_SCOPE( name )			GetVProfCurrentProfile().EnterScope( name, 1, VPROF_BUDGETGROUP_OTHER_UNACCOUNTED, false, 0 )
+#define VPROF_EXIT_SCOPE()					GetVProfCurrentProfile().ExitScope()
 
 #define VPROF_BUDGET_GROUP_ID_UNACCOUNTED 0
 
@@ -742,7 +742,7 @@ protected:
 
 //-------------------------------------
 
-PLATFORM_INTERFACE CVProfile g_VProfCurrentProfile;
+PLATFORM_INTERFACE CVProfile& GetVProfCurrentProfile();
 
 //-----------------------------------------------------------------------------
 
@@ -853,7 +853,7 @@ inline CVProfNode::CVProfNode( const tchar * pszName, int detailLevel, CVProfNod
 
 	if ( m_iUniqueNodeID > 0 )
 	{
-		m_BudgetGroupID = g_VProfCurrentProfile.BudgetGroupNameToBudgetGroupID( pBudgetGroupName, budgetFlags );
+		m_BudgetGroupID = GetVProfCurrentProfile().BudgetGroupNameToBudgetGroupID( pBudgetGroupName, budgetFlags );
 	}
 	else
 	{
@@ -1348,11 +1348,11 @@ inline unsigned int CVProfile::GetMultiTraceIndex()
 
 inline CVProfScope::CVProfScope( const tchar * pszName, int detailLevel, const tchar *pBudgetGroupName, bool bAssertAccounted, int budgetFlags ):
 	CVProfSnMarkerScope( pszName ),
-	m_bEnabled( g_VProfCurrentProfile.IsEnabled() )
+	m_bEnabled( GetVProfCurrentProfile().IsEnabled() )
 { 
 	if ( m_bEnabled )
 	{
-		g_VProfCurrentProfile.EnterScope( pszName, detailLevel, pBudgetGroupName, bAssertAccounted, budgetFlags ); 
+		GetVProfCurrentProfile().EnterScope( pszName, detailLevel, pBudgetGroupName, bAssertAccounted, budgetFlags );
 	}
 }
 
@@ -1362,7 +1362,7 @@ inline CVProfScope::~CVProfScope()
 { 
 	if ( m_bEnabled )
 	{
-		g_VProfCurrentProfile.ExitScope(); 
+		GetVProfCurrentProfile().ExitScope();
 	}
 }
 
@@ -1371,7 +1371,7 @@ class CVProfCounter
 public:
 	CVProfCounter( const tchar *pName, CounterGroup_t group=COUNTER_GROUP_DEFAULT )
 	{
-		m_pCounter = g_VProfCurrentProfile.FindOrCreateCounter( pName, group );
+		m_pCounter = GetVProfCurrentProfile().FindOrCreateCounter( pName, group );
 		Assert( m_pCounter );
 	}
 	~CVProfCounter()

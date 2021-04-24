@@ -193,7 +193,7 @@ Plat_AllocErrorFn g_AllocError = Plat_DefaultAllocErrorFn;
 
 PLATFORM_INTERFACE void* Plat_Alloc( unsigned long size )
 {
-	void *pRet = g_pMemAlloc->Alloc( size );
+	void *pRet = GetMemoryAllocator()->Alloc( size );
 	if ( pRet )
 	{
 		return pRet;
@@ -208,7 +208,7 @@ PLATFORM_INTERFACE void* Plat_Alloc( unsigned long size )
 
 PLATFORM_INTERFACE void* Plat_Realloc( void *ptr, unsigned long size )
 {
-	void *pRet = g_pMemAlloc->Realloc( ptr, size );
+	void *pRet = GetMemoryAllocator()->Realloc( ptr, size );
 	if ( pRet )
 	{
 		return pRet;
@@ -224,7 +224,7 @@ PLATFORM_INTERFACE void* Plat_Realloc( void *ptr, unsigned long size )
 PLATFORM_INTERFACE void Plat_Free( void *ptr )
 {
 #if !defined(STEAM) && !defined(NO_MALLOC_OVERRIDE)
-	g_pMemAlloc->Free( ptr );
+	GetMemoryAllocator()->Free( ptr );
 #else
 	free( ptr );
 #endif   

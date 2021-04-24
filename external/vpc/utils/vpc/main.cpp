@@ -160,7 +160,7 @@ bool CVPC::Init( int argc, const char **argv )
 	Log_Msg( LOG_VPC, "VPC - Valve Project Creator For " );
 	Log_Msg( LOG_VPC, "Visual Studio, Xbox 360, PlayStation 3, " );
 	Log_Msg( LOG_VPC, "Xcode and Make (Build: %s %s)\n", __DATE__, __TIME__ );
-	Log_Msg( LOG_VPC, "(C) Copyright 1996-2015, Valve Corporation, All rights reserved.\n" );
+	Log_Msg( LOG_VPC, "(C) Copyright 1996-2021, Valve Corporation, All rights reserved.\n" );
 	Log_Msg( LOG_VPC, "\n" );
 
 	return true;

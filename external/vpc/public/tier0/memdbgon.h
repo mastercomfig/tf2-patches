@@ -102,14 +102,14 @@ inline void *MemAlloc_InlineCallocMemset( void *pMem, size_t nCount, size_t nEle
 
 #define calloc(c, s)		MemAlloc_InlineCallocMemset(malloc(c*s), c, s)
 #ifndef USE_LIGHT_MEM_DEBUG
-#define free(p)				g_pMemAlloc->Free( p )
+#define free(p)				GetMemoryAllocator()->Free( p )
 #define _aligned_free( p )	MemAlloc_FreeAligned( p )
 #else
 extern const char *g_pszModule; 
-#define free(p)				g_pMemAlloc->Free( p, g_pszModule, 0 )
+#define free(p)				GetMemoryAllocator()->Free( p, g_pszModule, 0 )
 #define _aligned_free( p )	MemAlloc_FreeAligned( p, g_pszModule, 0 )
 #endif
-#define _msize(p)			g_pMemAlloc->GetSize( p )
+#define _msize(p)			GetMemoryAllocator()->GetSize( p )
 #define _expand(p, s)		_expand_NoLongerSupported(p, s)
 
 // --------------------------------------------------------
@@ -117,7 +117,7 @@ extern const char *g_pszModule;
 #if defined(USE_MEM_DEBUG)
 
 #define malloc(s)				MemAlloc_Alloc( s, __FILE__, __LINE__)
-#define realloc(p, s)			g_pMemAlloc->Realloc( p, s, __FILE__, __LINE__ )
+#define realloc(p, s)			GetMemoryAllocator()->Realloc( p, s, __FILE__, __LINE__ )
 #define _aligned_malloc( s, a )	MemAlloc_AllocAlignedFileLine( s, a, __FILE__, __LINE__ )
 
 #define _malloc_dbg(s, t, f, l)	WHYCALLINGTHISDIRECTLY(s)
@@ -127,8 +127,8 @@ extern const char *g_pszModule;
 #if defined( _PS3 )
 	#ifndef PS3_OPERATOR_NEW_WRAPPER_DEFINED
 		#define PS3_OPERATOR_NEW_WRAPPER_DEFINED
-		inline void* operator new( size_t nSize, int blah, const char *pFileName, int nLine ) { return g_pMemAlloc->IndirectAlloc( nSize, pFileName, nLine ); }
-		inline void* operator new[]( size_t nSize, int blah, const char *pFileName, int nLine ) { return g_pMemAlloc->IndirectAlloc( nSize, pFileName, nLine ); }
+		inline void* operator new( size_t nSize, int blah, const char *pFileName, int nLine ) { return GetMemoryAllocator()->IndirectAlloc( nSize, pFileName, nLine ); }
+		inline void* operator new[]( size_t nSize, int blah, const char *pFileName, int nLine ) { return GetMemoryAllocator()->IndirectAlloc( nSize, pFileName, nLine ); }
 	#endif
 	#define new new( 1, __FILE__, __LINE__ )
 #elif !defined( GNUC )
@@ -193,11 +193,11 @@ inline wchar_t *MemAlloc_WcStrDup(const wchar_t *pString, const char *pFileName,
 
 #ifndef USE_LIGHT_MEM_DEBUG
 #define malloc(s)				MemAlloc_Alloc( s )
-#define realloc(p, s)			g_pMemAlloc->Realloc( p, s )
+#define realloc(p, s)			GetMemoryAllocator()->Realloc( p, s )
 #define _aligned_malloc( s, a )	MemAlloc_AllocAligned( s, a )
 #else
 #define malloc(s)				MemAlloc_Alloc( s, g_pszModule, 0  )
-#define realloc(p, s)			g_pMemAlloc->Realloc( p, s, g_pszModule, 0 )
+#define realloc(p, s)			GetMemoryAllocator()->Realloc( p, s, g_pszModule, 0 )
 #define _aligned_malloc( s, a )	MemAlloc_AllocAlignedFileLine( s, a, g_pszModule, 0 )
 #endif
 
@@ -210,8 +210,8 @@ inline wchar_t *MemAlloc_WcStrDup(const wchar_t *pString, const char *pFileName,
 #if defined( _PS3 ) && !defined( _CERT )
 	#ifndef PS3_OPERATOR_NEW_WRAPPER_DEFINED
 		#define PS3_OPERATOR_NEW_WRAPPER_DEFINED
-		inline void* operator new( size_t nSize, int blah, const char *pFileName, int nLine ) { return g_pMemAlloc->IndirectAlloc( nSize, pFileName, nLine ); }
-		inline void* operator new[]( size_t nSize, int blah, const char *pFileName, int nLine ) { return g_pMemAlloc->IndirectAlloc( nSize, pFileName, nLine ); }
+		inline void* operator new( size_t nSize, int blah, const char *pFileName, int nLine ) { return GetMemoryAllocator()->IndirectAlloc( nSize, pFileName, nLine ); }
+		inline void* operator new[]( size_t nSize, int blah, const char *pFileName, int nLine ) { return GetMemoryAllocator()->IndirectAlloc( nSize, pFileName, nLine ); }
 	#endif
 	#define new new( 1, __FILE__, __LINE__ )
 #endif

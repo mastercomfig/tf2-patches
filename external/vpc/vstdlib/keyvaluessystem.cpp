@@ -150,11 +150,10 @@ private:
 //-----------------------------------------------------------------------------
 // Instance singleton and expose interface to rest of code
 //-----------------------------------------------------------------------------
-static CKeyValuesSystem g_KeyValuesSystem;
-
 IKeyValuesSystem *KeyValuesSystem()
 {
-	return &g_KeyValuesSystem;
+	static CKeyValuesSystem keyValuesSystem;
+	return &keyValuesSystem;
 }
 
 //-----------------------------------------------------------------------------

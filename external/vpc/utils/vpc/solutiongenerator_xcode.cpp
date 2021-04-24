@@ -2795,14 +2795,14 @@ void CSolutionGenerator_Xcode::Write( const char *pMsg, ... )
     va_end( marker );
 }
 
-static CSolutionGenerator_Xcode g_SolutionGenerator_Xcode;
 IBaseSolutionGenerator* GetXcodeSolutionGenerator()
 {
-    return &g_SolutionGenerator_Xcode;
+    static CSolutionGenerator_Xcode solutionGenerator_Xcode;
+    return &solutionGenerator_Xcode;
 }
 
-static CProjectGenerator_Xcode g_ProjectGenerator_Xcode;
 IBaseProjectGenerator* GetXcodeProjectGenerator()
 {
-    return &g_ProjectGenerator_Xcode;
+    static CProjectGenerator_Xcode projectGenerator_Xcode;
+    return &projectGenerator_Xcode;
 }

@@ -755,11 +755,6 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-
-#pragma warning( disable:4074 ) // warning C4074: initializers put in compiler reserved initialization area
-#pragma init_seg( compiler )
-
-//-----------------------------------------------------------------------------
 // NOTE! This should never be called directly from leaf code
 // Just use new,delete,malloc,free etc. They will call into this eventually
 //-----------------------------------------------------------------------------
@@ -1081,29 +1076,30 @@ g_CDbgMemAlloc_GetRawCrtMemOverrideFuncs_Early CONSTRUCT_EARLY;
 //-----------------------------------------------------------------------------
 // Singleton...
 //-----------------------------------------------------------------------------
-static CDbgMemAlloc s_DbgMemAlloc CONSTRUCT_EARLY;
+IMemAlloc* GetMemoryAllocator()
+{
+	static CDbgMemAlloc dbgMemAlloc CONSTRUCT_EARLY;
+	return &dbgMemAlloc;
+}
 
 #ifdef _PS3
 
-IMemAlloc *g_pMemAllocInternalPS3 = &s_DbgMemAlloc;
+IMemAlloc *g_pMemAllocInternalPS3 = NULL;
 PLATFORM_OVERRIDE_MEM_ALLOC_INTERNAL_PS3_IMPL
 
-#else // !_PS3
-
-#ifndef TIER0_VALIDATE_HEAP
-IMemAlloc *g_pMemAlloc CONSTRUCT_EARLY = &s_DbgMemAlloc;
-#else
-IMemAlloc *g_pActualAlloc = &s_DbgMemAlloc;
-#endif
 
 #endif // _PS3
 
 
 //-----------------------------------------------------------------------------
 
-CThreadMutex g_DbgMemMutex CONSTRUCT_EARLY;
+CThreadMutex& GetDbgMemMutex()
+{
+	static CThreadMutex dbgMemMutex CONSTRUCT_EARLY;
+	return dbgMemMutex;
+}
 
-#define HEAP_LOCK() AUTO_LOCK( g_DbgMemMutex )
+#define HEAP_LOCK() AUTO_LOCK( GetDbgMemMutex() )
 
 
 //-----------------------------------------------------------------------------
@@ -1155,8 +1151,8 @@ CDbgMemAlloc::CDbgMemAlloc() : m_sMemoryAllocFailed( (size_t)0 )
 	}
 
 #ifdef _PS3
-	g_pMemAllocInternalPS3 = &s_DbgMemAlloc;
-	PLATFORM_OVERRIDE_MEM_ALLOC_INTERNAL_PS3.m_pMemAllocCached = &s_DbgMemAlloc;
+	g_pMemAllocInternalPS3 = GetMemoryAllocator();
+	PLATFORM_OVERRIDE_MEM_ALLOC_INTERNAL_PS3.m_pMemAllocCached = GetMemoryAllocator();
 	malloc_managed_size mms;
 	mms.current_inuse_size = 0x12345678;
 	mms.current_system_size = 0x09ABCDEF;
@@ -2747,7 +2743,7 @@ void __attribute__ ((constructor)) mem_init(void)
 void *operator new( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
 {
 	set_osx_hooks(); 
-	void *pMem = g_pMemAlloc->Alloc(nSize, pFileName, nLine);
+	void *pMem = GetMemoryAllocator()->Alloc(nSize, pFileName, nLine);
 	set_override_hooks(); 
 	return pMem;
 }
@@ -2755,7 +2751,7 @@ void *operator new( size_t nSize, int nBlockUse, const char *pFileName, int nLin
 void *operator new[] ( size_t nSize, int nBlockUse, const char *pFileName, int nLine )
 {
 	set_osx_hooks(); 
-	void *pMem = g_pMemAlloc->Alloc(nSize, pFileName, nLine);
+	void *pMem = GetMemoryAllocator()->Alloc(nSize, pFileName, nLine);
 	set_override_hooks(); 
 	return pMem;
 }
@@ -2765,7 +2761,7 @@ void *operator new[] ( size_t nSize, int nBlockUse, const char *pFileName, int n
 int GetAllocationCallStack( void *mem, void **pCallStackOut, int iMaxEntriesOut )
 {
 #if defined( USE_MEM_DEBUG ) && (defined( USE_STACK_TRACES ))
-	return s_DbgMemAlloc.GetCallStackForIndex( GetAllocationStatIndex_Internal( mem ), pCallStackOut, iMaxEntriesOut );
+	return GetMemoryAllocator()->GetCallStackForIndex( GetAllocationStatIndex_Internal( mem ), pCallStackOut, iMaxEntriesOut );
 #else
 	return 0;
 #endif

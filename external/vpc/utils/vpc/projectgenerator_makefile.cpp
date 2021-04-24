@@ -1123,8 +1123,8 @@ public:
   bool m_bForceLowerCaseFileName;
 };
 
-static CProjectGenerator_Makefile g_ProjectGenerator_Makefile;
 IBaseProjectGenerator* GetMakefileProjectGenerator()
 {
+  static CProjectGenerator_Makefile g_ProjectGenerator_Makefile;
   return &g_ProjectGenerator_Makefile;
 }
