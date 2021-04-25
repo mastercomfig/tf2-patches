@@ -1425,7 +1425,7 @@ void Internal_LoadAddressMacroAuto( bool bPad )
 			{
 				continue;
 			}
-			if ( strstr( szLength, "." ) )
+			if ( strchr( szLength, '.' ) )
 			{
 				// assume float format
 				float fLength = 0;

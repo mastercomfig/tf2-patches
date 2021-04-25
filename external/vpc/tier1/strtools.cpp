@@ -1127,10 +1127,10 @@ char *V_pretifymem( float value, int digitsafterdecimal /*= 2*/, bool usebinaryo
 	char *o = out;
 
 	// Search for decimal or if it was integral, find the space after the raw number
-	char *dot = strstr( i, "." );
+	char *dot = strchr( i, '.' );
 	if ( !dot )
 	{
-		dot = strstr( i, " " );
+		dot = strchr( i, ' ' );
 	}
 
 	// Compute position of dot
