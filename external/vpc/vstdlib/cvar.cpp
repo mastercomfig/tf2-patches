@@ -1164,15 +1164,13 @@ CConCommandHash::CCommandHashHandle_t CConCommandHash::FastInsert( ConCommandBas
 {
 	// Get a new element from the pool.
 	int iHashData = m_aDataPool.Alloc( true );
-	HashEntry_t * pHashData = &m_aDataPool[iHashData];
-	if ( !pHashData )
-		return InvalidHandle();
+	HashEntry_t &pHashData = m_aDataPool[iHashData];
 
 	HashKey_t key = Hash(cmd);
 
 	// Add data to new element.
-	pHashData->m_uiKey = key;
-	pHashData->m_Data = cmd;
+	pHashData.m_uiKey = key;
+	pHashData.m_Data = cmd;
 
 	// Link element.
 	int iBucket = key & kBUCKETMASK ; // HashFuncs::Hash( uiKey, m_uiBucketMask );

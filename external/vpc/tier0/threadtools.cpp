@@ -354,7 +354,6 @@ ThreadHandle_t * CreateTestThreads( ThreadFunc_t fnThread, int numThreads, int n
 	pHandles[-1] = (ThreadHandle_t)INT_TO_POINTER( numThreads );
 	for( int i = 0; i < numThreads; ++i )
 	{
-		//TestThreads();
 		ThreadHandle_t hThread;
 		const unsigned int nDefaultStackSize = 64 * 1024; // this stack size is used in case stackSize == 0
 		hThread = CreateSimpleThread( fnThread, INT_TO_POINTER( i ), nDefaultStackSize );
@@ -365,18 +364,6 @@ ThreadHandle_t * CreateTestThreads( ThreadFunc_t fnThread, int numThreads, int n
 			ThreadSetAffinity( hThread, mask );
 		}
 		
-/*		
-		ThreadProcInfoUnion_t info;
-		info.val.pfnThread = fnThread;
-		info.val.pParam = (void*)(i);
-		if ( int nError = sys_ppu_thread_create( &hThread, ThreadProcConvertUnion, info.val64, 1001, nDefaultStackSize, SYS_PPU_THREAD_CREATE_JOINABLE, "SimpleThread" ) != CELL_OK )
-		{
-			printf( "PROBLEM!\n" );
-			Error( "Cannot create thread, error %d\n", nError );
-			return 0;
-		}
-*/
-		//ThreadHandle_t hThread = CreateSimpleThread( fnThread, (void*)i );
 		pHandles[i] = hThread;
 	}
 //	printf("Finishinged CreateTestThreads(%p,%d)\n", (void*)fnThread,  numThreads );

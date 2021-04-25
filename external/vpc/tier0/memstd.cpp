@@ -1066,12 +1066,7 @@ void *CSmallBlockHeap<CAllocator>::Realloc( void *p, size_t nBytes )
 		return p;
 	}
 
-	void *pNewBlock = NULL;
-
-	if ( !pNewBlock )
-	{
-		pNewBlock = MemAlloc_Alloc( nBytes ); // Call back out so blocks can move from the secondary to the primary pools
-	}
+	void *pNewBlock = MemAlloc_Alloc( nBytes ); // Call back out so blocks can move from the secondary to the primary pools
 
 	if ( !pNewBlock )
 	{

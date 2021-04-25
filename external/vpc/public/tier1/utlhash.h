@@ -668,13 +668,11 @@ template<class Data, class HashFuncs> inline UtlHashFastHandle_t CUtlHashFast<Da
 {
 	// Get a new element from the pool.
 	int iHashData = m_aDataPool.Alloc( true );
-	HashFastData_t *pHashData = &m_aDataPool[iHashData];
-	if ( !pHashData )
-		return InvalidHandle();
+	HashFastData_t &pHashData = m_aDataPool[iHashData];
 
 	// Add data to new element.
-	pHashData->m_uiKey = uiKey;
-	pHashData->m_Data = data;
+	pHashData.m_uiKey = uiKey;
+	pHashData.m_Data = data;
 				
 	// Link element.
 	int iBucket = HashFuncs::Hash( uiKey, m_uiBucketMask );
