@@ -197,6 +197,7 @@ CDependency_Project::CDependency_Project( CProjectDependencyGraph *pDependencyGr
 {
 	m_iProjectIndex = -1;
 	m_szStoredScriptName[0] = '\0';
+	m_szStoredCurrentDirectory[0] = '\0';
 }
 
 

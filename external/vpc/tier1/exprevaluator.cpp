@@ -98,7 +98,12 @@ void DefaultConditionalErrorProc( const char *pReason )
 CExpressionEvaluator::CExpressionEvaluator()
 {
 	m_ExprTree = NULL;
+	m_CurToken = '\0';
 	m_pExpression = NULL;
+	m_CurPosition = -1;
+	m_pGetSymbolProc = NULL;
+	m_pSyntaxErrorProc = NULL;
+	m_bSetup = false;
 }
 
 CExpressionEvaluator::~CExpressionEvaluator()

@@ -1033,8 +1033,8 @@ private:
 
 	struct Node_t
 	{
-		Node_t() {}
-		Node_t( const T &_elem ) : elem( _elem ) {}
+		Node_t() : pPrev(NULL), pNext(NULL) {}
+		Node_t( const T &_elem ) : elem( _elem ), pPrev(NULL), pNext(NULL) {}
 
 		T elem;
 		Node_t *pPrev, *pNext;

@@ -444,6 +444,8 @@ void KeyValues::Init()
 	m_pPeer = NULL;
 	m_pChain = NULL;
 
+	m_pExpressionGetSymbolProc = NULL;
+
 	m_sValue = NULL;
 	m_wsValue = NULL;
 	m_pValue = NULL;

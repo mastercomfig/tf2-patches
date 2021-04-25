@@ -606,6 +606,7 @@ template<class Data, class HashFuncs> inline void CUtlHashFast<Data,HashFuncs>::
 {
 	m_aBuckets.Purge();
 	m_aDataPool.Purge();
+	m_uiBucketMask = 0;
 }
 
 //-----------------------------------------------------------------------------

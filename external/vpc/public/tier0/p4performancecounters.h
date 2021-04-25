@@ -178,6 +178,8 @@ public:
         escr.flat = 0;
         cccr.flat = 0;
         cccr.Reserved16_17 = 3;    // must be set
+        counterPort = 0;
+        cccrPort = 0;
         escrPort = 0;
         m_counter = -1;
     }
