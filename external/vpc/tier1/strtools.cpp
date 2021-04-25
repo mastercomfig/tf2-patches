@@ -1190,10 +1190,10 @@ char *V_pretifynum( int64 value )
 	}
 
 	// Render quadrillions
-	if ( value >= 1000000000000ll )
+	if ( value >= 1000000000000000ll )
 	{
 		char *pchRender = out + V_strlen( out );
-		V_snprintf( pchRender, 32, "%d,", ( int ) ( value / 1000000000000ll ) );
+		V_snprintf( pchRender, 32, "%d,", ( int ) ( value / 1000000000000000ll ) );
 	}
 
 	// Render trillions
