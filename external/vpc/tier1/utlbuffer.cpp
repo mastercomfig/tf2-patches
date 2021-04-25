@@ -1722,7 +1722,6 @@ bool CUtlBuffer::ConvertCRLF( CUtlBuffer &outBuf )
 CUtlInplaceBuffer::CUtlInplaceBuffer( int growSize /* = 0 */, int initSize /* = 0 */, int nFlags /* = 0 */ ) :
 	CUtlBuffer( growSize, initSize, nFlags )
 {
-	NULL;
 }
 
 bool CUtlInplaceBuffer::InplaceGetLinePtr( char **ppszInBufferPtr, int *pnLineLength )

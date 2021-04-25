@@ -70,6 +70,8 @@ CVPC::CVPC()
 	m_bP4AutoAdd = false;
 	m_bP4SlnCheckEverything = false;
 	m_bDedicatedBuild = false;
+	m_bAppendSrvToDedicated = false;
+	m_bUseValveBinDir = false;
 	m_bInMkSlnPass = false;
 	m_bShowCaseIssues = false;
 	m_bVerboseMakefile = false;

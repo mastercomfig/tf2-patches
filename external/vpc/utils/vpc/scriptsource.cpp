@@ -13,6 +13,7 @@
 CScript::CScript()
 {
 	m_ScriptName = "(empty)";
+	m_bFreeScriptAtPop = false;
 	m_nScriptLine = 0;
 	m_pScriptData = NULL;
 	m_pScriptLine = &m_nScriptLine;
