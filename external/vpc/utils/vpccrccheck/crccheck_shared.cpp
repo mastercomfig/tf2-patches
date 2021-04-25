@@ -361,7 +361,7 @@ bool CheckSupplementalString( const char *pSupplementalString, const char *pRefe
 	if ( !pReferenceSupplementalString )
 		return true;
 	
-	return ( pSupplementalString && pReferenceSupplementalString && stricmp( pSupplementalString, pReferenceSupplementalString ) == 0 );
+	return ( pSupplementalString && stricmp( pSupplementalString, pReferenceSupplementalString ) == 0 );
 }
 
 bool CheckVPCExeCRC( char *pVPCCRCCheckString, const char *szFilename, char *pErrorString, int nErrorStringLength )
