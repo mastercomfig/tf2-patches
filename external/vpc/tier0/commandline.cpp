@@ -502,7 +502,10 @@ void CCommandLine::AddArgument( const char *pFirst, const char *pLast )
 		return;
 
 	if ( m_nParmCount >= MAX_PARAMETERS )
+	{
 		Error( "CCommandLine::AddArgument: exceeded %d parameters", MAX_PARAMETERS );
+		return;
+	}
 
 	size_t nLen = ( pLast - pFirst ) + 1;
 	m_ppParms[m_nParmCount] = new char[nLen];
