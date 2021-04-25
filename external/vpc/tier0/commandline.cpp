@@ -336,6 +336,7 @@ void CCommandLine::RemoveParm( const char *pszParm )
 	char *pnextparam;
 	intp n;
 	size_t curlen;
+	const size_t paramLen = strlen( pszParm );
 
 	p = m_pszCmdLine;
 	while ( *p )
@@ -354,7 +355,7 @@ void CCommandLine::RemoveParm( const char *pszParm )
 		while ( pnextparam && *pnextparam && (*pnextparam != ' ') && (*pnextparam != '\"') )
 			pnextparam++;
 
-		if ( pnextparam && ( static_cast<size_t>( pnextparam - found ) > strlen( pszParm ) ) )
+		if ( pnextparam && ( static_cast<size_t>( pnextparam - found ) > paramLen ) )
 		{
 			p = pnextparam;
 			continue;

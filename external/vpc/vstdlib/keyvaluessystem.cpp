@@ -284,6 +284,7 @@ HKeySymbol CKeyValuesSystem::GetSymbolForString( const char *name, bool bCreate 
 	int hash = CaseInsensitiveHash(name, m_HashTable.Count());
 	int i = 0;
 	hash_item_t *item = &m_HashTable[hash];
+	const int numStringBytes = strlen(name);
 	while (1)
 	{
 		if (!stricmp(name, (char *)m_Strings.GetBase() + item->stringIndex ))
@@ -311,7 +312,6 @@ HKeySymbol CKeyValuesSystem::GetSymbolForString( const char *name, bool bCreate 
 
 			// build up the new item
 			item->next = NULL;
-			int numStringBytes = strlen(name);
 			char *pString = (char *)m_Strings.Alloc( numStringBytes + 1 + 3 );
 			if ( !pString )
 			{
@@ -408,6 +408,7 @@ HKeySymbol CKeyValuesSystem::GetSymbolForStringCaseSensitive( HKeySymbol &hCaseI
 
 		i++;
 
+		const int numStringBytes = strlen(name);
 		if (item->next == NULL)
 		{
 			if ( !bCreate )
@@ -426,7 +427,6 @@ HKeySymbol CKeyValuesSystem::GetSymbolForStringCaseSensitive( HKeySymbol &hCaseI
 
 			// build up the new item
 			item->next = NULL;
-			int numStringBytes = strlen(name);
 			char *pString = (char *)m_Strings.Alloc( numStringBytes + 1 + 3 );
 			if ( !pString )
 			{
