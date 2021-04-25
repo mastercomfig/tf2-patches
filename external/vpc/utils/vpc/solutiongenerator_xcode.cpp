@@ -307,9 +307,14 @@ static const char* EscapeQuotes( const char *pStr )
         if ( pStr[i] == '"' )
         {
             str[j++] = '\\';
+            if ( j >= V_ARRAYSIZE(str) ) {
+                break;
+            }
             str[j++] = '\\';
         }
-        str[j++] = pStr[i++];
+        if ( j < V_ARRAYSIZE(str) ) {
+            str[j++] = pStr[i++];
+        }
     }
     str[j] = '\0';
 
