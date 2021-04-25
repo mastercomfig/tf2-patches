@@ -251,7 +251,7 @@ void MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t *ctx)
 #else
     memcpy(digest, ctx->buf, MD5_DIGEST_LENGTH);
 #endif
-    memset(ctx, 0, sizeof(ctx));        /* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx));        /* In case it's sensitive */
 }
 
 //-----------------------------------------------------------------------------
