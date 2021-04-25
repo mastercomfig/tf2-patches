@@ -458,9 +458,9 @@ void VPC_Keyword_AddFile( const char *pFileFlag = NULL, const folderConfig_t *pF
 			char rgchRejectList[4096]; rgchRejectList[0]='\0';
 			if ( vecExcludedFiles.Count() )
 			{
-				for ( int i=0; i<files.Count(); i++ )
+				for ( int j=0; j<files.Count(); j++ )
 				{
-							V_strncat( rgchRejectList, files[i].String(), V_ARRAYSIZE( rgchRejectList ) );
+							V_strncat( rgchRejectList, files[j].String(), V_ARRAYSIZE( rgchRejectList ) );
 							V_strncat( rgchRejectList, ",", V_ARRAYSIZE( rgchRejectList ) );
 				}
 			}
@@ -480,15 +480,15 @@ void VPC_Keyword_AddFile( const char *pFileFlag = NULL, const folderConfig_t *pF
 				{
 					pExcludedExtension = "";
 				}
-				if ( pExcludedExtension && !V_stricmp( pExcludedExtension, "cpp" ) )
+				if ( !V_stricmp( pExcludedExtension, "cpp" ) )
 				{
 					g_pVPC->VPCStatus( false, "excluding '%s' from build", pExcludedFilename );
 					g_pVPC->GetProjectGenerator()->StartFile( pExcludedFilename, true ); 
 					CUtlVector< CUtlString > configurationNames;
  					g_pVPC->GetProjectGenerator()->GetAllConfigurationNames( configurationNames );
-					for ( int i=0; i < configurationNames.Count(); i++ )
+					for ( int j=0; j < configurationNames.Count(); j++ )
 					{
-						g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[i].String(), true );
+						g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[j].String(), true );
 						g_pVPC->GetProjectGenerator()->FileExcludedFromBuild( true );
 						g_pVPC->GetProjectGenerator()->EndConfigurationBlock();
 					}
@@ -505,9 +505,9 @@ void VPC_Keyword_AddFile( const char *pFileFlag = NULL, const folderConfig_t *pF
 		{
 			CUtlVector< CUtlString > configurationNames;
 			g_pVPC->GetProjectGenerator()->GetAllConfigurationNames( configurationNames );
-			for ( int i=0; i < configurationNames.Count(); i++ )
+			for ( int j=0; j < configurationNames.Count(); j++ )
 			{
-				g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[i].String(), true );
+				g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[j].String(), true );
 				g_pVPC->GetProjectGenerator()->FileIsDynamic( true );
 				g_pVPC->GetProjectGenerator()->EndConfigurationBlock();
 			}
@@ -545,9 +545,9 @@ void VPC_Keyword_AddFile( const char *pFileFlag = NULL, const folderConfig_t *pF
 			g_pVPC->VPCStatus( false, "Unity: excluding '%s' from build", pFilename );
 			CUtlVector< CUtlString > configurationNames;
  			g_pVPC->GetProjectGenerator()->GetAllConfigurationNames( configurationNames );
-			for ( int i=0; i < configurationNames.Count(); i++ )
+			for ( int j=0; j < configurationNames.Count(); j++ )
 			{
-				g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[i].String(), true );
+				g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[j].String(), true );
 				g_pVPC->GetProjectGenerator()->FileExcludedFromBuild( true );
 				g_pVPC->GetProjectGenerator()->EndConfigurationBlock();
 			}
