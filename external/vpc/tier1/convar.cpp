@@ -901,10 +901,7 @@ void ConVar::ChangeStringValue( const char *tempVal, float flOldValue )
 
 	if ( len > m_Value.m_StringLength)
 	{
-		if (m_Value.m_pszString)
-		{
-			delete[] m_Value.m_pszString;
-		}
+		delete[] m_Value.m_pszString;
 
 		m_Value.m_pszString	= new char[len];
 		m_Value.m_StringLength = len;

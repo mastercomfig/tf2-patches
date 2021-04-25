@@ -1997,9 +1997,8 @@ void KeyValues::ParseIncludedKeys( char const *resourceName, const char *filetoi
 	V_strncpy( fullpath, resourceName, sizeof( fullpath ) );
 
 	// Strip off characters back to start or first /
-	bool done = false;
 	int len = V_strlen( fullpath );
-	while ( !done )
+	while ( true )
 	{
 		if ( len <= 0 )
 		{
