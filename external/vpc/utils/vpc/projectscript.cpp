@@ -1434,7 +1434,7 @@ void Internal_LoadAddressMacroAuto( bool bPad )
 			}
 			else
 			{
-				sscanf( szLength, "%d", &dllLength );
+				sscanf( szLength, "%u", &dllLength );
 			}
 
 			if ( !bPad )
