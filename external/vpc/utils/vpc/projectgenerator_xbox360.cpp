@@ -310,39 +310,36 @@ bool CProjectGenerator_Xbox360::WriteProperty( const PropertyState_t *pPropertyS
 		}
 	}
 
-	if ( pPropertyState )
+	switch ( pPropertyState->m_pToolProperty->m_nType )
 	{
-		switch ( pPropertyState->m_pToolProperty->m_nType )
+	case PT_BOOLEAN:
 		{
-		case PT_BOOLEAN:
+			bool bEnabled = Sys_StringToBool( pPropertyState->m_StringValue.Get() );
+			if ( pPropertyState->m_pToolProperty->m_bInvertOutput )
 			{
-				bool bEnabled = Sys_StringToBool( pPropertyState->m_StringValue.Get() );
-				if ( pPropertyState->m_pToolProperty->m_bInvertOutput )
-				{
-					bEnabled ^= 1;
-				}
-				m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, bEnabled ? "true" : "false" ) );
+				bEnabled ^= 1;
 			}
-			break;
-
-		case PT_STRING:
-			{
-				CUtlString s = m_XMLWriter.FixupXMLString( pPropertyState->m_StringValue.Get() );
-				m_XMLWriter.Write( CFmtStrMax("%s=\"%s\"", pOutputName, s.String() ) );
-			}
-			break;
-
-		case PT_LIST:
-		case PT_INTEGER:
-			m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, pPropertyState->m_StringValue.Get() ) );
-			break;
-
-		case PT_IGNORE:
-			break;
-
-		default:
-			g_pVPC->VPCError( "CProjectGenerator_Xbox360: WriteProperty, %s - not implemented", pOutputName );
+			m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, bEnabled ? "true" : "false" ) );
 		}
+		break;
+
+	case PT_STRING:
+		{
+			CUtlString s = m_XMLWriter.FixupXMLString( pPropertyState->m_StringValue.Get() );
+			m_XMLWriter.Write( CFmtStrMax("%s=\"%s\"", pOutputName, s.String() ) );
+		}
+		break;
+
+	case PT_LIST:
+	case PT_INTEGER:
+		m_XMLWriter.Write( CFmtStrMax( "%s=\"%s\"", pOutputName, pPropertyState->m_StringValue.Get() ) );
+		break;
+
+	case PT_IGNORE:
+		break;
+
+	default:
+		g_pVPC->VPCError( "CProjectGenerator_Xbox360: WriteProperty, %s - not implemented", pOutputName );
 	}
 
 	return true;
