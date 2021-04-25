@@ -2439,6 +2439,8 @@ void CStdMemAlloc::SetCRTAllocFailed( size_t nSize )
 	_snprintf( buffer, sizeof( buffer ), "***** OUT OF MEMORY! attempted allocation size: %u ****\n", nSize );
 #endif // COMPILER_GCC
 
+	buffer[ sizeof(buffer) - 1 ] = '\0';
+
 #ifdef _X360 
 	XBX_OutputDebugString( buffer );
 	if ( !Plat_IsInDebugSession() )
