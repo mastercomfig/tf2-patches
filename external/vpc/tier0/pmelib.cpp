@@ -40,8 +40,6 @@ PME* PME::Instance()
 //---------------------------------------------------------------------------
 HRESULT PME::Init( void )
 {
-    OSVERSIONINFO	OS;
-
     if ( bDriverOpen )
         return E_DRIVER_ALREADY_OPEN;
 
@@ -55,15 +53,7 @@ HRESULT PME::Init( void )
         return E_UNKNOWN_CPU_VENDOR;
     }
 
-    //-----------------------------------------------------------------------
-    // Get the operating system version
-    //-----------------------------------------------------------------------
-    OS.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
-    GetVersionEx( &OS );
-
-    if ( OS.dwPlatformId == VER_PLATFORM_WIN32_NT )
-    {
-        hFile = CreateFile(						// WINDOWS NT
+    hFile = CreateFile(						// WINDOWS NT
             "\\\\.\\GDPERF",
             GENERIC_READ,
             0,
@@ -71,18 +61,6 @@ HRESULT PME::Init( void )
             OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL,
             NULL);
-    }
-    else
-    {
-        hFile = CreateFile(						// WINDOWS 95
-            "\\\\.\\GDPERF.VXD",
-            GENERIC_READ,
-            0,
-            NULL,
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            NULL);
-    }
 
     if (hFile == INVALID_HANDLE_VALUE )
         return E_CANT_OPEN_DRIVER;
@@ -421,8 +399,8 @@ double PME::GetCPUClockSpeedSlow(void)
     if (m_CPUClockSpeed != 0)
         return m_CPUClockSpeed;
 
-    unsigned long start_ms, stop_ms;
-    unsigned long start_tsc,stop_tsc;
+    unsigned long long start_ms, stop_ms;
+    unsigned long long start_tsc,stop_tsc;
 
     // boosting priority helps with noise. its optional and i dont think
     //  it helps all that much
@@ -432,8 +410,8 @@ double PME::GetCPUClockSpeedSlow(void)
     pme->SetProcessPriority(ProcessPriorityHigh);
 
     // wait for millisecond boundary
-    start_ms = GetTickCount() + 5;
-    while (start_ms <= GetTickCount());
+    start_ms = GetTickCount64() + 5;
+    while (start_ms <= GetTickCount64());
 
     // read timestamp (you could use QueryPerformanceCounter in hires mode if you want)
 #ifdef COMPILER_MSVC64 
@@ -449,7 +427,7 @@ double PME::GetCPUClockSpeedSlow(void)
 
     // wait for end
     stop_ms = start_ms + 1000; // longer wait gives better resolution
-    while (stop_ms > GetTickCount());
+    while (stop_ms > GetTickCount64());
 
     // read timestamp (you could use QueryPerformanceCounter in hires mode if you want)
 #ifdef COMPILER_MSVC64
