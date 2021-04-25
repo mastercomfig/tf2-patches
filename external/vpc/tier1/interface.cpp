@@ -402,8 +402,8 @@ CSysModule *Sys_LoadModule( const char *pModuleName )
 		// PS3's load module *must* be fed extensions. If the extension is missing, add it. 
 		if (!( strstr(pModuleName, ".sprx") || strstr(pModuleName, ".prx") ))
 		{
-			strncpy( alteredFilename, pModuleName, MAX_PATH );
-			strncat( alteredFilename, DLL_EXT_STRING, MAX_PATH );
+			strncpy( alteredFilename, pModuleName, sizeof( alteredFilename ) );
+			strncat( alteredFilename, DLL_EXT_STRING, sizeof( alteredFilename ) );
 			pModuleName = alteredFilename;
 		}
 	}
