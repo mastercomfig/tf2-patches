@@ -299,10 +299,7 @@ public:
 	void Clear()
 	{
 #ifndef USE_MEM_DEBUG
-		if ( m_pBase )
-		{
-			free( m_pBase );
-		}
+		free( m_pBase );
 		m_pBase = m_pLimit = 0;
 		Construct( &m_freeList );
 #endif

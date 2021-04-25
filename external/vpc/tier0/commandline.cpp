@@ -210,10 +210,7 @@ void CCommandLine::CreateCmdLine( int argc, char **argv )
 //-----------------------------------------------------------------------------
 void CCommandLine::CreateCmdLine( const char *commandline )
 {
-	if ( m_pszCmdLine )
-	{
-		delete[] m_pszCmdLine;
-	}
+	delete[] m_pszCmdLine;
 
 	char szFull[ 4096 ];
 	szFull[0] = '\0';
@@ -625,8 +622,7 @@ void CCommandLine::SetParm( int nIndex, char const *pParm )
 		Assert( (nIndex >= 0) && (nIndex < m_nParmCount) );
 		if ( (nIndex >= 0) && (nIndex < m_nParmCount) )
 		{
-			if ( m_ppParms[nIndex] )
-				delete[] m_ppParms[nIndex];
+			delete[] m_ppParms[nIndex];
 			m_ppParms[nIndex] = strdup( pParm );
 		}
 

@@ -19,8 +19,7 @@ CSplitString::CSplitString( const char *pString, const char *pSeparator)
 
 CSplitString::~CSplitString()
 {
-	if(m_szBuffer)
-		delete [] m_szBuffer;
+	delete [] m_szBuffer;
 }
 
 void CSplitString::Construct( const char *pString, const char **pSeparators, int nSeparators )
