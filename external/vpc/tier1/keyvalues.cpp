@@ -1483,7 +1483,7 @@ const wchar_t *KeyValues::GetWString( const char *keyName, const wchar_t *defaul
 			break;
 		case TYPE_UINT64:
 			{
-				swprintf( wbuf, V_ARRAYSIZE(wbuf), L"%lld", *((uint64 *)(dat->m_sValue)) );
+				swprintf( wbuf, V_ARRAYSIZE(wbuf), L"%llu", *((uint64 *)(dat->m_sValue)) );
 				SetWString( keyName, wbuf );
 			}
 			break;
