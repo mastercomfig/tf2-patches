@@ -87,6 +87,7 @@ CDependency::CDependency( CProjectDependencyGraph *pDependencyGraph ) :
 	m_iDependencyMark = m_pDependencyGraph->m_iDependencyMark - 1;
 	m_bCheckedIncludes = false;
 	m_nCacheModificationTime = m_nCacheFileSize = 0;
+	m_bCacheDirty = false;
 }
 
 CDependency::~CDependency()
@@ -904,6 +905,7 @@ bool CProjectDependencyGraph::LoadCache( const char *pFilename )
 	fread( &version, sizeof( version ), 1, fp );
 	if ( version != VPC_CRC_CACHE_VERSION )
 	{
+		fclose( fp );
 		g_pVPC->VPCWarning( "Invalid dependency cache file version in %s.", pFilename );
 		return false;
 	}
