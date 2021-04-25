@@ -376,7 +376,7 @@ bool CCountedStringPool::SaveToBuffer( CUtlBuffer &buffer )
 		buffer.PutUnsignedChar( m_Elements[i].nReferenceCount );
 
 		const char *pString = m_Elements[i].pString;
-		if ( strlen( pString ) >= MAX_STRING_SAVE )
+		if ( pString && strlen( pString ) >= MAX_STRING_SAVE )
 		{
 			return false;
 		}
