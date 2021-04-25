@@ -100,7 +100,7 @@ inline void *MemAlloc_InlineCallocMemset( void *pMem, size_t nCount, size_t nEle
 }
 #endif
 
-#define calloc(c, s)		MemAlloc_InlineCallocMemset(malloc(c*s), c, s)
+#define calloc(c, s)		MemAlloc_InlineCallocMemset(malloc(c*s), (c), (s))
 #ifndef USE_LIGHT_MEM_DEBUG
 #define free(p)				GetMemoryAllocator()->Free( p )
 #define _aligned_free( p )	MemAlloc_FreeAligned( p )

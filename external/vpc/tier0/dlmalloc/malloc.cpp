@@ -2799,7 +2799,7 @@ static size_t traverse_and_check(mstate m);
 #define least_bit(x)         ((x) & -(x))
 
 /* mask with all bits to left of least bit of x on */
-#define left_bits(x)         ((x<<1) | -(x<<1))
+#define left_bits(x)         (((x)<<1) | -((x)<<1))
 
 /* mask with all bits to left of or equal to least bit of x on */
 #define same_or_left_bits(x) ((x) | -(x))

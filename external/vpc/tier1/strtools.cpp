@@ -194,7 +194,7 @@ int _V_wcscmp (const wchar_t *s1, const wchar_t *s2)
 
 
 
-#define TOLOWERC( x )  (( ( x >= 'A' ) && ( x <= 'Z' ) )?( x + 32 ) : x )
+#define TOLOWERC( x )  (( ( (x) >= 'A' ) && ( (x) <= 'Z' ) )?( (x) + 32 ) : (x) )
 int	_V_stricmp( const char *s1, const char *s2 )
 {
 	VPROF_2( "V_stricmp", VPROF_BUDGETGROUP_OTHER_UNACCOUNTED, false, BUDGETFLAG_ALL );
