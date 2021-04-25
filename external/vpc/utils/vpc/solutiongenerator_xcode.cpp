@@ -1158,9 +1158,9 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
                             Write( "\n" );
                             CUtlString sCompilerFlags = NULL;
                             // on mac we can only globally specify common (debug and release) per-file compiler flags
-                            for ( int i=pFileConfig->m_Configurations.First(); i != pFileConfig->m_Configurations.InvalidIndex(); i=pFileConfig->m_Configurations.Next(i) )
+                            for ( int j=pFileConfig->m_Configurations.First(); j != pFileConfig->m_Configurations.InvalidIndex(); j=pFileConfig->m_Configurations.Next(j) )
                             {
-                                sCompilerFlags += pFileConfig->m_Configurations[i]->m_pKV->GetString( g_pOption_ExtraCompilerFlags );
+                                sCompilerFlags += pFileConfig->m_Configurations[j]->m_pKV->GetString( g_pOption_ExtraCompilerFlags );
                             }
                             // File reference OIDs are unique per project per file
                             Write( "%024llX /* %s in Sources */ = {isa = PBXBuildFile; fileRef = %024llX /* %s */; ", makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pFileName, EOIDTypeBuildFile ), V_UnqualifiedFileName( pFileName ), makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pFileName, EOIDTypeFileReference ), pFileName );
@@ -1188,27 +1188,30 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
 
                     // system libraries we link against
                     KeyValues *pKV = g_vecPGenerators[iGenerator]->m_BaseConfigData.m_Configurations[0]->m_pKV;
-                    CSplitString libs( pKV->GetString( g_pOption_SystemLibraries ), (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
+                    const char* pszSystemLibraries = pKV->GetString( g_pOption_SystemLibraries );
+                    CSplitString libs( pszSystemLibraries, (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
                     for ( int i=0; i < libs.Count(); i++ )
                     {
                         Write( "\n" );
                         Write( "%024llX /* lib%s.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = %024llX /* lib%s.dylib */; };",
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_SystemLibraries ), EOIDTypeBuildFile, i ), libs[i],
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_SystemLibraries ), EOIDTypeFileReference, i ), libs[i] );
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszSystemLibraries, EOIDTypeBuildFile, i ), libs[i],
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszSystemLibraries, EOIDTypeFileReference, i ), libs[i] );
                     }
 
                     // system frameworks we link against
-                    CSplitString sysFrameworks( pKV->GetString( g_pOption_SystemFrameworks ), (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
+                    const char* pszSystemFrameworks = pKV->GetString( g_pOption_SystemFrameworks );
+                    CSplitString sysFrameworks( pszSystemFrameworks, (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
                     for ( int i=0; i < sysFrameworks.Count(); i++ )
                     {
                         Write( "\n" );
                         Write( "%024llX /* %s.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = %024llX /* %s.framework */; };",
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_SystemFrameworks ), EOIDTypeBuildFile, i ), sysFrameworks[i],
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_SystemFrameworks ), EOIDTypeFileReference, i ), sysFrameworks[i] );
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszSystemFrameworks, EOIDTypeBuildFile, i ), sysFrameworks[i],
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszSystemFrameworks, EOIDTypeFileReference, i ), sysFrameworks[i] );
                     }
 
                     // local frameworks we link against
-                    CSplitString localFrameworks( pKV->GetString( g_pOption_LocalFrameworks ), (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
+                    const char* pszLocalFrameworks = pKV->GetString( g_pOption_LocalFrameworks );
+                    CSplitString localFrameworks( pszLocalFrameworks, (const char**)g_IncludeSeparators, V_ARRAYSIZE(g_IncludeSeparators) );
                     for ( int i=0; i < localFrameworks.Count(); i++ )
                     {
                         char rgchFrameworkName[MAX_PATH];
@@ -1216,8 +1219,8 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
 
                         Write( "\n" );
                         Write( "%024llX /* %s.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = %024llX /* %s.framework */; };",
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_LocalFrameworks ), EOIDTypeBuildFile, i ), rgchFrameworkName,
-                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pKV->GetString( g_pOption_LocalFrameworks ), EOIDTypeFileReference, i ), rgchFrameworkName );
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszLocalFrameworks, EOIDTypeBuildFile, i ), rgchFrameworkName,
+                               makeoid2( g_vecPGenerators[iGenerator]->GetProjectName(), pszLocalFrameworks, EOIDTypeFileReference, i ), rgchFrameworkName );
                     }
 
 
@@ -1345,17 +1348,17 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
                                 ++m_nIndent;
                                 {
                                     CSplitString outFiles( sOutputFiles, ";" );
-                                    for ( int i = 0; i < outFiles.Count(); i ++ )
+                                    for ( int j = 0; j < outFiles.Count(); j ++ )
                                     {
                                         CUtlString sOutputFile;
                                         sOutputFile.SetLength( MAX_PATH );
-                                        CBaseProjectDataCollector::DoStandardVisualStudioReplacements( outFiles[i], sInputFile, sOutputFile.Get(), MAX_PATH );
+                                        CBaseProjectDataCollector::DoStandardVisualStudioReplacements( outFiles[j], sInputFile, sOutputFile.Get(), MAX_PATH );
                                         V_StrSubstInPlace( sOutputFile.Get(), MAX_PATH, "$(OBJ_DIR)", "${OBJECT_FILE_DIR_normal}", false );
 
                                         CUtlString sOutputPath;
                                         sOutputPath.SetLength( MAX_PATH );
 
-                                        if ( V_IsAbsolutePath( sOutputFile ) || V_strncmp( outFiles[i], "$", 1 ) == 0 )
+                                        if ( V_IsAbsolutePath( sOutputFile ) || V_strncmp( outFiles[j], "$", 1 ) == 0 )
                                             V_snprintf( sOutputPath.Get(), MAX_PATH, "%s", sOutputFile.String() );
                                         else
                                         {
@@ -1958,9 +1961,9 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
                                     Write( "\"%s\",\n", sInputFile.String() );
 
                                     CSplitString additionalDeps( sAdditionalDeps, ";" );
-                                    FOR_EACH_VEC( additionalDeps, i )
+                                    FOR_EACH_VEC( additionalDeps, j )
                                     {
-                                        const char *pchOneFile = additionalDeps[i];
+                                        const char *pchOneFile = additionalDeps[j];
                                         if ( *pchOneFile != '\0' )
                                         {
                                             char szDependency[MAX_PATH];
@@ -2003,17 +2006,17 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
                                 ++m_nIndent;
                                 {
                                     CSplitString outFiles( sOutputFiles, ";" );
-                                    for ( int i = 0; i < outFiles.Count(); i ++ )
+                                    for ( int j = 0; j < outFiles.Count(); j ++ )
                                     {
                                         CUtlString sOutputFile;
                                         sOutputFile.SetLength( MAX_PATH );
-                                        CBaseProjectDataCollector::DoStandardVisualStudioReplacements( outFiles[i], sInputFile, sOutputFile.Get(), MAX_PATH );
+                                        CBaseProjectDataCollector::DoStandardVisualStudioReplacements( outFiles[j], sInputFile, sOutputFile.Get(), MAX_PATH );
                                         V_StrSubstInPlace( sOutputFile.Get(), MAX_PATH, "$(OBJ_DIR)", "${OBJECT_FILE_DIR_normal}", false );
 
                                         CUtlString sOutputPath;
                                         sOutputPath.SetLength( MAX_PATH );
 
-                                        if ( V_IsAbsolutePath( sOutputFile ) || V_strncmp( outFiles[i], "$", 1 ) == 0 )
+                                        if ( V_IsAbsolutePath( sOutputFile ) || V_strncmp( outFiles[j], "$", 1 ) == 0 )
                                             V_snprintf( sOutputPath.Get(), MAX_PATH, "%s", sOutputFile.String() );
                                         else
                                         {
