@@ -1080,7 +1080,8 @@ void CSolutionGenerator_Xcode::GenerateSolutionFile( const char *pSolutionFilena
             // fprintf( stderr, "Project count has changed (%d/%d), regenerating...\n",  cProjectsPreviously, g_vecPGenerators.Count() );
             bUpToDate = false;
         }
-        fclose(fp);
+        if (fp)
+            fclose(fp);
     }
 
     if ( bUpToDate )
