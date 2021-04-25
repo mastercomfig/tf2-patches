@@ -254,10 +254,10 @@ public:
   {
     const char *pMakefileFilename = g_pVPC->GetOutputFilename();
 
-    CUtlString strProjectName = GetProjectName();
     bool bProjectIsCurrent = g_pVPC->IsProjectCurrent( pMakefileFilename, false );
     if ( g_pVPC->IsForceGenerate() || !bProjectIsCurrent )
     {
+      CUtlString strProjectName = GetProjectName();
       g_pVPC->VPCStatus( true, "Saving makefile project for: '%s' File: '%s'", strProjectName.String(), g_pVPC->GetOutputFilename() );
       WriteMakefile( pMakefileFilename );
     }
