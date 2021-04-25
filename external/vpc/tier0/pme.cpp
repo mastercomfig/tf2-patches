@@ -10,8 +10,6 @@
 #define WINDOWS_LEAN_AND_MEAN
 #include <windows.h>
 
-#pragma warning( disable : 4530 )   // warning: exception handler -GX option
-
 #include "tier0/platform.h"
 #include "tier0/vprof.h"
 #include "tier0/pmelib.h"
@@ -140,8 +138,6 @@ void CL2Cache::End( void )
 		m_iL2CacheMissCount = ( int )i64Delta;
 	}
 }
-
-#pragma warning( default : 4530 )
 
 #ifdef DBGFLAG_VALIDATE
 //-----------------------------------------------------------------------------

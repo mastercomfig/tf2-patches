@@ -488,13 +488,7 @@ private:
 			void *pData = CThreadLocalBase::Get();
 			return *reinterpret_cast<T*>( &pData );
 #else
-	#ifdef COMPILER_MSVC
-		#pragma warning ( disable : 4311 )
-	#endif
 			return reinterpret_cast<T>( CThreadLocalBase::Get() );
-	#ifdef COMPILER_MSVC
-		#pragma warning ( default : 4311 )
-	#endif
 #endif
 		}
 
@@ -505,13 +499,7 @@ private:
 			*reinterpret_cast<T*>( &pData ) = val;
 			CThreadLocalBase::Set( pData );
 #else
-	#ifdef COMPILER_MSVC
-		#pragma warning ( disable : 4312 )
-	#endif
 			CThreadLocalBase::Set( reinterpret_cast<void *>(val) );
-	#ifdef COMPILER_MSVC
-		#pragma warning ( default : 4312 )
-	#endif
 #endif
 		}
 	};

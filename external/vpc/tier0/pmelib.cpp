@@ -9,8 +9,6 @@
 #ifdef _WIN32
 #include <windows.h>
 
-#pragma warning( disable : 4530 )   // warning: exception handler -GX option
-
 #include "tier0/valve_off.h"
 #include "tier0/pmelib.h"
 #if _MSC_VER >=1300
@@ -660,6 +658,5 @@ void PME::Validate( CValidator &validator, tchar *pchName )
 }
 #endif // DBGFLAG_VALIDATE
 
-#pragma warning( default : 4530 )   // warning: exception handler -GX option
 #endif
 
