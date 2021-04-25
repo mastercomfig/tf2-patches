@@ -1326,13 +1326,13 @@ uint64 KeyValues::GetUint64( const char *keyName, uint64 defaultValue )
 		case TYPE_STRING:
 			{
 				uint64 uiResult = 0ull;
-				sscanf( dat->m_sValue, "%lld", &uiResult );
+				sscanf( dat->m_sValue, "%llu", &uiResult );
 				return uiResult;
 			}
 		case TYPE_WSTRING:
 			{
 				uint64 uiResult = 0ull;
-				swscanf( dat->m_wsValue, L"%lld", &uiResult );
+				swscanf( dat->m_wsValue, L"%llu", &uiResult );
 				return uiResult;
 			}
 		case TYPE_FLOAT:
