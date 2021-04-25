@@ -455,7 +455,7 @@ static bool NeedsBuildFileEntry( const char *pszFileName )
     const char *pchExtension = V_GetFileExtension( V_UnqualifiedFileName( pszFileName ) );
     if ( !pchExtension )
         return false;
-    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "c" ) || ! V_stricmp( pchExtension, "m" ) || ! V_stricmp( pchExtension, "mm" ) || ! V_stricmp( pchExtension, "cc" )  )
+    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "c" ) || ! V_stricmp( pchExtension, "m" ) || ! V_stricmp( pchExtension, "mm" ) )
         return true;
     else if ( ! V_stricmp( pchExtension, "a" ) || ! V_stricmp( pchExtension, "dylib" ) )
         return true;
@@ -468,7 +468,7 @@ static bool IsSourceFile( const char *pszFileName )
     const char *pchExtension = V_GetFileExtension( V_UnqualifiedFileName( pszFileName ) );
     if ( !pchExtension )
         return false;
-    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "c" ) || ! V_stricmp( pchExtension, "m" ) || ! V_stricmp( pchExtension, "mm" ) || ! V_stricmp( pchExtension, "cc" ) )
+    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "c" ) || ! V_stricmp( pchExtension, "m" ) || ! V_stricmp( pchExtension, "mm" ) )
         return true;
     return false;
 }
@@ -608,7 +608,7 @@ void CSolutionGenerator_Xcode::XcodeFileTypeFromFileName( const char *pszFileNam
     const char *pchExtension = V_GetFileExtension( V_UnqualifiedFileName( pszFileName ) );
     if ( !pchExtension )
         snprintf( pchOutBuf, cchOutBuf, "compiled.mach-o.executable" );
-    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "h" ) || ! V_stricmp( pchExtension, "hxx" ) || ! V_stricmp( pchExtension, "cc" ) )
+    else if ( ! V_stricmp( pchExtension, "cpp" ) || ! V_stricmp( pchExtension, "cxx" ) || ! V_stricmp( pchExtension, "cc" ) || ! V_stricmp( pchExtension, "h" ) || ! V_stricmp( pchExtension, "hxx" ) )
         snprintf( pchOutBuf, cchOutBuf, "sourcecode.cpp.%s", pchExtension );
     else if ( ! V_stricmp( pchExtension, "c" ) )
         snprintf( pchOutBuf, cchOutBuf, "sourcecode.cpp.cpp" );
