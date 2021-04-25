@@ -524,14 +524,14 @@ void CCvar::RemoveSplitScreenConVars( CVarDLLIdentifier_t id )
 
  
 
-		for ( int i = 1 ; i < m_nMaxSplitScreenSlots; ++i )
+		for ( int j = 1 ; j < m_nMaxSplitScreenSlots; ++j )
 		{
 
-			if ( info.m_Vars[ i - 1 ].m_pVar )
+			if ( info.m_Vars[ j - 1 ].m_pVar )
 			{
-				UnregisterConCommand( info.m_Vars[ i - 1 ].m_pVar );
-				delete info.m_Vars[ i - 1 ].m_pVar;
-				info.m_Vars[ i - 1 ].m_pVar = NULL;
+				UnregisterConCommand( info.m_Vars[ j - 1 ].m_pVar );
+				delete info.m_Vars[ j - 1 ].m_pVar;
+				info.m_Vars[ j - 1 ].m_pVar = NULL;
 			}
 		}
 		deleted.AddToTail( key );

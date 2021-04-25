@@ -425,9 +425,9 @@ void VPC_Keyword_AddFile( const char *pFileFlag = NULL, const folderConfig_t *pF
 		g_pVPC->GetProjectGenerator()->StartFile( pExcludedFilename, true );
 		CUtlVector< CUtlString > configurationNames;
 		g_pVPC->GetProjectGenerator()->GetAllConfigurationNames( configurationNames );
-		for ( int i=0; i < configurationNames.Count(); i++ )
+		for ( int j=0; j < configurationNames.Count(); j++ )
 		{
-			g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[i].String(), true );
+			g_pVPC->GetProjectGenerator()->StartConfigurationBlock( configurationNames[j].String(), true );
 			g_pVPC->GetProjectGenerator()->FileExcludedFromBuild( true );
 			g_pVPC->GetProjectGenerator()->EndConfigurationBlock();
 		}
