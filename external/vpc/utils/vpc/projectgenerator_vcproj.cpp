@@ -9,9 +9,8 @@
 #include "tier0/memdbgon.h"
 
 CProjectFile::CProjectFile( CVCProjGenerator *pGenerator, const char *pFilename )
+	: m_Name(pFilename), m_pGenerator(pGenerator)
 {
-	m_pGenerator = pGenerator;
-	m_Name = pFilename;
 }
 
 CProjectFile::~CProjectFile()
@@ -103,9 +102,8 @@ bool CProjectFile::RemoveConfiguration( CProjectConfiguration *pConfiguration )
 }
 
 CProjectFolder::CProjectFolder( CVCProjGenerator *pGenerator, const char *pFolderName )
+	: m_Name(pFolderName), m_pGenerator(pGenerator)
 {
-	m_pGenerator = pGenerator;
-	m_Name = pFolderName;
 }
 
 CProjectFolder::~CProjectFolder()
@@ -681,9 +679,8 @@ static bool FilesSortLessFunc( CProjectFile* const &pLHS, CProjectFile* const &p
 }
 
 CProjectConfiguration::CProjectConfiguration( CVCProjGenerator *pGenerator, const char *pConfigName, const char *pFilename )
+	: m_pGenerator(pGenerator), m_Name(pConfigName)
 {
-	m_pGenerator = pGenerator;
-	m_Name = pConfigName;
 	m_bIsFileConfig = ( pFilename != NULL );
 
 	m_pDebuggingTool = NULL;

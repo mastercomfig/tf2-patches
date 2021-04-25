@@ -119,10 +119,9 @@ public:
 class CCompilerTool : public CProjectTool
 {
 public:
-	CCompilerTool( CVCProjGenerator *pGenerator, const char *pConfigName, bool bIsFileConfig ) : CProjectTool( pGenerator )
+	CCompilerTool( CVCProjGenerator *pGenerator, const char *pConfigName, bool bIsFileConfig )
+		: CProjectTool( pGenerator ), m_ConfigName(pConfigName), m_bIsFileConfig(bIsFileConfig)
 	{
-		m_ConfigName = pConfigName;
-		m_bIsFileConfig = bIsFileConfig;
 	}
 
 	bool SetProperty( ToolProperty_t *pToolProperty, CProjectTool *pRootTool = NULL );
@@ -189,10 +188,9 @@ public:
 class CCustomBuildTool : public CProjectTool
 {
 public:
-	CCustomBuildTool( CVCProjGenerator *pGenerator, const char *pConfigName, bool bIsFileConfig ) : CProjectTool( pGenerator )
+	CCustomBuildTool( CVCProjGenerator *pGenerator, const char *pConfigName, bool bIsFileConfig )
+		: CProjectTool( pGenerator ), m_ConfigName(pConfigName), m_bIsFileConfig(bIsFileConfig)
 	{
-		m_ConfigName = pConfigName;
-		m_bIsFileConfig = bIsFileConfig;
 	}
 
 	bool SetProperty( ToolProperty_t *pToolProperty, CProjectTool *pRootTool = NULL );
