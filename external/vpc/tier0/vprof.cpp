@@ -1481,12 +1481,11 @@ void CVProfile::FreeNodes_R( CVProfNode *pNode )
 
 void CVProfile::Term()
 {
-	int i;
-	for( i = 0; i < m_nBudgetGroupNames; i++ )
+	for( int i = 0; i < m_nBudgetGroupNames; i++ )
 	{
 		delete [] m_pBudgetGroups[i].m_pName;
 	}
-	delete m_pBudgetGroups;
+	delete [] m_pBudgetGroups;
 	m_nBudgetGroupNames = m_nBudgetGroupNamesAllocated = 0;
 	m_pBudgetGroups = NULL;
 
