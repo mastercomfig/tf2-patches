@@ -1907,7 +1907,11 @@ typedef RTL_CRITICAL_SECTION CRITICAL_SECTION;
 #ifndef _X360
 extern "C"
 {
-	void __declspec(dllimport) __stdcall InitializeCriticalSection(_Out_ CRITICAL_SECTION *);
+#if (_WIN32_WINNT < 0x0600)
+	void __declspec(dllimport) __stdcall _Maybe_raises_SEH_exception_ InitializeCriticalSection(_Out_ CRITICAL_SECTION *);
+#else
+	void __declspec(dllimport) __stdcall InitializeCriticalSection(_Out_ CRITICAL_SECTION*);
+#endif
 	void __declspec(dllimport) __stdcall EnterCriticalSection(_Inout_ CRITICAL_SECTION *);
 	void __declspec(dllimport) __stdcall LeaveCriticalSection(_Inout_ CRITICAL_SECTION *);
 	void __declspec(dllimport) __stdcall DeleteCriticalSection(_Inout_ CRITICAL_SECTION *);
