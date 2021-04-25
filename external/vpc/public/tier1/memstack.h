@@ -158,7 +158,7 @@ class CUtlMemoryStack
 {
 public:
 	// constructor, destructor
-	CUtlMemoryStack( int nGrowSize = 0, int nInitSize = 0 )	{ m_MemoryStack.Init( "CUtlMemoryStack", MAX_SIZE * sizeof(T), COMMIT_SIZE * sizeof(T), INITIAL_COMMIT * sizeof(T), 4 ); COMPILE_TIME_ASSERT( sizeof(T) % 4 == 0 );	}
+	CUtlMemoryStack( int nGrowSize = 0, int nInitSize = 0 ) : m_nAllocated(0) { m_MemoryStack.Init( "CUtlMemoryStack", MAX_SIZE * sizeof(T), COMMIT_SIZE * sizeof(T), INITIAL_COMMIT * sizeof(T), 4 ); COMPILE_TIME_ASSERT( sizeof(T) % 4 == 0 );	}
 	CUtlMemoryStack( T* pMemory, int numElements )			{ Assert( 0 ); 										}
 
 	// Can we use this index?
