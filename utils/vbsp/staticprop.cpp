@@ -659,10 +659,6 @@ void EmitStaticProps()
 			{
 				build.m_FadeMinDist = FloatForKey( &entities[i], "fademindist" );
 			}
-			else if (build.m_PopsOut)
-			{
-				build.m_FadeMinDist = build.m_FadeMaxDist;
-			}
 			else
 			{
 				build.m_FadeMinDist = 0;

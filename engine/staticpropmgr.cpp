@@ -67,6 +67,10 @@ enum
 {
 	INVALID_FADE_INDEX = (unsigned short)~0
 };
+enum
+{
+	INVALID_POP_INDEX = (unsigned short)~0
+};
 
 
 //-----------------------------------------------------------------------------
@@ -269,6 +273,8 @@ public:
 
 	void SetFadeIndex( unsigned short nIndex ) { m_FadeIndex = nIndex; }
 	unsigned short FadeIndex() const { return m_FadeIndex; }
+	void SetPopIndex(unsigned short nIndex) { m_PopIndex = nIndex; }
+	unsigned short PopIndex() const { return m_PopIndex; }
 	float ForcedFadeScale() const { return m_flForcedFadeScale; }
 	int	DrawModelSlow( int flags );
 
@@ -308,6 +314,7 @@ private:
 	CBaseHandle				m_EntHandle;	// FIXME: Do I need client + server handles?
 	ClientRenderHandle_t	m_RenderHandle;
 	unsigned short			m_FadeIndex;	// Index into the m_StaticPropFade dictionary
+	unsigned short			m_PopIndex;		// (fiend) same as above but for pop
 	float					m_flForcedFadeScale;
 
 	// bbox is the same for both GetBounds and GetRenderBounds since static props never move.
@@ -404,7 +411,7 @@ private:
 	void ChangeRenderGroup( CStaticProp &prop );
 
 	// (fiend) same as above but for pop
-	unsigned char ComputeScreenPop(CStaticProp& prop, float flMinSize);
+	unsigned char ComputeScreenPop( CStaticProp& prop, float flMinSize);
 
 private:
 	// Unique static prop models
@@ -431,6 +438,23 @@ private:
 		float	m_FalloffFactor;
 	};
 
+	// (fiend) Data for static props that pop
+	struct StaticPropPop_t
+	{
+		int		m_Model;
+		union
+		{
+			float	m_MinDistSq;
+			float	m_MaxScreenWidth;
+		};
+		union
+		{
+			float	m_MaxDistSq;
+			float	m_MinScreenWidth;
+		};
+		float	m_FalloffFactor;
+	};
+
 	// The list of all static props
 	CUtlVector <StaticPropDict_t>	m_StaticPropDict;
 	CUtlVector <CStaticProp>		m_StaticProps;
@@ -438,6 +462,9 @@ private:
 
 	// Static props that fade...
 	CUtlVector<StaticPropFade_t>	m_StaticPropFade;
+
+	// (fiend) Static props that pop
+	CUtlVector<StaticPropPop_t>		m_StaticPropPop;
 
 	bool							m_bLevelInitialized;
 	bool							m_bClientInitialized;
@@ -492,6 +519,7 @@ bool CStaticProp::Init( int index, StaticPropLump_t &lump, model_t *pModel )
 	m_LeafCount = lump.m_LeafCount;
 	m_nSolidType = lump.m_Solid;
 	m_FadeIndex = INVALID_FADE_INDEX;
+	m_PopIndex = INVALID_POP_INDEX;
 
 	MDLCACHE_CRITICAL_SECTION_( g_pMDLCache );
 
@@ -1354,7 +1382,7 @@ void CStaticPropMgr::UnserializeModels( CUtlBuffer& buf )
 		// to be faded out. Not sure if this is the optimal way of doing it
 		// but it's easy for now; we'll have to test later how large this list gets.
 		// If it's <100 or so, we should be fine
-		if ( lump.m_Flags & ( STATIC_PROP_FLAG_FADES || STATIC_PROP_FLAG_POPS ) )
+		if ( lump.m_Flags & STATIC_PROP_FLAG_FADES )
 		{
 			int idx = m_StaticPropFade.AddToTail();
 			m_StaticProps[i].SetFadeIndex( (unsigned short)idx );
@@ -1373,6 +1401,22 @@ void CStaticPropMgr::UnserializeModels( CUtlBuffer& buf )
 			else
 			{
 				fade.m_FalloffFactor = 255.0f / (fade.m_MaxScreenWidth - fade.m_MinScreenWidth);
+			}
+		}
+		else if ( lump.m_Flags & STATIC_PROP_FLAG_POPS )
+		{
+			int idx = m_StaticPropPop.AddToTail();
+			m_StaticProps[i].SetPopIndex( (unsigned short)idx );
+			StaticPropPop_t& pop = m_StaticPropPop[idx];
+			pop.m_Model = i;
+
+			pop.m_MinDistSq = lump.m_FadeMinDist;
+			pop.m_MaxDistSq = lump.m_FadeMaxDist;
+
+			if ( ( lump.m_Flags & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
+			{
+				pop.m_MinDistSq *= pop.m_MinDistSq;
+				pop.m_MaxDistSq *= pop.m_MaxDistSq;
 			}
 		}
 
@@ -1481,6 +1525,7 @@ void CStaticPropMgr::LevelShutdown()
 	m_StaticProps.Purge();
 	m_StaticPropDict.Purge();
 	m_StaticPropFade.Purge();
+	m_StaticPropPop.Purge();
 }
 
 void CStaticPropMgr::LevelInitClient()
@@ -2045,14 +2090,14 @@ unsigned char CStaticPropMgr::ComputeScreenFade( CStaticProp &prop, float flMinS
 //-----------------------------------------------------------------------------
 // (fiend) Same as above but for pop
 //-----------------------------------------------------------------------------
-unsigned char CStaticPropMgr::ComputeScreenPop(CStaticProp& prop, float flMinSize)
+unsigned char CStaticPropMgr::ComputeScreenPop( CStaticProp& prop, float flMinSize )
 {
-	CMatRenderContextPtr pRenderContext(materials);
+	CMatRenderContextPtr pRenderContext( materials );
 
-	float flPixelWidth = pRenderContext->ComputePixelWidthOfSphere(prop.GetRenderOrigin(), prop.Radius());
+	float flPixelWidth = pRenderContext->ComputePixelWidthOfSphere( prop.GetRenderOrigin(), prop.Radius() );
 
 	unsigned char alpha = 0;
-	if (flPixelWidth < flMinSize)
+	if ( flPixelWidth < flMinSize )
 	{
 		alpha = 0;
 	}
@@ -2122,7 +2167,7 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 		return;
 	}
 
-	if ( prop.Flags() & ( STATIC_PROP_FLAG_FADES || STATIC_PROP_FLAG_POPS ) )
+	if ( ( prop.Flags() & STATIC_PROP_FLAG_FADES ) != 0 )
 	{
 		// Distance-based fading.
 		// Step over the list of all things that want to be faded out and recompute alpha
@@ -2146,26 +2191,12 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 
 			alpha = 0;
 			float sqDist = v.LengthSqr();
-			if ( ( prop.Flags() & STATIC_PROP_FLAG_FADES ) )
+			if ( sqDist < fade.m_MaxDistSq )
 			{
-				if ( sqDist < fade.m_MaxDistSq )
+				if ( ( fade.m_MinDistSq >= 0) && (sqDist > fade.m_MinDistSq ) )
 				{
-					if ( ( fade.m_MinDistSq >= 0) && (sqDist > fade.m_MinDistSq ) )
-					{
-						int nAlpha = fade.m_FalloffFactor * ( fade.m_MaxDistSq - sqDist );
-						alpha = clamp( nAlpha, 0, 255 );
-					}
-					else
-					{
-						alpha = 255;
-					}
-				}
-			}
-			else if ( ( prop.Flags() & STATIC_PROP_FLAG_POPS ) )
-			{
-				if ( sqDist > fade.m_MaxDistSq )
-				{
-					alpha = 0;
+					int nAlpha = fade.m_FalloffFactor * ( fade.m_MaxDistSq - sqDist );
+					alpha = clamp( nAlpha, 0, 255 );
 				}
 				else
 				{
@@ -2173,13 +2204,43 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 				}
 			}
 		}
-		else if ( ( prop.Flags() & STATIC_PROP_FLAG_POPS ) )
-		{
-			alpha = ComputeScreenPop( prop, fade.m_MinScreenWidth );
-		}
 		else
 		{
 			alpha = ComputeScreenFade( prop, fade.m_MinScreenWidth, fade.m_MaxScreenWidth, fade.m_FalloffFactor ); 
+		}
+
+		prop.SetAlpha( alpha );
+		ChangeRenderGroup( prop );
+	}
+	else if ( ( prop.Flags() & STATIC_PROP_FLAG_POPS ) != 0 )
+	{
+		Assert( prop.PopIndex() != INVALID_POP_INDEX );
+
+		Vector v;
+
+		StaticPropPop_t& pop = m_StaticPropPop[prop.PopIndex()];
+
+		unsigned char alpha;
+
+		if ( ( prop.Flags() & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
+		{
+			VectorSubtract( prop.GetRenderOrigin(), m_vecLastViewOrigin, v );
+			VectorScale( v, m_flLastViewFactor, v );
+
+			alpha = 0;
+			float sqDist = v.LengthSqr();
+			if ( sqDist > pop.m_MaxDistSq )
+			{
+				alpha = 0;
+			}
+			else
+			{
+				alpha = 255;
+			}
+		}
+		else
+		{
+			alpha = ComputeScreenPop( prop, pop.m_MinScreenWidth );
 		}
 
 		prop.SetAlpha( alpha );
