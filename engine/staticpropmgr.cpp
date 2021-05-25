@@ -67,10 +67,6 @@ enum
 {
 	INVALID_FADE_INDEX = (unsigned short)~0
 };
-enum
-{
-	INVALID_POP_INDEX = (unsigned short)~0
-};
 
 
 //-----------------------------------------------------------------------------
@@ -438,23 +434,6 @@ private:
 		float	m_FalloffFactor;
 	};
 
-	// (fiend) Data for static props that pop
-	struct StaticPropPop_t
-	{
-		int		m_Model;
-		union
-		{
-			float	m_MinDistSq;
-			float	m_MaxScreenWidth;
-		};
-		union
-		{
-			float	m_MaxDistSq;
-			float	m_MinScreenWidth;
-		};
-		float	m_FalloffFactor;
-	};
-
 	// The list of all static props
 	CUtlVector <StaticPropDict_t>	m_StaticPropDict;
 	CUtlVector <CStaticProp>		m_StaticProps;
@@ -464,7 +443,7 @@ private:
 	CUtlVector<StaticPropFade_t>	m_StaticPropFade;
 
 	// (fiend) Static props that pop
-	CUtlVector<StaticPropPop_t>		m_StaticPropPop;
+	CUtlVector<StaticPropFade_t>	m_StaticPropPop;
 
 	bool							m_bLevelInitialized;
 	bool							m_bClientInitialized;
@@ -519,7 +498,7 @@ bool CStaticProp::Init( int index, StaticPropLump_t &lump, model_t *pModel )
 	m_LeafCount = lump.m_LeafCount;
 	m_nSolidType = lump.m_Solid;
 	m_FadeIndex = INVALID_FADE_INDEX;
-	m_PopIndex = INVALID_POP_INDEX;
+	m_PopIndex = INVALID_FADE_INDEX;
 
 	MDLCACHE_CRITICAL_SECTION_( g_pMDLCache );
 
@@ -1407,7 +1386,7 @@ void CStaticPropMgr::UnserializeModels( CUtlBuffer& buf )
 		{
 			int idx = m_StaticPropPop.AddToTail();
 			m_StaticProps[i].SetPopIndex( (unsigned short)idx );
-			StaticPropPop_t& pop = m_StaticPropPop[idx];
+			StaticPropFade_t& pop = m_StaticPropPop[idx];
 			pop.m_Model = i;
 
 			pop.m_MinDistSq = lump.m_FadeMinDist;
@@ -2214,11 +2193,11 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 	}
 	else if ( ( prop.Flags() & STATIC_PROP_FLAG_POPS ) != 0 )
 	{
-		Assert( prop.PopIndex() != INVALID_POP_INDEX );
+		Assert( prop.PopIndex() != INVALID_FADE_INDEX );
 
 		Vector v;
 
-		StaticPropPop_t& pop = m_StaticPropPop[prop.PopIndex()];
+		StaticPropFade_t& pop = m_StaticPropPop[prop.PopIndex()];
 
 		unsigned char alpha;
 
