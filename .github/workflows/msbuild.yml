@@ -25,10 +25,10 @@ jobs:
 
     - name: idk
       run: |
-        - .\download_libs.bat
-        - msbuild /m /p:Configuration=Debug   thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
-        - msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
-        - .\creategameprojects_dev.bat
+         .\download_libs.bat
+         msbuild /m /p:Configuration=Debug   thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
+         msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
+         .\creategameprojects_dev.bat
 
     #- name: Build
     #  working-directory: ${{env.GITHUB_WORKSPACE}}
