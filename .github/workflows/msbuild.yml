@@ -25,7 +25,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: amd64_x86
-        sdk: 10.0.10240.0
+        sdk: 8.1
         toolset: 14.0
     - name: Set Registry Value
       run: reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}" /t REG_SZ /v DefaultProjectExtension /d vcproj /f
