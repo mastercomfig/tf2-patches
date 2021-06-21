@@ -23,7 +23,7 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Set Registry Value
-      run: REG ADD HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942} /f DefaultProjectExtension /t REG_SZ
+      run: REG ADD HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942} /f /v DefaultProjectExtension /t REG_SZ /d vcproj
     - name: idk
       run: |
          .\download_libs.bat
