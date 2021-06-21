@@ -4,12 +4,12 @@ on: [push]
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: .
+  #SOLUTION_FILE_PATH: .
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-  BUILD_CONFIGURATION: Release
+  #BUILD_CONFIGURATION: Release
   VALVE_NO_AUTO_P4: 1
   PreferredToolArchitecture: x64
 
@@ -23,7 +23,7 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Set Registry Value
-      run: REG ADD KeyName /v HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942} /f DefaultProjectExtension /t REG_SZ
+      run: REG ADD HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942} /f /v DefaultProjectExtension /t REG_SZ
     - name: idk
       run: |
          .\download_libs.bat
