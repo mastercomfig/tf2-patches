@@ -30,8 +30,8 @@ jobs:
          msbuild /m /p:Configuration=Debug   thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
          msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
          .\creategameprojects_dev.bat
-    - name: Build game.sln
-      run: msbuild /m /p:Configuration=Release /std:c++17 .\game.sln
+    - name: Build games.sln
+      run: msbuild /m /p:Configuration=Release /std:c++17 .\games.sln
     #- name: Build
     #  working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
