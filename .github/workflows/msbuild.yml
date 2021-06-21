@@ -36,6 +36,7 @@ jobs:
          .\creategameprojects_dev.bat
     - name: Build games.sln
       run: msbuild /p:Configuration=Release .\games.sln #/std:c++17
+    - run: type .\games.sln
     #- name: Build
     #  working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
