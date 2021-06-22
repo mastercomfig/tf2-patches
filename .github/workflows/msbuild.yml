@@ -35,8 +35,12 @@ jobs:
          msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
          .\creategameprojects_dev.bat
     - run: type .\games.sln
-    - name: Build games.sln
-      run: msbuild "/p:Configuration=Release;Platform=x86 .\games.sln /t:Build" # /std:c++17 # /t:Client__TF_
+    - name: Build appframework
+      run: msbuild "/p:Configuration=Release;Platform=x86 .\appframework\appframework.vcxproj"
+    - name: Build bitmap
+      run: msbuild "/p:Configuration=Release;Platform=x86 .\bitmap\bitmap.vcxproj"
+    - name: Build Client (TF)
+      run: msbuild "/p:Configuration=Release;Platform=x86 .\game\client\client_tf.vcxproj /t:Build"
     #- name: Build
     #  working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
