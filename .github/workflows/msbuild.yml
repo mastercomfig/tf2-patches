@@ -40,7 +40,7 @@ jobs:
     - name: Build bitmap
       run: msbuild "/p:Configuration=Release;Platform=x86" .\bitmap\bitmap.vcxproj
     - name: Build Client (TF)
-      run: msbuild "/p:Configuration=Release;Platform=x86 .\game\client\client_tf.vcxproj /t:Build"
+      run: msbuild "/p:Configuration=Release;Platform=x86" .\game\client\client_tf.vcxproj /t:Build
     #- name: Build
     #  working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
