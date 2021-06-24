@@ -7,7 +7,7 @@ env:
   PreferredToolArchitecture: x64
 
 jobs:
-  build:
+  windows-build:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -48,3 +48,25 @@ jobs:
       run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\game\server\server_tf.vcxproj /t:Build
     - name: Build Client (TF)
       run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\game\client\client_tf.vcxproj /t:Build
+  
+  # see https://github.com/mastercomfig/team-comtress-2/pull/486
+  #linux-build:
+  #  runs-on: ubuntu-latest
+  #  strategy:
+  #    matrix:
+  #      Configuration: [Debug, Release]
+  #  
+  #  steps:
+  #  - name: Checkout
+  #    uses: actions/checkout@v2
+  #  
+  #  - run: sudo dpkg --add-architecture i386 && apt-get update
+  #  - name: Install dependencies
+  #    run: sudo apt install autoconf automake build-essential fontconfig:i386 g++-multilib libcurl4-gnutls-dev:i386 libfontconfig1:i386 libfontconfig1-dev:i386 libfreetype-dev:i386 libncurses-dev:i386 libopenal-dev:i386 libopenal1:i386 libunwind-dev libunwind-dev:i386 libx11-dev:i386 mesa-common-dev:i386
+
+  #  - name: Build
+  #    run: make -f games.mak NO_CHROOT=1
+  #  - name: Link
+  #    run: ./link.sh
+
+
