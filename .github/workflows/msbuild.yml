@@ -3,49 +3,48 @@ name: MSBuild
 on: [push]
 
 env:
-  # Path to the solution file relative to the root of the project.
-  #SOLUTION_FILE_PATH: .
-
-  # Configuration type to build.
-  # You can convert this to a build matrix if you need coverage of multiple configuration types.
-  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-  #BUILD_CONFIGURATION: Release
   VALVE_NO_AUTO_P4: 1
   PreferredToolArchitecture: x64
 
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        Configuration: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v2
-
+    - name: Checkout
+      uses: actions/checkout@v2
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
-    - uses: ilammy/msvc-dev-cmd@v1
+    - name: msvc cmd
+      uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: amd64_x86
         toolset: 14.0
+
+      # Required for creategameprojects
     - name: Set Registry Value
       run: reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}" /t REG_SZ /v DefaultProjectExtension /d vcproj /f
-    - name: idk
-      run: |
-         .\download_libs.bat
-         msbuild /m /p:Configuration=Debug   thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
-         msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
-         .\creategameprojects_dev.bat
-    - run: type .\games.sln
-    - name: Build appframework
-      run: msbuild "/p:Configuration=Release;Platform=x86" .\appframework\appframework.vcxproj
-    - name: Build bitmap
-      run: msbuild "/p:Configuration=Release;Platform=x86" .\bitmap\bitmap.vcxproj
+   
+    - name: Download Libraries
+      run: .\download_libs.bat
       
+    - name: Build protobuf
+      run: |
+        msbuild /m /p:Configuration=Debug   thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
+        msbuild /m /p:Configuration=Release thirdparty\protobuf-2.5.0\vsprojects\libprotobuf.vcxproj
+        
+    - name: Create game projects
+      run: .\creategameprojects_dev.bat
+      
+    - name: Build bitmap
+      run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\bitmap\bitmap.vcxproj
     - name: Build choreoobjects
-      run: msbuild "/p:Configuration=Release;Platform=x86" .\choreoobjects\choreoobjects.vcxproj
+      run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\choreoobjects\choreoobjects.vcxproj
+   
+    - name: Build Server (TF)
+      run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\game\server\server_tf.vcxproj /t:Build
     - name: Build Client (TF)
-      run: msbuild "/p:Configuration=Release;Platform=x86" .\game\client\client_tf.vcxproj /t:Build
-    #- name: Build
-    #  working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-    #  run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild "/p:Configuration=${{ matrix.Configuration }};Platform=x86" .\game\client\client_tf.vcxproj /t:Build
