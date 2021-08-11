@@ -222,9 +222,9 @@ bool IsBoxIntersectingBoxExtents( const Vector& boxCenter1, const Vector& boxHal
 						   const Vector& boxCenter2, const Vector& boxHalfDiagonal2 );
 
 
-#if defined(USE_DIRECTX_MATH) || defined(_X360)
+#if defined(USE_DXMATH) || defined(_X360)
 // inline version:
-inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1,
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );
 #endif
 
@@ -426,8 +426,8 @@ bool RayHasFullyContainedIntersectionWithQuad( const Ray_t &ray,
 // INLINES
 //-----------------------------------------------------------------------------
 
-#if defined(USE_DIRECTX_MATH)
-inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
+#if defined(USE_DXMATH)
+inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1,
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 )
 {
 	fltx4 vecDelta, vecSize;

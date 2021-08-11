@@ -4989,13 +4989,13 @@ static fltx4 AlignThatVector(const Vector& vc)
 	out.z = vc.z;
 	*/
 
-	// squelch the w component 
+	// squelch the w component
 	return __vrlimi(out, __vzero(), 1, 0);
 }
-#elif defined(USE_DIRECTX_MATH)
+#elif defined(USE_DXMATH)
 static fltx4 AlignThatVector(const Vector &vc)
 {
-	fltx4 out = VectorLoad(&vc);
+	fltx4 out = LoadUnaligned3SIMD(&vc);
 
 	// squelch the w component
 	return DirectX::XMVectorSetW(out, 0);
@@ -5003,7 +5003,7 @@ static fltx4 AlignThatVector(const Vector &vc)
 #endif
 #endif
 
-#if defined(USE_DIRECTX_MATH) || defined(_X360)
+#if defined(USE_DXMATH) || defined(_X360)
 static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pInfo, unsigned short* RESTRICT pList, int listMax)
 {
 	int leafCount = 0;
@@ -5083,7 +5083,7 @@ static int ListLeafsInBox(mnode_t* RESTRICT node, ListLeafBoxInfo_t* RESTRICT pI
 					fltx4 vecBoxMin = LoadAlignedSIMD(pInfo->m_vecBoxMin);
 					fltx4 vecBoxMax = LoadAlignedSIMD(pInfo->m_vecBoxMax);
 					fltx4 cornermin, cornermax;
-#ifdef USE_DIRECTX_MATH
+#ifdef USE_DXMATH
 					// by now planeNormal is ready...
 					fltx4 control = DirectX::XMVectorGreaterOrEqual(planeNormal, DirectX::g_XMZero);
 					// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
@@ -5608,7 +5608,7 @@ bool CEngineBSPTree::EnumerateLeavesAlongRay( Ray_t const& ray, ISpatialLeafEnum
 
 int CEngineBSPTree::ListLeavesInBox(const Vector& mins, const Vector& maxs, unsigned short* pList, int listMax)
 {
-#if defined(USE_DIRECTX_MATH) || defined(_X360)
+#if defined(USE_DXMATH) || defined(_X360)
     if (opt_ListLeavesFastAlgorithm.GetBool())
     {
 		ListLeafBoxInfo_t info;
