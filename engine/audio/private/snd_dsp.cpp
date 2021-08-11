@@ -5890,10 +5890,10 @@ inline int PSET_GetNext ( pset_t *ppset, int x )
 // Dsp presets
 
 
-ConVar dsp_room			("dsp_room", "0", FCVAR_DEMO );				// room dsp preset - sounds more distant from player (1ch)
+ConVar dsp_room			("dsp_room", "1", FCVAR_DEMO );				// room dsp preset - sounds more distant from player (1ch)
 ConVar dsp_water		("dsp_water", "14", FCVAR_DEMO );			// "14" underwater dsp preset - sound when underwater (1-2ch)
 ConVar dsp_player		("dsp_player", "0", FCVAR_DEMO | FCVAR_SERVER_CAN_EXECUTE );			// dsp on player - sound when player hit by special device (1-2ch)
-ConVar dsp_facingaway	("dsp_facingaway", "0", FCVAR_DEMO );		// "30" sounds that face away from player (weapons, voice) (1-4ch)
+ConVar dsp_facingaway	("dsp_facingaway", "30", FCVAR_DEMO );		// "30" sounds that face away from player (weapons, voice) (1-4ch)
 ConVar dsp_speaker		("dsp_speaker", "50", FCVAR_DEMO );			// "50" small distorted speaker sound (1ch)
 ConVar dsp_spatial		("dsp_spatial", "40", FCVAR_DEMO );			// spatial delays for l/r front/rear ears
 ConVar dsp_automatic	("dsp_automatic", "0", FCVAR_DEMO );			// automatic room type detection. if non zero, replaces dsp_room
@@ -5930,7 +5930,7 @@ ConVar dsp_vol_5ch	("dsp_vol_5ch", "0.5", FCVAR_DEMO );					// 0.0 - 1.0; attenu
 ConVar dsp_vol_4ch	("dsp_vol_4ch", "0.5", FCVAR_DEMO );					// 0.0 - 1.0; attenuate master dsp volume for 4ch surround
 ConVar dsp_vol_2ch	("dsp_vol_2ch", "1.0", FCVAR_DEMO );					// 0.0 - 1.0; attenuate master dsp volume for 2ch surround
 
-ConVar dsp_enhance_stereo("dsp_enhance_stereo", "0", FCVAR_ARCHIVE );	// 1) use dsp_spatial delays on all reverb channels
+ConVar dsp_enhance_stereo("dsp_enhance_stereo", "1", FCVAR_ARCHIVE );	// 1) use dsp_spatial delays on all reverb channels
 
 // DSP preset executor
 

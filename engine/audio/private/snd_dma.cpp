@@ -166,7 +166,9 @@ bool IsSoundSourceLocalPlayer( int soundsource )
 	return ( soundsource == g_pSoundServices->GetViewEntity() );
 }
 
-CThreadMutex g_SndMutex;
+CStdThreadMutex g_SndMutex;
+
+CStdThreadEvent g_SndUpdateEvent;
 
 #define THREAD_LOCK_SOUND() AUTO_LOCK( g_SndMutex )
 
@@ -251,8 +253,8 @@ float			g_ReplaySoundTimeFracAccumulator = 0.0f;	// Used by replay
 float			g_ClockSyncArray[NUM_CLOCK_SYNCS] = {0};
 int64				g_SoundClockPaintTime[NUM_CLOCK_SYNCS] = {0};
 
-// default 10ms
-ConVar snd_delay_sound_shift("snd_delay_sound_shift","0.01");
+// default 1ms
+ConVar snd_delay_sound_shift("snd_delay_sound_shift","0.001");
 // this forces the clock to resync on the next delayed/sync sound
 void S_SyncClockAdjust( clocksync_index_t syncIndex )
 {
@@ -284,7 +286,7 @@ float S_ComputeDelayForSoundtime( float soundtime, clocksync_index_t syncIndex )
 	int delaySamples = gameSamples - paintedSamples;
 	float delay = delaySamples / float(dmaSpeed);
 
-	if ( gameDeltaTime < 0 || fabs(delay) > 0.200f )
+	if ( gameDeltaTime < 0 || abs(delay) > 0.200f )
 	{
 		// Note that the equations assume a correlation between game time and real time
 		// some kind of clock error.  This can happen with large host_timescale or when the 
@@ -468,12 +470,13 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 // user configurable music volume
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
-ConVar snd_mixahead( "snd_mixahead", "0.05");
+ConVar snd_mixahead( "snd_mixahead", "0.1");
 #ifdef THREADED_SOUND_UPDATE
 ConVar snd_mix_async( "snd_mix_async", "1" );
 #else
 ConVar snd_mix_async("snd_mix_async", "0");
 #endif
+
 #ifdef _DEBUG
 static ConCommand snd_mixvol("snd_mixvol", MXR_DebugSetMixGroupVolume, "Set named Mixgroup to mix volume.");
 #endif
@@ -5093,7 +5096,7 @@ int S_StartDynamicSound( StartSoundParams_t& params )
 		vol = 255;
 	}
 
-	THREAD_LOCK_SOUND();
+	THREAD_LOCK_SOUND()
 
 	if ( params.flags & (SND_STOP|SND_CHANGE_VOL|SND_CHANGE_PITCH) )
 	{
@@ -5381,12 +5384,12 @@ int S_StartStaticSound( StartSoundParams_t& params )
 		vol = 255;
 	}
 
-	THREAD_LOCK_SOUND();
-
 	int nSndShowStart = snd_showstart.GetInt();
 
 	if ((params.flags & SND_STOP) && nSndShowStart > 0)
 		DevMsg("S_StartStaticSound: %s Stopped.\n", sndname);
+
+	THREAD_LOCK_SOUND()
 
 	if ((params.flags & SND_STOP) || (params.flags & SND_CHANGE_VOL) || (params.flags & SND_CHANGE_PITCH))
 	{
@@ -5746,7 +5749,7 @@ int S_GetCurrentStaticSounds( SoundInfo_t *pResult, int nSizeResult, int entchan
 // Stop all sounds for entity on a channel.
 void S_StopSound(int soundsource, int entchannel)
 {
-	THREAD_LOCK_SOUND();
+	THREAD_LOCK_SOUND()
 	CChannelList list;
 	g_ActiveChannels.GetActiveChannels( list );
 	for ( int i = 0; i < list.Count(); i++ )
@@ -5781,7 +5784,7 @@ channel_t *S_FindChannelByGuid( int guid )
 //-----------------------------------------------------------------------------
 void S_StopSoundByGuid( int guid )
 {
-	THREAD_LOCK_SOUND();
+	THREAD_LOCK_SOUND()
 	channel_t *pChannel = S_FindChannelByGuid( guid );
 	if ( pChannel )
 	{
@@ -5920,7 +5923,7 @@ void S_GetActiveSounds( CUtlVector< SndInfo_t >& sndlist )
 
 void S_StopAllSounds( bool bClear )
 {
-	THREAD_LOCK_SOUND();
+	THREAD_LOCK_SOUND()
 	int		i;
 
 	if ( !g_AudioDevice )
@@ -6333,15 +6336,15 @@ void S_UpdateThreaded_Base(const AudioState_t* pAudioState)
 }
 #endif
 
-void S_Update_Main(const AudioState_t* pAudioState)
+void S_Update_Main( const AudioState_t *pAudioState )
 {
 	VPROF("S_Update");
-	channel_t* ch;
+	channel_t	*ch;
 	static unsigned int s_roundrobin = 0; ///< number of times this function is called.
 									  ///< used instead of host_frame because that number
 									  ///< isn't necessarily available here (sez Yahn).
 
-	if (!g_AudioDevice->IsActive())
+	if ( !g_AudioDevice->IsActive() )
 		return;
 
 	g_SndMutex.Lock();
@@ -6349,22 +6352,22 @@ void S_Update_Main(const AudioState_t* pAudioState)
 	// Update any client side sound fade
 	S_UpdateSoundFade();
 
-	if (pAudioState)
+	if ( pAudioState )
 	{
-		VectorCopy(pAudioState->m_Origin, listener_origin);
-		AngleVectors(pAudioState->m_Angles, &listener_forward, &listener_right, &listener_up);
+		VectorCopy( pAudioState->m_Origin, listener_origin );
+		AngleVectors( pAudioState->m_Angles, &listener_forward, &listener_right, &listener_up ); 
 		s_bIsListenerUnderwater = pAudioState->m_bIsUnderwater;
 	}
 	else
 	{
-		VectorCopy(vec3_origin, listener_origin);
-		VectorCopy(vec3_origin, listener_forward);
-		VectorCopy(vec3_origin, listener_right);
-		VectorCopy(vec3_origin, listener_up);
+		VectorCopy( vec3_origin, listener_origin );
+		VectorCopy( vec3_origin, listener_forward );
+		VectorCopy( vec3_origin, listener_right );
+		VectorCopy( vec3_origin, listener_up );
 		s_bIsListenerUnderwater = false;
 	}
 
-	g_AudioDevice->UpdateListener(listener_origin, listener_forward, listener_right, listener_up);
+	g_AudioDevice->UpdateListener( listener_origin, listener_forward, listener_right, listener_up );
 
 	int voiceChannelCount = 0;
 	int voiceChannelMaxVolume = 0;
@@ -6381,23 +6384,28 @@ void S_Update_Main(const AudioState_t* pAudioState)
 
 	// update spatialization for static and dynamic sounds	
 	CChannelList list;
-	g_ActiveChannels.GetActiveChannels(list);
+	g_ActiveChannels.GetActiveChannels( list );
 
 	if (snd_spatialize_roundrobin.GetInt() == 0)
 	{
 		// spatialize each channel each time
-		for (int i = 0; i < list.Count(); i++)
+		for ( int i = 0; i < list.Count(); i++ )
 		{
 			ch = list.GetChannel(i);
 			Assert(ch->sfx);
 			Assert(ch->activeIndex > 0);
 
+			if (!ch->sfx || ch->activeIndex < 1)
+			{
+				continue;
+			}
+
 			SND_Spatialize(ch);         // respatialize channel
 
-			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
+			if ( ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource() )
 			{
 				voiceChannelCount++;
-				voiceChannelMaxVolume = max(voiceChannelMaxVolume, ChannelGetMaxVol(ch));
+				voiceChannelMaxVolume = max(voiceChannelMaxVolume, ChannelGetMaxVol( ch) );
 			}
 		}
 	}
@@ -6406,22 +6414,27 @@ void S_Update_Main(const AudioState_t* pAudioState)
 		unsigned int robinmask = (1 << snd_spatialize_roundrobin.GetInt()) - 1;
 
 		// now do static channels
-		for (int i = 0; i < list.Count(); ++i)
+		for ( int i = 0 ; i < list.Count() ; ++i )
 		{
 			ch = list.GetChannel(i);
 			Assert(ch->sfx);
 			Assert(ch->activeIndex > 0);
 
+			if (!ch->sfx || ch->activeIndex < 1)
+			{
+				continue;
+			}
+
 			// need to check bfirstpass because sound tracing may have been deferred
-			if (ch->flags.bfirstpass || (robinmask & s_roundrobin) == (i & robinmask))
+			if ( ch->flags.bfirstpass || (robinmask & s_roundrobin) == ( i & robinmask ) )
 			{
 				SND_Spatialize(ch);         // respatialize channel
 			}
 
-			if (ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource())
+			if ( ch->sfx->pSource && ch->sfx->pSource->IsVoiceSource() )
 			{
 				voiceChannelCount++;
-				voiceChannelMaxVolume = max(voiceChannelMaxVolume, ChannelGetMaxVol(ch));
+				voiceChannelMaxVolume = max( voiceChannelMaxVolume, ChannelGetMaxVol( ch) );
 			}
 		}
 
@@ -6432,11 +6445,11 @@ void S_Update_Main(const AudioState_t* pAudioState)
 
 	// set new target for voice ducking
 	float frametime = g_pSoundServices->GetHostFrametime();
-	S_UpdateVoiceDuck(voiceChannelCount, voiceChannelMaxVolume, frametime);
+	S_UpdateVoiceDuck( voiceChannelCount, voiceChannelMaxVolume, frametime );
 
 #ifdef _X360
 	// update x360 music volume
-	g_DashboardMusicMixValue = Approach(g_DashboardMusicMixTarget, g_DashboardMusicMixValue, g_DashboardMusicFadeRate * frametime);
+	g_DashboardMusicMixValue = Approach( g_DashboardMusicMixTarget, g_DashboardMusicMixValue, g_DashboardMusicFadeRate * frametime );
 #endif
 
 	//
@@ -6451,15 +6464,15 @@ void S_Update_Main(const AudioState_t* pAudioState)
 		int total = 0;
 
 		CChannelList activeChannels;
-		g_ActiveChannels.GetActiveChannels(activeChannels);
-		for (int i = 0; i < activeChannels.Count(); i++)
+		g_ActiveChannels.GetActiveChannels( activeChannels );
+		for ( int i = 0; i < activeChannels.Count(); i++ )
 		{
-			channel_t* channel = activeChannels.GetChannel(i);
-			if (!channel->sfx)
+			channel_t *channel = activeChannels.GetChannel(i);
+			if ( !channel->sfx )
 				continue;
 
 			np.index = total + 2;
-			if (channel->flags.fromserver)
+			if ( channel->flags.fromserver )
 			{
 				np.color[0] = 1.0;
 				np.color[1] = 0.8;
@@ -6472,14 +6485,14 @@ void S_Update_Main(const AudioState_t* pAudioState)
 				np.color[2] = 1.0;
 			}
 
-			unsigned int sampleCount = RemainingSamples(channel);
+			unsigned int sampleCount = RemainingSamples( channel );
 			float timeleft = (float)sampleCount / (float)channel->sfx->pSource->SampleRate();
 			bool bLooping = channel->sfx->pSource->IsLooped();
 
 			if (snd_surround.GetInt() < 4)
 			{
-				Con_NXPrintf(&np, "%02i l(%03d) r(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s",
-					total + 1,
+				Con_NXPrintf ( &np, "%02i l(%03d) r(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s", 
+					total+ 1, 
 					(int)channel->fvolume[IFRONT_LEFT],
 					(int)channel->fvolume[IFRONT_RIGHT],
 					channel->master_vol,
@@ -6488,13 +6501,13 @@ void S_Update_Main(const AudioState_t* pAudioState)
 					(int)channel->origin[1],
 					(int)channel->origin[2],
 					timeleft,
-					bLooping,
+					bLooping, 
 					channel->sfx->getname());
 			}
 			else
 			{
-				Con_NXPrintf(&np, "%02i l(%03d) c(%03d) r(%03d) rl(%03d) rr(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s",
-					total + 1,
+				Con_NXPrintf ( &np, "%02i l(%03d) c(%03d) r(%03d) rl(%03d) rr(%03d) vol(%03d) ent(%03d) pos(%6d %6d %6d) timeleft(%f) looped(%d) %50s", 
+					total+ 1, 
 					(int)channel->fvolume[IFRONT_LEFT],
 					(int)channel->fvolume[IFRONT_CENTER],
 					(int)channel->fvolume[IFRONT_RIGHT],
@@ -6510,24 +6523,24 @@ void S_Update_Main(const AudioState_t* pAudioState)
 					channel->sfx->getname());
 			}
 
-			if (snd_visualize.GetInt())
+			if ( snd_visualize.GetInt() )
 			{
-				CDebugOverlay::AddTextOverlay(channel->origin, 0.05f, channel->sfx->getname());
+				CDebugOverlay::AddTextOverlay( channel->origin, 0.05f, channel->sfx->getname() );
 			}
 
 			total++;
 		}
 
-		while (total <= 128)
+		while ( total <= 128 )
 		{
-			Con_NPrintf(total + 2, "");
+			Con_NPrintf( total + 2, "" );
 			total++;
 		}
 	}
 
 	g_SndMutex.Unlock();
 
-	if (s_bOnLoadScreen)
+	if ( s_bOnLoadScreen )
 		return;
 
 	// not time to update yet?
@@ -6539,7 +6552,7 @@ void S_Update_Main(const AudioState_t* pAudioState)
 	// mix some sound
 	// try to stay at least one frame + mixahead ahead in the mix.
 	g_EstFrameTime = (g_EstFrameTime * 0.9f) + (g_pSoundServices->GetHostFrametime() * 0.1f);
-	S_Update_(g_EstFrameTime + snd_mixahead.GetFloat());
+	S_Update_( g_EstFrameTime + snd_mixahead.GetFloat() );
 }
 
 void S_Update(const AudioState_t* pAudioState)
@@ -6800,17 +6813,18 @@ void S_Update_Thread()
 #ifdef THREADED_SOUND_UPDATE
 		S_UpdateThreaded_Main();
 #endif
-		S_Update_Guts(frameTime + snd_mixahead.GetFloat());
+		S_Update_Guts(frameTime + snd_mixahead.GetFloat() );
 		const double tf = Plat_FloatTime();
 
 		const double dt = tf - t0;
 
-		// try to maintain a steadier rate by compensating for fluctuating mix times
-		// leave 1 ms for tighter timings in loop
+		// we have two goals: reduce latency and improve consistency
+		// this means we have regular update times that keep track of variance of frame times.
+		// however, we also want to update as soon as the game thread makes new stuff available to us
 		const int nSleepMS = (int) ((THREADED_MIX_TIME - dt) * 1000);
-		if ( nSleepMS >= 0 )
+		if (nSleepMS > 0)
 		{
-			ThreadSleep( nSleepMS );
+			g_SndUpdateEvent.Wait(nSleepMS);
 		}
 
 		// mimic a frametime needed for sound update
@@ -6828,6 +6842,7 @@ void S_ShutdownMixThread()
 {
 	if ( g_hMixThread )
 	{
+		g_SndUpdateEvent.Set();
 		g_bMixThreadExit = true;
 		ThreadJoin( g_hMixThread );
 		ReleaseThreadHandle( g_hMixThread );
@@ -6848,10 +6863,15 @@ void S_Update_( float mixAheadTime )
 		{
 			g_bMixThreadExit = false;
 			g_hMixThread = ThreadExecuteSolo( "SndMix", S_Update_Thread );
+			ThreadSetPriority(g_hMixThread, TP_PRIORITY_HIGHEST);
 			if ( IsX360() )
 			{
 				ThreadSetAffinity( g_hMixThread, XBOX_PROCESSOR_5 );
 			}
+		}
+		else
+		{
+			g_SndUpdateEvent.Set();
 		}
 	}
 }

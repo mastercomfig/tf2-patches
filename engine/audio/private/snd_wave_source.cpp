@@ -23,7 +23,7 @@
 #define SND_ASYNC_LOOKAHEAD_SECONDS		( 0.125f )
 
 extern ConVar snd_async_spew_blocking;
-ConVar snd_async_minsize("snd_async_minsize", "262144");
+ConVar snd_async_minsize("snd_async_minsize", "0");
 
 // #define DEBUG_CHUNKS
 

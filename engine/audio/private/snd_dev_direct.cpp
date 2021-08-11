@@ -358,7 +358,7 @@ int CAudioDirectSound::PaintBegin( float mixAheadTime, int soundtime, int painte
 	DWORD	dwStatus;
 
 	// If using surround, there are 4 or 5 different buffers being used and the pDSBuf is NULL.
-	if ( IsUsingBufferPerSpeaker() ) 
+	if ( IsUsingBufferPerSpeaker() )
 	{
 		if (pDSBufFL->GetStatus(&dwStatus) != DS_OK)
 			Msg ("Couldn't get SURROUND FL sound buffer status\n");
@@ -659,9 +659,10 @@ bool CAudioDirectSound::SNDDMA_InitInterleaved( LPDIRECTSOUND lpDS, WAVEFORMATEX
 			dsbdesc.dwFlags = DSBCAPS_LOCSOFTWARE;
 			break;
 		case 2:
-			dsbdesc.dwFlags = 0;
+			dsbdesc.dwFlags = DSBCAPS_LOCDEFER;
 			break;
 		}
+		dsbdesc.dwFlags |= DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_TRUEPLAYPOSITION;
 		if ( !snd_mute_losefocus.GetBool() )
 		{
 			dsbdesc.dwFlags |= DSBCAPS_GLOBALFOCUS;
@@ -676,7 +677,7 @@ bool CAudioDirectSound::SNDDMA_InitInterleaved( LPDIRECTSOUND lpDS, WAVEFORMATEX
 	if ( !bSuccess )
 		return false;
 
-	DWORD dwSize = 0, dwWrite;
+	DWORD dwSize = 0;
 	DWORD *pBuffer = 0;
 	if ( !LockDSBuffer( pDSBuf, &pBuffer, &dwSize, "DS_INTERLEAVED", DSBLOCK_ENTIREBUFFER ) )
 		return false;
@@ -695,7 +696,7 @@ bool CAudioDirectSound::SNDDMA_InitInterleaved( LPDIRECTSOUND lpDS, WAVEFORMATEX
 	pDSBuf->Play(0, 0, DSBPLAY_LOOPING);
 
 	pDSBuf->Stop();
-	pDSBuf->GetCurrentPosition(&m_outputBufferStartOffset, &dwWrite);
+	pDSBuf->GetCurrentPosition(&m_outputBufferStartOffset, NULL);
 
 	pDSBuf->Play(0, 0, DSBPLAY_LOOPING);
 
@@ -713,7 +714,7 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 {
 	DSBUFFERDESC	dsbuf;
 	DSBCAPS			dsbcaps;
-	DWORD			dwSize, dwWrite;
+	DWORD			dwSize;
 	WAVEFORMATEX	format;
 	WAVEFORMATEX	pformat; 
 	HRESULT			hresult;
@@ -818,7 +819,7 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 	// sound hardware format
 	Q_memset( &dsbuf, 0, sizeof(dsbuf) );
 	dsbuf.dwSize = sizeof(DSBUFFERDESC);
-	dsbuf.dwFlags = DSBCAPS_PRIMARYBUFFER;
+	dsbuf.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_LOCDEFER | DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_TRUEPLAYPOSITION;
 	if ( snd_legacy_surround.GetBool() || m_bSurround )
 	{
 		dsbuf.dwFlags |= DSBCAPS_CTRL3D;
@@ -888,7 +889,8 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 			// create the secondary buffer we'll actually work with
 			Q_memset( &dsbuf, 0, sizeof(dsbuf) );
 			dsbuf.dwSize = sizeof(DSBUFFERDESC);
-			dsbuf.dwFlags = DSBCAPS_LOCSOFTWARE;		// NOTE: don't use CTRLFREQUENCY (slow)
+			// NOTE: don't use CTRLFREQUENCY (slow)
+			dsbuf.dwFlags = DSBCAPS_LOCDEFER | DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_TRUEPLAYPOSITION;
 			dsbuf.dwBufferBytes = SECONDARY_BUFFER_SIZE;
 			dsbuf.lpwfxFormat = &format;
 			if ( !snd_mute_losefocus.GetBool() )
@@ -980,7 +982,7 @@ sndinitstat CAudioDirectSound::SNDDMA_InitDirect( void )
 
 		pDSBuf->Stop();
 
-		pDSBuf->GetCurrentPosition(&m_outputBufferStartOffset, &dwWrite);
+		pDSBuf->GetCurrentPosition(&m_outputBufferStartOffset, NULL);
 
 		pDSBuf->Play(0, 0, DSBPLAY_LOOPING);
 	}
@@ -1276,7 +1278,7 @@ void DS3D_SetBufferParams( LPDIRECTSOUND3DBUFFER pDSBuf3D, D3DVECTOR *pbpos, D3D
 	bparm.vConeOrientation = bdir;
 	bparm.lConeOutsideVolume = DSBVOLUME_MIN;
 	bparm.flMinDistance = 100.0;		// no rolloff (until > 2.0 meter distance)
-	bparm.flMaxDistance = DS3D_DEFAULTMAXDISTANCE;
+	bparm.flMaxDistance = 1000.0;
 	bparm.dwMode = DS3DMODE_NORMAL;
 
 	hr = pDSBuf3D->SetAllParameters( &bparm, DS3D_DEFERRED );
@@ -1288,7 +1290,7 @@ bool CAudioDirectSound::SNDDMA_InitSurround(LPDIRECTSOUND lpDS, WAVEFORMATEX* lp
 {
 	DSBUFFERDESC	dsbuf;
 	WAVEFORMATEX wvex;
-	DWORD dwSize, dwWrite;
+	DWORD dwSize;
 	int reps;
 	HRESULT hresult;
 	void			*lpData = NULL;
@@ -1304,8 +1306,9 @@ bool CAudioDirectSound::SNDDMA_InitSurround(LPDIRECTSOUND lpDS, WAVEFORMATEX* lp
 
 	memset (&dsbuf, 0, sizeof(dsbuf));
 	dsbuf.dwSize = sizeof(DSBUFFERDESC);
-														 // NOTE: LOCHARDWARE causes SB AWE64 to crash in it's DSOUND driver
-	dsbuf.dwFlags = DSBCAPS_CTRL3D;						 // don't use CTRLFREQUENCY (slow)
+	// NOTE: LOCHARDWARE causes SB AWE64 to crash in it's DSOUND driver
+	// don't use CTRLFREQUENCY (slow)
+	dsbuf.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_LOCDEFER | DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_TRUEPLAYPOSITION;
 	if ( !snd_mute_losefocus.GetBool() )
 	{
 		dsbuf.dwFlags |= DSBCAPS_GLOBALFOCUS;
@@ -1611,7 +1614,7 @@ bool CAudioDirectSound::SNDDMA_InitSurround(LPDIRECTSOUND lpDS, WAVEFORMATEX* lp
 
 	// get hardware playback position, store it, syncronize all buffers to FL
 
-	pDSBufFL->GetCurrentPosition(&m_outputBufferStartOffset, &dwWrite);
+	pDSBufFL->GetCurrentPosition(&m_outputBufferStartOffset, NULL);
 	pDSBufFR->SetCurrentPosition(m_outputBufferStartOffset);
 	pDSBufRL->SetCurrentPosition(m_outputBufferStartOffset);
 	pDSBufRR->SetCurrentPosition(m_outputBufferStartOffset);
