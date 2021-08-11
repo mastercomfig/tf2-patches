@@ -6158,11 +6158,7 @@ void S_UpdateThreaded_Main()
 		for (int i = 0; i < list.Count(); i++)
 		{
 			ch = list.GetChannel(i);
-
-			Assert(ch->sfx);
-			Assert(ch->activeIndex > 0);
-
-			if (!ch->sfx || ch->activeIndex < 1)
+			if (!ch->sfx || !ch->activeIndex)
 			{
 				continue;
 			}
