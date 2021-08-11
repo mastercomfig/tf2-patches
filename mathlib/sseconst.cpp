@@ -5,9 +5,10 @@
 //===========================================================================//
 
 #include "mathlib/ssemath.h"
+#include "mathlib/ssequaternion.h"
 
 const fltx4 Four_PointFives={0.5,0.5,0.5,0.5};
-#ifndef _X360
+#if !defined(_X360) && !USE_DXMATH
 const fltx4 Four_Zeros={0.0,0.0,0.0,0.0};
 const fltx4 Four_Ones={1.0,1.0,1.0,1.0};
 #endif
@@ -16,6 +17,8 @@ const fltx4 Four_Threes={3.0,3.0,3.0,3.0};
 const fltx4 Four_Fours={4.0,4.0,4.0,4.0};
 const fltx4 Four_Origin={0,0,0,1};
 const fltx4 Four_NegativeOnes={-1,-1,-1,-1};
+const fltx4 Four_DegToRad = { ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)) };
+const fltx4 Four_360 = { 360.f, 360.f, 360.f, 360.f };
 
 const fltx4 Four_2ToThe21s={ (float) (1<<21), (float) (1<<21), (float) (1<<21), (float)(1<<21) };
 const fltx4 Four_2ToThe22s={ (float) (1<<22), (float) (1<<22), (float) (1<<22), (float)(1<<22) };
@@ -24,7 +27,6 @@ const fltx4 Four_2ToThe24s={ (float) (1<<24), (float) (1<<24), (float) (1<<24), 
 
 const fltx4 Four_Point225s={ .225, .225, .225, .225 };
 const fltx4 Four_Epsilons={FLT_EPSILON,FLT_EPSILON,FLT_EPSILON,FLT_EPSILON};
-const fltx4 Four_DegToRad = { ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)) };
 
 const fltx4 Four_FLT_MAX={FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX};
 const fltx4 Four_Negative_FLT_MAX={-FLT_MAX,-FLT_MAX,-FLT_MAX,-FLT_MAX};
@@ -59,7 +61,6 @@ const uint32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST =
 };
 
 const int32 ALIGN16 g_SIMD_EveryOtherMask[4] = { 0, ~0, 0, ~0 };
-
 
 	// FUNCTIONS
 	// NOTE: WHY YOU **DO NOT** WANT TO PUT FUNCTIONS HERE
@@ -379,7 +380,6 @@ void FourVectors_TransformManyGroupsOfEightBy(FourVectors * RESTRICT pVectors, u
 #undef COMPUTE_GROUP
 #undef WRITE_GROUP
 }
-#endif
 
 #ifdef _X360
 // Loop-scheduled code to process FourVectors in groups of eight quite efficiently. This is the version
@@ -975,6 +975,9 @@ void FourVectors::TransformManyBy(FourVectors * RESTRICT pVectors, unsigned int 
 		} while(numVectors > 0);
 	}
 }
+
+
+#endif
 
 // Transform many (horizontal) points in-place by a 3x4 matrix,
 // here already loaded onto three fltx4 registers but not transposed. 

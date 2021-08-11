@@ -57,12 +57,18 @@
 
 #define VecToString(v)	(static_cast<const char *>(CFmtStr("(%f, %f, %f)", (v).x, (v).y, (v).z))) // ** Note: this generates a temporary, don't hold reference!
 
+//#define ALIGN_VECTOR_BY_DEFAULT
+
 class VectorByValue;
 
 //=========================================================
 // 3D Vector
 //=========================================================
-class Vector					
+#ifdef ALIGN_VECTOR_BY_DEFAULT
+class ALIGN16 Vector
+#else
+class Vector
+#endif
 {
 public:
 	// Members
@@ -78,6 +84,7 @@ public:
 	 // TODO (Ilya): Should there be an init that takes a single float for consistency?
 
 	// Got any nasty NAN's?
+	bool IsReasonable(float range = 1000000) const;		///< Check for reasonably-sized values (if used as a game world position)
 	bool IsValid() const;
 	void Invalidate();
 
@@ -205,7 +212,12 @@ private:
 	// No copy constructors allowed if we're in optimal mode
 	Vector(const Vector& vOther);
 #endif
+#ifdef ALIGN_VECTOR_BY_DEFAULT
+	float w;	// this space is used anyway
+} ALIGN16_POST;
+#else
 };
+#endif
 
 FORCEINLINE void NetworkVarConstruct( Vector &v ) { v.Zero(); }
 
@@ -369,7 +381,9 @@ public:
 //-----------------------------------------------------------------------------
 // Here's where we add all those lovely SSE optimized routines
 //-----------------------------------------------------------------------------
-
+#ifdef ALIGN_VECTOR_BY_DEFAULT
+typedef Vector VectorAligned;
+#else
 class ALIGN16 VectorAligned : public Vector
 {
 public:
@@ -402,6 +416,7 @@ public:
 #endif
 	float w;	// this space is used anyway
 } ALIGN16_POST;
+#endif
 
 //-----------------------------------------------------------------------------
 // Vector related operations
@@ -429,11 +444,6 @@ void VectorMA( const Vector& start, float scale, const Vector& direction, Vector
 bool VectorsAreEqual( const Vector& src1, const Vector& src2, float tolerance = 0.0f );
 
 #define VectorExpand(v) (v).x, (v).y, (v).z
-
-
-// Normalization
-// FIXME: Can't use quite yet
-//vec_t VectorNormalize( Vector& v );
 
 // Length
 inline vec_t VectorLength( const Vector& v );
@@ -1241,38 +1251,11 @@ inline vec_t VectorLength( const Vector& v )
 	return (vec_t)FastSqrt(v.x*v.x + v.y*v.y + v.z*v.z);		
 }
 
-
 inline vec_t Vector::Length(void) const	
 {
 	CHECK_VALID(*this);
 	return VectorLength( *this );
 }
-
-
-//-----------------------------------------------------------------------------
-// Normalization
-//-----------------------------------------------------------------------------
-
-/*
-// FIXME: Can't use until we're un-macroed in mathlib.h
-inline vec_t VectorNormalize( Vector& v )
-{
-	Assert( v.IsValid() );
-	vec_t l = v.Length();
-	if (l != 0.0f)
-	{
-		v /= l;
-	}
-	else
-	{
-		// FIXME: 
-		// Just copying the existing implemenation; shouldn't res.z == 0?
-		v.x = v.y = 0.0f; v.z = 1.0f;
-	}
-	return l;
-}
-*/
-
 
 // check a point against a box
 bool Vector::WithinAABox( Vector const &boxmin, Vector const &boxmax)
@@ -2178,9 +2161,14 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 FORCEINLINE vec_t InvRSquared( float const *v )
 {
 #if defined(__i386__) || defined(_M_IX86)
-	float sqrlen = v[0]*v[0]+v[1]*v[1]+v[2]*v[2] + 1.0e-10f, result;
-	_mm_store_ss(&result, _mm_rcp_ss( _mm_max_ss( _mm_set_ss(1.0f), _mm_load_ss(&sqrlen) ) ));
-	return result;
+	__m128 sqrlen = _mm_loadu_ps(v);
+	sqrlen = _mm_mul_ps(sqrlen, sqrlen);
+	__m128 shuf = _mm_shuffle_ps(sqrlen, sqrlen, _MM_SHUFFLE(2, 3, 0, 1));
+	sqrlen = _mm_add_ps(sqrlen, shuf);
+	shuf = _mm_movehl_ps(shuf, sqrlen);
+	sqrlen = _mm_add_ss(sqrlen, shuf);
+	sqrlen = _mm_rcp_ss(sqrlen);
+	return _mm_cvtss_f32(sqrlen);
 #else
 	return 1.f/fpmax(1.f, v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 #endif
@@ -2192,21 +2180,32 @@ FORCEINLINE vec_t InvRSquared( const Vector &v )
 }
 
 #if defined(__i386__) || defined(_M_IX86)
+// Intel / Kipps SSE RSqrt
 inline void _SSE_RSqrtInline( float a, float* out )
 {
-	__m128  xx = _mm_load_ss( &a );
-	__m128  xr = _mm_rsqrt_ss( xx );
-	__m128  xt;
+	const __m128 fThree = _mm_set_ss(3.f);
+	const __m128 fOneHalf = _mm_set_ss(0.5f);
+	__m128 xx, xr, xt;
+	xx = _mm_set_ss( a );
+	xr = _mm_rsqrt_ss( xx );
 	xt = _mm_mul_ss( xr, xr );
 	xt = _mm_mul_ss( xt, xx );
-	xt = _mm_sub_ss( _mm_set_ss(3.f), xt );
-	xt = _mm_mul_ss( xt, _mm_set_ss(0.5f) );
+	xt = _mm_sub_ss( fThree, xt );
+	xt = _mm_mul_ss( xt, fOneHalf );
 	xr = _mm_mul_ss( xr, xt );
 	_mm_store_ss( out, xr );
 }
+
+// Simple SSE rsqrt
+inline void _SSE_RSqrtInlineEst(float a, float* out)
+{
+	__m128 xx, xr;
+	xx = _mm_set_ss(a);
+	xr = _mm_rsqrt_ss(xx);
+	_mm_store_ss(out, xr);
+}
 #endif
 
-// FIXME: Change this back to a #define once we get rid of the vec_t version
 FORCEINLINE float VectorNormalize( Vector& vec )
 {
 #ifndef DEBUG // stop crashing my edit-and-continue!
@@ -2228,15 +2227,29 @@ FORCEINLINE float VectorNormalize( Vector& vec )
 #endif
 }
 
-// FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
 FORCEINLINE float VectorNormalize( float * v )
 {
-	return VectorNormalize(*(reinterpret_cast<Vector *>(v)));
+	return VectorNormalize(*(reinterpret_cast<Vector*>(v)));
 }
 
 FORCEINLINE void VectorNormalizeFast( Vector &vec )
 {
-	VectorNormalize(vec);
+#ifndef DEBUG // stop crashing my edit-and-continue!
+	#if defined(__i386__) || defined(_M_IX86)
+		#define DO_SSE_OPTIMIZATION
+	#endif
+#endif
+
+#if defined( DO_SSE_OPTIMIZATION )
+	float sqrlen = vec.LengthSqr() + 1.0e-10f, invlen;
+	_SSE_RSqrtInlineEst(sqrlen, &invlen);
+	vec.x *= invlen;
+	vec.y *= invlen;
+	vec.z *= invlen;
+#else
+	extern void (FASTCALL * pfVectorNormalizeFast)(Vector & v);
+	return (*pfVectorNormalizeFast)(vec);
+#endif
 }
 
 #else

@@ -27,11 +27,17 @@
 class Vector;
 class Vector2D;
 
+#define ALIGN_VECTOR4_BY_DEFAULT
+
 //=========================================================
 // 4D Vector4D
 //=========================================================
 
-class Vector4D					
+#ifdef ALIGN_VECTOR4_BY_DEFAULT
+class ALIGN16 Vector4D
+#else
+class Vector4D
+#endif
 {
 public:
 	// Members
@@ -43,7 +49,8 @@ public:
 	Vector4D(const float *pFloat);
 
 	// Initialization
-	void Init(vec_t ix=0.0f, vec_t iy=0.0f, vec_t iz=0.0f, vec_t iw=0.0f);
+	void Init();
+	void Init(vec_t ix, vec_t iy, vec_t iz, vec_t iw);
 
 	// Got any nasty NAN's?
 	bool IsValid() const;
@@ -123,7 +130,16 @@ public:
 
 	// No assignment operators either...
 	Vector4D& operator=( Vector4D const& src );
+#ifdef ALIGN_VECTOR4_BY_DEFAULT
+	inline void Set( vec_t X, vec_t Y, vec_t Z, vec_t W );
+	inline void InitZero( void );
+
+	inline __m128 &AsM128() { return *(__m128*)&x; }
+	inline const __m128 &AsM128() const { return *(const __m128*)&x; }
+} ALIGN16_POST;
+#else
 };
+#endif
 
 const Vector4D vec4_origin( 0.0f, 0.0f, 0.0f, 0.0f );
 const Vector4D vec4_invalid( FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX );
@@ -131,7 +147,9 @@ const Vector4D vec4_invalid( FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX );
 //-----------------------------------------------------------------------------
 // SSE optimized routines
 //-----------------------------------------------------------------------------
-
+#ifdef ALIGN_VECTOR4_BY_DEFAULT
+typedef Vector4D Vector4DAligned;
+#else
 class ALIGN16 Vector4DAligned : public Vector4D
 {
 public:
@@ -151,6 +169,7 @@ private:
 	// No assignment operators either...
 	Vector4DAligned& operator=( Vector4DAligned const& src );
 } ALIGN16_POST;
+#endif
 
 //-----------------------------------------------------------------------------
 // Vector4D related operations
@@ -220,6 +239,11 @@ inline Vector4D::Vector4D(const float *pFloat)
 	Assert( pFloat );
 	x = pFloat[0]; y = pFloat[1]; z = pFloat[2]; w = pFloat[3];	
 	Assert( IsValid() );
+}
+
+inline void Vector4D::Init()
+{
+	InitZero();
 }
 
 
@@ -600,11 +624,13 @@ inline vec_t Vector4D::DistToSqr(const Vector4D &vOther) const
 // Vector4DAligned routines
 //-----------------------------------------------------------------------------
 
+#ifndef ALIGN_VECTOR4_BY_DEFAULT
 inline Vector4DAligned::Vector4DAligned( vec_t X, vec_t Y, vec_t Z, vec_t W )
 { 
 	x = X; y = Y; z = Z; w = W;
 	Assert( IsValid() );
 }
+#endif
 
 inline void Vector4DAligned::Set( vec_t X, vec_t Y, vec_t Z, vec_t W )
 { 
@@ -615,7 +641,11 @@ inline void Vector4DAligned::Set( vec_t X, vec_t Y, vec_t Z, vec_t W )
 inline void Vector4DAligned::InitZero( void )
 { 
 #if !defined( _X360 )
-	this->AsM128() = _mm_set1_ps( 0.0f );
+#ifdef USE_DXMATH
+	this->AsM128() = DirectX::XMVectorReplicateInt( 0 );
+#else
+	this->AsM128() = _mm_set1_ps( 0 );
+#endif
 #else
 	this->AsM128() = __vspltisw( 0 );
 #endif
@@ -635,38 +665,11 @@ inline void Vector4DMultiplyAligned( Vector4DAligned const& a, Vector4DAligned c
 #endif
 }
 
-inline void Vector4DWeightMADSSE(vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB)
-{
-	Assert(vInA.IsValid() && vInB.IsValid() && IsFinite(w));
-
-#if defined(USE_DIRECTX_MATH)
-	DirectX::XMVECTOR packed = DirectX::XMVectorReplicate(w);
-	vOutA.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInA.AsM128(), vOutA.AsM128());
-	vOutB.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInB.AsM128(), vOutB.AsM128());
-#elif !defined( _X360 )
-	// Replicate scalar float out to 4 components
-	__m128 packed = _mm_set1_ps(w);
-
-	// 4D SSE Vector MAD
-	vOutA.AsM128() = _mm_add_ps(vOutA.AsM128(), _mm_mul_ps(vInA.AsM128(), packed));
-	vOutB.AsM128() = _mm_add_ps(vOutB.AsM128(), _mm_mul_ps(vInB.AsM128(), packed));
-#else
-	__vector4 temp;
-
-	temp = __lvlx(&w, 0);
-	temp = __vspltw(temp, 0);
-
-	vOutA.AsM128() = __vmaddfp(vInA.AsM128(), temp, vOutA.AsM128());
-	vOutB.AsM128() = __vmaddfp(vInB.AsM128(), temp, vOutB.AsM128());
-#endif
-}
-
 inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
 {
 	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
 
 #if !defined( _X360 )
-#if 0
 	vOutA.x += vInA.x * w;
 	vOutA.y += vInA.y * w;
 	vOutA.z += vInA.z * w;
@@ -677,8 +680,27 @@ inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAli
 	vOutB.z += vInB.z * w;
 	vOutB.w += vInB.w * w;
 #else
-	Vector4DWeightMADSSE(w, vInA, vOutA, vInB, vOutB);
+    __vector4 temp;
+
+    temp = __lvlx( &w, 0 );
+    temp = __vspltw( temp, 0 );
+
+	vOutA.AsM128() = __vmaddfp( vInA.AsM128(), temp, vOutA.AsM128() );
+	vOutB.AsM128() = __vmaddfp( vInB.AsM128(), temp, vOutB.AsM128() );
 #endif
+}
+
+inline void Vector4DWeightMADSSE( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
+{
+	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
+
+#if !defined( _X360 )
+	// Replicate scalar float out to 4 components
+    __m128 packed = _mm_set1_ps( w );
+
+	// 4D SSE Vector MAD
+	vOutA.AsM128() = _mm_add_ps( vOutA.AsM128(), _mm_mul_ps( vInA.AsM128(), packed ) );
+	vOutB.AsM128() = _mm_add_ps( vOutB.AsM128(), _mm_mul_ps( vInB.AsM128(), packed ) );
 #else
     __vector4 temp;
 

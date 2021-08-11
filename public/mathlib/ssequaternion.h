@@ -38,17 +38,33 @@
 // the SSE2 registers, which lessens this problem a little.
 
 // permitted only on 360, as we've done careful tuning on its Altivec math:
-
-// UNDONE(mastercoms)
-#define ALLOW_SIMD_QUATERNION_MATH 1  // not on PC!
+// UNDONE(mastercoms): we've enabled SSE2
+#define ALLOW_SIMD_QUATERNION_MATH 1
 
 
 
 //---------------------------------------------------------------------
 // Load/store quaternions
 //---------------------------------------------------------------------
-#if 0
+#if !defined(_X360)
 #if ALLOW_SIMD_QUATERNION_MATH
+#if USE_DXMATH
+// Using DXMath
+FORCEINLINE fltx4 LoadAlignedSIMD(const QuaternionAligned& pSIMD)
+{
+	return XMLoadFloat4A((const DirectX::XMFLOAT4A*)&pSIMD);
+}
+
+FORCEINLINE fltx4 LoadAlignedSIMD(const QuaternionAligned* RESTRICT pSIMD)
+{
+	return XMLoadFloat4A((const DirectX::XMFLOAT4A*)pSIMD);
+}
+
+FORCEINLINE void StoreAlignedSIMD(QuaternionAligned* RESTRICT pSIMD, const fltx4& a)
+{
+	StoreAlignedSIMD(pSIMD->Base(), a);
+}
+#else
 // Using STDC or SSE
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned & pSIMD )
 {
@@ -67,24 +83,25 @@ FORCEINLINE void StoreAlignedSIMD( QuaternionAligned * RESTRICT pSIMD, const flt
 	StoreAlignedSIMD( pSIMD->Base(), a );
 }
 #endif
+#endif
 #else
 
 // for the transitional class -- load a QuaternionAligned
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned & pSIMD )
 {
-	fltx4 retval = VectorLoad(&pSIMD);
+	fltx4 retval = XMLoadVector4A( pSIMD.Base() );
 	return retval;
 }
 
 FORCEINLINE fltx4 LoadAlignedSIMD( const QuaternionAligned * RESTRICT pSIMD )
 {
-	fltx4 retval = VectorLoad(pSIMD);
+	fltx4 retval = XMLoadVector4A( pSIMD );
 	return retval;
 }
 
 FORCEINLINE void StoreAlignedSIMD( QuaternionAligned * RESTRICT pSIMD, const fltx4 & a )
 {
-	VectorStore(a, pSIMD);
+	XMStoreVector4A( pSIMD->Base(), a );
 }
 
 #endif
@@ -126,8 +143,13 @@ FORCEINLINE fltx4 QuaternionNormalizeSIMD( const fltx4 &q )
 	return q;
 }
 
+#elif USE_DXMATH
+// DirectXMath implementation
+FORCEINLINE fltx4 QuaternionNormalizeSIMD(const fltx4& q)
+{
+	return DirectX::XMQuaternionNormalize(q);
+}
 #else
-
 // SSE + X360 implementation
 FORCEINLINE fltx4 QuaternionNormalizeSIMD( const fltx4 &q )
 {
@@ -172,8 +194,42 @@ FORCEINLINE fltx4 QuaternionBlendSIMD( const fltx4 &p, const fltx4 &q, float t )
 //---------------------------------------------------------------------
 // Multiply Quaternions
 //---------------------------------------------------------------------
-#if 1
+#ifndef _X360
+#if USE_DXMATH
+#if !USE_DXMATH
+extern const fltx4 g_QuatMultRowSign[4];
+#endif
+// DirectXMath
+FORCEINLINE fltx4 QuaternionMultSIMD(const fltx4& p, const fltx4& q)
+{
+#if USE_DXMATH
+	fltx4 q2 = QuaternionAlignSIMD(p, q);
+	return DirectX::XMQuaternionMultiply(q2, p);
+#else
+	fltx4 q2, row, result;
+	q2 = QuaternionAlignSIMD(p, q);
 
+	row = DirectX::XMVectorSwizzle(q2, 3, 2, 1, 0);
+	row = MulSIMD(row, g_QuatMultRowSign[0]);
+	result = Dot4SIMD(row, p);
+
+	row = DirectX::XMVectorSwizzle(q2, 2, 3, 0, 1);
+	row = MulSIMD(row, g_QuatMultRowSign[1]);
+	row = Dot4SIMD(row, p);
+	result = SetYSIMD(result, row);
+
+	row = DirectX::XMVectorSwizzle(q2, 1, 0, 3, 2);
+	row = MulSIMD(row, g_QuatMultRowSign[2]);
+	row = Dot4SIMD(row, p);
+	result = SetZSIMD(result, row);
+
+	row = MulSIMD(q2, g_QuatMultRowSign[3]);
+	row = Dot4SIMD(row, p);
+	result = SetWSIMD(result, row);
+	return result;
+#endif
+}
+#else
 // SSE and STDC
 FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
 {
@@ -186,7 +242,7 @@ FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
 	SubFloat( result, 3 ) = -SubFloat( p, 0 ) * SubFloat( q2, 0 ) - SubFloat( p, 1 ) * SubFloat( q2, 1 ) - SubFloat( p, 2 ) * SubFloat( q2, 2 ) + SubFloat( p, 3 ) * SubFloat( q2, 3 );
 	return result;
 }
-
+#endif
 #else 
 
 // X360
@@ -196,16 +252,16 @@ FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
 	fltx4 q2, row, result;
 	q2 = QuaternionAlignSIMD( p, q );
 
-	row = DirectX::XMVectorSwizzle( q2, 3, 2, 1, 0 );
+	row = XMVectorSwizzle( q2, 3, 2, 1, 0 );
 	row = MulSIMD( row, g_QuatMultRowSign[0] );
 	result = Dot4SIMD( row, p );
 
-	row = DirectX::XMVectorSwizzle( q2, 2, 3, 0, 1 );
+	row = XMVectorSwizzle( q2, 2, 3, 0, 1 );
 	row = MulSIMD( row, g_QuatMultRowSign[1] );
 	row = Dot4SIMD( row, p );
 	result = __vrlimi( result, row, 4, 0 );
 	
-	row = DirectX::XMVectorSwizzle( q2, 1, 0, 3, 2 );
+	row = XMVectorSwizzle( q2, 1, 0, 3, 2 );
 	row = MulSIMD( row, g_QuatMultRowSign[2] );
 	row = Dot4SIMD( row, p );
 	result = __vrlimi( result, row, 2, 0 );
@@ -223,7 +279,36 @@ FORCEINLINE fltx4 QuaternionMultSIMD( const fltx4 &p, const fltx4 &q )
 // Quaternion scale
 //---------------------------------------------------------------------
 #ifndef _X360
+#if USE_DXMATH
+// DirectXMath
+FORCEINLINE fltx4 QuaternionScaleSIMD(const fltx4& p, float t)
+{
+	fltx4 sinom = Dot3SIMD(p, p);
+	sinom = SqrtSIMD(sinom);
+	sinom = MinSIMD(sinom, Four_Ones);
+	fltx4 sinsom = ArcSinSIMD(sinom);
+	fltx4 t4 = ReplicateX4(t);
+	sinsom = MulSIMD(sinsom, t4);
+	sinsom = SinSIMD(sinsom);
+	sinom = AddSIMD(sinom, Four_Epsilons);
+	sinom = ReciprocalSIMD(sinom);
+	t4 = MulSIMD(sinsom, sinom);
+	fltx4 result = MulSIMD(p, t4);
 
+	// rescale rotation
+	sinsom = MulSIMD(sinsom, sinsom);
+	fltx4 r = SubSIMD(Four_Ones, sinsom);
+	r = MaxSIMD(r, Four_Zeros);
+	r = SqrtSIMD(r);
+
+	// keep sign of rotation
+	fltx4 cmp = CmpGeSIMD(p, Four_Zeros);
+	r = MaskedAssign(cmp, r, NegSIMD(r));
+
+	result = SetWSIMD(result, r);
+	return result;
+}
+#else
 // SSE and STDC
 FORCEINLINE fltx4 QuaternionScaleSIMD( const fltx4 &p, float t )
 {
@@ -254,7 +339,7 @@ FORCEINLINE fltx4 QuaternionScaleSIMD( const fltx4 &p, float t )
 	SubFloat( q, 3 ) = fsel( SubFloat( p, 3 ), r, -r );
 	return q;
 }
-
+#endif
 #else
 
 // X360
@@ -292,8 +377,14 @@ FORCEINLINE fltx4 QuaternionScaleSIMD( const fltx4 &p, float t )
 //-----------------------------------------------------------------------------
 // Quaternion sphereical linear interpolation
 //-----------------------------------------------------------------------------
-#if 0
-
+#ifndef _X360
+#if USE_DXMATH
+// DXMath
+FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD(const fltx4& p, const fltx4& q, float t)
+{
+	return DirectX::XMQuaternionSlerp(p, q, t);
+}
+#else
 // SSE and STDC
 FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, float t )
 {
@@ -340,13 +431,13 @@ FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, fl
 
 	return result;
 }
-
+#endif
 #else
 
 // X360
 FORCEINLINE fltx4 QuaternionSlerpNoAlignSIMD( const fltx4 &p, const fltx4 &q, float t )
 {
-	return DirectX::XMQuaternionSlerp( p, q, t );
+	return XMQuaternionSlerp( p, q, t );
 }
 
 #endif
@@ -835,43 +926,31 @@ FORCEINLINE void FourQuaternions::RotateFourVectors(FourVectors* RESTRICT vecs) 
 
 
 /*
-
 void QuaternionScale( const Quaternion &p, float t, Quaternion &q )
 {
 	Assert( s_bMathlibInitialized );
-
-
 	float r;
-
 	// FIXME: nick, this isn't overly sensitive to accuracy, and it may be faster to
 	// use the cos part (w) of the quaternion (sin(omega)*N,cos(omega)) to figure the new scale.
 	float sinom = sqrt( DotProduct( &p.x, &p.x ) );
 	sinom = min( sinom, 1.f );
-
 	float sinsom = sin( asin( sinom ) * t );
-
 	t = sinsom / (sinom + FLT_EPSILON);
 	VectorScale( &p.x, t, &q.x );
-
 	// rescale rotation
 	r = 1.0f - sinsom * sinsom;
-
 	// Assert( r >= 0 );
 	if (r < 0.0f)
 	r = 0.0f;
 	r = sqrt( r );
-
 	// keep sign of rotation
 	if (p.w < 0)
 	q.w = -r;
 	else
 	q.w = r;
-
 	Assert( q.IsValid() );
-
 	return;
 }
-
 */
 
 FORCEINLINE FourQuaternions FourQuaternions::ScaleAngle(const fltx4& scale) const
@@ -942,7 +1021,6 @@ FORCEINLINE FourQuaternions FourQuaternions::MulAc(const fltx4& s, const FourQua
 	void QuaternionMA( const Quaternion &p, float s, const Quaternion &q, Quaternion &qt )
 	{
 		Quaternion p1, q1;
-
 		QuaternionScale( q, s, q1 );
 		QuaternionMult( p, q1, p1 );
 		QuaternionNormalize( p1 );
@@ -976,7 +1054,7 @@ FORCEINLINE FourQuaternions FourQuaternions::Slerp(const FourQuaternions& origin
 	// yet if we need to realign, so compute them both -- there's plenty of
 	// space in the bubbles. They're roomy, those bubbles.
 	fltx4 cosineOmega;
-#if 0 // Maybe I don't need to do alignment separately, using the xb360 technique...
+#if 0 // Maybe I don't need to do alignment seperately, using the xb360 technique...
 	FourQuaternions to;
 	{
 		fltx4 diffs[4], sums[4], originalToNeg[4];

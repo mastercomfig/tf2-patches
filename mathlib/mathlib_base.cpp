@@ -1200,7 +1200,7 @@ void AngleMatrix( const QAngle &angles, matrix3x4_t& matrix )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( angles.Base() );
 	scale = ReplicateX4( M_PI_F / 180.f ); 
@@ -1488,7 +1488,7 @@ float SmoothCurve( float x )
 inline float MovePeak( float x, float flPeakPos )
 {
 	// Todo: make this higher-order?
-	if( x < flPeakPos )
+	if( (x < flPeakPos || flPeakPos == 1) && flPeakPos != 0 )
 		return x * 0.5f / flPeakPos;
 	else
 		return 0.5 + 0.5 * (x - flPeakPos) / (1 - flPeakPos);
@@ -2024,7 +2024,7 @@ void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#if 1
+#ifdef _X360
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( &angles.x );
 	scale = ReplicateX4( 0.5f ); 
@@ -2034,7 +2034,19 @@ void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 	// NOTE: The ordering here is *different* from the AngleQuaternion below
 	// because p, y, r are not in the same locations in QAngle + RadianEuler. Yay!
 	sr = SubFloat( sine, 0 );	sp = SubFloat( sine, 1 );	sy = SubFloat( sine, 2 );	
-	cr = SubFloat( cosine, 0 );	cp = SubFloat( cosine, 1 );	cy = SubFloat( cosine, 2 );	
+	cr = SubFloat( cosine, 0 );	cp = SubFloat( cosine, 1 );	cy = SubFloat( cosine, 2 );
+#elif USE_DXMATH
+	// TODO: revisit with SSE
+	fltx4 radians, scale, sine, cosine;
+	radians = LoadUnaligned3SIMD(&angles.x);
+	scale = ReplicateX4(0.5f);
+	radians = MulSIMD(radians, scale);
+	SinCos3SIMD(sine, cosine, radians);
+
+	// NOTE: The ordering here is *different* from the AngleQuaternion below
+	// because p, y, r are not in the same locations in QAngle + RadianEuler. Yay!
+	sr = SubFloat(sine, 0);	sp = SubFloat(sine, 1);	sy = SubFloat(sine, 2);
+	cr = SubFloat(cosine, 0);	cp = SubFloat(cosine, 1);	cy = SubFloat(cosine, 2);
 #else
 	SinCos( angles.z * 0.5f, &sy, &cy );
 	SinCos( angles.y * 0.5f, &sp, &cp );
@@ -3314,6 +3326,10 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	if ( s_bMathlibInitialized )
 		return;
 
+	// Disable denormals which are slow
+	unsigned int control_word;
+    _controlfp_s( &control_word, _DN_FLUSH, _MCW_DN );
+
 	// FIXME: Hook SSE into VectorAligned + Vector4DAligned
 
 #if !defined( _X360 )
@@ -3366,7 +3382,7 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	{
 		s_bSSEEnabled = true;
 
-#ifdef PLATFORM_WINDOWS_PC
+#ifndef PLATFORM_WINDOWS_PC64
 		// These are not yet available.
 		// Select the SSE specific routines if available
 		pfVectorNormalize = _VectorNormalize;
@@ -3375,6 +3391,8 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 		pfSqrt = _SSE_Sqrt;
 		pfRSqrt = _SSE_RSqrtAccurate;
 		pfRSqrtFast = _SSE_RSqrtFast;
+#endif
+#ifdef PLATFORM_WINDOWS_PC32
 		pfFastSinCos = _SSE_SinCos;
 		pfFastCos = _SSE_cos;
 #endif
@@ -3387,7 +3405,7 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	if ( bAllowSSE2 && pi.m_bSSE2 )
 	{
 		s_bSSE2Enabled = true;
-#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS_PC32
 		pfFastSinCos = _SSE2_SinCos;
 		pfFastCos = _SSE2_cos;
 #endif
