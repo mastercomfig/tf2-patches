@@ -9,16 +9,13 @@
 #ifndef THREADTOOLS_H
 #define THREADTOOLS_H
 
-#include <atomic>
-
 #include "tier0/type_traits.h"
 
 #include <limits.h>
+
 #include <mutex>
 #include <condition_variable>
 #include <list>
-
-
 
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
@@ -46,8 +43,8 @@
 
 // #define THREAD_PROFILER 1
 
-#ifndef _RETAIL
 #define THREAD_MUTEX_TRACING_SUPPORTED
+#ifndef _RETAIL
 #if defined(_WIN32) && defined(_DEBUG)
 #define THREAD_MUTEX_TRACING_ENABLED
 #endif
@@ -126,6 +123,7 @@ PLATFORM_INTERFACE bool ReleaseThreadHandle( ThreadHandle_t );
 
 PLATFORM_INTERFACE void ThreadSleep(unsigned duration = 0);
 PLATFORM_INTERFACE void ThreadSleepEx(unsigned duration = 0);
+PLATFORM_INTERFACE void ThreadSpin(unsigned iterations = 0);
 PLATFORM_INTERFACE uint ThreadGetCurrentId();
 PLATFORM_INTERFACE ThreadHandle_t ThreadGetCurrentHandle();
 PLATFORM_INTERFACE int ThreadGetPriority( ThreadHandle_t hThread = NULL );
@@ -166,6 +164,12 @@ PLATFORM_INTERFACE void ThreadDetach( ThreadHandle_t );
 PLATFORM_INTERFACE void ThreadSetDebugName( ThreadId_t id, const char *pszName );
 inline		 void ThreadSetDebugName( const char *pszName ) { ThreadSetDebugName( (ThreadId_t)-1, pszName ); }
 
+#ifdef _X360
+#define USE_AFFINITY 0
+#else
+#define USE_AFFINITY 0
+#endif
+
 PLATFORM_INTERFACE void ThreadSetAffinity( ThreadHandle_t hThread, int nAffinityMask );
 
 //-----------------------------------------------------------------------------
@@ -177,8 +181,8 @@ enum ThreadWaitResult_t
 };
 
 #ifdef _WIN32
-PLATFORM_INTERFACE int ThreadWaitForObjects(int nEvents, const HANDLE* pHandles, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
-inline int ThreadWaitForObject(HANDLE handle, bool bWaitAll = true, unsigned timeout = TT_INFINITE) { return ThreadWaitForObjects(1, &handle, bWaitAll, timeout); }
+PLATFORM_INTERFACE int ThreadWaitForObjects( int nEvents, const HANDLE *pHandles, bool bWaitAll = true, unsigned timeout = TT_INFINITE );
+inline int ThreadWaitForObject( HANDLE handle, bool bWaitAll = true, unsigned timeout = TT_INFINITE ) { return ThreadWaitForObjects( 1, &handle, bWaitAll, timeout ); }
 #endif
 
 //-----------------------------------------------------------------------------
@@ -624,6 +628,7 @@ private:
 	CInterlockedInt* mCounter;
 };
 
+
 //-----------------------------------------------------------------------------
 //
 // Platform independent for critical sections management
@@ -633,12 +638,8 @@ private:
 class PLATFORM_CLASS CThreadMutex
 {
 public:
-	CThreadMutex()
-	{
-	}
-	~CThreadMutex()
-	{
-	}
+	CThreadMutex();
+	~CThreadMutex();
 
 	//------------------------------------------------------
 	// Mutex acquisition/release. Const intentionally defeated.
@@ -660,22 +661,149 @@ public:
 	//------------------------------------------------------
 	// Enable tracing to track deadlock problems
 	//------------------------------------------------------
-	void SetTrace(bool) {};
-
-	// Disallow copying
-	CThreadMutex( const CThreadMutex & ) = delete;
-	CThreadMutex &operator=( const CThreadMutex & ) = delete;
+	void SetTrace( bool );
 
 private:
-	std::recursive_mutex m_Mutex;
+	// Disallow copying
+	CThreadMutex( const CThreadMutex & );
+	CThreadMutex &operator=( const CThreadMutex & );
+
+#if defined( _WIN32 )
+	// Efficient solution to breaking the windows.h dependency, invariant is tested.
+#ifdef _WIN64
+	#define TT_SIZEOF_CRITICALSECTION 40	
+#else
+#ifndef _X360
+	#define TT_SIZEOF_CRITICALSECTION 24
+#else
+	#define TT_SIZEOF_CRITICALSECTION 28
+#endif // !_XBOX
+#endif // _WIN64
+	byte m_CriticalSection[TT_SIZEOF_CRITICALSECTION];
+#elif defined(POSIX)
+	pthread_mutex_t m_Mutex;
+	pthread_mutexattr_t m_Attr;
+#else
+#error
+#endif
+
+#ifdef THREAD_MUTEX_TRACING_SUPPORTED
+	// Debugging (always here to allow mixed debug/release builds w/o changing size)
+	uint	m_currentOwnerID;
+	uint16	m_lockCount;
+	bool	m_bTrace;
+#endif
+};
+
+//-----------------------------------------------------------------------------
+//
+// Platform independent for std::mutex management
+//
+//-----------------------------------------------------------------------------
+
+class PLATFORM_CLASS CStdThreadMutex
+{
+public:
+	CStdThreadMutex()
+	{
+	}
+	~CStdThreadMutex()
+	{
+	}
+
+	//------------------------------------------------------
+	// Mutex acquisition/release. Const intentionally defeated.
+	//------------------------------------------------------
+	void Lock();
+	void Lock() const		{ (const_cast<CStdThreadMutex *>(this))->Lock(); }
+	void Unlock();
+	void Unlock() const		{ (const_cast<CStdThreadMutex *>(this))->Unlock(); }
+
+	bool TryLock();
+	bool TryLock() const	{ return (const_cast<CStdThreadMutex *>(this))->TryLock(); }
+
+	//------------------------------------------------------
+	// Use this to make deadlocks easier to track by asserting
+	// when it is expected that the current thread owns the mutex
+	//------------------------------------------------------
+	bool AssertOwnedByCurrentThread();
+
+	//------------------------------------------------------
+	// Enable tracing to track deadlock problems
+	//------------------------------------------------------
+	void SetTrace(bool) {}
+
+	// Disallow copying
+	CStdThreadMutex( const CStdThreadMutex & ) = delete;
+	CStdThreadMutex &operator=( const CStdThreadMutex & ) = delete;
+
+private:
+	std::mutex m_Mutex;
 #ifdef _DEBUG
 #ifdef _WIN32
-	std::atomic<unsigned long> m_ownerID{0};
+	std::atomic_ulong m_ownerID{0};
 #else
-	std::atomic<uint> m_ownerID{0};
+	std::atomic_uint m_ownerID{0};
 #endif
 #endif
 };
+
+//-----------------------------------------------------------------------------
+//
+// CStdThreadMutex. Inlining to reduce overhead and to allow client code
+// to decide debug status (tracing)
+//
+//-----------------------------------------------------------------------------
+
+inline bool CStdThreadMutex::TryLock()
+{
+#ifdef _DEBUG
+	if (!AssertOwnedByCurrentThread())
+	{
+		if (m_Mutex.try_lock())
+		{
+			m_ownerID = ThreadGetCurrentId();
+			return true;
+		}
+	}
+	return false;
+#else
+	return m_Mutex.try_lock();
+#endif
+}
+
+//---------------------------------------------------------
+
+inline void CStdThreadMutex::Lock()
+{
+	Assert(!AssertOwnedByCurrentThread());
+	m_Mutex.lock();
+#ifdef _DEBUG
+	m_ownerID = ThreadGetCurrentId();
+#endif
+}
+
+//---------------------------------------------------------
+
+inline void CStdThreadMutex::Unlock()
+{
+	Assert(AssertOwnedByCurrentThread());
+	m_Mutex.unlock();
+#ifdef _DEBUG
+	m_ownerID = 0;
+#endif
+}
+
+//---------------------------------------------------------
+
+inline bool CStdThreadMutex::AssertOwnedByCurrentThread()
+{
+#ifdef _DEBUG
+	return m_ownerID == ThreadGetCurrentId();
+#else
+	return true;
+#endif
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -817,6 +945,78 @@ typedef CThreadMutex CThreadFastMutex;
 
 //-----------------------------------------------------------------------------
 //
+// A spinning lock which prevents going into kernel for short waits.
+// Borrowed from Chromium partition_allocator.
+//
+//-----------------------------------------------------------------------------
+
+class PLATFORM_CLASS CThreadSpinningMutex
+{
+public:
+	inline constexpr CThreadSpinningMutex();
+	void Lock();
+	void Lock() const { (const_cast<CThreadSpinningMutex*>(this))->Lock(); }
+	void Unlock();
+	void Unlock() const { (const_cast<CThreadSpinningMutex*>(this))->Unlock(); }
+
+	bool TryLock();
+	bool TryLock() const { return (const_cast<CThreadSpinningMutex*>(this))->TryLock(); }
+
+	bool AssertOwnedByCurrentThread() { return true; }
+
+	//------------------------------------------------------
+	// Enable tracing to track deadlock problems
+	//------------------------------------------------------
+	void SetTrace(bool) {}
+
+	void LockSlow();
+
+	static constexpr int iSpinCount = 1000;
+
+#ifdef SRWLOCK_INIT
+	SRWLOCK lock_ = SRWLOCK_INIT;
+#else
+	typedef struct _TT_SRWLOCK {
+		void* Ptr;
+	} TT_SRWLOCK;
+	TT_SRWLOCK lock_ = { 0 };
+#endif
+};
+
+inline constexpr CThreadSpinningMutex::CThreadSpinningMutex() = default;
+
+inline void CThreadSpinningMutex::Lock()
+{
+	int tries = 0;
+	int backoff = 1;
+	// Busy-waiting is inlined, which is fine as long as we have few callers. This
+	// is only used for the partition lock, so this is the case.
+	do {
+		if (TryLock())
+			return;
+		// Note: Per the intel optimization manual
+		// (https://software.intel.com/content/dam/develop/public/us/en/documents/64-ia-32-architectures-optimization-manual.pdf),
+		// the "pause" instruction is more costly on Skylake Client than on previous
+		// (and subsequent?) architectures. The latency is found to be 141 cycles
+		// there. This is not a big issue here as we don't spin long enough for this
+		// to become a problem, as we spend a maximum of ~141k cycles ~= 47us at
+		// 3GHz in "pause".
+		//
+		// Also, loop several times here, following the guidelines in section 2.3.4
+		// of the manual, "Pause latency in Skylake Client Microarchitecture".
+		for (int yields = 0; yields < backoff; yields++) {
+			ThreadPause();
+			tries++;
+		}
+		constexpr int kMaxBackoff = 64;
+		backoff = min(kMaxBackoff, backoff << 1);
+	} while (tries < iSpinCount);
+
+	LockSlow();
+}
+
+//-----------------------------------------------------------------------------
+//
 //-----------------------------------------------------------------------------
 
 class CThreadNullMutex
@@ -831,6 +1031,19 @@ public:
 
 	static uint32 GetOwnerId() 		{ return 0;	}
 	static int	GetDepth() 			{ return 0; }
+};
+
+// Small class for providing a std interface for null mutexes
+class CStdNullMutex
+{
+public:
+	CStdNullMutex() noexcept {}
+	CStdNullMutex(const CStdNullMutex&) = delete;
+	CStdNullMutex& operator=(const CStdNullMutex&) = delete;
+
+	void lock() {}
+	bool try_lock() { return true; }
+	void unlock() {}
 };
 
 //-----------------------------------------------------------------------------
@@ -959,6 +1172,7 @@ inline CAutoLockT<MUTEX_TYPE> make_auto_lock( MUTEX_TYPE& lock, const char* pMut
 #define LOCAL_THREAD_LOCK() \
 	LOCAL_THREAD_LOCK_(_)
 
+
 //-----------------------------------------------------------------------------
 //
 // Base class for event, semaphore and mutex objects.
@@ -976,46 +1190,99 @@ public:
 	bool operator!() const;
 
 	//-----------------------------------------------------
+	// Access handle
+	//-----------------------------------------------------
+#ifdef _WIN32
+	operator HANDLE() { return GetHandle(); }
+	const HANDLE GetHandle() const { return m_hSyncObject; }
+#endif
+	//-----------------------------------------------------
 	// Wait for a signal from the object
 	//-----------------------------------------------------
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
-
-	bool m_bSignaled = false;
-	bool m_bAutoReset = false;
-	std::mutex m_Mutex;
 
 protected:
 	CThreadSyncObject();
 	void AssertUseable();
 
-	std::condition_variable m_Condition;
+#ifdef _WIN32
+	HANDLE m_hSyncObject;
+	bool m_bCreatedHandle;
+#elif defined(POSIX)
+	pthread_mutex_t	m_Mutex;
+	pthread_cond_t	m_Condition;
+	bool m_bInitalized;
+	int m_cSet;
+	bool m_bManualReset;
+	bool m_bWakeForEvent;
+#else
+#error "Implement me"
+#endif
+
+private:
+	CThreadSyncObject( const CThreadSyncObject & );
+	CThreadSyncObject &operator=( const CThreadSyncObject & );
+};
+
+class PLATFORM_CLASS CStdThreadSyncObject
+{
+public:
+	~CStdThreadSyncObject() { m_bInitialized = false; }
+
+	//-----------------------------------------------------
+	// Query if object is useful
+	//-----------------------------------------------------
+	bool operator!() const { return !m_bInitialized; }
+
+	//-----------------------------------------------------
+	// Wait for a signal from the object
+	//-----------------------------------------------------
+	bool Wait( uint32 dwTimeout = TT_INFINITE );
+
+	//bool m_bSignaled = false;
+	std::atomic_bool m_bSignaled{ false };
+	bool m_bAutoReset = false;
+	std::mutex m_Mutex;
+
+protected:
+	CStdThreadSyncObject() {}
+	void AssertUseable();
+
+	std::condition_variable_any m_Condition;
 	bool m_bInitialized = false;
 
 private:
-	CThreadSyncObject( const CThreadSyncObject & ) = delete;
-	CThreadSyncObject &operator=( const CThreadSyncObject & ) = delete;
+	CStdThreadSyncObject( const CStdThreadSyncObject & ) = delete;
+	CStdThreadSyncObject &operator=( const CStdThreadSyncObject & ) = delete;
 };
 
 
 template <class T>
-class CThreadSafeQueue
+class CStdQueue
 {
 public:
-	CThreadSafeQueue()
+	CStdQueue()
 	{}
 
-	~CThreadSafeQueue()
+	~CStdQueue()
 	{}
 
 	void PushItem(T& t)
 	{
-		std::scoped_lock<std::mutex> lock(m);
 		q.push_back(t);
 	}
 
 	bool PopItem(T& pResult)
 	{
-		std::scoped_lock<std::mutex> lock(m);
+		if (q.empty())
+			return false;
+		pResult = q.back();
+		q.pop_back();
+		return true;
+	}
+
+	bool PopItemFront(T& pResult)
+	{
 		if (q.empty())
 			return false;
 		pResult = q.front();
@@ -1025,7 +1292,6 @@ public:
 
 	void RemoveItem(T& pItem)
 	{
-		std::scoped_lock<std::mutex> lock(m);
 		q.remove(pItem);
 	}
 
@@ -1036,13 +1302,16 @@ public:
 
 private:
 	std::list<T> q;
-	std::mutex m;
 };
 
-class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
+class PLATFORM_CLASS CStdThreadEvent : public CStdThreadSyncObject
 {
 public:
-	CThreadEvent( bool fManualReset = false );
+	CStdThreadEvent( bool bManualReset = false )
+	{
+		m_bAutoReset = !bManualReset;
+		m_bInitialized = true;
+	}
 	//-----------------------------------------------------
 	// Set the state to signaled
 	//-----------------------------------------------------
@@ -1060,25 +1329,18 @@ public:
 
 	bool Wait( uint32 dwTimeout = TT_INFINITE );
 
+	static int WaitForMultiple( int nEvents, CStdThreadEvent * const *pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE );
+
 	void AddListener(std::shared_ptr<std::condition_variable_any>& condition);
 	void AddListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
 	void RemoveListener(std::shared_ptr<std::condition_variable_any>& condition);
 	void RemoveListenerNoLock(std::shared_ptr<std::condition_variable_any>& condition);
 
 private:
-	CThreadEvent( const CThreadEvent & ) = delete;
-	CThreadEvent &operator=( const CThreadEvent & ) = delete;
-	CThreadSafeQueue<std::shared_ptr<std::condition_variable_any>> m_listeningConditions;
-};
+	CStdThreadEvent( const CStdThreadEvent & ) = delete;
+	CStdThreadEvent &operator=( const CStdThreadEvent & ) = delete;
 
-// Hard-wired manual event for use in array declarations
-class CThreadManualEvent : public CThreadEvent
-{
-public:
-	CThreadManualEvent()
-	 :	CThreadEvent( true )
-	{
-	}
+	CStdQueue<std::shared_ptr<std::condition_variable_any>> m_listeningConditions;
 };
 
 template <class... _Mutexes>
@@ -1112,7 +1374,31 @@ private:
 	std::tuple<_Mutexes&...> m_Mutexes;
 };
 
-PLATFORM_INTERFACE int ThreadWaitForEvents(int nEvents, CThreadEvent* const* pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE);
+// Hard-wired manual event for use in array declarations
+class CThreadManualEvent : public CThreadEvent
+{
+public:
+	CThreadManualEvent()
+	 :	CThreadEvent( true )
+	{
+	}
+};
+
+inline int ThreadWaitForEvents( int nEvents, CThreadEvent * const *pEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE )
+{
+#ifdef POSIX
+  Assert( nEvents == 1);
+  if ( pEvents[0]->Wait( timeout ) )
+	  return WAIT_OBJECT_0;
+  else
+	return WAIT_TIMEOUT;
+#else
+	HANDLE handles[64];
+	for ( int i = 0; i < min( nEvents, (int)ARRAYSIZE(handles) ); i++ )
+		handles[i] = pEvents[i]->GetHandle();
+	return ThreadWaitForObjects( nEvents, handles, bWaitAll, timeout );
+#endif
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -1138,7 +1424,11 @@ public:
 private:
 	void WaitForRead();
 
+#ifdef WIN32
+	CThreadFastMutex m_mutex;
+#else
 	CThreadMutex m_mutex;
+#endif
 	CThreadEvent m_CanWrite;
 	CThreadEvent m_CanRead;
 
@@ -1180,11 +1470,11 @@ private:
 			int		m_nReaders;
 		};
 
-	bool AssignIf( LockInfo_t &newValue, LockInfo_t &comperand );
+	bool AssignIf( const LockInfo_t &newValue, const LockInfo_t &comperand );
 	bool TryLockForWrite( const uint32 threadId );
 	void SpinLockForWrite( const uint32 threadId );
 
-	std::atomic<LockInfo_t> m_lockInfo;
+	volatile LockInfo_t m_lockInfo;
 	CInterlockedInt m_nWriters;
 } ALIGN8_POST;
 
@@ -1305,7 +1595,7 @@ protected:
 	// override it and we don't want to change the vtable from the published SDK version.
 	void Cleanup();
 
-	bool WaitForCreateComplete( CThreadEvent *pEvent );
+	bool WaitForCreateComplete( CStdThreadEvent *pEvent );
 
 	// "Virtual static" facility
 	typedef unsigned (__stdcall *ThreadProc_t)( void * );
@@ -1331,7 +1621,7 @@ private:
 	struct ThreadInit_t
 	{
 		CThread *     pThread;
-		CThreadEvent *pInitCompleteEvent;
+		CStdThreadEvent *pInitCompleteEvent;
 		bool *        pfInitSuccess;
 	};
 
@@ -1348,8 +1638,8 @@ private:
 	pthread_t m_threadId;
 #endif
 	CInterlockedInt m_nSuspendCount;
-	CThreadEvent m_SuspendEvent;
-	CThreadEvent m_SuspendEventSignal;
+	CStdThreadEvent m_SuspendEvent;
+	CStdThreadEvent m_SuspendEventSignal;
 	int		m_result;
 	char	m_szName[32];
 	void *	m_pStackBase;
@@ -1406,7 +1696,7 @@ public:
 	// Inter-thread communication
 	//
 	// Calls in either direction take place on the same "channel."
-	// Separate functions are specified to make identities obvious
+	// Seperate functions are specified to make identities obvious
 	//
 	//-----------------------------------------------------
 
@@ -1431,7 +1721,7 @@ public:
 
 	// If you want to do WaitForMultipleObjects you'll need to include
 	// this handle in your wait list or you won't be responsive
-	CThreadEvent &GetCallHandle();
+	CStdThreadEvent &GetCallHandle();
 	// Find out what the request was
 	unsigned GetCallParam( CFunctor **ppParamFunctor = NULL ) const;
 
@@ -1442,7 +1732,7 @@ protected:
 #ifndef _WIN32
 #define __stdcall
 #endif
-	typedef uint32 (__stdcall *WaitFunc_t)( int nEvents, CThreadEvent * const *pEvents, int bWaitAll, uint32 timeout );
+	typedef uint32 (__stdcall *WaitFunc_t)( int nEvents, CStdThreadEvent * const *pEvents, int bWaitAll, uint32 timeout );
 	
 	int Call( unsigned, unsigned timeout, bool fBoost, WaitFunc_t = NULL, CFunctor *pParamFunctor = NULL );
 	int WaitForReply( unsigned timeout, WaitFunc_t );
@@ -1451,8 +1741,8 @@ private:
 	CWorkerThread( const CWorkerThread & );
 	CWorkerThread &operator=( const CWorkerThread & );
 
-	CThreadEvent	m_EventSend;
-	CThreadEvent	m_EventComplete;
+	CStdThreadEvent	m_EventSend{ true }; // must be manual-reset for PeekCall()             
+	CStdThreadEvent	m_EventComplete{ true }; // must be manual-reset to handle multiple wait with thread properly
 
 	unsigned        m_Param;
 	CFunctor		*m_pParamFunctor;
@@ -1465,7 +1755,7 @@ private:
 // thread safe!
 template<class T> class CMessageQueue
 {
-	CThreadEvent SignalEvent;								// signals presence of data
+	CStdThreadEvent SignalEvent;								// signals presence of data
 	CThreadMutex QueueAccessMutex;
 
 	// the parts protected by the mutex
@@ -1543,31 +1833,41 @@ public:
 //
 //-----------------------------------------------------------------------------
 
-inline bool CThreadMutex::TryLock()
+#ifdef _WIN32
+typedef struct _RTL_CRITICAL_SECTION RTL_CRITICAL_SECTION;
+typedef RTL_CRITICAL_SECTION CRITICAL_SECTION;
+
+#ifndef _X360
+extern "C"
 {
-#ifdef _DEBUG
-	if (!AssertOwnedByCurrentThread())
-	{
-		if (m_Mutex.try_lock())
-		{
-			m_ownerID = ThreadGetCurrentId();
-			return true;
-		}
-	}
-	return false;
-#else
-	return m_Mutex.try_lock();
+	void __declspec(dllimport) __stdcall InitializeCriticalSection(CRITICAL_SECTION *);
+	void __declspec(dllimport) __stdcall EnterCriticalSection(CRITICAL_SECTION *);
+	void __declspec(dllimport) __stdcall LeaveCriticalSection(CRITICAL_SECTION *);
+	void __declspec(dllimport) __stdcall DeleteCriticalSection(CRITICAL_SECTION *);
+};
 #endif
-}
 
 //---------------------------------------------------------
 
 inline void CThreadMutex::Lock()
 {
-	Assert(!AssertOwnedByCurrentThread());
-	m_Mutex.lock();
-#ifdef _DEBUG
-	m_ownerID = ThreadGetCurrentId();
+#ifdef THREAD_MUTEX_TRACING_ENABLED
+		uint thisThreadID = ThreadGetCurrentId();
+		if ( m_bTrace && m_currentOwnerID && ( m_currentOwnerID != thisThreadID ) )
+		Msg( "Thread %u about to wait for lock %p owned by %u\n", ThreadGetCurrentId(), (CRITICAL_SECTION *)&m_CriticalSection, m_currentOwnerID );
+#endif
+
+	VCRHook_EnterCriticalSection((CRITICAL_SECTION *)&m_CriticalSection);
+
+#ifdef THREAD_MUTEX_TRACING_ENABLED
+		if (m_lockCount == 0)
+		{
+			// we now own it for the first time.  Set owner information
+			m_currentOwnerID = thisThreadID;
+			if ( m_bTrace )
+			Msg( "Thread %u now owns lock %p\n", m_currentOwnerID, (CRITICAL_SECTION *)&m_CriticalSection );
+		}
+		m_lockCount++;
 #endif
 }
 
@@ -1575,23 +1875,89 @@ inline void CThreadMutex::Lock()
 
 inline void CThreadMutex::Unlock()
 {
-	Assert(AssertOwnedByCurrentThread());
-	m_Mutex.unlock();
-#ifdef _DEBUG
-	m_ownerID = 0;
-#endif
+	#ifdef THREAD_MUTEX_TRACING_ENABLED
+		AssertMsg( m_lockCount >= 1, "Invalid unlock of thread lock" );
+		m_lockCount--;
+		if (m_lockCount == 0)
+		{
+			if ( m_bTrace )
+			Msg( "Thread %u releasing lock %p\n", m_currentOwnerID, (CRITICAL_SECTION *)&m_CriticalSection );
+			m_currentOwnerID = 0;
+		}
+	#endif
+	LeaveCriticalSection((CRITICAL_SECTION *)&m_CriticalSection);
 }
 
 //---------------------------------------------------------
 
 inline bool CThreadMutex::AssertOwnedByCurrentThread()
 {
-#ifdef _DEBUG
-	return m_ownerID == ThreadGetCurrentId();
+#ifdef THREAD_MUTEX_TRACING_ENABLED
+	if (ThreadGetCurrentId() == m_currentOwnerID)
+		return true;
+	AssertMsg3( 0, "Expected thread %u as owner of lock %p, but %u owns", ThreadGetCurrentId(), (CRITICAL_SECTION *)&m_CriticalSection, m_currentOwnerID );
+	return false;
 #else
 	return true;
 #endif
 }
+
+//---------------------------------------------------------
+
+inline void CThreadMutex::SetTrace( bool bTrace )
+{
+#ifdef THREAD_MUTEX_TRACING_ENABLED
+	m_bTrace = bTrace;
+#endif
+}
+
+//---------------------------------------------------------
+
+#elif defined(POSIX)
+
+inline CThreadMutex::CThreadMutex()
+{
+	// enable recursive locks as we need them
+	pthread_mutexattr_init( &m_Attr );
+	pthread_mutexattr_settype( &m_Attr, PTHREAD_MUTEX_RECURSIVE );
+	pthread_mutex_init( &m_Mutex, &m_Attr );
+}
+
+//---------------------------------------------------------
+
+inline CThreadMutex::~CThreadMutex()
+{
+	pthread_mutex_destroy( &m_Mutex );
+}
+
+//---------------------------------------------------------
+
+inline void CThreadMutex::Lock()
+{
+	pthread_mutex_lock( &m_Mutex );
+}
+
+//---------------------------------------------------------
+
+inline void CThreadMutex::Unlock()
+{
+	pthread_mutex_unlock( &m_Mutex );
+}
+
+//---------------------------------------------------------
+
+inline bool CThreadMutex::AssertOwnedByCurrentThread()
+{
+	return true;
+}
+
+//---------------------------------------------------------
+
+inline void CThreadMutex::SetTrace(bool fTrace)
+{
+}
+
+#endif // POSIX
 
 //-----------------------------------------------------------------------------
 //
@@ -1636,21 +2002,20 @@ inline void CThreadRWLock::UnlockRead()
 //
 //-----------------------------------------------------------------------------
 
-inline bool CThreadSpinRWLock::AssignIf( LockInfo_t &newValue, LockInfo_t &comperand )
+inline bool CThreadSpinRWLock::AssignIf( const LockInfo_t &newValue, const LockInfo_t &comperand )
 {
-	LockInfo_t expected = comperand;
-	return m_lockInfo.compare_exchange_weak(expected, newValue);
+	return ThreadInterlockedAssignIf64( (int64 *)&m_lockInfo, *((int64 *)&newValue), *((int64 *)&comperand) );
 }
 
 inline bool CThreadSpinRWLock::TryLockForWrite( const uint32 threadId )
 {
 	// In order to grab a write lock, there can be no readers and no owners of the write lock
-	if ( m_lockInfo.load().m_nReaders > 0 || ( m_lockInfo.load().m_writerId && m_lockInfo.load().m_writerId != threadId ) )
+	if ( m_lockInfo.m_nReaders > 0 || ( m_lockInfo.m_writerId && m_lockInfo.m_writerId != threadId ) )
 	{
 		return false;
 	}
 
-	static LockInfo_t oldValue = { 0, 0 };
+	static const LockInfo_t oldValue = { 0, 0 };
 	LockInfo_t newValue = { threadId, 0 };
 	const bool bSuccess = AssignIf( newValue, oldValue );
 #if defined(_X360)
@@ -1683,7 +2048,7 @@ inline bool CThreadSpinRWLock::TryLockForRead()
 	LockInfo_t oldValue;
 	LockInfo_t newValue;
 
-		oldValue.m_nReaders = m_lockInfo.load().m_nReaders;
+		oldValue.m_nReaders = m_lockInfo.m_nReaders;
 		oldValue.m_writerId = 0;
 		newValue.m_nReaders = oldValue.m_nReaders + 1;
 		newValue.m_writerId = 0;

@@ -94,14 +94,16 @@ enum JobPriority_t
 {
 	JP_LOW,
 	JP_NORMAL,
-	JP_HIGH
+	JP_HIGH,
+
+	JP_NUM_PRIORITIES
 };
 
 #define TP_MAX_POOL_THREADS	64
 struct ThreadPoolStartParams_t
 {
-	ThreadPoolStartParams_t( bool bIOThreads = false, unsigned nThreads = -1, int *pAffinities = NULL, ThreeState_t fDistribute = TRS_NONE, unsigned nStackSize = -1, int iThreadPriority = SHRT_MIN )
-		: bIOThreads( bIOThreads ), nThreads( nThreads ), fDistribute( fDistribute ), nStackSize( nStackSize ), iThreadPriority( iThreadPriority ), nThreadsMax( -1 ), bFullCore(false)
+	ThreadPoolStartParams_t( bool bIOThreads = false, unsigned nThreads = -1, int *pAffinities = NULL, ThreeState_t fDistribute = TRS_NONE, unsigned nStackSize = -1, int iThreadPriority = SHRT_MIN, bool bHeavyLoad = false )
+		: bIOThreads( bIOThreads ), nThreads( nThreads ), fDistribute( fDistribute ), nStackSize( nStackSize ), iThreadPriority( iThreadPriority ), nThreadsMax( -1 ), bHeavyLoad( bHeavyLoad )
 	{
 		bExecOnThreadPoolThreadsOnly = false;
 
@@ -127,7 +129,7 @@ struct ThreadPoolStartParams_t
 	bool			bIOThreads : 1;
 	bool			bUseAffinityTable : 1;
 	bool			bExecOnThreadPoolThreadsOnly : 1;
-	bool            bFullCore;
+	bool bHeavyLoad : 1;
 };
 
 //-----------------------------------------------------------------------------
@@ -177,11 +179,11 @@ public:
 	//-----------------------------------------------------
 	// Offer the current thread to the pool
 	//-----------------------------------------------------
-	virtual int YieldWait( CThreadEvent **pEvents, int nEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE ) = 0;
+	virtual int YieldWait( CStdThreadEvent **pEvents, int nEvents, bool bWaitAll = true, unsigned timeout = TT_INFINITE ) = 0;
 	virtual int YieldWait( CJob **, int nJobs, bool bWaitAll = true, unsigned timeout = TT_INFINITE ) = 0;
 	virtual void Yield( unsigned timeout ) = 0;
 
-	bool YieldWait( CThreadEvent &event, unsigned timeout = TT_INFINITE );
+	bool YieldWait( CStdThreadEvent &event, unsigned timeout = TT_INFINITE );
 	bool YieldWait( CJob *, unsigned timeout = TT_INFINITE );
 
 	//-----------------------------------------------------
@@ -348,17 +350,6 @@ public:
 			return pJob; \
 		}
 
-	#define DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS(N) \
-		template <typename OBJECT_TYPE, typename FUNCTION_CLASS, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N FUNC_TEMPLATE_ARG_PARAMS_##N> \
-		CJob *QueueCall(OBJECT_TYPE *pObject, int flags, FUNCTION_RETTYPE ( FUNCTION_CLASS::*pfnProxied )( FUNC_BASE_TEMPLATE_FUNC_PARAMS_##N ) FUNC_ARG_FORMAL_PARAMS_##N ) \
-		{ \
-			CJob *pJob; \
-			int jobFlags = JF_QUEUE; \
-	        jobFlags |= flags; \
-			AddFunctorInternal( CreateFunctor( pObject, pfnProxied FUNC_FUNCTOR_CALL_ARGS_##N ), &pJob, NULL, jobFlags ); \
-			return pJob; \
-		}
-
 	//-------------------------------------
 
 	#define DEFINE_CONST_MEMBER_QUEUE_CALL(N) \
@@ -367,6 +358,19 @@ public:
 		{ \
 			CJob *pJob; \
 			AddFunctorInternal( CreateFunctor( pObject, pfnProxied FUNC_FUNCTOR_CALL_ARGS_##N ), &pJob, NULL, JF_QUEUE ); \
+			return pJob; \
+		}
+
+	//-------------------------------------
+
+    #define DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS(N) \
+		template <typename OBJECT_TYPE, typename FUNCTION_CLASS, typename FUNCTION_RETTYPE FUNC_TEMPLATE_FUNC_PARAMS_##N FUNC_TEMPLATE_ARG_PARAMS_##N> \
+		CJob *QueueCall(OBJECT_TYPE *pObject, int flags, FUNCTION_RETTYPE ( FUNCTION_CLASS::*pfnProxied )( FUNC_BASE_TEMPLATE_FUNC_PARAMS_##N ) FUNC_ARG_FORMAL_PARAMS_##N ) \
+		{ \
+			CJob *pJob; \
+			int jobFlags = JF_QUEUE; \
+	        jobFlags |= flags; \
+			AddFunctorInternal( CreateFunctor( pObject, pfnProxied FUNC_FUNCTOR_CALL_ARGS_##N ), &pJob, NULL, jobFlags ); \
 			return pJob; \
 		}
 
@@ -412,7 +416,7 @@ public:
 	#undef DEFINE_REF_COUNTING_CONST_MEMBER_ADD_CALL
 	#undef DEFINE_NONMEMBER_QUEUE_CALL
 	#undef DEFINE_MEMBER_QUEUE_CALL
-    #undef DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS
+	#undef DEFINE_MEMBER_QUEUE_CALL_WITH_FLAGS
 	#undef DEFINE_CONST_MEMBER_QUEUE_CALL
 	#undef DEFINE_REF_COUNTING_MEMBER_QUEUE_CALL
 	#undef DEFINE_REF_COUNTING_CONST_MEMBER_QUEUE_CALL
@@ -428,7 +432,7 @@ private:
 	virtual CJob *GetDummyJob() = 0;
 
 public:
-	virtual void Distribute( bool bDistribute = true, int *pAffinityTable = NULL, bool bFullCore = true ) = 0;
+	virtual void Distribute( bool bDistribute = true, int *pAffinityTable = NULL ) = 0;
 
 	virtual bool Start( const ThreadPoolStartParams_t &startParams, const char *pszNameOverride ) = 0;
 };
@@ -508,9 +512,9 @@ public:
 	//-----------------------------------------------------
 	// Thread event support (safe for NULL this to simplify code )
 	//-----------------------------------------------------
-	bool WaitForFinish( uint32 dwTimeout = TT_INFINITE ) { if (!this) return true; return ( !IsFinished() ) ? g_pThreadPool->YieldWait( this, dwTimeout ) : true; }
-	bool WaitForFinishAndRelease( uint32 dwTimeout = TT_INFINITE ) { if (!this) return true; bool bResult = WaitForFinish( dwTimeout); Release(); return bResult; }
-	CThreadEvent *AccessEvent()						{ return &m_CompleteEvent; }
+	bool WaitForFinish( uint32 dwTimeout = TT_INFINITE, IThreadPool* pool = g_pThreadPool ) { if (!this) return true; return ( !IsFinished() ) ? pool->YieldWait( this, dwTimeout ) : true; }
+	bool WaitForFinishAndRelease( uint32 dwTimeout = TT_INFINITE, IThreadPool* pool = g_pThreadPool ) { if (!this) return true; bool bResult = WaitForFinish( dwTimeout, pool ); Release(); return bResult; }
+	CStdThreadEvent *AccessEvent()						{ return &m_CompleteEvent; }
 
 	//-----------------------------------------------------
 	// Perform the job
@@ -544,13 +548,13 @@ private:
 
 	JobStatus_t			m_status;
 	JobPriority_t		m_priority;
-	CThreadMutex		m_mutex;
+	CStdThreadMutex		m_mutex;
 	unsigned char		m_flags;
 	char				m_iServicingThread;
 	short				m_reserved;
 	ThreadPoolData_t	m_ThreadPoolData;
 	IThreadPool *		m_pThreadPool;
-	CThreadEvent		m_CompleteEvent;
+	CStdThreadEvent		m_CompleteEvent;
 	char				m_szDescription[ 32 ];
 
 private:
@@ -862,6 +866,8 @@ protected:
 	void (FUNCTION_CLASS::*m_pfnEnd)();
 };
 
+#define MEASURE_PARALLEL_WORK 0
+
 template <typename ITEM_TYPE, class ITEM_PROCESSOR_TYPE>
 class CParallelProcessor
 {
@@ -887,7 +893,10 @@ public:
 		m_pItems = pItems;
 		m_pLimit = pItems + nItems;
 
-		int nJobs = nItems - 1;
+		int nJobs = nItems;
+#if MEASURE_PARALLEL_WORK
+		m_iItems = nJobs;
+#endif
 
 		if ( nJobs > nMaxParallel )
 		{
@@ -900,31 +909,39 @@ public:
 			return;
 		}
 
-		int nThreads = pThreadPool->NumThreads();
+		int nThreads = pThreadPool->NumThreads() + 1;
 		if ( nJobs > nThreads )
 		{
 			nJobs = nThreads;
 		}
 
+#if MEASURE_PARALLEL_WORK
+		float Start = Plat_FloatTime();
+#endif
+		
 		if ( nJobs > 1 )
 		{
+			// Decrement jobs by 1 for the main thread.
+			nJobs--;
 			CJob **jobs = (CJob **)stackalloc( nJobs * sizeof(CJob **) );
 			int i = nJobs;
 
 			while( i-- )
 			{
-				//jobs[i] = pThreadPool->QueueCall( this, JF_NO_ADD, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+#if 1
 				jobs[i] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
-			    jobs[i]->SetDescription( m_szDescription );
-				//jobs[i]->SetServiceThread(i);
-				//jobs[i]->SetFlags(JF_QUEUE);
-				//pThreadPool->AddJob(jobs[i]);
+				jobs[i]->SetDescription( m_szDescription );
+#else
+				jobs[i] = pThreadPool->QueueCall( this, JF_NO_ADD, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
+				jobs[i]->SetDescription(m_szDescription);
+				jobs[i]->SetServiceThread(i);
+				pThreadPool->AddJob(jobs[i]);
+#endif
 			}
 
-			// Do jobs alongside the threads
+			// Do jobs alongside the threads.
 			DoExecute();
-
-			for ( i = 0; i < nJobs; i++ )
+			for (i = 0; i < nJobs; i++)
 			{
 				jobs[i]->Abort(); // will either abort ones that never got a thread, or noop on ones that did
 				jobs[i]->Release();
@@ -934,6 +951,9 @@ public:
 		{
 			DoExecute();
 		}
+#if MEASURE_PARALLEL_WORK
+		DevMsg("%s took %f seconds\n", m_szDescription, Plat_FloatTime() - Start);
+#endif
 	}
 
 	ITEM_PROCESSOR_TYPE m_ItemProcessor;
@@ -942,6 +962,10 @@ private:
 	void DoExecute()
 	{
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "DoExecute %s", m_szDescription );
+
+#if MEASURE_PARALLEL_WORK
+		int work = 0;
+#endif
 
 		if ( m_pItems < m_pLimit )
 		{
@@ -954,6 +978,9 @@ private:
 				ITEM_TYPE *pCurrent = m_pItems++;
 				if ( pCurrent < pLimit )
 				{
+#if MEASURE_PARALLEL_WORK
+					++work;
+#endif
 					m_ItemProcessor.Process( *pCurrent );
 				}
 				else
@@ -964,9 +991,16 @@ private:
 
 			m_ItemProcessor.End();
 		}
+
+#if MEASURE_PARALLEL_WORK
+		DevMsg("Thread %d did %d/%d units of work for %s\n", GetCurrentThreadId(), work, m_iItems, m_szDescription);
+#endif
 	}
 	CInterlockedPtr<ITEM_TYPE>	m_pItems;
 	ITEM_TYPE *					m_pLimit;
+#if MEASURE_PARALLEL_WORK
+	int m_iItems;
+#endif
 	const char *				m_szDescription;
 };
 
@@ -1237,15 +1271,15 @@ inline ThreadHandle_t ThreadExecuteSoloRef( const char *pszName, T1 a1, T2 a2, T
 
 //-----------------------------------------------------------------------------
 
-inline bool IThreadPool::YieldWait( CThreadEvent &event, unsigned timeout )
+inline bool IThreadPool::YieldWait( CStdThreadEvent &event, unsigned timeout )
 {
-	CThreadEvent *pEvent = &event;
+	CStdThreadEvent *pEvent = &event;
 	return ( YieldWait( &pEvent, 1, true, timeout ) != TW_TIMEOUT );
 }
 
 inline bool IThreadPool::YieldWait( CJob *pJob, unsigned timeout )
 {
-	CThreadEvent* pEvents[]{pJob->AccessEvent()};
+	CStdThreadEvent* pEvents[]{pJob->AccessEvent()};
 	return ( YieldWait( pEvents, 1, true, timeout ) != TW_TIMEOUT );
 }
 
