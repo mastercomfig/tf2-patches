@@ -820,6 +820,7 @@ void CScheme::ReloadFontGlyphs()
 		// walk through creating adding the first matching glyph set to the font
 		for (KeyValues *fontdata = kv->GetFirstSubKey(); fontdata != NULL; fontdata = fontdata->GetNextKey())
 		{
+			// TODO(mastercoms): font res support
 			// skip over fonts not meant for this resolution
 			int fontYResMin = 0, fontYResMax = 0;
 			sscanf(fontdata->GetString("yres", ""), "%d %d", &fontYResMin, &fontYResMax);
