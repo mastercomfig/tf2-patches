@@ -6,9 +6,9 @@ cd "${BIN_DIR}" || exit 2
 
 set -e
 
-DEV_DIR=../../game
-CLEAN_DIR=${DEV_DIR}_clean
-CLEAN_DEBUG_DIR=${DEV_DIR}_clean_debug
+DEV_DIR=../game
+CLEAN_DIR=../${DEV_DIR}_clean_gen
+CLEAN_DEBUG_DIR=${CLEAN_DIR}_debug
 rm -rf ${CLEAN_DIR}
 rm -rf ${CLEAN_DEBUG_DIR}
 mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
