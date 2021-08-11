@@ -23,10 +23,10 @@
 #include "datacache/imdlcache.h"
 #include "view.h"
 #include "viewrender.h"
-
-#include <atomic>
+#include <typeinfo>
 
 // memdbgon must be the last include file in a .cpp file!!!
+#include "con_nprint.h"
 #include "tier0/memdbgon.h"
 
 class VMatrix;  // forward decl
@@ -35,6 +35,8 @@ static ConVar cl_drawleaf("cl_drawleaf", "-1", FCVAR_CHEAT );
 static ConVar r_PortalTestEnts( "r_PortalTestEnts", "1", FCVAR_CHEAT, "Clip entities against portal frustums." );
 static ConVar r_portalsopenall( "r_portalsopenall", "0", FCVAR_CHEAT, "Open all portals" );
 static ConVar cl_threaded_client_leaf_system( "cl_threaded_client_leaf_system", "1" );
+
+static ConVar cl_leafsystemvis("cl_leafsystemvis", "0", FCVAR_CHEAT);
 
 
 DEFINE_FIXEDSIZE_ALLOCATOR( CClientRenderablesList, 1, CUtlMemoryPool::GROW_SLOW );
@@ -79,7 +81,7 @@ public:
 
 	void PreRender();
 	void PostRender() { }
-	void Update( float frametime ) { }
+	void Update(float frametime) { m_nDebugIndex = 0; }
 
 	void LevelInitPreEntity();
 	void LevelInitPostEntity() {}
@@ -132,6 +134,7 @@ public:
 
 	// Find all shadow casters in a set of leaves
 	virtual void EnumerateShadowsInLeaves( int leafCount, LeafIndex_t* pLeaves, IClientLeafShadowEnum* pEnum );
+	virtual void RecomputeRenderableLeaves();
 	virtual void DisableLeafReinsertion(bool bDisable);
 	virtual void ComputeAllBounds(void);
 
@@ -185,8 +188,10 @@ private:
 		signed char			m_TranslucencyCalculatedView;
 		Vector				m_vecBloatedAbsMins;		// Use this for tree insertion
 		Vector				m_vecBloatedAbsMaxs;
-		Vector				m_vecAbsMins;			// NOTE: These members are not threadsafe!!
-		Vector				m_vecAbsMaxs;			// They can be updated from any viewpoint (based on RENDER_FLAGS_BOUNDS_VALID)
+		Vector				m_vecPendingBloatedAbsMins;		// This is the newly computed bloated bounds ready for comparison/update
+		Vector				m_vecPendingBloatedAbsMaxs;
+		Vector				m_vecAbsMins;
+		Vector				m_vecAbsMaxs;
 	};
 
 	// Creates a new renderable
@@ -345,6 +350,8 @@ private:
 
 	CTSList<EnumResultList_t> m_DeferredInserts;
 
+	int m_nDebugIndex;
+
 	CThreadFastMutex m_DirtyRenderablesMutex;
 };
 
@@ -363,31 +370,28 @@ void CalcRenderableWorldSpaceAABB( IClientRenderable *pRenderable, Vector &absMi
 //-----------------------------------------------------------------------------
 void DefaultRenderBoundsWorldspace( IClientRenderable *pRenderable, Vector &absMins, Vector &absMaxs )
 {
-	// Tracker 37433:  This fixes a bug where if the stunstick is being wielded by a combine soldier, the fact that the stick was
-	//  attached to the soldier's hand would move it such that it would get frustum culled near the edge of the screen.
+	// Tracker 37433: This fixes a bug where if the stunstick is being wielded by a combine soldier, the fact that the stick was
+	// attached to the soldier's hand would move it such that it would get frustum culled near the edge of the screen.
 	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
-	if (pEnt && (pEnt->IsFollowingEntity() || (pEnt->GetMoveParent() && (pEnt->GetParentAttachment() > 0))))
+	C_BaseEntity *pParent;
+	if (pEnt && (pParent = pEnt->GetMoveParent()) != NULL && (pEnt->GetParentAttachment() > 0 || pEnt->IsFollowingEntity()))
 	{
-		C_BaseEntity *pParent = pEnt->GetMoveParent();
-		if ( pParent )
-		{
-			// Get the parent's abs space world bounds.
-			CalcRenderableWorldSpaceAABB( pParent, absMins, absMaxs );
+		// Get the parent's abs space world bounds.
+		CalcRenderableWorldSpaceAABB( pParent, absMins, absMaxs );
 
-			// Add the maximum of our local render bounds. This is making the assumption that we can be at any
-			// point and at any angle within the parent's world space bounds.
-			Vector vAddMins, vAddMaxs;
-			pEnt->GetRenderBounds( vAddMins, vAddMaxs );
-			// if our origin is actually farther away than that, expand again
-			float radius = pEnt->GetLocalOrigin().LengthSqr();
+		// Add the maximum of our local render bounds. This is making the assumption that we can be at any
+		// point and at any angle within the parent's world space bounds.
+		Vector vAddMins, vAddMaxs;
+		pEnt->GetRenderBounds( vAddMins, vAddMaxs );
+		// if our origin is actually farther away than that, expand again
+		float radius = pEnt->GetLocalOrigin().LengthSqr();
 
-			float flBloatSize = MAX( vAddMins.LengthSqr(), vAddMaxs.LengthSqr() );
-			flBloatSize = MAX(flBloatSize, radius);
-			flBloatSize = FastSqrt(flBloatSize);
-			absMins -= Vector( flBloatSize, flBloatSize, flBloatSize );
-			absMaxs += Vector( flBloatSize, flBloatSize, flBloatSize );
-			return;
-		}
+		float flBloatSize = MAX( vAddMins.LengthSqr(), vAddMaxs.LengthSqr() );
+		flBloatSize = MAX(flBloatSize, radius);
+		flBloatSize = FastSqrt(flBloatSize);
+		absMins -= Vector( flBloatSize, flBloatSize, flBloatSize );
+		absMaxs += Vector( flBloatSize, flBloatSize, flBloatSize );
+		return;
 	}
 
 	Vector mins, maxs;
@@ -397,17 +401,15 @@ void DefaultRenderBoundsWorldspace( IClientRenderable *pRenderable, Vector &absM
 	// Another option is to pass the OBB down the tree; makes for a better fit
 	// Generate a world-aligned AABB
 	const QAngle& angles = pRenderable->GetRenderAngles();
-	const Vector& origin = pRenderable->GetRenderOrigin();
 	if (angles == vec3_angle)
 	{
+		const Vector& origin = pRenderable->GetRenderOrigin();
 		VectorAdd( mins, origin, absMins );
 		VectorAdd( maxs, origin, absMaxs );
 	}
 	else
 	{
-		matrix3x4_t	boxToWorld;
-		AngleMatrix( angles, origin, boxToWorld );
-		TransformAABB( boxToWorld, mins, maxs, absMins, absMaxs );
+		TransformAABB( pRenderable->RenderableToWorldTransform(), mins, maxs, absMins, absMaxs );
 	}
 	Assert( absMins.IsValid() && absMaxs.IsValid() );
 }
@@ -465,18 +467,24 @@ void CClientLeafSystem::ComputeAllBounds(void)
 {
 	MDLCACHE_CRITICAL_SECTION();
 	static CUtlVector<RenderableInfo_t*> renderablesToUpdate;
-	bool bThreaded = ( cl_threaded_client_leaf_system.GetBool() && cl_threaded_client_leaf_system.GetInt() < 3 && g_pThreadPool->NumThreads() );
+	bool bThreaded = ( cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumIdleThreads() );
 	for (int i = m_Renderables.Head(); i != m_Renderables.InvalidIndex(); i = m_Renderables.Next(i))
 	{
-		RenderableInfo_t* info = &m_Renderables[i];
+		RenderableInfo_t* pInfo = &m_Renderables[i];
 
 		if (bThreaded)
 		{
-		    renderablesToUpdate.AddToTail(info);
+			if (pInfo->m_Flags & RENDER_FLAGS_DISABLE_RENDERING)
+				continue;
+
+			if ((pInfo->m_Flags & RENDER_FLAGS_BOUNDS_VALID) == 0)
+			{
+				renderablesToUpdate.AddToTail(pInfo);
+			}
 		}
 		else
 		{
-		    ComputeBounds(info);
+		    ComputeBounds(pInfo);
 		}
 	}
 
@@ -524,6 +532,7 @@ void CClientLeafSystem::LevelShutdownPreEntity()
 
 void CClientLeafSystem::LevelShutdownPostEntity()
 {
+	AUTO_LOCK(m_DirtyRenderablesMutex);
 	m_ViewModels.Purge();
 	m_Renderables.Purge();
 	m_RenderablesInLeaf.Purge();
@@ -553,12 +562,21 @@ void CClientLeafSystem::LevelShutdownPostEntity()
 //-----------------------------------------------------------------------------
 void CClientLeafSystem::PreRender()
 {
-	VPROF_BUDGET( "CClientLeafSystem::PreRender", "PreRender" );
+}
+
+// Use this to make sure we're not adding the same renderables to the list while we're going through and re-inserting them into the clientleafsystem
+static bool s_bIsInRecomputeRenderableLeaves = false;
+
+void CClientLeafSystem::RecomputeRenderableLeaves()
+{
+	VPROF_BUDGET( "CClientLeafSystem::RecomputeRenderableLeaves", "RecomputeRenderableLeaves" );
 
 	AUTO_LOCK(m_DirtyRenderablesMutex);
 
 	int i;
 	int nIterations = 0;
+
+	const bool bDebugLeafSystem = !IsGameConsole() && cl_leafsystemvis.GetBool();
 
 	while ( m_DirtyRenderables.Count() )
 	{
@@ -568,9 +586,11 @@ void CClientLeafSystem::PreRender()
 			break;
 		}
 
+		s_bIsInRecomputeRenderableLeaves = true;
+
 		int nDirty = m_DirtyRenderables.Count();
 
-		bool bThreaded = ( nDirty > 5 && cl_threaded_client_leaf_system.GetBool() && cl_threaded_client_leaf_system.GetInt() < 3 && g_pThreadPool->NumThreads() );
+		bool bThreaded = ( cl_threaded_client_leaf_system.GetBool() && g_pThreadPool->NumIdleThreads() );
 
 		if ( !bThreaded )
 		{
@@ -588,19 +608,24 @@ void CClientLeafSystem::PreRender()
 				RenderableInfo_t& info = m_Renderables[handle];
 
 	            Assert(m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED);
-			    Vector absMins, absMaxs;
-	            CalcRenderableWorldSpaceAABB_Bloated(info, absMins, absMaxs);
-	            if (absMins != info.m_vecBloatedAbsMins || absMaxs != info.m_vecBloatedAbsMaxs)
+
+				// See note at the end of RecomputeRenderableLeaves
+				info.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
+
+				if (info.m_vecPendingBloatedAbsMins != info.m_vecBloatedAbsMins || info.m_vecPendingBloatedAbsMaxs != info.m_vecBloatedAbsMaxs)
 	            {
 		            // Update position in leaf system
 		            RemoveFromTree(handle);
-					info.m_vecBloatedAbsMins = absMins;
-	                info.m_vecBloatedAbsMaxs = absMaxs;
+					if (bDebugLeafSystem)
+					{
+						debugoverlay->AddBoxOverlay(vec3_origin, info.m_vecPendingBloatedAbsMins, info.m_vecPendingBloatedAbsMaxs, QAngle(0, 0, 0), 0, 255, 0, 0, 0);
+					}
+					info.m_vecBloatedAbsMins = info.m_vecPendingBloatedAbsMins;
+	                info.m_vecBloatedAbsMaxs = info.m_vecPendingBloatedAbsMaxs;
 	            }
 				else
 				{
 					// We don't need to update it
-					info.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
 				    m_DirtyRenderables.Remove(i);
 				}
 			}
@@ -612,7 +637,7 @@ void CClientLeafSystem::PreRender()
 			    // InsertIntoTree can result in new renderables being added, so copy:
 			    ClientRenderHandle_t *pDirtyRenderables = (ClientRenderHandle_t *)alloca( sizeof(ClientRenderHandle_t) * nDirty );
 			    memcpy( pDirtyRenderables, m_DirtyRenderables.Base(), sizeof(ClientRenderHandle_t) * nDirty );
-			    ParallelProcess( "CClientLeafSystem::PreRender", pDirtyRenderables, nDirty, this, &CClientLeafSystem::InsertIntoTree );
+			    ParallelProcess( "CClientLeafSystem::RecomputeRenderableLeaves", pDirtyRenderables, nDirty, this, &CClientLeafSystem::InsertIntoTree );
 			}
 		}
 
@@ -633,18 +658,21 @@ void CClientLeafSystem::PreRender()
 			}
 		}
 
+		s_bIsInRecomputeRenderableLeaves = false;
+
 		// NOTE: If we get the following error displayed in the console spew
 		//       "Re-entrancy found in CClientLeafSystem::RenderableChanged\n"
 		//		 We'll have to reenable this code and remove the line that
 		//		 removes the RENDER_FLAGS_HASCHANGED in the loop above.
+#if 0
 		for ( i = nDirty; --i >= 0; )
 		{
-			// Cache off the area it's sitting in.
 			ClientRenderHandle_t handle = m_DirtyRenderables[i];
 			RenderableInfo_t& renderable = m_Renderables[ handle ];
 
 			renderable.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
 		}
+#endif
 
 		m_DirtyRenderables.RemoveMultiple( 0, nDirty );
 	}
@@ -687,6 +715,8 @@ void CClientLeafSystem::NewRenderable( IClientRenderable* pRenderable, RenderGro
 	info.m_RenderLeaf = m_RenderablesInLeaf.InvalidIndex();
 	info.m_vecBloatedAbsMins.Init(FLT_MAX, FLT_MAX, FLT_MAX);
 	info.m_vecBloatedAbsMaxs.Init(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	info.m_vecPendingBloatedAbsMins.Init();
+	info.m_vecPendingBloatedAbsMaxs.Init();
 	info.m_vecAbsMins.Init();
 	info.m_vecAbsMaxs.Init();
 
@@ -731,6 +761,12 @@ void CClientLeafSystem::CreateRenderableHandle( IClientRenderable* pRenderable, 
 	}
 
 	NewRenderable( pRenderable, group, flags );
+
+	if (bIsStaticProp)
+	{
+		RenderableInfo_t* pInfo = &m_Renderables[pRenderable->RenderHandle()];
+		ComputeBounds(pInfo);
+	}
 }
 
 
@@ -816,6 +852,7 @@ void CClientLeafSystem::RemoveRenderable( ClientRenderHandle_t handle )
 	// Reemove the renderable from the dirty list
 	if ( m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED )
 	{
+		AUTO_LOCK(m_DirtyRenderablesMutex);
 		// NOTE: This isn't particularly fast (linear search),
 		// but I'm assuming it's an unusual case where we remove 
 		// renderables that are changing or that m_DirtyRenderables usually
@@ -1087,8 +1124,8 @@ void CClientLeafSystem::ProcessDirtyRenderable(ClientRenderHandle_t& handle)
 
 	Assert(m_Renderables[handle].m_Flags & RENDER_FLAGS_HASCHANGED);
 
-	// See note at the end of PreRender
-	//info.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
+	// See note at the end of RecomputeRenderableLeaves
+	info.m_Flags &= ~RENDER_FLAGS_HASCHANGED;
 
 	Vector absMins, absMaxs;
 	CalcRenderableWorldSpaceAABB_Bloated(info, absMins, absMaxs);
@@ -1097,6 +1134,13 @@ void CClientLeafSystem::ProcessDirtyRenderable(ClientRenderHandle_t& handle)
 		// Update position in leaf system
 		RemoveFromTree(handle);
 		InsertIntoTree(handle, absMins, absMaxs);
+		const bool bDebugLeafSystem = !IsGameConsole() && cl_leafsystemvis.GetBool();
+		if (bDebugLeafSystem)
+		{
+			debugoverlay->AddBoxOverlay(vec3_origin, absMins, absMaxs, QAngle(0, 0, 0), 0, 255, 0, 0, 0);
+		}
+		info.m_vecBloatedAbsMins = absMins;
+		info.m_vecBloatedAbsMaxs = absMaxs;
 	}
 }
 
@@ -1112,7 +1156,10 @@ void CClientLeafSystem::CalcRenderableWorldSpaceAABB_Bloated(RenderableInfo_t& i
 {
 	if ((info.m_Flags & RENDER_FLAGS_BOUNDS_VALID) == 0)
 	{
+		DevWarning("Updated bounds outside of ComputeAllBounds!\n");
 		CalcRenderableWorldSpaceAABB(info.m_pRenderable, absMin, absMax);
+		info.m_vecAbsMins = absMin;
+		info.m_vecAbsMaxs = absMax;
 		info.m_Flags |= RENDER_FLAGS_BOUNDS_VALID;
 	}
 	else
@@ -1177,7 +1224,7 @@ void CClientLeafSystem::ProjectFlashlight( ClientLeafShadowHandle_t handle, int 
 	RemoveShadowFromRenderables( handle );
 
 	Assert( ( m_Shadows[handle].m_Flags & SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK ) == SHADOW_FLAGS_FLASHLIGHT );
-	
+
 	// This will help us to avoid adding the shadow multiple times to a renderable
 	++m_ShadowEnum;
 
@@ -1313,8 +1360,7 @@ void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t handle, int 
 
 void CClientLeafSystem::AddRenderableToLeaves(ClientRenderHandle_t handle, int nLeafCount, unsigned short* pLeaves)
 {
-	const bool bReceiveShadows = ShouldRenderableReceiveShadow(handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
-	AddRenderableToLeaves(handle, nLeafCount, pLeaves, bReceiveShadows);
+	AddRenderableToLeaves(handle, nLeafCount, pLeaves, false);
 }
 
 
@@ -1326,8 +1372,7 @@ bool CClientLeafSystem::EnumerateLeaf( int leaf, int context )
 	EnumResultList_t *pList = (EnumResultList_t *)context;
 	if ( ThreadInMainThread() )
 	{
-		const bool bReceiveShadows = ShouldRenderableReceiveShadow(pList->handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
-		AddRenderableToLeaf( leaf, pList->handle, bReceiveShadows );
+		AddRenderableToLeaf( leaf, pList->handle, false );
 	}
 	else
 	{
@@ -1355,21 +1400,47 @@ void CClientLeafSystem::InsertIntoTree(ClientRenderHandle_t& handle)
 {
 	RenderableInfo_t& info = m_Renderables[handle];
 
-	const bool bMainThread = ThreadInMainThread();
-	if ( bMainThread )
-	{
-		// When we insert into the tree, increase the shadow enumerator
-		// to make sure each shadow is added exactly once to each renderable
-		m_ShadowEnum++;
-	}
-
 	EnumResultList_t list = { NULL, handle };
 
 	unsigned short leafList[1024];
 	ISpatialQuery* pQuery = engine->GetBSPTreeQuery();
 	int leafCount = pQuery->ListLeavesInBox(info.m_vecBloatedAbsMins, info.m_vecBloatedAbsMaxs, leafList, ARRAYSIZE(leafList));
 
-	if (bMainThread)
+	if (!IsGameConsole() && cl_leafsystemvis.GetBool())
+	{
+		char pTemp[256];
+		const char* pClassName = "<unknown renderable>";
+		C_BaseEntity* pEnt = info.m_pRenderable->GetIClientUnknown()->GetBaseEntity();
+		if (pEnt)
+		{
+			pClassName = pEnt->GetClassname();
+		}
+		else
+		{
+			CNewParticleEffect* pEffect = dynamic_cast<CNewParticleEffect*>(info.m_pRenderable);
+			if (pEffect)
+			{
+				Q_snprintf(pTemp, sizeof(pTemp), "ps: %s", pEffect->GetName());
+				pClassName = pTemp;
+			}
+			else if (dynamic_cast<CParticleEffectBinding*>(info.m_pRenderable))
+			{
+				pClassName = "<old particle system>";
+			}
+		}
+
+		con_nprint_t np;
+		np.time_to_live = 0.1f;
+		np.fixed_width_font = true;
+		np.color[0] = 1.0;
+		np.color[1] = 0.8;
+		np.color[2] = 0.1;
+		np.index = m_nDebugIndex++;
+
+		engine->Con_NXPrintf(&np, "%s", pClassName);
+	}
+
+	if (ThreadInMainThread())
 	{
 		AddRenderableToLeaves(handle, leafCount, leafList);
 	}
@@ -1423,8 +1494,7 @@ void CClientLeafSystem::RenderableChanged( ClientRenderHandle_t handle )
 {
 	if (m_bDisableLeafReinsertion)
 	{
-		DevWarning("Renderable %d reinserted after frame!\n", handle);
-		return;
+		DevWarning("Renderable %d re-entrant after frame!\n", handle);
 	}
 
 	Assert ( handle != INVALID_CLIENT_RENDER_HANDLE );
@@ -1433,19 +1503,31 @@ void CClientLeafSystem::RenderableChanged( ClientRenderHandle_t handle )
 		return;
 
 	RenderableInfo_t& info = m_Renderables[handle];
-	info.m_Flags &= ~RENDER_FLAGS_BOUNDS_VALID;
 	if ( (info.m_Flags & RENDER_FLAGS_HASCHANGED ) == 0 )
 	{
+		AUTO_LOCK(m_DirtyRenderablesMutex);
+		info.m_Flags &= ~RENDER_FLAGS_BOUNDS_VALID;
 		info.m_Flags |= RENDER_FLAGS_HASCHANGED;
 		m_DirtyRenderables.AddToTail( handle );
 	}
-#if _DEBUG
 	else
 	{
+		if (s_bIsInRecomputeRenderableLeaves)
+		{
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("Re-entrancy found in CClientLeafSystem::RenderableChanged\n");
+			Warning("Contact mastercoms\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+			Warning("------------------------------------------------------------\n");
+		}
 		// It had better be in the list
 		Assert( m_DirtyRenderables.Find( handle ) != m_DirtyRenderables.InvalidIndex() );
 	}
-#endif
 }
 
 
@@ -1540,6 +1622,12 @@ bool CClientLeafSystem::ShouldDrawDetailObjectsInLeaf( int leaf, int frameNumber
 			 ( ( leafInfo.m_DetailPropCount != 0 ) || ( leafInfo.m_pSubSystemData[CLSUBSYSTEM_DETAILOBJECTS] ) ) );
 }
 
+//-----------------------------------------------------------------------------
+// Compute which leaf the translucent renderables should render in
+//-----------------------------------------------------------------------------
+#define LeafToMarker( leaf ) reinterpret_cast<RenderableInfo_t *>(( (leaf) << 1 ) | 1)
+#define IsLeafMarker( p ) (bool)((reinterpret_cast<size_t>(p)) & 1)
+#define MarkerToLeaf( p ) (int)((reinterpret_cast<size_t>(p)) >> 1)
 
 //-----------------------------------------------------------------------------
 // Compute which leaf the translucent renderables should render in
@@ -1549,13 +1637,9 @@ void CClientLeafSystem::ComputeTranslucentRenderLeaf( int count, const LeafIndex
 	ASSERT_NO_REENTRY();
 	VPROF_BUDGET( "CClientLeafSystem::ComputeTranslucentRenderLeaf", "ComputeTranslucentRenderLeaf"  );
 
-	#define LeafToMarker( leaf ) reinterpret_cast<RenderableInfo_t *>(( (leaf) << 1 ) | 1)
-	#define IsLeafMarker( p ) (bool)((reinterpret_cast<size_t>(p)) & 1)
-	#define MarkerToLeaf( p ) (int)((reinterpret_cast<size_t>(p)) >> 1)
-
 	// For better sorting, we're gonna choose the leaf that is closest to the camera.
 	// The leaf list passed in here is sorted front to back
-	bool bThreaded = ( cl_threaded_client_leaf_system.GetInt() > 1 && g_pThreadPool->NumThreads() );
+	bool bThreaded = ( cl_threaded_client_leaf_system.GetInt() > 1 && g_pThreadPool->NumIdleThreads() );
 	int globalFrameCount = gpGlobals->framecount;
 	int i;
 
@@ -1805,7 +1889,8 @@ void CClientLeafSystem::CollateRenderablesInLeaf( int leaf, int worldListLeafInd
 		}
 
 		// UNDONE: Investigate speed tradeoffs of occlusion culling brush models too?
-		if ( renderable.m_Flags & RENDER_FLAGS_STUDIO_MODEL )
+		// UNDONE(mastercoms): we're testing it now.
+		//if ( renderable.m_Flags & RENDER_FLAGS_STUDIO_MODEL )
 		{
 			// test to see if this renderable is occluded by the engine's occlusion system
 			if ( engine->IsOccluded( absMins, absMaxs ) )
@@ -1929,7 +2014,7 @@ void CClientLeafSystem::SortEntities( const Vector &vecRenderOrigin, const Vecto
 		// Compute the center of the object (needed for translucent brush models)
 		Vector boxcenter;
 		Vector mins = renderable.m_vecAbsMins;
-	    Vector maxs = renderable.m_vecAbsMaxs;
+		Vector maxs = renderable.m_vecAbsMaxs;
 		VectorAdd( mins, maxs, boxcenter );
 		VectorMA( pRenderable->GetRenderOrigin(), 0.5f, boxcenter, boxcenter );
 
@@ -1971,22 +2056,29 @@ void CClientLeafSystem::ComputeBounds(RenderableInfo_t*& pInfo)
 	if (pInfo->m_Flags & RENDER_FLAGS_DISABLE_RENDERING)
 		return;
 
-	if ((pInfo->m_Flags & RENDER_FLAGS_BOUNDS_VALID) == 0)
+	if ((pInfo->m_Flags & RENDER_FLAGS_BOUNDS_VALID) != 0)
 	{
-		CalcRenderableWorldSpaceAABB(pInfo->m_pRenderable, pInfo->m_vecAbsMins, pInfo->m_vecAbsMaxs);
-		pInfo->m_Flags |= RENDER_FLAGS_BOUNDS_VALID;
-	}
 #ifdef _DEBUG
-	else
-	{
 		// If these assertions trigger, it means there's some state that GetRenderBounds
 		// depends on which, on change, doesn't call ClientLeafSystem::RenderableChanged().
 		Vector vecTestMins, vecTestMaxs;
-		CalcRenderableWorldSpaceAABB(pInfo->m_pRenderable, vecTestMins, vecTestMaxs);
-		Assert(VectorsAreEqual(vecTestMins, pInfo->m_vecAbsMins, 1e-3));
-		Assert(VectorsAreEqual(vecTestMaxs, pInfo->m_vecAbsMaxs, 1e-3));
-	}
+		CalcRenderableWorldSpaceAABB( pInfo->m_pRenderable, vecTestMins, vecTestMaxs );
+		AssertMsg(
+			   VectorsAreEqual(vecTestMins, pInfo->m_vecAbsMins, 1e-3)
+			&& VectorsAreEqual(vecTestMaxs, pInfo->m_vecAbsMaxs, 1e-3),
+			"Class %s changed mins/maxes w/o calling ClientLeafSystem::RenderableChanged",
+			typeid(*pInfo->m_pRenderable).name()
+		);
 #endif
+		return;
+	}
+
+	RenderableInfo_t& info = *pInfo;
+	CalcRenderableWorldSpaceAABB( info.m_pRenderable, info.m_vecPendingBloatedAbsMins, info.m_vecPendingBloatedAbsMaxs );
+	info.m_vecAbsMins = info.m_vecPendingBloatedAbsMins;
+	info.m_vecAbsMaxs = info.m_vecPendingBloatedAbsMaxs;
+	info.m_Flags |= RENDER_FLAGS_BOUNDS_VALID;
+	CalcRenderableWorldSpaceAABB_Bloated(info, info.m_vecPendingBloatedAbsMins, info.m_vecPendingBloatedAbsMaxs );
 }
 
 

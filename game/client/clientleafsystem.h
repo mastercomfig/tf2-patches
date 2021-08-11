@@ -83,7 +83,6 @@ struct SetupRenderInfo_t
 	float m_flRenderDistSq;
 	bool m_bDrawDetailObjects : 1;
 	bool m_bDrawTranslucentObjects : 1;
-
 	SetupRenderInfo_t()
 	{
 		m_bDrawDetailObjects = true;
@@ -204,6 +203,9 @@ public:
 	// used for renderables with oscillating bounds to reduce the cost of
 	// them reinserting themselves into the tree over and over.
 	virtual void EnableBloatedBounds(ClientRenderHandle_t handle, bool bEnable) = 0;
+
+	// Recomputes which leaves renderables are in
+	virtual void RecomputeRenderableLeaves() = 0;
 
 	// Warns about leaf reinsertion
 	virtual void DisableLeafReinsertion(bool bDisable) = 0;

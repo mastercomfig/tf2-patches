@@ -2222,6 +2222,8 @@ void OnRenderStart()
 	C_BaseEntity::AddVisibleEntities();
 
 	g_pClientLeafSystem->DisableLeafReinsertion(true);
+	g_pClientLeafSystem->ComputeAllBounds();
+	g_pClientLeafSystem->RecomputeRenderableLeaves();
 }
 
 
