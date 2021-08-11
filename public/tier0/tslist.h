@@ -670,7 +670,7 @@ public:
 		}
 
 		Node_t() {}
-		Node_t( const T &init ) : elem( init ) {}
+		Node_t( const T &init ) : pNext( nullptr ), elem( init ) {}
 
 		Node_t *pNext;
 		T elem;

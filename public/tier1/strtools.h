@@ -1284,5 +1284,7 @@ size_t Q_URLDecode( OUT_CAP(nDecodeDestLen) char *pchDecodeDest, int nDecodeDest
 // Strip white space at the beginning and end of a string
 int V_StrTrim( char *pStr );
 
+void V_SecureClean( void *pBuf, size_t len );
+
 
 #endif	// TIER1_STRTOOLS_H

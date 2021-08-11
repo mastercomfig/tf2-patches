@@ -737,7 +737,7 @@ static void DefaultHeapReportFunc( char const *pFormat, ... )
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
-CDbgMemAlloc::CDbgMemAlloc() : m_sMemoryAllocFailed( (size_t)0 )
+CDbgMemAlloc::CDbgMemAlloc() : m_pStatMap( nullptr ), m_pFilenames( nullptr ), m_sMemoryAllocFailed( (size_t)0 )
 {
 	// Make sure that we return 64-bit addresses in 64-bit builds.
 	ReserveBottomMemory();
