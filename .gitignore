@@ -64,7 +64,7 @@ config.cfg
 *.vcxproj.vpc_crc
 *.vcxproj.FileListAbsolute.txt
 # required upgraded/modified protobuf projects
-!src/thirdparty/protobuf-2.5.0/vsprojects/*.vcxproj
+!src/thirdparty/protobuf-2.6.1/vsprojects/*.vcxproj
 *.iobj
 *.pch
 *.pdb
@@ -85,14 +85,6 @@ UpgradeLog*.htm
 
 # ignore generated protobufs
 generated_proto*/
-
-!src/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf-lite.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/libprotobuf.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/libprotoc.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/lite-test.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/protoc.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/test_plugin.vcxproj
-!src/thirdparty/protobuf-2.5.0/vsprojects/tests.vcxproj
 
 !src/thirdparty/dxsdk/lib/D3DCSX.lib
 !src/thirdparty/dxsdk/lib/D3DCSXd.lib
