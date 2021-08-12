@@ -2511,7 +2511,7 @@ bool CGameServer::SpawnServer( const char *szMapName, const char *szMapFile, con
 		g_pMaterialSystem->CompactMemory();
 		g_pFileSystem->AsyncFinishAll();
 #if !defined( SWDS )
-		extern CThreadMutex g_SndMutex;
+		extern CStdThreadMutex g_SndMutex;
 		g_SndMutex.Lock();
 		g_pFileSystem->AsyncSuspend();
 		g_pThreadPool->SuspendExecution();

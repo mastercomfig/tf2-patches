@@ -25,6 +25,44 @@
 #define _SSE1 1
 #endif
 
+// I thought about defining a class/union for the SIMD packed floats instead of using fltx4,
+// but decided against it because (a) the nature of SIMD code which includes comparisons is to blur
+// the relationship between packed floats and packed integer types and (b) not sure that the
+// compiler would handle generating good code for the intrinsics.
+
+#if USE_STDC_FOR_SIMD
+
+typedef union
+{
+	float  m128_f32[4];
+	uint32 m128_u32[4];
+} fltx4;
+
+typedef fltx4 i32x4;
+typedef fltx4 u32x4;
+
+#elif ( defined( _X360 ) )
+
+typedef union
+{
+	// This union allows float/int access (which generally shouldn't be done in inner loops)
+	__vector4	vmx;
+	float		m128_f32[4];
+	uint32		m128_u32[4];
+} fltx4_union;
+
+typedef __vector4 fltx4;
+typedef __vector4 i32x4; // a VMX register; just a way of making it explicit that we're doing integer ops.
+typedef __vector4 u32x4; // a VMX register; just a way of making it explicit that we're doing unsigned integer ops.
+
+#else
+
+typedef __m128 fltx4;
+typedef __m128 i32x4;
+typedef __m128 u32x4;
+
+#endif
+
 // The FLTX4 type is a fltx4 used as a parameter to a function.
 // On the 360, the best way to do this is pass-by-copy on the registers.
 // On the PC, the best way is to pass by const reference. 
@@ -2496,34 +2534,6 @@ FORCEINLINE void StoreAlignedIntSIMD( intx4 &pSIMD, const fltx4 & a )
 FORCEINLINE void StoreUnalignedIntSIMD( int32 * RESTRICT pSIMD, const fltx4 & a )
 {
 	_mm_storeu_ps( reinterpret_cast<float *>(pSIMD), a );
-}
-
-// a={ a.x, b.x, c.x, d.x }
-// combine 4 fltx4s by throwing away 3/4s of the fields
-FORCEINLINE fltx4 Compress4SIMD(fltx4 const a, fltx4 const& b, fltx4 const& c, fltx4 const& d)
-{
-	fltx4 aacc = _mm_shuffle_ps(a, c, MM_SHUFFLE_REV(0, 0, 0, 0));
-	fltx4 bbdd = _mm_shuffle_ps(b, d, MM_SHUFFLE_REV(0, 0, 0, 0));
-	return MaskedAssign(LoadAlignedSIMD(g_SIMD_EveryOtherMask), bbdd, aacc);
-}
-
-// outa={a.x, a.x, a.y, a.y}, outb = a.z, a.z, a.w, a.w }
-FORCEINLINE void ExpandSIMD(fltx4 const& a, fltx4& fl4OutA, fltx4& fl4OutB)
-{
-	fl4OutA = _mm_shuffle_ps(a, a, MM_SHUFFLE_REV(0, 0, 1, 1));
-	fl4OutB = _mm_shuffle_ps(a, a, MM_SHUFFLE_REV(2, 2, 3, 3));
-
-}
-
-// construct a fltx4 from four different scalars, which are assumed to be neither aligned nor contiguous
-FORCEINLINE fltx4 LoadGatherSIMD(const float& x, const float& y, const float& z, const float& w)
-{
-	// load the float into the low word of each vector register (this exploits the unaligned load op)
-	fltx4 vx = _mm_load_ss(&x);
-	fltx4 vy = _mm_load_ss(&y);
-	fltx4 vz = _mm_load_ss(&z);
-	fltx4 vw = _mm_load_ss(&w);
-	return Compress4SIMD(vx, vy, vz, vw);
 }
 
 

@@ -1257,6 +1257,35 @@ private:
 };
 
 
+class PLATFORM_CLASS CThreadEvent : public CThreadSyncObject
+{
+public:
+	CThreadEvent( bool fManualReset = false );
+#ifdef WIN32
+	CThreadEvent( HANDLE hHandle );
+#endif
+	//-----------------------------------------------------
+	// Set the state to signaled
+	//-----------------------------------------------------
+	bool Set();
+
+	//-----------------------------------------------------
+	// Set the state to nonsignaled
+	//-----------------------------------------------------
+	bool Reset();
+
+	//-----------------------------------------------------
+	// Check if the event is signaled
+	//-----------------------------------------------------
+	bool Check();
+
+	bool Wait( uint32 dwTimeout = TT_INFINITE );
+
+private:
+	CThreadEvent( const CThreadEvent & );
+	CThreadEvent &operator=( const CThreadEvent & );
+};
+
 template <class T>
 class CStdQueue
 {

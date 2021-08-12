@@ -108,7 +108,7 @@ CStudioRenderContext::CStudioRenderContext()
 	m_RC.m_NumLocalLights = 0;
 	for ( int i = 0; i < 6; ++i )
 	{
-		m_RC.m_LightBoxColors[i].Init( 0, 0, 0 );
+		m_RC.m_LightBoxColors[i].Init();
 	}
 }
 
