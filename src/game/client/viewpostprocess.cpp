@@ -2205,7 +2205,7 @@ static void DrawPyroPost( IMaterial *pMaterial,
 }
 
 
-static ConVar r_queued_post_processing( "r_queued_post_processing", "1" );
+static ConVar r_queued_post_processing( "r_queued_post_processing", "0" );
 
 // How much to dice up the screen during post-processing on 360
 // This has really marginal effects, but 4x1 does seem vaguely better for post-processing
