@@ -266,6 +266,7 @@ void Soundscape_Update( audioparams_t &audio )
 }
 
 #define SOUNDSCAPE_MANIFEST_FILE				"scripts/soundscapes_manifest.txt"
+#define SOUNDSCAPE_EMBED_FILE					"scripts/soundscapes_embed.txt"
 
 void C_SoundscapeSystem::AddSoundScapeFile( const char *filename )
 {
@@ -333,6 +334,11 @@ bool C_SoundscapeSystem::Init()
 		if ( mapSoundscapeFilename && filesystem->FileExists( mapSoundscapeFilename ) )
 		{
 			AddSoundScapeFile( mapSoundscapeFilename );
+		}
+		// only load embedded soundscape file if map soundscape file doesn't exist
+		else if ( SOUNDSCAPE_EMBED_FILE && filesystem->FileExists( SOUNDSCAPE_EMBED_FILE ) )
+		{
+			AddSoundScapeFile( SOUNDSCAPE_EMBED_FILE );
 		}
 	}
 	else

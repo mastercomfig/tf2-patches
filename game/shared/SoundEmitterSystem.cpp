@@ -57,6 +57,8 @@ void ClearModelSoundsCache();
 
 #endif // !CLIENT_DLL
 
+#define EMBED_LEVEL_SOUNDS_FILE 				"maps/embed_level_sounds.txt"
+
 void WaveTrace( char const *wavname, char const *funcname )
 {
 	if ( IsX360() && !IsDebug() )
@@ -302,6 +304,11 @@ public:
 			{
 				soundemitterbase->AddSoundOverrides( scriptfile );
 			}
+			// only load embedded level sounds file if map level sounds file doesn't exist
+			else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "GAME" ) )
+			{
+				soundemitterbase->AddSoundOverrides( EMBED_LEVEL_SOUNDS_FILE );
+			}
 		}
 #else
 		Q_StripExtension( mapname, scriptfile, sizeof( scriptfile ) );
@@ -310,6 +317,11 @@ public:
 		if ( filesystem->FileExists( scriptfile, "GAME" ) )
 		{
 			soundemitterbase->AddSoundOverrides( scriptfile );
+		}
+		// only load embedded level sounds file if map level sounds file doesn't exist
+		else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "GAME" ) )
+		{
+			soundemitterbase->AddSoundOverrides( EMBED_LEVEL_SOUNDS_FILE );
 		}
 #endif
 
