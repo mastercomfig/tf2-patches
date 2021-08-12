@@ -31,13 +31,6 @@ $Project "Dedicated"
 	$Folder	"Source Files"
 	{
 		$File	"dedicated.rc"
-		$File	"sys_linux.cpp"
-		{
-			$Configuration
-			{
-				$ExcludedFromBuild					"Yes"
-			}
-		}
 		$File	"filesystem.cpp"
 		$File	"$SRCDIR\public\filesystem_init.cpp"
 		$File	"$SRCDIR\common\netapi.cpp"

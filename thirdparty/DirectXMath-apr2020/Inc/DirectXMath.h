@@ -139,7 +139,11 @@
 #endif
 #endif // !_XM_NO_INTRINSICS_
 
+#ifdef POSIX
+#include "../Native/sal_posix.h"
+#else
 #include "sal.h"
+#endif
 #include <assert.h>
 
 #pragma warning(push)

@@ -1,5 +1,5 @@
 @echo off
-
+@exit /b 0
 setlocal
 
 set valveTmpFileFromVS2005=%1%
