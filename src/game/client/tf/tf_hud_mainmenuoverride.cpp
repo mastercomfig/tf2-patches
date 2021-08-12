@@ -39,7 +39,6 @@
 #include "tf_item_inventory.h"
 #include "quest_log_panel.h"
 #include "econ_quests.h"
-#include "tf_streams.h"
 #include "tf_matchmaking_shared.h"
 #include "tf_lobby_container_frame_comp.h"
 #include "tf_lobby_container_frame_mvm.h"
@@ -628,8 +627,6 @@ CHudMainMenuOverride::CHudMainMenuOverride( IViewPort *pViewPort ) : BaseClass( 
 	m_bStabilizedInitialLayout = false;
 
 	m_bBackgroundUsesCharacterImages = true;
-
-	m_pWatchStreamsPanel = new CTFStreamListPanel( this, "StreamListPanel" );
 
 	vgui::ivgui()->AddTickSignal( GetVPanel(), 50 );
 }
@@ -2100,8 +2097,6 @@ void CHudMainMenuOverride::SetQuestLogVisible( bool bVisible )
 //-----------------------------------------------------------------------------
 void CHudMainMenuOverride::SetWatchStreamVisible( bool bVisible )
 {
-	m_pWatchStreamsPanel->SetVisible( bVisible );
-
 	if ( bVisible )
 	{
 		SetMOTDVisible( false );
@@ -2747,7 +2742,10 @@ void CHudMainMenuOverride::OnCommand( const char *command )
 	}
 	else if ( FStrEq( "watch_stream", command ) )
 	{
-		SetWatchStreamVisible( !m_pWatchStreamsPanel->IsVisible() );
+		if ( steamapicontext && steamapicontext->SteamFriends() )
+		{
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://steamcommunity.com/app/440/discussions/" );
+		}
 	}
 	else if ( FStrEq( "view_update_page", command ) )
 	{

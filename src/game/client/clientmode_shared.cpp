@@ -1012,19 +1012,17 @@ void ClientModeShared::FireGameEvent( IGameEvent *event )
 
 			wchar_t wszReason[64];
 			const char *pszReason = event->GetString( "reason" );
+			bool bFoundReason = false;
 			if ( pszReason && ( pszReason[0] == '#' ) && g_pVGuiLocalize->Find( pszReason ) )
 			{
 				V_wcsncpy( wszReason, g_pVGuiLocalize->Find( pszReason ), sizeof( wszReason ) );
-			}
-			else
-			{
-				g_pVGuiLocalize->ConvertANSIToUnicode( pszReason, wszReason, sizeof(wszReason) );
+				bFoundReason = true;
 			}
 
 			wchar_t wszLocalized[100];
-			if (IsPC())
+			if (IsPC() && bFoundReason)
 			{
-				g_pVGuiLocalize->ConstructString_safe( wszLocalized, g_pVGuiLocalize->Find( "#game_player_left_game" ), 2, wszPlayerName, wszReason );
+				g_pVGuiLocalize->ConstructString_safe( wszLocalized, g_pVGuiLocalize->Find( "#game_player_left_game_with_reason" ), 2, wszPlayerName, wszReason );
 			}
 			else
 			{

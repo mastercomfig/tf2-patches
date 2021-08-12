@@ -35,7 +35,6 @@ using namespace GCSDK;
 class CExButton;
 class HTML;
 class CSaxxyAwardsPanel;
-class CTFStreamListPanel;
 class CLobbyContainerFrame_Comp;
 class CLobbyContainerFrame_MvM;
 class CLobbyContainerFrame_Casual;
@@ -271,8 +270,6 @@ private:
 	EditablePanel	*m_pSafeModeContainer;
 
 	vgui::DHANDLE<vgui::Frame> m_hReportPlayerDialog;
-
-	CTFStreamListPanel	*m_pWatchStreamsPanel;
 
 	bool m_bPlayListExpanded;
 	bool m_bStabilizedInitialLayout;
