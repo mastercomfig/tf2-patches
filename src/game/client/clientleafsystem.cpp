@@ -1360,7 +1360,8 @@ void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t handle, int 
 
 void CClientLeafSystem::AddRenderableToLeaves(ClientRenderHandle_t handle, int nLeafCount, unsigned short* pLeaves)
 {
-	AddRenderableToLeaves(handle, nLeafCount, pLeaves, false);
+	const bool bReceiveShadows = ShouldRenderableReceiveShadow(handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
+	AddRenderableToLeaves(handle, nLeafCount, pLeaves, bReceiveShadows);
 }
 
 
@@ -1372,7 +1373,8 @@ bool CClientLeafSystem::EnumerateLeaf( int leaf, int context )
 	EnumResultList_t *pList = (EnumResultList_t *)context;
 	if ( ThreadInMainThread() )
 	{
-		AddRenderableToLeaf( leaf, pList->handle, false );
+		const bool bReceiveShadows = ShouldRenderableReceiveShadow(pList->handle, SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK);
+		AddRenderableToLeaf( leaf, pList->handle, bReceiveShadows);
 	}
 	else
 	{
