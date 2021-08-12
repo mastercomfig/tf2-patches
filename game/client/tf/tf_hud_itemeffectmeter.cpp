@@ -284,7 +284,7 @@ void CHudItemEffectMeter::CreateHudElementsForClass( C_TFPlayer* pPlayer, CUtlVe
 	}
 
 	// ALL CLASS
-	DECLARE_ITEM_EFFECT_METER( CTFThrowable, TF_WEAPON_THROWABLE, true, "resource/UI/HudItemEffectMeter_Action.res" );
+	//DECLARE_ITEM_EFFECT_METER( CTFThrowable, TF_WEAPON_THROWABLE, true, "resource/UI/HudItemEffectMeter_Action.res" );
 
 	// Kill Streak
 	DECLARE_ITEM_EFFECT_METER( CTFWeaponBase, TF_WEAPON_NONE, false, "resource/UI/HudItemEffectMeter_KillStreak.res" );
@@ -475,18 +475,6 @@ void CHudItemEffectMeter::Update( C_TFPlayer* pPlayer, const char* pSoundScript 
 
 	// Update the meter GUI element.
 	m_pProgressBar->SetProgress( flProgress );
-
-	// Flash the bar if this class implementation requires it.
-	if ( ShouldFlash() )
-	{
-		int color_offset = ((int)(gpGlobals->realtime*10)) % 10;
-		int red = 160 + (color_offset*10);
-		m_pProgressBar->SetFgColor( Color( red, 0, 0, 255 ) );
-	}
-	else
-	{
-		m_pProgressBar->SetFgColor( GetFgColor() );
-	}
 }
 
 const char*	CHudItemEffectMeter::GetLabelText( void )
