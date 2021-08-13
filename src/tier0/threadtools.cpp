@@ -266,16 +266,24 @@ unsigned int g_optimalMaxNormalizedYieldsPerSpinIteration = 7;
 
 const unsigned int MinNsPerNormalizedYield = 37; // measured typically 37-46 on post-Skylake
 const unsigned int NsPerOptimalMaxSpinIterationDuration = 272; // approx. 900 cycles, measured 281 on pre-Skylake, 263 on post-Skylake
-
 bool s_isYieldProcessorNormalizedInitialized = false;
 
+#ifdef POSIX
+void InitThreadSpinCount()
+{
+    // TODO: Implement
+    s_isYieldProcessorNormalizedInitialized = true;
+}
+#endif
+
+#ifdef WIN32
 void InitThreadSpinCount()
 {
 	if (s_isYieldProcessorNormalizedInitialized)
 	{
 		return;
 	}
-	
+
 	// Intel pre-Skylake processor: measured typically 14-17 cycles per yield
 	// Intel post-Skylake processor: measured typically 125-150 cycles per yield
 	const int MeasureDurationMs = 10;
@@ -340,6 +348,7 @@ void InitThreadSpinCount()
 	g_optimalMaxNormalizedYieldsPerSpinIteration = optimalMaxNormalizedYieldsPerSpinIteration;
 	s_isYieldProcessorNormalizedInitialized = true;
 }
+#endif
 
 // This assumes a Skylake tuned iteration count.
 void ThreadSpin(unsigned iterations)
@@ -2134,6 +2143,7 @@ void CThreadFastMutex::Lock( const uint32 threadId, unsigned nSpinSleepTime ) vo
 	}
 }
 
+#ifdef WIN32
 void CThreadSpinningMutex::Unlock()
 {
 	::ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
@@ -2148,6 +2158,7 @@ void CThreadSpinningMutex::LockSlow()
 {
 	::AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&lock_));
 }
+#endif
 
 //-----------------------------------------------------------------------------
 //

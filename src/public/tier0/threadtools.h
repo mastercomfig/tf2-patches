@@ -944,6 +944,7 @@ private:
 typedef CThreadMutex CThreadFastMutex;
 #endif
 
+#ifdef WIN32
 //-----------------------------------------------------------------------------
 //
 // A spinning lock which prevents going into kernel for short waits.
@@ -1015,7 +1016,7 @@ inline void CThreadSpinningMutex::Lock()
 
 	LockSlow();
 }
-
+#endif
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
