@@ -3327,9 +3327,10 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 		return;
 
 	// Disable denormals which are slow
+#ifdef WIN32 // Already disabled by -ffast-math and SSE
 	unsigned int control_word;
     _controlfp_s( &control_word, _DN_FLUSH, _MCW_DN );
-
+#endif
 	// FIXME: Hook SSE into VectorAligned + Vector4DAligned
 
 #if !defined( _X360 )
