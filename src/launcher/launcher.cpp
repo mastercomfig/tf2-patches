@@ -653,6 +653,7 @@ bool CSourceAppSystemGroup::Create()
 	m_bEditMode = CommandLine()->CheckParm( "-edit" );
 
 	double st = Plat_FloatTime();
+	ThreadSpin(1);
 
 	AppSystemInfo_t appSystems[] = 
 	{
