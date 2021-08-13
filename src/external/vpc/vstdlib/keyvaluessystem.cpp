@@ -333,6 +333,8 @@ HKeySymbol CKeyValuesSystem::GetSymbolForString( const char *name, bool bCreate 
 	return (-1);
 }
 
+extern int	_V_stricmp_NegativeForUnequal(const char* s1, const char* s2);
+
 //-----------------------------------------------------------------------------
 // Purpose: symbol table access (used for key names)
 //-----------------------------------------------------------------------------

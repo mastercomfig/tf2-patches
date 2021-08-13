@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 #define MAX_SCRIPT_STACK_SIZE	32
 
 CScript::CScript()
@@ -401,7 +403,8 @@ void CScript::PopScript()
 
 	if ( m_bFreeScriptAtPop && m_pScriptData )
 	{
-		free( (void *)m_pScriptData );
+		// Allocated via new[].
+		delete[] m_pScriptData;
 	}
 
 	// Restore the top entry on the stack and pop it off.

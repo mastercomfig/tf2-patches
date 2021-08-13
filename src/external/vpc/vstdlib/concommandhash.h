@@ -108,7 +108,7 @@ protected:
 		HashEntry_t(unsigned int _hash, ConCommandBase * _cmd)
 			: m_uiKey(_hash), m_Data(_cmd) {};
 
-		HashEntry_t(){};
+		HashEntry_t() : m_uiKey(0) {};
 	};
 
 	typedef CUtlFixedLinkedList<HashEntry_t> datapool_t;

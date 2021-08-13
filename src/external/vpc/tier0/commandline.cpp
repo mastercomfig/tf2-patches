@@ -101,6 +101,7 @@ CCommandLine::CCommandLine( void )
 {
 	m_pszCmdLine = NULL;
 	m_nParmCount = 0;
+	m_ppParms[0] = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -216,6 +217,7 @@ void CCommandLine::CreateCmdLine( const char *commandline )
 	}
 
 	char szFull[ 4096 ];
+	szFull[0] = '\0';
 
 	char *pDst = szFull;
 	const char *pSrc = commandline;

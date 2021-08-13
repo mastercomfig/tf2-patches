@@ -9,6 +9,8 @@
 #include "tier1/utlstack.h"
 #include "p4lib/ip4.h"
 
+#include "tier0/memdbgon.h"
+
 static const char * const s_rgsAmbiguousPropertyNames[] =
 {
     "$CommandLine",

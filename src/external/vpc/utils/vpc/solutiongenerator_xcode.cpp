@@ -10,6 +10,8 @@
 #include "utlsortvector.h"
 #include "checksum_md5.h"
 
+#include "tier0/memdbgon.h"
+
 #ifdef WIN32
 #include <direct.h>
 #define mkdir(dir, mode) _mkdir(dir)
@@ -163,6 +165,7 @@ extern CUtlVector<CBaseProjectDataCollector*> g_vecPGenerators;
 class CSolutionGenerator_Xcode : public IBaseSolutionGenerator
 {
 public:
+    CSolutionGenerator_Xcode() : m_fp(NULL), m_nIndent(0) {}
     virtual void GenerateSolutionFile( const char *pSolutionFilename, CUtlVector<CDependency_Project*> &projects );
 private:
     void XcodeFileTypeFromFileName( const char *pszFileName, char *pchOutBuf, int cchOutBuf );
@@ -298,15 +301,22 @@ static const char* EscapeQuotes( const char *pStr )
 {
     int len = V_strlen( pStr );
     static char str[4096];
-    int i = 0,j = 0;
-    for ( ;i <= len,j < V_ARRAYSIZE(str); )
+    int j = 0;
+    // Be careful, do not overflow buffer here via i or j.
+    for (int i = 0;i < len && j < V_ARRAYSIZE(str); )
     {
         if ( pStr[i] == '"' )
         {
             str[j++] = '\\';
-            str[j++] = '\\';
+            if ( j < V_ARRAYSIZE(str) )
+            {
+              str[j++] = '\\';
+            }
         }
-        str[j++] = pStr[i++];
+        if ( j < V_ARRAYSIZE(str) )
+        {
+          str[j++] = pStr[i++];
+        }
     }
     str[j] = '\0';
 

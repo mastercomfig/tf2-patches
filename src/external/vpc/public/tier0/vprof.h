@@ -921,7 +921,7 @@ inline const tchar *CVProfNode::GetName()
 
 //-------------------------------------
 
-inline int	CVProfNode::GetTotalCalls()		
+inline int	CVProfNode::GetTotalCalls()
 { 
 	return m_nTotalCalls; 
 }

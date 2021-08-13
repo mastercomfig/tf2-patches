@@ -51,7 +51,8 @@ CMemoryStack::CMemoryStack()
 	#endif
 #endif
  	m_maxSize( 0 ),
-	m_bRegisteredAllocation( false )
+	m_bRegisteredAllocation( false ),
+	m_bPhysical( false )
 {
 	m_pszAllocOwner = strdup( "CMemoryStack unattributed" );
 }

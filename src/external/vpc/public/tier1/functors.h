@@ -361,7 +361,9 @@ public:
 	virtual ~CFunctor() {}
 	virtual void operator()() = 0;
 
+#ifdef DEBUG
 	unsigned m_nUserID; // For debugging
+#endif
 };
 
 

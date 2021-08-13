@@ -22,13 +22,9 @@
 #pragma init_seg( lib )
 #endif
 
-#pragma warning(push, 1)
-#pragma warning(disable:4786)
-#pragma warning(disable:4530)
 #include <map>
 #include <vector>
 #include <algorithm>
-#pragma warning(pop)
 
 #include "tier0/valve_on.h"
 #include "tier0/vprof.h"

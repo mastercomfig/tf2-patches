@@ -6,6 +6,8 @@
 //===========================================================================//
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 static ExprTree				mExprTree;							// Tree representation of the expression
 static char					mCurToken;							// Current token read from the input expression
 static const char			*mExpression;						// Array of the expression characters

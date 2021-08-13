@@ -1,0 +1,274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\tier0">
+      <UniqueIdentifier>{73166dc7-80dc-4f2e-b91e-973de357f8b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tier1">
+      <UniqueIdentifier>{b65dfd4e-c07a-49fb-bb4b-7ca15f7d36a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vstdlib">
+      <UniqueIdentifier>{a5ec0753-2f7f-43d6-b7e2-8eeb4324ab69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vpc">
+      <UniqueIdentifier>{a7596c75-7f1d-4cc8-89fb-9654eefa6fa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\interfaces">
+      <UniqueIdentifier>{163f31f4-c221-4241-989a-2a9ff257ff6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dlmalloc">
+      <UniqueIdentifier>{470b9814-bd83-48c5-be3e-d8007cedbc7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\p4lib">
+      <UniqueIdentifier>{535ab282-be70-4722-9ea3-6cc15b6f4ad3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vpccrccheck">
+      <UniqueIdentifier>{eb462a40-67b6-48f3-bb7d-d820974c656a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="interfaces\interfaces.cpp">
+      <Filter>Source Files\interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\dlmalloc\malloc.cpp">
+      <Filter>Source Files\dlmalloc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\baseprojectdatacollector.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\conditionals.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\config_general.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\configuration.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\dependencies.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\exprsimplifier.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\generatordefinition.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\groupscript.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\macros.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\main.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\p4sln.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_codelite.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_makefile.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_ps3.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_vcproj.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_win32.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_win32_2010.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_xbox360.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectgenerator_xbox360_2010.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\projectscript.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\scriptsource.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\solutiongenerator_codelite.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\solutiongenerator_makefile.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\solutiongenerator_win32.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\solutiongenerator_xcode.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpc\sys_utils.cpp">
+      <Filter>Source Files\vpc</Filter>
+    </ClCompile>
+    <ClCompile Include="vstdlib\cvar.cpp">
+      <Filter>Source Files\vstdlib</Filter>
+    </ClCompile>
+    <ClCompile Include="vstdlib\keyvaluessystem.cpp">
+      <Filter>Source Files\vstdlib</Filter>
+    </ClCompile>
+    <ClCompile Include="vstdlib\random.cpp">
+      <Filter>Source Files\vstdlib</Filter>
+    </ClCompile>
+    <ClCompile Include="vstdlib\vstrtools.cpp">
+      <Filter>Source Files\vstdlib</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\characterset.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\checksum_crc.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\checksum_md5.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\convar.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\exprevaluator.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\generichash.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\interface.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\keyvalues.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\mempool.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\memstack.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\splitstring.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\stringpool.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\strtools.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\tier1.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\utlbuffer.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\utlstring.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier1\utlsymbol.cpp">
+      <Filter>Source Files\tier1</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\assert_dialog.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\commandline.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\cpu.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\cpu_posix.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\cputopology.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\dbg.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\etwprof.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\fasttimer.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\logging.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\mem.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\mem_helpers.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\memdbg.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\memstd.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\minidump.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\pch_tier0.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\platform.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\platform_posix.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\pme.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\pme_posix.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\pmelib.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\stacktools.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\threadtools.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\tier0_strtools.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\valobject.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\vprof.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="tier0\win32consoleio.cpp">
+      <Filter>Source Files\tier0</Filter>
+    </ClCompile>
+    <ClCompile Include="p4lib\p4.cpp">
+      <Filter>Source Files\p4lib</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\vpccrccheck\crccheck_shared.cpp">
+      <Filter>Source Files\vpccrccheck</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

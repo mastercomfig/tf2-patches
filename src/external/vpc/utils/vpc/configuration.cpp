@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 static KeywordName_t s_KeywordNameTable[] =
 {
 	{"$General",				KEYWORD_GENERAL},

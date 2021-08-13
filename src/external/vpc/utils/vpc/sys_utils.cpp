@@ -30,6 +30,8 @@
 #include <mach-o/dyld.h>
 #endif
 
+#include "tier0/memdbgon.h"
+
 CXMLWriter::CXMLWriter()
 {
 	m_fp = NULL;

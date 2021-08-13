@@ -9,6 +9,8 @@
 #include "tier1/utlstack.h"
 #include "projectgenerator_codelite.h"
 
+#include "tier0/memdbgon.h"
+
 static const char *k_pszBase_Makefile = "$(SRCROOT)/devtools/makefile_base_posix.mak";
 
 static const char *g_pOption_BufferSecurityCheck = "$BufferSecurityCheck";
@@ -108,7 +110,8 @@ void V_MakeAbsoluteCygwinPath( char *pOut, int outLen, const char *pRelativePath
 static const char* UsePOSIXSlashes( const char *pStr )
 {
     int len = V_strlen( pStr ) + 2;
-    char *str = (char*)malloc(len*sizeof(char));
+    // Esnure str has '\0' in the end.
+    char *str = (char*)calloc(len, sizeof(char));
     V_strncpy( str, pStr, len );
     for ( int i = 0; i < len; i++ )
     {
@@ -236,6 +239,7 @@ public:
 
   CProjectGenerator_Makefile() : BaseClass( &g_RelevantPropertyNames )
   {
+    m_bForceLowerCaseFileName = false;
   }
 
   virtual void Setup()
@@ -607,7 +611,7 @@ public:
     fprintf( fp, "LIBFILES = \\\n" );
 
     // Get original order the link files were specified in the .vpc files. See:
-    //  http://stackoverflow.com/questions/45135/linker-order-gcc
+    //  https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
     // TL;DR. Gcc does a single pass through the list of libraries to resolve references.
     //  If library A depends on symbols in library B, library A should appear first so we
     //  need to restore the original order to allow users to control link order via

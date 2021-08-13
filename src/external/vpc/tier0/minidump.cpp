@@ -101,17 +101,13 @@ bool WriteMiniDumpUsingExceptionInfo(
 			// move past the last slash
 			pch++;
 		}
-		else
-		{
-			pch = _T("unknown");
-		}
 
 		
 		// can't use the normal string functions since we're in tier0
 		tchar rgchFileName[MAX_PATH];
 		_sntprintf( rgchFileName, sizeof(rgchFileName) / sizeof(tchar),
 			_T("%s_%s_%d%.2d%2d%.2d%.2d%.2d_%d.mdmp"),
-			pch,
+			pch ? pch : _T("unknown"),
 			g_bWritingNonfatalMinidump ? "assert" : "crash",
 			curtime.tm_year + 1900,	/* Year less 2000 */
 			curtime.tm_mon + 1,		/* month (0 - 11 : 0 = January) */
@@ -121,6 +117,7 @@ bool WriteMiniDumpUsingExceptionInfo(
 			curtime.tm_sec,		    /* seconds (0 - 59) */
 			g_nMinidumpsWritten		// ensures the filename is unique
 			);
+		rgchFileName[ARRAYSIZE(rgchFileName) - 1] = '\0';
 
 		BOOL bMinidumpResult = FALSE;
 #ifdef TCHAR_IS_WCHAR
@@ -161,7 +158,8 @@ bool WriteMiniDumpUsingExceptionInfo(
 		if ( !bMinidumpResult )
 		{
 			tchar rgchFailedFileName[MAX_PATH];
-			_sntprintf( rgchFailedFileName, sizeof(rgchFailedFileName) / sizeof(tchar), "(failed)%s", rgchFileName );
+			_sntprintf( rgchFailedFileName, ARRAYSIZE(rgchFailedFileName), "(failed)%s", rgchFileName );
+			rgchFailedFileName[ARRAYSIZE(rgchFailedFileName) - 1] = '\0';
 			rename( rgchFileName, rgchFailedFileName );
 		}
 	}
@@ -263,24 +261,22 @@ void CatchAndWriteMiniDump( FnWMain pfn, int argc, tchar *argv[] )
 	{
 		// don't mask exceptions when running in the debugger
 		pfn( argc, argv );
+		return;
 	}
-	else
+
+	const _se_translator_function oldSetFunction{_set_se_translator( (FnMiniDumpInternal_t) g_pfnWriteMiniDump )};
+	try
 	{
-		try
-		{
-#pragma warning(push)
-#pragma warning(disable : 4535) // warning C4535: calling _set_se_translator() requires /EHa
-			_set_se_translator( (FnMiniDumpInternal_t)g_pfnWriteMiniDump );
-#pragma warning(pop)
-			pfn( argc, argv );
-		}
-		catch (...)
-		{
-			g_bInException = true;
-			Log_Msg( LOG_CONSOLE, _T("Fatal exception caught, minidump written\n") );
-			// handle everything and just quit, we've already written out our minidump
-		}
+		pfn( argc, argv );
 	}
+	catch (...)
+	{
+		g_bInException = true;
+		Log_Msg( LOG_CONSOLE, _T("Fatal exception caught, minidump written\n") );
+		// handle everything and just quit, we've already written out our minidump
+	}
+	// Restore old se translator on return.
+	_set_se_translator( oldSetFunction );
 }
 
 #else

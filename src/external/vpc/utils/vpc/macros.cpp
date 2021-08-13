@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 void CVPC::SetMacro( const char *pName, const char *pValue, bool bSetupDefineInProjectFile )
 {
 	// Setup the macro.
@@ -75,6 +77,7 @@ void CVPC::ResolveMacrosInStringInternal( char const *pString, char *pOutBuff, i
 	char	macroName[MAX_SYSTOKENCHARS];
 	char	buffer1[MAX_SYSTOKENCHARS];
 	char	buffer2[MAX_SYSTOKENCHARS];
+	buffer2[0] = '\0';
 	int		i;
 
 	// ensure a "greedy" match by sorting longest to shortest

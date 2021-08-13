@@ -98,6 +98,7 @@ void DefaultConditionalErrorProc( const char *pReason )
 CExpressionEvaluator::CExpressionEvaluator()
 {
 	m_ExprTree = NULL;
+	m_pExpression = NULL;
 }
 
 CExpressionEvaluator::~CExpressionEvaluator()
