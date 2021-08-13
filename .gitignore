@@ -224,7 +224,6 @@ generated_proto*/
 !src/lib/common/lgLcd.lib
 !src/lib/common/libcurl.lib
 !src/lib/common/libjpeg.lib
-!src/lib/common/linux32/bzip2.a
 !src/lib/common/linux32/libSDL2_mixer.a
 !src/lib/common/linux32/libcrypto.a
 !src/lib/common/linux32/libcryptopp.a
