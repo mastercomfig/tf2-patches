@@ -4032,6 +4032,7 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 			displayRate = 1.0f / m_PresentParameters.FullScreen_RefreshRateInHz;
 		}
 		displayRate /= 2.0f;
+		int iLoops = 0;
 		do
 		{
 			hr = m_pFrameSyncQueryObject[queryIndex]->GetData(&bFinished, sizeof(bFinished), D3DGETDATA_FLUSH);
@@ -4047,7 +4048,19 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 			// Avoid burning a full core while waiting for the query. Spinning can actually harm performance
 			// because there might be driver threads that are trying to do work that end up starved, and the
 			// power drawn by the CPU may take away from the power available to the integrated graphics chip.
-			ThreadSleepEx();
+			iLoops++;
+			if (iLoops % 3 == 0)
+			{
+				ThreadSleep(1);
+			}
+			else if (iLoops % 2 == 0)
+			{
+				ThreadSleep();
+			}
+			else
+			{
+				ThreadPause();
+			}
 		}
 	    while (true);
 		m_bQueryIssued[queryIndex] = false;
