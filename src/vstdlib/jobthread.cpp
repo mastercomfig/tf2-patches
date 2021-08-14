@@ -470,6 +470,12 @@ private:
 		{
 			if ( bPeeked || waitResult == WAIT_OBJECT_0 + CALL_FROM_MASTER )
 			{
+				if ( bPeeked )
+				{
+					m_EventSend.Reset();
+					bPeeked = false;
+				}
+
 				CFunctor *pFunctor = NULL;
 				tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s PeekCall():%d", __FUNCTION__, GetCallParam() );
 
@@ -503,7 +509,6 @@ private:
 					Reply( false );
 					break;
 				}
-				bPeeked = false;
 			}
 			else
 			{
