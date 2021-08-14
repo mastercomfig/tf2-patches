@@ -539,7 +539,7 @@ private:
 						ServiceJobAndRelease(pJob, m_iThread);
 						m_pOwner->m_nJobs--;
 						// Make sure we are responsive to calls
-					} while (!(bPeeked = PeekCall()));
+					} while ((bPeeked = PeekCall()) == false);
 					if (bTookJob)
 					{
 						m_pOwner->m_nIdleThreads++;
