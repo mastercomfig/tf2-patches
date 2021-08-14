@@ -668,7 +668,7 @@ void CBaseFileSystem::InitAsync()
 		ThreadPoolStartParams_t params;
 		params.iThreadPriority = 0;
 		params.bIOThreads = true;
-		params.nThreads = 1; // Single I/O thread
+		params.bHeavyLoad = true;
 		if ( IsX360() )
 		{
 			// override defaults
@@ -676,10 +676,12 @@ void CBaseFileSystem::InitAsync()
 			params.fDistribute = TRS_TRUE;
 			params.bUseAffinityTable = true;
 			params.iAffinityTable[0] = XBOX_PROCESSOR_3;
+			params.nThreads = 1; // Single I/O thread
 		}
 		else if( IsPC() )
 		{
 			params.nStackSize = 256 * 1024;
+			params.nThreads = 4;
 		}
 
 		if ( !m_pThreadPool->Start( params, "FsAsyncIO" ) )

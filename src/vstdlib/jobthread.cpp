@@ -539,7 +539,7 @@ private:
 						ServiceJobAndRelease(pJob, m_iThread);
 						m_pOwner->m_nJobs--;
 						// Make sure we are responsive to calls
-					} while (!PeekCall());
+					} while (!(bPeeked = PeekCall()));
 					if (bTookJob)
 					{
 						m_pOwner->m_nIdleThreads++;
@@ -560,7 +560,7 @@ private:
 							{
 								// Nothing to process, keep spinning
 								++spins;
-								if (spins >= 1000)
+								if (spins >= 5000)
 								{
 									break;
 								}
@@ -1205,12 +1205,12 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 			}
 			else
 			{
-				iLoad = CJobThread::Call;
+				iLoad = CJobThread::Queue;
 			}
 		}
 		else
 		{
-			iLoad = CJobThread::Call;
+			iLoad = CJobThread::Burst;
 		}
 		m_Threads[iThread] = new CJobThread( this, iThread, false, iLoad );
 		m_IdleEvents[iThread] = &m_Threads[iThread]->GetIdleEvent();

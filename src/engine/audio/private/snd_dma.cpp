@@ -70,7 +70,7 @@ extern IVideoServices *g_pVideo;
 #define DIST_MULT_TO_SNDLVL( dist_mult ) (soundlevel_t)(int)( dist_mult ? ( 20 * log10( pow( 10.0f, snd_refdb.GetFloat() / 20 ) / (dist_mult * snd_refdist.GetFloat()) ) ) : 0 )
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 0.01
+#define THREADED_MIX_TIME 0.02
 #else
 #define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif
@@ -253,8 +253,8 @@ float			g_ReplaySoundTimeFracAccumulator = 0.0f;	// Used by replay
 float			g_ClockSyncArray[NUM_CLOCK_SYNCS] = {0};
 int64				g_SoundClockPaintTime[NUM_CLOCK_SYNCS] = {0};
 
-// default 1ms
-ConVar snd_delay_sound_shift("snd_delay_sound_shift","0.001");
+// default 0ms
+ConVar snd_delay_sound_shift("snd_delay_sound_shift","0");
 // this forces the clock to resync on the next delayed/sync sound
 void S_SyncClockAdjust( clocksync_index_t syncIndex )
 {
@@ -470,7 +470,7 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 // user configurable music volume
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
-ConVar snd_mixahead( "snd_mixahead", "0.1");
+ConVar snd_mixahead( "snd_mixahead", "0.05");
 #ifdef THREADED_SOUND_UPDATE
 ConVar snd_mix_async( "snd_mix_async", "1" );
 #else
