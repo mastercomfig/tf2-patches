@@ -238,24 +238,7 @@ void ThreadSleepEx(unsigned nMilliseconds)
 {
 	// hint to CPU that we're spin waiting
 	ThreadPause();
-#ifdef _WIN32
-
-#ifdef IS_WINDOWS_PC
-	static bool bInitialized = false;
-	if (!bInitialized)
-	{
-		bInitialized = true;
-		// Set the timer resolution to 1 ms (default is 10.0, 15.6, 2.5, 1.0 or
-		// some other value depending on hardware and software) so that we can
-		// use Sleep( 1 ) to avoid wasting CPU time without missing our frame
-		// rate.
-		timeBeginPeriod(1);
-	}
-#endif // IS_WINDOWS_PC
-	SleepEx(nMilliseconds, true);
-#elif defined(POSIX)
-	usleep(nMilliseconds * 1000);
-#endif
+	ThreadSleep(nMilliseconds);
 }
 
 // The .NET Foundation licenses this to you under the MIT license.

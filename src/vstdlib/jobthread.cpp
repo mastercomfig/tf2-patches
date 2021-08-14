@@ -1212,7 +1212,6 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		{
 			iLoad = CJobThread::Burst;
 		}
-		iLoad = CJobThread::Call;
 		m_Threads[iThread] = new CJobThread( this, iThread, false, iLoad );
 		m_IdleEvents[iThread] = &m_Threads[iThread]->GetIdleEvent();
 		m_Threads[iThread]->SetName( CFmtStr( "%s%d", pszName, iThread ) );
