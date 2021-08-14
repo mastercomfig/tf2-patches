@@ -341,6 +341,7 @@ void CAchievementMgr::PostInit()
 	if ( !g_AchievementSaveThread.IsAlive() )
 	{
 		g_AchievementSaveThread.Start();
+		g_AchievementSaveThread.SetPriority(TP_PRIORITY_LOWEST);
 #ifdef WIN32
 		if ( IsX360() )
 		{

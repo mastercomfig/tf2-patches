@@ -3870,7 +3870,7 @@ static void DrawOpaqueRenderables_DrawStaticProps( CClientRenderablesList::CEntr
 	render->SetColorModulation(	one );
 	render->SetBlend( 1.0f );
 	
-	const int MAX_STATICS_PER_BATCH = 512;
+	const int MAX_STATICS_PER_BATCH = 2048;
 	IClientRenderable *pStatics[ MAX_STATICS_PER_BATCH ];
 	
 	int numScheduled = 0, numAvailable = MAX_STATICS_PER_BATCH;

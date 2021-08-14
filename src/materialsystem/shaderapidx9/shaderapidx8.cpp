@@ -4014,32 +4014,45 @@ void CShaderAPIDx8::UpdateFrameSyncQuery( int queryIndex, bool bIssue )
 		// NOTE: This fix helps out motherboards that are a little freaky.
 		// On such boards, sometimes the driver has to reset itself (an event which takes several seconds)
 		// and when that happens, the frame sync query object gets lost
+		float displayRate;
+		if (!m_PresentParameters.FullScreen_RefreshRateInHz)
+		{
+			int refreshRate = materials->GetCurrentConfigForVideoCard().m_VideoMode.m_RefreshRate;
+			if (refreshRate)
+			{
+				displayRate = 1.0f / refreshRate;
+			}
+			else
+			{
+				displayRate = 1.0f / 60.0f;
+			}
+		}
+		else
+		{
+			displayRate = 1.0f / m_PresentParameters.FullScreen_RefreshRateInHz;
+		}
+		displayRate /= 2.0f;
 		do
 		{
-			hr = m_pFrameSyncQueryObject[queryIndex]->GetData(&bFinished, sizeof(bFinished), D3DGETDATA_FLUSH);
+			hr = m_pFrameSyncQueryObject[queryIndex]->GetData(&bFinished, sizeof(bFinished), 0);
 			// If we lost the device, just bail immediately.
 			if (hr != S_FALSE)
 			{
 				break;
 			}
 			float dt = Plat_FloatTime() - flStartTime;
-			// don't wait more than 200ms for these
-			if (dt > 0.200f)
+			// don't wait more than display rate for these
+			if (dt > displayRate)
 				break;
 			// Avoid burning a full core while waiting for the query. Spinning can actually harm performance
 			// because there might be driver threads that are trying to do work that end up starved, and the
 			// power drawn by the CPU may take away from the power available to the integrated graphics chip.
-#ifdef DX_TO_GL_ABSTRACTION
             // A sleep of one millisecond should never be long enough to affect performance, especially since
             // this should only trigger when the CPU is already ahead of the GPU.
             // On L4D2/TF2 in GL mode this spinning was causing slowdowns.
 			ThreadSleepEx(1);
-#else
-			ThreadPause();
-			ThreadSleep();
-#endif
 		}
-	    while (hr == S_FALSE);
+	    while (true);
 		m_bQueryIssued[queryIndex] = false;
 		Assert(hr == S_OK || hr == D3DERR_DEVICELOST);
 

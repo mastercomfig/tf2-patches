@@ -1815,6 +1815,8 @@ void ClientDLL_Init( void )
 	{
 		COM_TimestampedLog( "g_ClientDLL->Init" );
 
+		Host_AllowQueuedMaterialSystem(true);
+
 		if ( !g_ClientDLL->Init(g_AppSystemFactory, g_AppSystemFactory, &g_ClientGlobalVariables ) )
 		{
 			Sys_Error("Client.dll Init() in library client failed.");

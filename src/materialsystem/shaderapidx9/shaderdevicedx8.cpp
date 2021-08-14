@@ -2420,7 +2420,9 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 #if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
 	if (g_ShaderDeviceUsingD3D9Ex)
 	{
-		Dx9ExDevice()->SetMaximumFrameLatency(1);
+		Dx9ExDevice()->SetMaximumFrameLatency(20);
+		ConVarRef mat_forcehardwaresync("mat_forcehardwaresync");
+		mat_forcehardwaresync.SetValue(1);
 	}
 #endif
 
@@ -3416,14 +3418,15 @@ void CShaderDeviceDx8::Present()
 			s_bSetPriority = true;
 			bValidPresent = false;
 		}
-#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
-		if (bValidPresent && s_bSetPriority && g_ShaderDeviceUsingD3D9Ex)
-		{
-			s_bSetPriority = false;
-			Dx9ExDevice()->SetGPUThreadPriority(7);
-		}
-#endif
 	}
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+	if (bValidPresent && s_bSetPriority && g_ShaderDeviceUsingD3D9Ex)
+	{
+		s_bSetPriority = false;
+		Dx9ExDevice()->SetGPUThreadPriority(7);
+		Dx9ExDevice()->SetMaximumFrameLatency(20);
+	}
+#endif
 	// Copy the back buffer into the non-interactive temp buffer
 	if ( m_NonInteractiveRefresh.m_Mode == MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD )
 	{

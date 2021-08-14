@@ -46,7 +46,7 @@ typedef int LightmapOffset_t[2];
 
 //-----------------------------------------------------------------------------
 
-extern CThreadFastMutex g_MatSysMutex;
+extern CThreadMutex g_MatSysMutex;
 
 //-----------------------------------------------------------------------------
 // The material system implementation

@@ -342,7 +342,7 @@ public:
 		else
 		{
 			int iPrevPriority = ThreadGetPriority();
-			ThreadSetPriority( 2 );
+			ThreadSetPriority(TP_PRIORITY_HIGHEST);
 			retval = BaseFileSystem()->SyncRead( *this );
 			ThreadSetPriority( iPrevPriority );
 		}
@@ -666,7 +666,7 @@ void CBaseFileSystem::InitAsync()
 		m_pThreadPool = CreateThreadPool();
 
 		ThreadPoolStartParams_t params;
-		params.iThreadPriority = 0;
+		params.iThreadPriority = TP_PRIORITY_LOW;
 		params.bIOThreads = true;
 		params.bHeavyLoad = true;
 		if ( IsX360() )

@@ -1439,7 +1439,16 @@ DLL_EXPORT int LauncherMain( int argc, char **argv )
 	{
 		SetPriorityClass( GetCurrentProcess(), HIGH_PRIORITY_CLASS );
 	}
+	else if (!CommandLine()->CheckParm("-normal"))
+	{
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	}
 #endif
+
+	if (!CommandLine()->CheckParm("-normalpriority"))
+	{
+		ThreadSetPriority(TP_PRIORITY_HIGH);
+	}
 
 	// If game is not run from Steam then add -insecure in order to avoid client timeout message
 	if ( NULL == CommandLine()->CheckParm( "-steam" ) )

@@ -172,6 +172,13 @@ IDirect3DBaseTexture* CreateD3DTexture( int width, int height, int nDepth,
 	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
 
 	D3DPOOL pool = bManaged ? D3DPOOL_MANAGED : D3DPOOL_DEFAULT;
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+	extern bool g_ShaderDeviceUsingD3D9Ex;
+	if (g_ShaderDeviceUsingD3D9Ex)
+	{
+		pool = D3DPOOL_DEFAULT;
+	}
+#endif
 	if ( bSysmem )
 		pool = D3DPOOL_SYSTEMMEM;
 

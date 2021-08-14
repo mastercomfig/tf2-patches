@@ -83,7 +83,7 @@ EXPOSE_SINGLE_INTERFACE_GLOBALVAR( MaterialSystem_Config_t, MaterialSystem_Confi
 
 //-----------------------------------------------------------------------------
 
-CThreadFastMutex g_MatSysMutex;
+CThreadMutex g_MatSysMutex;
 
 //-----------------------------------------------------------------------------
 // Purpose: additional materialsystem information, internal use only
@@ -3692,18 +3692,19 @@ void CMaterialSystem::EndFrame( void )
 				ThreadAcquire( true );
 			}
 
+			IThreadPool* pThreadPool = CreateMatQueueThreadPool();
+
 			if ( m_pActiveAsyncJob )
 			{
-#if 1
-				while ( !m_pActiveAsyncJob->IsFinished() )
+#if 0
+				do
 				{
-					m_pActiveAsyncJob->WaitForFinish(0);
-				}
+					m_pActiveAsyncJob->WaitForFinish(0, pThreadPool);
+				} while (!m_pActiveAsyncJob->IsFinished());
 #else
-				if ( !m_pActiveAsyncJob->IsFinished() )
-				{
-					m_pActiveAsyncJob->WaitForFinish();
-				}
+				// Go straight into the wait instead of querying the global thread pool, because at the end of our render frame,
+				// we won't have anything to wait on (dependencies require game tasks to finish before the end of the game frame).
+				m_pActiveAsyncJob->WaitForFinish(TT_INFINITE, pThreadPool);
 #endif
 				// Sync with GPU if we had a job for it, even if it finished early on CPU!
 				if (!IsPC() && g_config.ForceHWSync())
@@ -3730,7 +3731,6 @@ void CMaterialSystem::EndFrame( void )
 				}
 			}
 
-			IThreadPool *pThreadPool = CreateMatQueueThreadPool();
 			pThreadPool->AddJob( m_pActiveAsyncJob );
 			break;
 		}
