@@ -550,7 +550,9 @@ private:
 				case Queue:
 				{
 					bool bTookJob = false;
-					int spins = 0;
+					int tries = 0;
+					int backoff = 1;
+					constexpr int iSpinCount = 1000;
 					do
 					{
 						// TODO: checking is fine for now, even if we spin since threads only use either queue for receiving their jobs
@@ -558,18 +560,23 @@ private:
 						{
 							if (waitResult != WAIT_OBJECT_0 + SHARED_QUEUE || !m_SharedQueue.Pop(&pJob))
 							{
-								// Nothing to process, keep spinning
-								++spins;
-								if (spins >= 5000)
+								if (tries > iSpinCount)
 								{
 									break;
 								}
-								ThreadPause();
+								// Nothing to process, keep spinning
+								for (int yields = 0; yields < backoff; yields++) {
+									ThreadPause();
+									tries++;
+								}
+								constexpr int kMaxBackoff = 64;
+								backoff = min(kMaxBackoff, backoff << 1);
 								continue;
 							}
 						}
 						// If we took a job, reset the spins to reprioritize checking jobs rather than calls.
-						spins = 0;
+						tries = 0;
+						backoff = 1;
 						if (!bTookJob)
 						{
 							m_IdleEvent.Reset();
@@ -1201,7 +1208,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		{
 			if (startParams.bIOThreads)
 			{
-				iLoad = CJobThread::Call;
+				iLoad = CJobThread::Burst;
 			}
 			else
 			{
@@ -1212,7 +1219,6 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		{
 			iLoad = CJobThread::Burst;
 		}
-		iLoad = CJobThread::Burst;
 		m_Threads[iThread] = new CJobThread( this, iThread, false, iLoad );
 		m_IdleEvents[iThread] = &m_Threads[iThread]->GetIdleEvent();
 		m_Threads[iThread]->SetName( CFmtStr( "%s%d", pszName, iThread ) );
