@@ -1105,6 +1105,132 @@ bool CStdThreadEvent::Wait( uint32 dwTimeout )
 #define DEFINE_WAIT_ANY(N)
 #endif
 
+static bool CheckSignaledAll(int nEvents, CStdThreadEvent* const* pEvents)
+{
+	for (int i = 0; i < nEvents; i++)
+	{
+		if (!pEvents[i]->m_bSignaled.load(std::memory_order::memory_order_consume))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template <class ScopeLockable>
+static bool WaitForEventsAll(int nEvents, CStdThreadEvent* const* pEvents, unsigned timeout, ScopeLockable& lock)
+{
+	bool bRet = true;
+	if (!CheckSignaledAll(nEvents, pEvents))
+	{
+		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+
+		// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
+		do
+		{
+			// Add listeners
+			for (int i = 0; i < nEvents; i++)
+			{
+				pEvents[i]->AddListenerNoLock(condition);
+			}
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+			}
+			else
+			{
+				if (condition->wait_for(lock, std::chrono::milliseconds(timeout)) != std::cv_status::no_timeout)
+				{
+					bRet = false;
+				}
+			}
+			// Clear out listeners
+			for (int i = 0; i < nEvents; i++)
+			{
+				pEvents[i]->RemoveListenerNoLock(condition);
+			}
+		} while (bRet && !CheckSignaledAll(nEvents, pEvents));
+
+		condition.reset();
+	}
+
+	// Auto reset, since this function is a wait too!
+	if (bRet)
+	{
+		for (int i = 0; i < nEvents; i++)
+		{
+			if (pEvents[i]->m_bAutoReset)
+			{
+				pEvents[i]->m_bSignaled.store(false, std::memory_order::memory_order_release);
+			}
+		}
+	}
+	return bRet;
+}
+
+static bool CheckSignaledAny(int nEvents, CStdThreadEvent* const* pEvents, int& iEventIndex)
+{
+	for (int i = 0; i < nEvents; i++)
+	{
+		if (pEvents[i]->m_bSignaled.load(std::memory_order::memory_order_consume))
+		{
+			iEventIndex = i;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+template <class ScopeLockable>
+static bool WaitForEventsAny(int nEvents, CStdThreadEvent* const* pEvents, unsigned timeout, int& iEventIndex, ScopeLockable& lock)
+{
+	bool bRet = true;
+	if (!CheckSignaledAny(nEvents, pEvents, iEventIndex))
+	{
+		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+
+		// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
+		do
+		{
+			// Add listeners
+			for (int i = 0; i < nEvents; i++)
+			{
+				pEvents[i]->AddListenerNoLock(condition);
+			}
+			if (timeout == TT_INFINITE)
+			{
+				condition->wait(lock);
+			}
+			else
+			{
+				if (condition->wait_for(lock, std::chrono::milliseconds(timeout)) != std::cv_status::no_timeout)
+				{
+					bRet = false;
+				}
+			}
+			// Clear out listeners
+			for (int i = 0; i < nEvents; i++)
+			{
+				pEvents[i]->RemoveListenerNoLock(condition);
+			}
+		} while (bRet && !CheckSignaledAny(nEvents, pEvents, iEventIndex));
+
+		condition.reset();
+	}
+
+	// Auto reset, since this function is a wait too!
+	if (bRet)
+	{
+		if (pEvents[iEventIndex]->m_bAutoReset)
+		{
+			pEvents[iEventIndex]->m_bSignaled.store(false, std::memory_order::memory_order_release);
+		}
+	}
+	return bRet;
+}
+
 int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvents, bool bWaitAll, unsigned timeout)
 {
 	Assert(nEvents > 0);
@@ -1121,20 +1247,7 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 
 	if (bWaitAll)
 	{
-		auto lPredSignaledAll = [nEvents, &pEvents]
-		{
-			for (int i = 0; i < nEvents; i++)
-			{
-				if (!pEvents[i]->m_bSignaled.load(std::memory_order::memory_order_consume))
-				{
-					return false;
-				}
-			}
-
-			return true;
-		};
-
-		if (lPredSignaledAll())
+		if (CheckSignaledAll(nEvents, pEvents))
 		{
 			bRet = true;
 			for (int i = 0; i < nEvents; i++)
@@ -1145,149 +1258,117 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 				}
 			}
 		}
-		else if (timeout != 0) // Do it one more time under a lock to make sure.
+		else if (timeout != 0) // We still haven't timed out, so let's wait
 		{
-			auto waitForEventsAll = [&bRet, timeout, nEvents, &pEvents, lPredSignaledAll](auto& lock)
-			{
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAll())
+			// If we're already signaled, skip adding listeners
+			int tries = 0;
+			int backoff = 1;
+			constexpr int iSpinCount = 1000;
+			do {
+				if (CheckSignaledAll(nEvents, pEvents))
 				{
 					bRet = true;
+					break;
 				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-
-					// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
-					do
-					{
-						// Add listeners
-						for (int i = 0; i < nEvents; i++)
-						{
-							pEvents[i]->AddListenerNoLock(condition);
-						}
-						if (timeout == TT_INFINITE)
-						{
-							condition->wait(lock);
-							bRet = true;
-						}
-						else
-						{
-							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
-						}
-						// Clear out listeners
-						for (int i = 0; i < nEvents; i++)
-						{
-							pEvents[i]->RemoveListenerNoLock(condition);
-						}
-					} while (bRet && !lPredSignaledAll());
-
-					condition.reset();
+				for (int yields = 0; yields < backoff; yields++) {
+					ThreadPause();
+					tries++;
 				}
-
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					for (int i = 0; i < nEvents; i++)
-					{
-						if (pEvents[i]->m_bAutoReset)
-						{
-							pEvents[i]->m_bSignaled.store(false, std::memory_order::memory_order_release);
-						}
-					}
-				}
-			};
-
-			switch (nEvents)
+				constexpr int kMaxBackoff = 64;
+				backoff = min(kMaxBackoff, backoff << 1);
+			} while (tries < iSpinCount);
+			if (!bRet)
 			{
+				switch (nEvents)
+				{
 				case 1:
 				{
 					std::unique_lock lock(pEvents[0]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 2:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 3:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 4:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 5:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 6:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 7:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 8:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 9:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 10:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 11:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 12:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 13:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 14:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex, pEvents[13]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				case 15:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex, pEvents[13]->m_Mutex, pEvents[14]->m_Mutex);
-					waitForEventsAll(lock);
+					bRet = WaitForEventsAll(nEvents, pEvents, timeout, lock);
 					break;
 				}
 				default:
@@ -1295,27 +1376,15 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 					Warning("Attempted to wait for too many objects!\n");
 					Assert(0);
 					break;
+				}
 				}
 			}
 		}
 	}
 	else
 	{
-		auto lPredSignaledAny = [nEvents, &pEvents, &iEventIndex]
-		{
-			for (int i = 0; i < nEvents; i++)
-			{
-				if (pEvents[i]->m_bSignaled.load(std::memory_order::memory_order_consume))
-				{
-					iEventIndex = i;
-					return true;
-				}
-			}
-
-			return false;
-		};
 		// Optimistic case: we can do an initial check to minimize contention
-		if (lPredSignaledAny())
+		if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
 		{
 			bRet = true;
 			for (int i = 0; i < nEvents; i++)
@@ -1328,146 +1397,117 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 		}
 		else if (timeout != 0) // Do it one more time under a lock to make sure.
 		{
-			auto waitForEventsAny = [&bRet, timeout, nEvents, &pEvents, lPredSignaledAny, &iEventIndex](auto& lock)
-			{
-				// If we're already signaled, skip adding listeners
-				if (lPredSignaledAny())
+			// If we're already signaled, skip adding listeners
+			int tries = 0;
+			int backoff = 1;
+			constexpr int iSpinCount = 1000;
+			do {
+				if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
 				{
 					bRet = true;
+					break;
 				}
-				else if (timeout != 0)
-				{
-					std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
-
-					// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
-					do
-					{
-						// Add listeners
-						for (int i = 0; i < nEvents; i++)
-						{
-							pEvents[i]->AddListenerNoLock(condition);
-						}
-						if (timeout == TT_INFINITE)
-						{
-							condition->wait(lock);
-							bRet = true;
-						}
-						else
-						{
-							bRet = condition->wait_for(lock, std::chrono::milliseconds(timeout)) == std::cv_status::no_timeout;
-						}
-						// Clear out listeners
-						for (int i = 0; i < nEvents; i++)
-						{
-							pEvents[i]->RemoveListenerNoLock(condition);
-						}
-					} while (bRet && !lPredSignaledAny());
-
-					condition.reset();
+				for (int yields = 0; yields < backoff; yields++) {
+					ThreadPause();
+					tries++;
 				}
-
-				// Auto reset, since this function is a wait too!
-				if (bRet)
-				{
-					if (pEvents[iEventIndex]->m_bAutoReset)
-					{
-						pEvents[iEventIndex]->m_bSignaled.store(false, std::memory_order::memory_order_release);
-					}
-				}
-			};
-
-			// Lock all at the same time, to prevent race conditions.
-			// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
-			switch (nEvents)
+				constexpr int kMaxBackoff = 64;
+				backoff = min(kMaxBackoff, backoff << 1);
+			} while (tries < iSpinCount);
+			if (!bRet)
 			{
+				// Lock all at the same time, to prevent race conditions.
+				// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
+				switch (nEvents)
+				{
 				case 1:
 				{
 					std::unique_lock lock(pEvents[0]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 2:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 3:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 4:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 5:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 6:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 7:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 8:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 9:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 10:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 11:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 12:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 13:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 14:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex, pEvents[13]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				case 15:
 				{
 					CExtendedScopedLock lock(pEvents[0]->m_Mutex, pEvents[1]->m_Mutex, pEvents[2]->m_Mutex, pEvents[3]->m_Mutex, pEvents[4]->m_Mutex, pEvents[5]->m_Mutex, pEvents[6]->m_Mutex, pEvents[7]->m_Mutex, pEvents[8]->m_Mutex, pEvents[9]->m_Mutex, pEvents[10]->m_Mutex, pEvents[11]->m_Mutex, pEvents[12]->m_Mutex, pEvents[13]->m_Mutex, pEvents[14]->m_Mutex);
-					waitForEventsAny(lock);
+					bRet = WaitForEventsAny(nEvents, pEvents, timeout, iEventIndex, lock);
 					break;
 				}
 				default:
@@ -1475,6 +1515,7 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 					Warning("Attempted to wait for too many objects!\n");
 					Assert(0);
 					break;
+				}
 				}
 			}
 		}

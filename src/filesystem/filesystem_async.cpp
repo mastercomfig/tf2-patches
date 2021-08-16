@@ -668,7 +668,6 @@ void CBaseFileSystem::InitAsync()
 		ThreadPoolStartParams_t params;
 		params.iThreadPriority = TP_PRIORITY_LOW;
 		params.bIOThreads = true;
-		params.bHeavyLoad = true;
 		if ( IsX360() )
 		{
 			// override defaults

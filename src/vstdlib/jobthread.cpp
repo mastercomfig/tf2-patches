@@ -369,10 +369,6 @@ public:
 		{
 			startParams.nThreads = nThreads;
 		}
-		else
-		{
-			startParams.nThreadsMax = 3;
-		}
 		startParams.iThreadPriority = TP_PRIORITY_LOW;
 		startParams.nStackSize = 128 * 1024;
 		return CThreadPool::Start( startParams, "Glob" );
@@ -391,24 +387,12 @@ public:
 class CJobThread : public CWorkerThread
 {
 public:
-	enum LoadType_t
-	{
-		/* like queue, but we also need to be mindful of calls from the main thread */
-		Call,
-		/* the work on this pool is long running, and we continue to have jobs come in. */
-		Queue,
-		/* we get short bursts of intermittent work */
-		Burst,
-		/* very strict version of burst */
-		StrictBurst,
-	};
 	
-	CJobThread( CThreadPool *pOwner, int iThread, bool bUnshared = false, LoadType_t iLoad = Call) : 
-		m_DirectQueue( bUnshared ),
+	CJobThread( CThreadPool *pOwner, int iThread ) : 
+		m_DirectQueue( false ),
 		m_SharedQueue( pOwner->m_SharedQueue ),
 		m_pOwner( pOwner ),
-		m_iThread( iThread ),
-		iLoad( iLoad )
+		m_iThread( iThread )
 	{
 	}
 
@@ -438,11 +422,12 @@ private:
 		tmZone(TELEMETRY_LEVEL0, TMZF_IDLE, "%s", __FUNCTION__);
 		
 
-		CStdThreadEvent* waitHandles[NUM_EVENTS];
-
-		waitHandles[CALL_FROM_MASTER] = &GetCallHandle();
-		waitHandles[DIRECT_QUEUE] = &m_DirectQueue.GetEventHandle();
-		waitHandles[SHARED_QUEUE] = &m_SharedQueue.GetEventHandle();
+		CStdThreadEvent* waitHandles[NUM_EVENTS]
+		{
+			&GetCallHandle(),
+			&m_DirectQueue.GetEventHandle(),
+			&m_SharedQueue.GetEventHandle()
+		};
 
 #if defined(_DEBUG) && defined(JOBS_DEBUG)
 		while ((waitResult = CStdThreadEvent::WaitForMultiple(NUM_EVENTS, waitHandles, false, 10000)) == WAIT_TIMEOUT)
@@ -463,12 +448,11 @@ private:
 
 		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
-		m_pOwner->m_nIdleThreads++;
+		++m_pOwner->m_nIdleThreads;
 		m_IdleEvent.Set();
-		bool bPeeked = false;
-		while (!bExit &&  (bPeeked || ( ( waitResult = Wait() ) != WAIT_FAILED ) ))
+		while ( !bExit && ( ( waitResult = Wait() ) != WAIT_FAILED ) )
 		{
-			if ( bPeeked || waitResult == WAIT_OBJECT_0 + CALL_FROM_MASTER )
+			if ( waitResult == WAIT_OBJECT_0 + CALL_FROM_MASTER )
 			{
 				CFunctor *pFunctor = NULL;
 				tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s PeekCall():%d", __FUNCTION__, GetCallParam() );
@@ -503,144 +487,41 @@ private:
 					Reply( false );
 					break;
 				}
-				bPeeked = false;
 			}
 			else
 			{
 				tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s !PeekCall()", __FUNCTION__ );
 
 				CJob* pJob;
-				switch (iLoad)
+				bool bTookJob = false;
+				do
 				{
-				default:
-				{
-					Warning("Unknown job thread workload!\n");
-				}
-				case Call:
-				{
-					bool bTookJob = false;
-					do
+					// TODO: checking is fine for now, even if we spin since threads only use either queue for receiving their jobs
+					if (waitResult != WAIT_OBJECT_0 + DIRECT_QUEUE || !m_DirectQueue.Pop(&pJob))
 					{
-						// TODO: checking is fine for now, even if we spin since threads only use either queue for receiving their jobs
-						if (waitResult != WAIT_OBJECT_0 + DIRECT_QUEUE || !m_DirectQueue.Pop(&pJob))
+						if (waitResult != WAIT_OBJECT_0 + SHARED_QUEUE || !m_SharedQueue.Pop(&pJob))
 						{
-							if (waitResult != WAIT_OBJECT_0 + SHARED_QUEUE || !m_SharedQueue.Pop(&pJob))
-							{
-								// Nothing to process, return to wait
-								break;
-							}
+							// Nothing to process, return to wait
+							break;
 						}
-						if (!bTookJob)
-						{
-							m_IdleEvent.Reset();
-							m_pOwner->m_nIdleThreads--;
-							bTookJob = true;
-						}
-						ServiceJobAndRelease(pJob, m_iThread);
-						m_pOwner->m_nJobs--;
-						// Make sure we are responsive to calls
-					} while ((bPeeked = PeekCall()) == false);
-					if (bTookJob)
-					{
-						m_pOwner->m_nIdleThreads++;
-						m_IdleEvent.Set();
 					}
-					break;
-				}
-				case Queue:
-				{
-					bool bTookJob = false;
-					int tries = 0;
-					int backoff = 1;
-					constexpr int iSpinCount = 1000;
-					do
-					{
-						// TODO: checking is fine for now, even if we spin since threads only use either queue for receiving their jobs
-						if (waitResult != WAIT_OBJECT_0 + DIRECT_QUEUE || !m_DirectQueue.Pop(&pJob))
-						{
-							if (waitResult != WAIT_OBJECT_0 + SHARED_QUEUE || !m_SharedQueue.Pop(&pJob))
-							{
-								if (tries > iSpinCount)
-								{
-									break;
-								}
-								// Nothing to process, keep spinning
-								for (int yields = 0; yields < backoff; yields++) {
-									ThreadPause();
-									tries++;
-								}
-								constexpr int kMaxBackoff = 64;
-								backoff = min(kMaxBackoff, backoff << 1);
-								continue;
-							}
-						}
-						// If we took a job, reset the spins to reprioritize checking jobs rather than calls.
-						tries = 0;
-						backoff = 1;
-						if (!bTookJob)
-						{
-							m_IdleEvent.Reset();
-							m_pOwner->m_nIdleThreads--;
-							bTookJob = true;
-						}
-						ServiceJobAndRelease(pJob, m_iThread);
-						m_pOwner->m_nJobs--;
-						// Spin for a bit to make sure more work doesn't get added soon
-					} while (true);
-					if (bTookJob)
-					{
-						m_pOwner->m_nIdleThreads++;
-						m_IdleEvent.Set();
-					}
-					break;
-				}
-				case Burst:
-				{
-					bool bTookJob = false;
-					do
-					{
-						// TODO: checking is fine for now, even if we spin since threads only use either queue for receiving their jobs
-						if (waitResult != WAIT_OBJECT_0 + DIRECT_QUEUE || !m_DirectQueue.Pop(&pJob))
-						{
-							if (waitResult != WAIT_OBJECT_0 + SHARED_QUEUE || !m_SharedQueue.Pop(&pJob))
-							{
-								// Nothing to process, return to wait
-								break;
-							}
-						}
-						if (!bTookJob)
-						{
-							m_IdleEvent.Reset();
-							m_pOwner->m_nIdleThreads--;
-							bTookJob = true;
-						}
-						ServiceJobAndRelease(pJob, m_iThread);
-						m_pOwner->m_nJobs--;
-					} while (true);
-					if (bTookJob)
-					{
-						m_pOwner->m_nIdleThreads++;
-						m_IdleEvent.Set();
-					}
-					break;
-				}
-				case StrictBurst:
-				{
-					if ((waitResult == WAIT_OBJECT_0 + DIRECT_QUEUE && m_DirectQueue.Pop(&pJob)) || (waitResult == WAIT_OBJECT_0 + SHARED_QUEUE && m_SharedQueue.Pop(&pJob)))
+					if (!bTookJob)
 					{
 						m_IdleEvent.Reset();
 						m_pOwner->m_nIdleThreads--;
-						ServiceJobAndRelease(pJob, m_iThread);
-						m_pOwner->m_nJobs--;
-						m_pOwner->m_nIdleThreads++;
-						m_IdleEvent.Set();
+						bTookJob = true;
 					}
-					break;
-				}
+					ServiceJobAndRelease(pJob, m_iThread);
+					m_pOwner->m_nJobs--;
+				} while (true);
+				if (bTookJob)
+				{
+					m_pOwner->m_nIdleThreads++;
+					m_IdleEvent.Set();
 				}
 			}
 		}
-		m_pOwner->m_nIdleThreads--;
+		--m_pOwner->m_nIdleThreads;
 		m_IdleEvent.Reset();
 		return 0;
 	}
@@ -650,7 +531,6 @@ private:
 	CThreadPool *		m_pOwner;
 	CStdThreadEvent	m_IdleEvent{true};
 	int					m_iThread;
-	LoadType_t iLoad;
 };
 
 //-----------------------------------------------------------------------------
@@ -1129,10 +1009,14 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 		else
 		{
 			// One worker thread per logical processor minus main thread and graphic driver
-			nThreads = ci.m_nLogicalProcessors - ci.m_bHT ? 2 : 1;
-			if (nThreads < 1)
+			nThreads = ci.m_nLogicalProcessors - 4;
+			if (nThreads < 2)
 			{
-				nThreads = 1;
+				nThreads = ci.m_nLogicalProcessors - 2;
+				if (nThreads < 1)
+				{
+					nThreads = 1;
+				}
 			}
 		}
 
@@ -1203,23 +1087,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 	{
 		int iThread = m_Threads.AddToTail();
 		m_IdleEvents.AddToTail();
-		CJobThread::LoadType_t iLoad;
-		if (startParams.bHeavyLoad)
-		{
-			if (startParams.bIOThreads)
-			{
-				iLoad = CJobThread::Burst;
-			}
-			else
-			{
-				iLoad = CJobThread::Queue;
-			}
-		}
-		else
-		{
-			iLoad = CJobThread::Burst;
-		}
-		m_Threads[iThread] = new CJobThread( this, iThread, false, iLoad );
+		m_Threads[iThread] = new CJobThread( this, iThread );
 		m_IdleEvents[iThread] = &m_Threads[iThread]->GetIdleEvent();
 		m_Threads[iThread]->SetName( CFmtStr( "%s%d", pszName, iThread ) );
 		m_Threads[iThread]->Start( nStackSize );

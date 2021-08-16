@@ -3549,7 +3549,6 @@ IThreadPool *CMaterialSystem::CreateMatQueueThreadPool()
 		startParams.nThreads = 1;
 		startParams.nStackSize = 256*1024;
 		startParams.fDistribute = TRS_TRUE;
-		startParams.bHeavyLoad = true;
 
 		// The rendering thread has the GL context and the main thread is coming in and
 		//  "helping" finish jobs - that breaks OpenGL, which requires TLS. This flag states 

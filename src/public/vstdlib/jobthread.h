@@ -102,8 +102,8 @@ enum JobPriority_t
 #define TP_MAX_POOL_THREADS	64
 struct ThreadPoolStartParams_t
 {
-	ThreadPoolStartParams_t( bool bIOThreads = false, unsigned nThreads = -1, int *pAffinities = NULL, ThreeState_t fDistribute = TRS_NONE, unsigned nStackSize = -1, int iThreadPriority = SHRT_MIN, bool bHeavyLoad = false )
-		: bIOThreads( bIOThreads ), nThreads( nThreads ), fDistribute( fDistribute ), nStackSize( nStackSize ), iThreadPriority( iThreadPriority ), nThreadsMax( -1 ), bHeavyLoad( bHeavyLoad )
+	ThreadPoolStartParams_t( bool bIOThreads = false, unsigned nThreads = -1, int *pAffinities = NULL, ThreeState_t fDistribute = TRS_NONE, unsigned nStackSize = -1, int iThreadPriority = SHRT_MIN )
+		: bIOThreads( bIOThreads ), nThreads( nThreads ), fDistribute( fDistribute ), nStackSize( nStackSize ), iThreadPriority( iThreadPriority ), nThreadsMax( -1 )
 	{
 		bExecOnThreadPoolThreadsOnly = false;
 
@@ -129,7 +129,6 @@ struct ThreadPoolStartParams_t
 	bool			bIOThreads : 1;
 	bool			bUseAffinityTable : 1;
 	bool			bExecOnThreadPoolThreadsOnly : 1;
-	bool bHeavyLoad : 1;
 };
 
 //-----------------------------------------------------------------------------
@@ -930,7 +929,7 @@ public:
 		
 		if ( nJobs > 1 )
 		{
-			if ( m_iBatchSize != 1)
+			if ( m_iBatchSize != 1 )
 			{
 				m_iBatchSize = nItems / nJobs;
 				m_iLeftOver = nItems % nJobs;
@@ -940,7 +939,7 @@ public:
 			CJob **jobs = (CJob **)stackalloc( nJobs * sizeof(CJob **) );
 			int i = nJobs;
 
-			while( i-- )
+			while ( i-- )
 			{
 #if 1
 				jobs[i] = pThreadPool->QueueCall( this, &CParallelProcessor<ITEM_TYPE, ITEM_PROCESSOR_TYPE>::DoExecute );
@@ -959,7 +958,7 @@ public:
 		}
 		else
 		{
-			m_iBatchSize = 1;
+			m_iBatchSize = nItems;
 			DoExecute();
 		}
 #if MEASURE_PARALLEL_WORK
@@ -983,18 +982,26 @@ private:
 		{
 			m_ItemProcessor.Begin();
 
-			int iBatchSize = m_iBatchSize;
-			if (iBatchIndex == m_iBatchCount - 1)
+			while (true)
 			{
-				iBatchSize += m_iLeftOver;
-			}
+				int iBatchSize = m_iBatchSize;
+				if ( iBatchIndex == m_iBatchCount - 1 )
+				{
+					iBatchSize += m_iLeftOver;
+				}
 
-			for (int i = 0; i < iBatchSize; i++)
-			{
+				for ( int i = 0; i < iBatchSize; i++ )
+				{
 #if MEASURE_PARALLEL_WORK
-				++work;
+					++work;
 #endif
-				m_ItemProcessor.Process( *(m_pItems + (iBatchIndex * m_iBatchSize + i)) );
+					m_ItemProcessor.Process( *( m_pItems + ( iBatchIndex * m_iBatchSize + i ) ) );
+				}
+				iBatchIndex = m_iBatchIndex++;
+				if ( iBatchIndex >= m_iBatchCount )
+				{
+					break;
+				}
 			}
 
 			m_ItemProcessor.End();
@@ -1021,7 +1028,6 @@ inline void ParallelProcess( const char *pszDescription, ITEM_TYPE *pItems, unsi
 	CParallelProcessor<ITEM_TYPE, CFuncJobItemProcessor<ITEM_TYPE> > processor( pszDescription );
 	processor.m_ItemProcessor.Init( pfnProcess, pfnBegin, pfnEnd );
 	processor.Run( pItems, nItems, nMaxParallel );
-
 }
 
 template <typename ITEM_TYPE, typename OBJECT_TYPE, typename FUNCTION_CLASS > 
