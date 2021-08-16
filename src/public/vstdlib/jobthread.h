@@ -872,10 +872,18 @@ template <typename ITEM_TYPE, class ITEM_PROCESSOR_TYPE>
 class CParallelProcessor
 {
 public:
-	CParallelProcessor( const char *pszDescription )
+	CParallelProcessor( const char *pszDescription, bool bUnbalanced = false )
 	{
-		m_pItems = m_pLimit= 0;
 		m_szDescription = pszDescription;
+		if (bUnbalanced)
+		{
+			m_iBatchSize = 1;
+		}
+		else
+		{
+			m_iBatchSize = 0;
+		}
+		m_iLeftOver = 0;
 	}
 
 	void Run( ITEM_TYPE *pItems, unsigned nItems, int nMaxParallel = INT_MAX, IThreadPool *pThreadPool = NULL )
@@ -891,7 +899,6 @@ public:
 		}
 
 		m_pItems = pItems;
-		m_pLimit = pItems + nItems;
 
 		int nJobs = nItems;
 #if MEASURE_PARALLEL_WORK
@@ -918,9 +925,16 @@ public:
 #if MEASURE_PARALLEL_WORK
 		float Start = Plat_FloatTime();
 #endif
+
+		m_iBatchCount = nJobs;
 		
 		if ( nJobs > 1 )
 		{
+			if ( m_iBatchSize != 1)
+			{
+				m_iBatchSize = nItems / nJobs;
+				m_iLeftOver = nItems % nJobs;
+			}
 			// Decrement jobs by 1 for the main thread.
 			nJobs--;
 			CJob **jobs = (CJob **)stackalloc( nJobs * sizeof(CJob **) );
@@ -941,14 +955,11 @@ public:
 
 			// Do jobs alongside the threads.
 			DoExecute();
-			for (i = 0; i < nJobs; i++)
-			{
-				jobs[i]->Abort(); // will either abort ones that never got a thread, or noop on ones that did
-				jobs[i]->Release();
-			}
+			pThreadPool->YieldWait(jobs, nJobs);
 		}
 		else
 		{
+			m_iBatchSize = 1;
 			DoExecute();
 		}
 #if MEASURE_PARALLEL_WORK
@@ -967,26 +978,23 @@ private:
 		int work = 0;
 #endif
 
-		if ( m_pItems < m_pLimit )
+		int iBatchIndex = m_iBatchIndex++;
+		if (iBatchIndex < m_iBatchCount)
 		{
 			m_ItemProcessor.Begin();
 
-			ITEM_TYPE *pLimit = m_pLimit;
-
-			for (;;)
+			int iBatchSize = m_iBatchSize;
+			if (iBatchIndex == m_iBatchCount - 1)
 			{
-				ITEM_TYPE *pCurrent = m_pItems++;
-				if ( pCurrent < pLimit )
-				{
+				iBatchSize += m_iLeftOver;
+			}
+
+			for (int i = 0; i < iBatchSize; i++)
+			{
 #if MEASURE_PARALLEL_WORK
-					++work;
+				++work;
 #endif
-					m_ItemProcessor.Process( *pCurrent );
-				}
-				else
-				{
-					break;
-				}
+				m_ItemProcessor.Process( *(m_pItems + (iBatchIndex * m_iBatchSize + i)) );
 			}
 
 			m_ItemProcessor.End();
@@ -996,8 +1004,11 @@ private:
 		DevMsg("Thread %d did %d/%d units of work for %s\n", GetCurrentThreadId(), work, m_iItems, m_szDescription);
 #endif
 	}
-	CInterlockedPtr<ITEM_TYPE>	m_pItems;
-	ITEM_TYPE *					m_pLimit;
+	ITEM_TYPE* m_pItems;
+	CInterlockedInt m_iBatchIndex; // Which batch are we on?
+	int m_iBatchSize; // How big the batches are
+	int m_iLeftOver; // The last batch gets the leftovers
+	int m_iBatchCount; // How many batches are there?
 #if MEASURE_PARALLEL_WORK
 	int m_iItems;
 #endif
