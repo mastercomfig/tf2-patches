@@ -11,6 +11,15 @@
 #endif
 
 #include "tier0/platform.h"
+
+#if defined(TERROR)
+#define SUPPORT_QUERY_CACHE 1
+#else
+#define SUPPORT_QUERY_CACHE 0
+#endif
+
+#if SUPPORT_QUERY_CACHE
+
 #include "mathlib/vector.h"
 
 // this system provides several piece of functionality to ai or other systems which wish to do
@@ -75,7 +84,7 @@ struct QueryCacheEntry_t
 
 };
 
-
+#endif
 
 bool IsLineOfSightBetweenTwoEntitiesClear( CBaseEntity *pSrcEntity,
 										   EEntityOffsetMode_t nSrcOffsetMode,
