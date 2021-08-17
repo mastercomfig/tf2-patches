@@ -369,7 +369,11 @@ public:
 		{
 			startParams.nThreads = nThreads;
 		}
-		startParams.iThreadPriority = TP_PRIORITY_LOW;
+		else
+		{
+			startParams.nThreadsMax = 6;
+		}
+		startParams.iThreadPriority = TP_PRIORITY_HIGH;
 		startParams.nStackSize = 128 * 1024;
 		return CThreadPool::Start( startParams, "Glob" );
 	}

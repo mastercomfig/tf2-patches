@@ -1260,24 +1260,26 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 		}
 		else if (timeout != 0) // We still haven't timed out, so let's wait
 		{
+			#if 0
 			// If we're already signaled, skip adding listeners
 			int tries = 0;
 			int backoff = 1;
 			constexpr int iSpinCount = 1000;
 			do {
-				if (CheckSignaledAll(nEvents, pEvents))
-				{
-					bRet = true;
-					break;
-				}
 				for (int yields = 0; yields < backoff; yields++) {
 					ThreadPause();
 					tries++;
 				}
 				constexpr int kMaxBackoff = 64;
 				backoff = min(kMaxBackoff, backoff << 1);
+				if (CheckSignaledAll(nEvents, pEvents))
+				{
+					bRet = true;
+					break;
+				}
 			} while (tries < iSpinCount);
 			if (!bRet)
+			#endif
 			{
 				switch (nEvents)
 				{
@@ -1397,24 +1399,26 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 		}
 		else if (timeout != 0) // Do it one more time under a lock to make sure.
 		{
+			#if 0
 			// If we're already signaled, skip adding listeners
 			int tries = 0;
 			int backoff = 1;
 			constexpr int iSpinCount = 1000;
 			do {
-				if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
-				{
-					bRet = true;
-					break;
-				}
 				for (int yields = 0; yields < backoff; yields++) {
 					ThreadPause();
 					tries++;
 				}
 				constexpr int kMaxBackoff = 64;
 				backoff = min(kMaxBackoff, backoff << 1);
+				if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
+				{
+					bRet = true;
+					break;
+				}
 			} while (tries < iSpinCount);
 			if (!bRet)
+			#endif
 			{
 				// Lock all at the same time, to prevent race conditions.
 				// Before, this was implemented by locking and checking for each one after the other, which caused a race condition.
