@@ -70,7 +70,7 @@ extern IVideoServices *g_pVideo;
 #define DIST_MULT_TO_SNDLVL( dist_mult ) (soundlevel_t)(int)( dist_mult ? ( 20 * log10( pow( 10.0f, snd_refdb.GetFloat() / 20 ) / (dist_mult * snd_refdist.GetFloat()) ) ) : 0 )
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 0.015
+#define THREADED_MIX_TIME 0.005
 #else
 #define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif
