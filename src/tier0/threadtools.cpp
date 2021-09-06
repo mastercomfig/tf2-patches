@@ -1204,6 +1204,13 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 				if (CheckSignaledAll(nEvents, pEvents))
 				{
 					bRet = true;
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled.store(false, std::memory_order::memory_order_release);
+						}
+					}
 					break;
 				}
 			} while (tries < iSpinCount);
@@ -1343,6 +1350,13 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 				if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
 				{
 					bRet = true;
+					for (int i = 0; i < nEvents; i++)
+					{
+						if (pEvents[i]->m_bAutoReset)
+						{
+							pEvents[i]->m_bSignaled.store(false, std::memory_order::memory_order_release);
+						}
+					}
 					break;
 				}
 			} while (tries < iSpinCount);
