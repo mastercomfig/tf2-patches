@@ -776,39 +776,10 @@ void CStdThreadSyncObject::AssertUseable()
 
 //---------------------------------------------------------
 
-bool CStdThreadSyncObject::Wait( uint32 dwTimeout )
+bool CStdThreadSyncObject::Wait(uint32 dwTimeout)
 {
-#ifdef THREADS_DEBUG
-    AssertUseable();
-#endif
-    bool bRet = m_bSignaled.load(std::memory_order::memory_order_consume);
-#if 1
-	if (!bRet && dwTimeout != 0)
-#else
-	if (bRet || dwTimeout == 0)
-	{
-	    // Emulate context switch behavior seen in other waits
-		ThreadSleep(0);
-	}
-	else
-#endif
-	{
-		std::unique_lock lock(m_Mutex);
-		if (dwTimeout == TT_INFINITE)
-        {
-	        m_Condition.wait(lock, [this] { return m_bSignaled.load(std::memory_order::memory_order_consume); });
-	        bRet = true;
-        }
-        else
-        {
-	        bRet = m_Condition.wait_for(lock, std::chrono::milliseconds(dwTimeout), [this] { return m_bSignaled.load(std::memory_order::memory_order_consume); });
-        }
-	}
-    if (m_bAutoReset && bRet)
-    {
-	    m_bSignaled.store(false, std::memory_order::memory_order_release);
-    }
-    return bRet;
+	Assert(0);
+	return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -914,89 +885,53 @@ bool CStdThreadEvent::Set()
 #ifdef THREADS_DEBUG
 	AssertUseable();
 #endif
-	if (m_bSignaled.load(std::memory_order::memory_order_consume))
+	bool expected = false;
+	// If we do not transition from false to true, exit with no effects
+	if (!m_bSignaled.compare_exchange_strong(expected, true, std::memory_order::memory_order_release, std::memory_order::memory_order_consume))
 	{
 		// We could let Set fallthrough here if the event is signaled, but it would mask race conditions.
 		return true;
 	}
-	m_bSignaled.store(true, std::memory_order::memory_order_release);
 
 	// Lock because we want to sync m_listeningConditions
+	// Unfortunately, that also means we have to be pessimistic for all cases, to hold on the queue.
+	// By pessimism, we mean keeping the lock until the end of scope after we notified a condition variable
+	// which will be trying to get ahold of the lock before we reach the end of scope.
 	std::unique_lock lock(m_Mutex);
-	// If we are not going to notify a listener, then we can be less pessimistic and unlock now
-	// By pessimism, as we say above and in the below sections, we mean keeping the lock until the end of scope
-	// when we have already notified a condition variable which will be trying to get ahold of the lock before
-	// we reach the end of scope. Therefore, it's important that we unlock BEFORE we notify.
-	// We have to be pessimistic otherwise because m_listeningConditions needs a lock.
 	const size_t iListeners = m_listeningConditions.Size();
 	const bool bNoListeners = iListeners == 0;
 	if (bNoListeners)
 	{
-		lock.unlock();
+		return true;
 	}
 
 	if (m_bAutoReset)
 	{
 		// wait for events either holds a scoped_lock on all events (for wait all), or does a Check() which locks (for wait any)
 		// so, if we get to this point, it's because WaitForEvents got a lock and should be next in line
-		// this code is slightly duplicated below in the non-auto reset to avoid checking m_bAutoReset for each listener
-		if (!bNoListeners)
+		std::shared_ptr<std::condition_variable_any> condition;
+		while (m_listeningConditions.PopItemFront(condition))
 		{
-		    std::shared_ptr<std::condition_variable_any> condition;
-	        while (m_listeningConditions.PopItemFront(condition))
-		    {
-			    if (condition)
-			    {
-				    // We aren't going to notify anything else, so unlock now.
-				    lock.unlock();
-				    condition->notify_one();
-				    condition.reset();
-				    // Since it's an auto reset, if we notify a listener, we've already let an event through, so don't let another one through.
-				    return true;
-			    }
-		    }
-
-		    // Be non-pessimistic after we loop through
-			lock.unlock();
+			if (condition)
+			{
+				condition->notify_one();
+				// Since it's an auto reset, if we notify a listener, we've already let an event through, so don't let another one through.
+				return true;
+			}
 		}
-
-		//m_Condition.notify_one();
 	}
 	else
 	{
 		// wait for events either holds a scoped_lock on all events (for wait all), or does a Check() which locks (for wait any)
 		// so, if we get to this point, it's because WaitForEvents got a lock and should be next in line
-		if (!bNoListeners)
+		std::shared_ptr<std::condition_variable_any> condition;
+		while (m_listeningConditions.PopItemFront(condition))
 		{
-			const bool bOneListener = iListeners == 1;
-	        std::shared_ptr<std::condition_variable_any> condition;
-			if (bOneListener)
+			if (condition)
 			{
-				m_listeningConditions.PopItem(condition);
-				lock.unlock();
-				if (condition)
-				{
-					condition->notify_one();
-					condition.reset();
-				}
-			}
-			else
-			{
-				while (m_listeningConditions.PopItem(condition))
-				{
-					if (condition)
-					{
-						// TODO: unfortunately, with multiple, we have to take the pessimistic case here, since we will be notifying multiple listeners within this queue
-						condition->notify_one();
-						condition.reset();
-					}
-				}
-				// At least be non-pessimistic after we loop through
-				lock.unlock();
+				condition->notify_one();
 			}
 		}
-
-		//m_Condition.notify_all();
 	}
 	return true;
 }
@@ -1026,12 +961,8 @@ bool CStdThreadEvent::Check()
 
 bool CStdThreadEvent::Wait( uint32 dwTimeout )
 {
-#if 1
 	CStdThreadEvent* pEvent = this;
 	return WaitForMultiple(1, &pEvent, true, dwTimeout) != TW_TIMEOUT;
-#else
-	return CStdThreadSyncObject::Wait( dwTimeout );
-#endif
 }
 
 #if 0
@@ -1124,7 +1055,8 @@ static bool WaitForEventsAll(int nEvents, CStdThreadEvent* const* pEvents, unsig
 	bool bRet = true;
 	if (!CheckSignaledAll(nEvents, pEvents))
 	{
-		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+		// Not using make_shared to prevent false sharing
+		std::shared_ptr<std::condition_variable_any> condition(new std::condition_variable_any());
 
 		// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
 		do
@@ -1151,8 +1083,6 @@ static bool WaitForEventsAll(int nEvents, CStdThreadEvent* const* pEvents, unsig
 				pEvents[i]->RemoveListenerNoLock(condition);
 			}
 		} while (bRet && !CheckSignaledAll(nEvents, pEvents));
-
-		condition.reset();
 	}
 
 	// Auto reset, since this function is a wait too!
@@ -1189,7 +1119,8 @@ static bool WaitForEventsAny(int nEvents, CStdThreadEvent* const* pEvents, unsig
 	bool bRet = true;
 	if (!CheckSignaledAny(nEvents, pEvents, iEventIndex))
 	{
-		std::shared_ptr<std::condition_variable_any> condition = std::make_shared<std::condition_variable_any>();
+		// Not using make_shared to prevent false sharing
+		std::shared_ptr<std::condition_variable_any> condition(new std::condition_variable_any());
 
 		// We don't have a lock while waiting, so if something gets signaled then unsignaled, we have to add back our listener, because it got popped from the signal, but we fail our condition after leaving the wait state
 		do
@@ -1216,8 +1147,6 @@ static bool WaitForEventsAny(int nEvents, CStdThreadEvent* const* pEvents, unsig
 				pEvents[i]->RemoveListenerNoLock(condition);
 			}
 		} while (bRet && !CheckSignaledAny(nEvents, pEvents, iEventIndex));
-
-		condition.reset();
 	}
 
 	// Auto reset, since this function is a wait too!

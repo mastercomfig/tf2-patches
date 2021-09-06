@@ -1248,7 +1248,6 @@ protected:
 	CStdThreadSyncObject() {}
 	void AssertUseable();
 
-	std::condition_variable_any m_Condition;
 	bool m_bInitialized = false;
 
 private:

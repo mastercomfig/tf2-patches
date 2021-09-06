@@ -669,7 +669,7 @@ int CThreadPool::YieldWait(CStdThreadEvent** pEvents, int nEvents, bool bWaitAll
 			// If we're still waiting on this thread pool, then process its jobs as much as possible.
 			while ((result = CStdThreadEvent::WaitForMultiple(nEvents, pEvents, bWaitAll, 0)) == WAIT_TIMEOUT)
 			{
-				if (m_SharedQueue.Pop(&pJob))
+				while (m_SharedQueue.Pop(&pJob))
 				{
 					ServiceJobAndRelease(pJob);
 					m_nJobs--;
