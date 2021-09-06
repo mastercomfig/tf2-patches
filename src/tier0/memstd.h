@@ -33,7 +33,7 @@
 #endif
 
 
-// #define NO_SBH	1
+#define NO_SBH	1
 
 
 #define MIN_SBH_BLOCK	8
@@ -65,8 +65,10 @@
 // Once those perf issues are worked out, it might make sense to do perf tests with SBH, libc, and tcmalloc.
 //
 //$ #if defined( _WIN32 ) || defined( _PS3 ) || defined( LINUX )
-#if defined( _WIN32 ) || defined( _PS3 )
+#ifndef NO_SBH
+#if defined( _X360 ) || defined(_PS3)
 #define MEM_SBH_ENABLED 1
+#endif
 #endif
 
 class ALIGN16 CSmallBlockPool
@@ -128,7 +130,7 @@ private:
 	byte *m_pLimit;
 } ALIGN16_POST;
 
-#ifdef USE_PHYSICAL_SMALL_BLOCK_HEAP
+#if defined(MEM_SBH_ENABLED) && USE_PHYSICAL_SMALL_BLOCK_HEAP
 #define BYTES_X360_SBH (32*1024*1024)
 #define PAGESIZE_X360_SBH (64*1024)
 class CX360SmallBlockPool
@@ -272,7 +274,7 @@ public:
 	void DumpBlockStats( void *p ) {}
 #ifdef MEM_SBH_ENABLED
 	CSmallBlockHeap m_SmallBlockHeap;
-#ifdef USE_PHYSICAL_SMALL_BLOCK_HEAP
+#if USE_PHYSICAL_SMALL_BLOCK_HEAP
 	CX360SmallBlockHeap m_LargePageSmallBlockHeap;
 #endif
 #endif

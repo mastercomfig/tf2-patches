@@ -1069,7 +1069,7 @@ CSmallBlockPool *CSmallBlockHeap::FindPool( void *p )
 
 #endif
 
-#if USE_PHYSICAL_SMALL_BLOCK_HEAP
+#if defined(MEM_SBH_ENABLED) && USE_PHYSICAL_SMALL_BLOCK_HEAP
 
 CX360SmallBlockPool *CX360SmallBlockPool::gm_AddressToPool[BYTES_X360_SBH/PAGESIZE_X360_SBH];
 byte *CX360SmallBlockPool::gm_pPhysicalBlock;
@@ -1465,7 +1465,7 @@ void *CStdMemAlloc::Alloc( size_t nSize )
 	
 	void *pMem;
 
-#ifdef _WIN32
+#ifdef MEM_SBH_ENABLED
 #ifdef USE_PHYSICAL_SMALL_BLOCK_HEAP
 	if ( m_LargePageSmallBlockHeap.ShouldUse( nSize ) )
 		{
@@ -1475,12 +1475,13 @@ void *CStdMemAlloc::Alloc( size_t nSize )
 		}
 #endif
 
-	if ( m_SmallBlockHeap.ShouldUse( nSize ) )
-	{
-		pMem = m_SmallBlockHeap.Alloc( nSize );
-	ApplyMemoryInitializations( pMem, nSize );
-	return pMem;
-}
+
+		if (m_SmallBlockHeap.ShouldUse(nSize))
+		{
+			pMem = m_SmallBlockHeap.Alloc(nSize);
+			ApplyMemoryInitializations(pMem, nSize);
+			return pMem;
+		}
 
 #endif
 
@@ -1595,11 +1596,14 @@ extern "C" {
 //-----------------------------------------------------------------------------
 size_t CStdMemAlloc::GetSize( void *pMem )
 {
-#ifdef MEM_SBH_ENABLED
+#ifdef POSIX
+	return malloc_usable_size(pMem);
+#else
 	if ( !pMem )
 		return CalcHeapUsed();
 	else
 	{
+#ifdef MEM_SBH_ENABLED
 #ifdef USE_PHYSICAL_SMALL_BLOCK_HEAP
 		if ( m_LargePageSmallBlockHeap.IsOwner( pMem ) )
 		{
@@ -1610,10 +1614,9 @@ size_t CStdMemAlloc::GetSize( void *pMem )
 		{
 			return m_SmallBlockHeap.GetSize( pMem );
 		}
+#endif
 		return _msize( pMem );
 	}
-#else
-	return malloc_usable_size( pMem );
 #endif
 }
 
@@ -1699,7 +1702,7 @@ void CStdMemAlloc::DumpStats()
 
 void CStdMemAlloc::DumpStatsFileBase( char const *pchFileBase )
 {
-#ifdef _WIN32
+#ifdef MEM_SBH_ENABLED
 	char filename[ 512 ];
 	_snprintf( filename, sizeof( filename ) - 1, ( IsX360() ) ? "D:\\%s.txt" : "%s.txt", pchFileBase );
 	filename[ sizeof( filename ) - 1 ] = 0;
@@ -1757,7 +1760,7 @@ void CStdMemAlloc::GlobalMemoryStatus( size_t *pUsedMemory, size_t *pFreeMemory 
 
 void CStdMemAlloc::CompactHeap()
 {
-#if !defined( NO_SBH ) && defined( _WIN32 )
+#if !defined(NO_SBH) && defined(MEM_SBH_ENABLED)
 	int nBytesRecovered = m_SmallBlockHeap.Compact();
 	Msg( "Compact freed %d bytes\n", nBytesRecovered );
 #endif
