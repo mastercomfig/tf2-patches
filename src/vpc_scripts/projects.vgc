@@ -15,7 +15,7 @@ $Project "actbusy"
 
 $Project "AdminServer"
 {
-	"Tracker\AdminServer\AdminServer.vpc" [$WIN32]
+	"tracker\AdminServer\AdminServer.vpc" [$WIN32]
 }
 
 $Project "AppInstaller"
@@ -45,7 +45,7 @@ $Project "bitmap"
 
 $Project "Browser"
 {
-	"Tracker\Browser\Browser.vpc" [$WIN32]
+	"tracker\Browser\Browser.vpc" [$WIN32]
 }
 
 $Project "bsppack"
@@ -882,7 +882,7 @@ $Project "ServerBrowser"
 
 $Project "ServerMonitor"
 {
-	"Tracker\ServerMonitor\ServerMonitor.vpc" [$WIN32]
+	"tracker\ServerMonitor\ServerMonitor.vpc" [$WIN32]
 }
 
 $Project "serverplugin_empty"
@@ -1032,7 +1032,7 @@ $Project "splitskybox"
 
 $Project "sqldb_mysql"
 {
-	"Tracker\sqldb_mysql\sqldb_mysql.vpc" [$WIN32]
+	"tracker\sqldb_mysql\sqldb_mysql.vpc" [$WIN32]
 }
 
 $Project "sqlwrapper"

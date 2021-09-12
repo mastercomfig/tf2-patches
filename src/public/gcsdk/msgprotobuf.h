@@ -379,8 +379,8 @@ public:
 		VPROF_BUDGET( "CProtoBufMsg::CProtoBufMsg( MsgType_t, CSteamID, int32 )", VPROF_BUDGETGROUP_OTHER_NETWORKING );
 
 		m_pProtoBufBody = AllocProto();
-		Hdr()->set_client_steam_id( steamIDClient.ConvertToUint64() );
-		Hdr()->set_client_session_id( nSessionIDClient );
+		Hdr().set_client_steam_id( steamIDClient.ConvertToUint64() );
+		Hdr().set_client_session_id( nSessionIDClient );
 	}
 
 	// Constructor from an incoming netpacket

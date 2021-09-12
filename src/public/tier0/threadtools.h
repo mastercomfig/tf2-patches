@@ -16,6 +16,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <list>
+#include <atomic>
 
 #include "tier0/platform.h"
 #include "tier0/dbg.h"
@@ -943,6 +944,7 @@ private:
 typedef CThreadMutex CThreadFastMutex;
 #endif
 
+#ifdef WIN32
 //-----------------------------------------------------------------------------
 //
 // A spinning lock which prevents going into kernel for short waits.
@@ -1009,12 +1011,12 @@ inline void CThreadSpinningMutex::Lock()
 			tries++;
 		}
 		constexpr int kMaxBackoff = 64;
-		backoff = min(kMaxBackoff, backoff << 1);
+		backoff = std::min(kMaxBackoff, backoff << 1);
 	} while (tries < iSpinCount);
 
 	LockSlow();
 }
-
+#endif
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------

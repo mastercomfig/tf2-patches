@@ -19,7 +19,7 @@ $CustomBuildStep "proto"
 					" $ADDITIONAL_PROTOC_ARGS --cpp_out=$GENERATED_PROTO_DIR $(InputPath)" [$OSXALL]
 
 	$CommandLine	"mkdir $GENERATED_PROTO_DIR 2> /dev/null;"  \
-					"$SRCDIR/thirdparty/protobuf-2.6.1/bin/linux32/protoc --proto_path=$SRCDIR\thirdparty\protobuf-2.6.1\src" \
+					"$SRCDIR/thirdparty/protobuf-2.6.1/src/protoc --proto_path=$SRCDIR\thirdparty\protobuf-2.6.1\src" \
 					" --proto_path=$(InputDir) --proto_path=$SRCDIR\gcsdk --proto_path=$SRCDIR\game\shared" \
 					" $ADDITIONAL_PROTOC_ARGS --cpp_out=$GENERATED_PROTO_DIR $(InputPath)" [$LINUXALL]
 

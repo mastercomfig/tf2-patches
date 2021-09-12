@@ -62,10 +62,5 @@ $Project
 	{
 		$File	"$ROOTSCRIPT"
 	}
-
-	$Folder	"Link Libraries" [$LINUXALL&&!$DEDICATED]
-	{
-		$File	"$SRCDIR/thirdparty/gperftools-2.0/.libs/libtcmalloc_minimal.so"
-	}
 }
 

@@ -13,11 +13,12 @@
 
 #include <sys/ioctl.h>
 
+#include <histedit.h>
+
 #include "TextConsoleUnix.h"
 #include "tier0/icommandline.h"
 #include "tier1/utllinkedlist.h"
 #include "filesystem.h"
-#include "../thirdparty/libedit-3.1/src/histedit.h"
 #include "tier0/vprof.h"
 
 #define CONSOLE_LOG_FILE "console.log"

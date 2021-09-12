@@ -207,7 +207,7 @@ CFLAGS+= -arch i386 -fasm-blocks
 endif
 
 ifeq "$(OS)" "Linux"
-CFLAGS+= -DPLATFORM_LINUX -D_LINUX -DLINUX
+CFLAGS+= -DPLATFORM_LINUX -D_LINUX -DLINUX -m32
 endif
 
 ifeq ($(CYGWIN),1)
@@ -230,6 +230,9 @@ ifeq "$(OS)" "Darwin"
 LINK+= -arch i386
 endif
 
+ifeq "$(OS)" "Linux"
+LINK+= -m32
+endif
 
 # Build rules
 all: $(OUTFILE) ../../../../devtools/bin/vpc$(EXE_POSTFIX)
