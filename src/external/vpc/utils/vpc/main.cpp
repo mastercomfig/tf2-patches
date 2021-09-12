@@ -6,9 +6,18 @@
 
 #include "vpc.h"
 #include "dependencies.h"
+#if !defined( NO_PERFORCE )
 #include "p4sln.h"
+#endif
 #include "ilaunchabledll.h"
 #include <time.h>
+
+#ifdef _WIN32
+#include <process.h>
+#include <windows.h>
+#endif
+
+#include "tier0/memdbgon.h"
 
 DEFINE_LOGGING_CHANNEL_NO_TAGS( LOG_VPC, "VPC" );
 
@@ -25,7 +34,7 @@ const char					*g_pOption_AdditionalIncludeDirectories = "$AdditionalIncludeDire
 const char					*g_pOption_AdditionalProjectDependencies = "$AdditionalProjectDependencies";
 const char					*g_pOption_AdditionalOutputFiles = "$AdditionalOutputFiles";
 const char					*g_pOption_PreprocessorDefinitions = "$PreprocessorDefinitions";
-char						*g_IncludeSeparators[2] = {";",","};
+const char					*g_IncludeSeparators[2] = {";",","};
 
 #ifdef POSIX
 #define _unlink unlink
@@ -60,6 +69,7 @@ CVPC::CVPC()
 	m_bShowDeps = false;
 	m_bP4AutoAdd = false;
 	m_bP4SlnCheckEverything = false;
+	m_bDedicatedBuild = false;
 	m_bInMkSlnPass = false;
 	m_bShowCaseIssues = false;
 	m_bVerboseMakefile = false;
@@ -108,7 +118,7 @@ CVPC::~CVPC()
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CVPC::Init( int argc, char **argv )
+bool CVPC::Init( int argc, const char **argv )
 {
 	m_nArgc = argc;
 	m_ppArgv = argv;
@@ -175,7 +185,8 @@ void CVPC::Shutdown( bool bHasError )
 	UnloadPerforceInterface();
 }
 
-#if defined( STANDALONE_VPC )
+// Usually you have no Perforce version control system.
+#if defined( STANDALONE_VPC ) && !defined( NO_PERFORCE )
 class CP4;
 extern CP4 s_p4;
 #endif
@@ -191,8 +202,12 @@ bool CVPC::LoadPerforceInterface()
 	}
 
 #if defined( STANDALONE_VPC )
+#if !defined( NO_PERFORCE )
 	p4 = (IP4*)&s_p4;
 	return (p4 != NULL);
+#else
+	return false;
+#endif
 #else
 
 	//
@@ -265,7 +280,7 @@ bool VPC_Config_IgnoreOption( const char *pPropertyName )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CVPC::VPCError( const char* format, ... )
+void CVPC::VPCError( PRINTF_FORMAT_STRING const char* format, ... )
 {
 	va_list		argptr;
 	char		msg[MAX_SYSPRINTMSG];
@@ -290,7 +305,7 @@ void CVPC::VPCError( const char* format, ... )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CVPC::VPCSyntaxError( const char* format, ... )
+void CVPC::VPCSyntaxError( PRINTF_FORMAT_STRING const char* format, ... )
 {
 	va_list		argptr;
 	char		msg[MAX_SYSPRINTMSG];
@@ -313,7 +328,7 @@ void CVPC::VPCSyntaxError( const char* format, ... )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CVPC::VPCWarning( const char* format, ... )
+void CVPC::VPCWarning( PRINTF_FORMAT_STRING const char* format, ... )
 {
 	va_list		argptr;
 	char		msg[MAX_SYSPRINTMSG];
@@ -335,7 +350,7 @@ void CVPC::VPCWarning( const char* format, ... )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CVPC::VPCStatus( bool bAlwaysSpew, const char* format, ... )
+void CVPC::VPCStatus( bool bAlwaysSpew, PRINTF_FORMAT_STRING const char* format, ... )
 {
 	if ( m_bQuiet )
 		return;
@@ -1073,7 +1088,7 @@ void CVPC::HandleSingleCommandLineArg( const char *pArg )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CVPC::ParseBuildOptions( int argc, char *argv[] )
+void CVPC::ParseBuildOptions( int argc, const char *argv[] )
 {
 	m_bDedicatedBuild = false;
 	m_bAppendSrvToDedicated = false;
@@ -1354,7 +1369,7 @@ bool CVPC::RestartFromCorrectLocation( bool *pIsChild )
 		}
 
 		// replicate arguments, add -restart as a recursion guard for the new process
-		char *newArgs[128];
+		const char *newArgs[128];
 		if ( m_nArgc >= V_ARRAYSIZE( newArgs ) - 2 )
 		{
 			VPCError( "Excessive Arguments: Tell A Programmer!, Aborting." );
@@ -1676,6 +1691,7 @@ void CVPC::FindProjectFromVCPROJ( const char *pScriptNameVCProj )
 	// mod and platform will be separated by '_' after the project name
 	// resolve to correct project, best will be longest match, due to project names like foo_? and foo_bar_?
 	char szProject[MAX_PATH];
+	szProject[0] = '\0';
 	unsigned int bestLen = 0;
 	for ( int i = 0; i < m_Projects.Count(); i++ )
 	{
@@ -1742,7 +1758,7 @@ void CVPC::FindProjectFromVCPROJ( const char *pScriptNameVCProj )
 		sprintf( localArgv[localArgc++], "/%s", szTokens[i] );
 	}
 
-	ParseBuildOptions( localArgc, localArgv );
+	ParseBuildOptions( localArgc, const_cast<const char**>(localArgv) );
 }
 
 //-----------------------------------------------------------------------------
@@ -2198,7 +2214,7 @@ bool CVPC::HasP4SLNCommand()
 //-----------------------------------------------------------------------------
 bool CVPC::HandleP4SLN( IBaseSolutionGenerator *pSolutionGenerator )
 {
-#ifdef WIN32
+#if defined( WIN32 ) && !defined( NO_PERFORCE )
 	// If they want to generate a solution based on a Perforce changelist, adjust m_targetProjects and set it up like /mksln had been passed in.
 	if ( m_iP4Changelists.Count() == 0 )
 		return false;
@@ -2661,7 +2677,7 @@ int vpcmain( int argc, char **argv )
 		char szSolutionFile[_MAX_PATH];
 		nRetVal = -1;
 
-		char *newargs[128] = { NULL };
+		const char *newargs[128] = { NULL };
 		int cParms = 0;
 
 		//
@@ -2670,7 +2686,7 @@ int vpcmain( int argc, char **argv )
 		Assert( argc <= V_ARRAYSIZE( newargs ) );
 		for ( int i = 0; i < argc; i++ )
 		{
-			char *pszArg = argv[i];
+			const char *pszArg = argv[i];
 
 			if ( !V_stricmp( pszArg, "/windows" ) || !V_stricmp( pszArg, "/dp" ) )
 			{
@@ -2774,7 +2790,7 @@ int vpcmain( int argc, char **argv )
 	}
 	else
 	{
-	if ( !g_pVPC->Init( argc, argv ) )
+	if ( !g_pVPC->Init( argc, const_cast<const char**>(argv) ) )
 	{
 		return 0;
 	}

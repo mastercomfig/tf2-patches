@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------
 // CpuTopology.cpp
 // 
-// CpuToplogy class implementation.
+// CpuTopology class implementation.
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-------------------------------------------------------------------------------------

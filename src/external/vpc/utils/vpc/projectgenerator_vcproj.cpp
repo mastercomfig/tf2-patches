@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 CProjectFile::CProjectFile( CVCProjGenerator *pGenerator, const char *pFilename )
 {
 	m_pGenerator = pGenerator;

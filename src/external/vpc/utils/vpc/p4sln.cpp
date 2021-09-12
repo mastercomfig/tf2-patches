@@ -7,6 +7,8 @@
 #include "vpc.h"
 #include "p4lib/ip4.h"
 
+#include "tier0/memdbgon.h"
+
 // fix filenames that have double backslashes at the start
 //   (Perforce will return this if the root of a clientspec is e.g. "D:\")
 static const char* FixPerforceFilename( const char *filename )

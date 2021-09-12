@@ -32,6 +32,7 @@ public:
 class CFileConfig
 {
 public:
+	CFileConfig() : m_nInsertOrder(0) {}
 	~CFileConfig();
 
 	void			Term();

@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 // This keyword works in both group and project scripts
 extern void VPC_SharedKeyword_Conditional();
 

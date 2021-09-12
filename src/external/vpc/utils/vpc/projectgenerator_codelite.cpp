@@ -13,6 +13,8 @@
 #define getcwd _getcwd
 #endif
 
+#include "tier0/memdbgon.h"
+
 static const char *k_pchSource = "Source Files";
 static const char *k_pchHeaders = "Header Files";
 static const char *k_pchResources = "Resources";

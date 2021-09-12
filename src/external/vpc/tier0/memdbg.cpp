@@ -13,10 +13,13 @@
 //#include <malloc.h>
 #include <string.h>
 #include "tier0/dbg.h"
+#if defined( USE_STACK_TRACES )
 #include "tier0/stackstats.h"
+#endif
 #include "tier0/memalloc.h"
 #include "tier0/fasttimer.h"
 #include "mem_helpers.h"
+#include "tier0_strtools.h"
 #ifdef PLATFORM_WINDOWS_PC
 #undef WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -418,8 +421,13 @@ inline void *InternalMalloc( size_t nSize, const char *pFileName, int nLine )
 	pInternalMem = (DbgMemHeader_t *)_malloc_dbg( nSize + sizeof(DbgMemHeader_t), _NORMAL_BLOCK, pFileName, nLine );
 #endif
 
-	pInternalMem->nLogicalSize = nSize;
-	return pInternalMem + 1;
+	if ( pInternalMem )
+	{
+		pInternalMem->nLogicalSize = nSize;
+		return pInternalMem + 1;
+	}
+
+	return NULL;
 #endif // WIN32
 }
 
@@ -521,8 +529,13 @@ inline void *InternalRealloc( void *pMem, size_t nNewSize, const char *pFileName
 	pInternalMem = (DbgMemHeader_t *)_realloc_dbg( pInternalMem, nNewSize + sizeof(DbgMemHeader_t), _NORMAL_BLOCK, pFileName, nLine );
 #endif
 
-	pInternalMem->nLogicalSize = nNewSize;
-	return pInternalMem + 1;
+	if ( pInternalMem )
+	{
+		pInternalMem->nLogicalSize = nNewSize;
+		return pInternalMem + 1;
+	}
+
+	return NULL;
 #endif // WIN32
 }
 
@@ -960,7 +973,7 @@ private:
 
 	virtual IVirtualMemorySection * AllocateVirtualMemorySection( size_t numMaxBytes )
 	{
-#if defined( _GAMECONSOLE ) || defined( _WIN32 )
+#if defined( _GAMECONSOLE )
 		extern IVirtualMemorySection * VirtualMemoryManager_AllocateVirtualMemorySection( size_t numMaxBytes );
 		return VirtualMemoryManager_AllocateVirtualMemorySection( numMaxBytes );
 #else
@@ -2124,11 +2137,11 @@ void CDbgMemAlloc::DumpStatsFileBase( char const *pchFileBase )
 	static int s_FileCount = 0;
 	if (m_OutputFunc == DefaultHeapReportFunc)
 	{
-		char *pPath = "";
+		const char pPath[] = "";
 #ifdef _X360
-		pPath = "D:\\";
+		const char pPath[] = "D:\\";
 #elif defined( _PS3 )
-		pPath = "/app_home/";
+		const char pPath[] = "/app_home/";
 #endif
 		
 
@@ -2149,6 +2162,7 @@ void CDbgMemAlloc::DumpStatsFileBase( char const *pchFileBase )
 		_snprintf( szFileName, sizeof( szFileName ), "%s%s_%d.txt", pPath, s_szStatsMapName, s_FileCount );
 #else
 		_snprintf( szFileName, sizeof( szFileName ), "%s%s_%d.txt", pPath, pchFileBase, s_FileCount );
+		szFileName[sizeof(szFileName) - 1] = '\0';
 #endif
 
 		++s_FileCount;
@@ -2358,6 +2372,7 @@ void CDbgMemAlloc::SetCRTAllocFailed( size_t nSize )
 	DebuggerBreakIfDebugging();
 	char buffer[256];
 	_snprintf( buffer, sizeof( buffer ), "***** OUT OF MEMORY! attempted allocation size: %u ****\n", nSize );
+	buffer[sizeof(buffer) - 1] = '\0';
 #if defined( _PS3 ) && defined( _DEBUG )
 	DebuggerBreak();
 #endif // _PS3

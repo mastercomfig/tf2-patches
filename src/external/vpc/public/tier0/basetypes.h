@@ -434,13 +434,13 @@ inline float FloatMakeNegative( vec_t f )
 // FIXME: why are these here?  Hardly anyone actually needs them.
 struct color24
 {
-	byte r, g, b;
+	::byte r, g, b;
 };
 
 typedef struct color32_s
 {
 	bool operator!=( const struct color32_s &other ) const;
-	byte r, g, b, a; 
+	::byte r, g, b, a;
 
 	// assign and copy by using the whole register rather
 	// than byte-by-byte copy. (No, the compiler is not

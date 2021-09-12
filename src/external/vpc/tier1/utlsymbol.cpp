@@ -6,8 +6,6 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#pragma warning (disable:4514)
-
 #include "utlsymbol.h"
 #include "tier0/threadtools.h"
 #include "stringpool.h"
@@ -229,7 +227,7 @@ bool CUtlSymbolTable::CLess::operator()( const CStringPoolIndex &i1, const CStri
 // constructor, destructor
 //-----------------------------------------------------------------------------
 CUtlSymbolTable::CUtlSymbolTable( int growSize, int initSize, bool caseInsensitive ) : 
-	m_Lookup( growSize, initSize ), m_bInsensitive( caseInsensitive ), m_StringPools( 8 )
+	m_Lookup( growSize, initSize ), m_bInsensitive( caseInsensitive ), m_nUserSearchStringHash(0), m_pUserSearchString(NULL), m_StringPools( 8 )
 {
 }
 

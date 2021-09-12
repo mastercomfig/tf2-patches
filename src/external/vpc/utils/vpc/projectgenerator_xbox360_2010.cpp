@@ -6,6 +6,8 @@
 
 #include "vpc.h"
 
+#include "tier0/memdbgon.h"
+
 #undef PROPERTYNAME
 #define PROPERTYNAME( X, Y ) { X##_##Y, #X, #Y },
 static PropertyName_t s_Xbox360PropertyNames_2010[] =
@@ -360,7 +362,7 @@ bool CProjectGenerator_Xbox360_2010::WritePrimaryXML( const char *pOutputFilenam
 
 bool CProjectGenerator_Xbox360_2010::WriteFolderToSecondaryXML( CProjectFolder *pFolder, const char *pParentPath )
 {
-	CUtlString parentPath = CFmtStr( "%s%s%s", pParentPath, pParentPath[0] ? "\\" : "", pFolder->m_Name.Get() );
+	CUtlString parentPath = CUtlString( CFmtStr( "%s%s%s", pParentPath, pParentPath[0] ? "\\" : "", pFolder->m_Name.Get() ) );
 
 	MD5Context_t ctx;
 	unsigned char digest[MD5_DIGEST_LENGTH];

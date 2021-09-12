@@ -6,8 +6,6 @@
 // Serialization buffer
 //===========================================================================//
 
-#pragma warning (disable : 4514)
-
 #include "utlbuffer.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -911,9 +909,6 @@ void CUtlBuffer::SeekGet( SeekType_t type, int offset )
 //-----------------------------------------------------------------------------
 // Parse...
 //-----------------------------------------------------------------------------
-
-#pragma warning ( disable : 4706 )
-
 int CUtlBuffer::VaScanf( const char* pFmt, va_list list )
 {
 	Assert( pFmt );
@@ -921,8 +916,7 @@ int CUtlBuffer::VaScanf( const char* pFmt, va_list list )
 		return 0;
 	
 	int numScanned = 0;
-	char c;
-	while ( c = *pFmt++ )
+	while ( char c = *pFmt++ )
 	{
 		// Stop if we hit the end of the buffer
 		if ( m_Get >= TellMaxPut() )
@@ -1092,8 +1086,6 @@ int CUtlBuffer::VaScanf( const char* pFmt, va_list list )
 	}
 	return numScanned;
 }
-
-#pragma warning ( default : 4706 )
 
 int CUtlBuffer::Scanf( const char* pFmt, ... )
 {

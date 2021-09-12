@@ -316,7 +316,8 @@ void CLoggingSystem::RegisterLoggingListener( ILoggingListener *pListener )
 
 	m_pStateMutex->Lock();
 	LoggingState_t *pState = GetCurrentState();
-	if ( pState->m_nListenerCount > MAX_LOGGING_CHANNEL_COUNT )
+	// Do not overflow m_RegisteredListeners.
+	if ( pState->m_nListenerCount >= MAX_LOGGING_LISTENER_COUNT )
 	{
 		// Out of logging listener slots... catastrophic fail!
 		Assert( 0 );

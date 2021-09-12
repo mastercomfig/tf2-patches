@@ -28,7 +28,7 @@ int Sys_LoadTextFileWithIncludes( const char* filename, char** bufferptr, bool b
 bool VPC_CheckProjectDependencyCRCs( const char *pProjectFilename, const char *pReferenceSupplementalString, char *pErrorString, int nErrorStringLength );
 
 // Used by vpccrccheck.exe or by vpc.exe to do the CRC check that's initiated in the pre-build steps.
-int VPC_CommandLineCRCChecks( int argc, char **argv );
+int VPC_CommandLineCRCChecks( int argc, const char **argv );
 
 
 #endif // CRCCHECK_SHARED_H

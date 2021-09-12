@@ -8,6 +8,12 @@
 #include "dependencies.h"
 #include "tier1/checksum_md5.h"
 
+#if defined( _WIN32 ) && !defined( _X360 )
+#include <windows.h>
+#endif
+
+#include "tier0/memdbgon.h"
+
 class CVCProjInfo
 {
 public:
@@ -268,7 +274,7 @@ public:
 			V_strncpy( szName, pPos, (pEnd - pPos) + 1 );
 			vcprojInfo.m_ProjectName = szName;
 
-			vcprojInfos.AddToTail( vcprojInfo );			
+			vcprojInfos.AddToTail( vcprojInfo );
 
 			free( pFileData );
 		}

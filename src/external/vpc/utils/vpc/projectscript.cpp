@@ -9,6 +9,8 @@
 #include "tier1/keyvalues.h"
 #include "baseprojectdatacollector.h"
 
+#include "tier0/memdbgon.h"
+
 #ifndef STEAM
  bool V_StrSubstInPlace( char *pchInOut, int cchInOut, const char *pMatch, const char *pReplaceWith, bool bCaseSensitive )
 {
@@ -1622,7 +1624,8 @@ void VPC_PrepareToReadScript( const char *pInputScriptName, int depth, bool bQui
 
 	g_pVPC->AddScriptToCRCCheck( szScriptName, CRC32_ProcessSingleBuffer( pScriptBuffer, scriptLen ) );
 
-	delete pScriptBuffer;
+	// Allocated via new[].
+	delete[] pScriptBuffer;
 	Sys_LoadTextFileWithIncludes( szScriptName, &pScriptBuffer, false );
 
 	g_pVPC->GetScript().PushScript( szScriptName, pScriptBuffer );
@@ -1680,7 +1683,8 @@ void VPC_HandleIncludeStatement( int depth, bool bQuiet, void (*CallbackFn)( con
 		VPC_AddCurrentVPCScriptToProjectFolder( false );
 
 		CallbackFn( szBigBuffer, depth+1, bQuiet );
-		free( pScriptBuffer );
+		// Allocated via new[].
+		delete[] pScriptBuffer;
 		
 		// restore state
 		g_pVPC->GetScript().PopScript();
@@ -1760,25 +1764,26 @@ void WriteCRCCheckFile( const char *pVCProjFilename )
 
 	fprintf( fp, "%s\n", VPCCRCCHECK_FILE_VERSION_STRING );
 	// add the executable crc
-			char vpcExeAbsPath[MAX_PATH]; vpcExeAbsPath[0] = '\0';
+	char vpcExeAbsPath[MAX_PATH]; vpcExeAbsPath[0] = '\0';
 	CRC32_t nCRCFromFileContents = 0;
-			if ( Sys_GetExecutablePath( vpcExeAbsPath, sizeof( vpcExeAbsPath ) ) )
+	if ( Sys_GetExecutablePath( vpcExeAbsPath, sizeof( vpcExeAbsPath ) ) )
 	{
 		char *pBuffer;
-				int cbVPCExe = Sys_LoadFile( vpcExeAbsPath, (void**)&pBuffer );
+		int cbVPCExe = Sys_LoadFile( vpcExeAbsPath, (void**)&pBuffer );
 
 		// Calculate the CRC from the contents of the file.
 		nCRCFromFileContents = CRC32_ProcessSingleBuffer( pBuffer, cbVPCExe );
-		delete [] pBuffer;
+		// Allocated via malloc.
+		free( pBuffer );
 	}
 
-			const char *vpcExePath = vpcExeAbsPath;
+	const char *vpcExePath = vpcExeAbsPath;
 
-			char vpcExeRelPath[MAX_PATH]; vpcExeRelPath[0] = '\0';
-			if ( V_MakeRelativePath( vpcExeAbsPath, g_pVPC->GetProjectPath(), vpcExeRelPath, sizeof( vpcExeRelPath ) ) )
-			{
-				vpcExePath = vpcExeRelPath;
-			}
+	char vpcExeRelPath[MAX_PATH]; vpcExeRelPath[0] = '\0';
+	if ( V_MakeRelativePath( vpcExeAbsPath, g_pVPC->GetProjectPath(), vpcExeRelPath, sizeof( vpcExeRelPath ) ) )
+	{
+		vpcExePath = vpcExeRelPath;
+	}
 
 	fprintf( fp, "%8.8x %s\n", ( unsigned int ) nCRCFromFileContents, vpcExePath );
 
@@ -2133,7 +2138,8 @@ bool CVPC::ParseProjectScript( const char *pScriptName, int depth, bool bQuiet, 
 
 	VPC_ParseProjectScriptParameters( szScriptName, depth, bQuiet );
 
-	free( pScriptBuffer );
+	// Allocated via new[].
+	delete [] pScriptBuffer;
 
 	// for safety, force callers to restore to proper state
 	g_pVPC->GetScript().PopScript();

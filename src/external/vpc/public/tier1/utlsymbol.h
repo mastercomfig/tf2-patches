@@ -131,7 +131,7 @@ protected:
 	class CStringPoolIndex
 	{
 	public:
-		inline CStringPoolIndex()
+		inline CStringPoolIndex() : m_iPool(0), m_iOffset(0)
 		{
 		}
 

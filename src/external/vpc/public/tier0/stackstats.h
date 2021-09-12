@@ -238,7 +238,7 @@ private:
 	void KeepSubTree( CCallStackStatsGatherer_Standardized_t &SubTree )
 	{
 		AUTO_LOCK_FM( m_SubTreeMutex );
-		for( StoredSubTreeVector_t::iterator treeIter = m_StoredSubTrees.begin(); treeIter != m_StoredSubTrees.end(); ++treeIter )
+		for( typename StoredSubTreeVector_t::iterator treeIter = m_StoredSubTrees.begin(); treeIter != m_StoredSubTrees.end(); ++treeIter )
 		{
 			if( SubTree.pGatherer == treeIter->pGatherer )
 				return;			
@@ -264,7 +264,7 @@ private:
 		}
 
 		unsigned long iThreadID = ThreadGetCurrentId();
-		PushedSubTreeVector_t::reverse_iterator treeIter;
+		typename PushedSubTreeVector_t::reverse_iterator treeIter;
 		for( treeIter = m_PushedSubTrees.rbegin(); treeIter != m_PushedSubTrees.rend(); ++treeIter )
 		{
 			if( treeIter->iThreadID == iThreadID )
@@ -642,12 +642,12 @@ void CCallStackStatsGatherer<STATSTRUCT, CAPTUREDCALLSTACKLENGTH, STACKACQUISITI
 	pParentCast->m_SubTreeMutex.Lock();
 	unsigned long iThreadID = ThreadGetCurrentId();
 	
-	for( PushedSubTreeVector_t::reverse_iterator treeIter = pParentCast->m_PushedSubTrees.rbegin(); treeIter != pParentCast->m_PushedSubTrees.rend(); ++treeIter )
+	for( typename PushedSubTreeVector_t::reverse_iterator treeIter = pParentCast->m_PushedSubTrees.rbegin(); treeIter != pParentCast->m_PushedSubTrees.rend(); ++treeIter )
 	{
 		if( treeIter->iThreadID == iThreadID )
 		{
 			++treeIter; //[24.4.1/1] &*(reverse_iterator(i)) == &*(i - 1)
-			PushedSubTreeVector_t::iterator eraseIter = treeIter.base();
+			typename PushedSubTreeVector_t::iterator eraseIter = treeIter.base();
 			pParentCast->m_PushedSubTrees.erase(eraseIter);
 			break;
 		}
@@ -667,14 +667,14 @@ void CCallStackStatsGatherer<STATSTRUCT, CAPTUREDCALLSTACKLENGTH, STACKACQUISITI
 		pParentCast->m_IndexMapMutex.Lock();
 		pParentCast->m_SubTreeMutex.Lock();
 
-		for( StoredSubTreeVector_t::iterator treeIter = pParentCast->m_StoredSubTrees.begin(); treeIter != pParentCast->m_StoredSubTrees.end(); ++treeIter )
+		for( typename StoredSubTreeVector_t::iterator treeIter = pParentCast->m_StoredSubTrees.begin(); treeIter != pParentCast->m_StoredSubTrees.end(); ++treeIter )
 		{
 			treeIter->pFunctionTable->pfn_SyncMutexes( treeIter->pGatherer, true );
 		}
 	}
 	else
 	{
-		for( StoredSubTreeVector_t::iterator treeIter = pParentCast->m_StoredSubTrees.begin(); treeIter != pParentCast->m_StoredSubTrees.end(); ++treeIter )
+		for( typename StoredSubTreeVector_t::iterator treeIter = pParentCast->m_StoredSubTrees.begin(); treeIter != pParentCast->m_StoredSubTrees.end(); ++treeIter )
 		{
 			treeIter->pFunctionTable->pfn_SyncMutexes( treeIter->pGatherer, false );
 		}
