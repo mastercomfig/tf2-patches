@@ -617,6 +617,8 @@ inline UtlTSHashHandle_t CUtlTSHash<T,BUCKET_COUNT,KEYTYPE,HashFuncs,nAlignment>
 {
 	Assert( pElement );
 	HashFixedData_t *pFixedData = (HashFixedData_t*)( (uint8*)pElement - offsetof( HashFixedData_t, m_Data ) );
+	// TODO(mastercoms): new mempool
+	// Assert( m_EntryMemory.IsAllocationWithinPool( pFixedData ) );
 	return (UtlTSHashHandle_t)pFixedData;
 }
 
