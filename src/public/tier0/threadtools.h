@@ -1011,7 +1011,7 @@ inline void CThreadSpinningMutex::Lock()
 			tries++;
 		}
 		constexpr int kMaxBackoff = 64;
-		backoff = std::min(kMaxBackoff, backoff << 1);
+		backoff = (std::min)(kMaxBackoff, backoff << 1);
 	} while (tries < iSpinCount);
 
 	LockSlow();
