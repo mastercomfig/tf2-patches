@@ -305,7 +305,7 @@ public:
 				soundemitterbase->AddSoundOverrides( scriptfile );
 			}
 			// only load embedded level sounds file if map level sounds file doesn't exist
-			else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "GAME" ) )
+			else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "BSP" ) )
 			{
 				soundemitterbase->AddSoundOverrides( EMBED_LEVEL_SOUNDS_FILE );
 			}
@@ -319,7 +319,7 @@ public:
 			soundemitterbase->AddSoundOverrides( scriptfile );
 		}
 		// only load embedded level sounds file if map level sounds file doesn't exist
-		else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "GAME" ) )
+		else if ( filesystem->FileExists( EMBED_LEVEL_SOUNDS_FILE, "BSP" ) )
 		{
 			soundemitterbase->AddSoundOverrides( EMBED_LEVEL_SOUNDS_FILE );
 		}

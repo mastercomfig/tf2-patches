@@ -336,7 +336,7 @@ bool C_SoundscapeSystem::Init()
 			AddSoundScapeFile( mapSoundscapeFilename );
 		}
 		// only load embedded soundscape file if map soundscape file doesn't exist
-		else if ( SOUNDSCAPE_EMBED_FILE && filesystem->FileExists( SOUNDSCAPE_EMBED_FILE ) )
+		else if ( filesystem->FileExists( SOUNDSCAPE_EMBED_FILE, "BSP" ) )
 		{
 			AddSoundScapeFile( SOUNDSCAPE_EMBED_FILE );
 		}
