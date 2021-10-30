@@ -91,6 +91,9 @@
 			// The map search pack is mounted at the top of the search path list,
 			// but only while you are connected that server and on that map.
 			game+download	tf/download
+
+			// Workshop folder needs a search path to be able to cache sounds
+			game				|all_source_engine_paths|../../workshop/content/440
 		}
 	}
 
