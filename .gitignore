@@ -381,4 +381,4 @@ generated_proto*/
 !src/lib/public/x64/vstdlib.lib
 
 # ignore local build vpc
-devtools/bin/vpc.exe
+src/devtools/bin/vpc.exe
