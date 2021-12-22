@@ -2360,7 +2360,7 @@ public:
 				else if ( pPlayer->m_Shared.m_bChargeGlowing )
 				{
 					// Cool down the charge glow after charging.
-					float flGlow = 1.f - MIN( (gpGlobals->curtime - pPlayer->m_Shared.m_flLastNoChargeTime) / 0.3f, 1.f );
+					float flGlow = 1.f - MIN((gpGlobals->curtime - pPlayer->m_Shared.m_flLastNoChargeTime - 1.5f) / 0.3f,1);
 
 					if ( flGlow <= 0 )
 					{
