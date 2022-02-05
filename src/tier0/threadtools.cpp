@@ -1209,7 +1209,7 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 					tries++;
 				}
 				constexpr int kMaxBackoff = 64;
-				backoff = min(kMaxBackoff, backoff << 1);
+				backoff = std::min(kMaxBackoff, backoff << 1);
 				if (CheckSignaledAll(nEvents, pEvents))
 				{
 					bRet = true;
@@ -1354,7 +1354,7 @@ int CStdThreadEvent::WaitForMultiple(int nEvents, CStdThreadEvent* const* pEvent
 					tries++;
 				}
 				constexpr int kMaxBackoff = 64;
-				backoff = min(kMaxBackoff, backoff << 1);
+				backoff = std::min(kMaxBackoff, backoff << 1);
 				if (CheckSignaledAny(nEvents, pEvents, iEventIndex))
 				{
 					bRet = true;
