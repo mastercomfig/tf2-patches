@@ -323,14 +323,14 @@ public:
 	inline void SetInt64( int64 n64 )		{ _i64toa( n64, m_szBuf, 10 ); }
 	inline void SetUint64( uint64 un64 )	{ _ui64toa( un64, m_szBuf, 10 ); }
 #else
-	inline void SetInt8( int8 n8 )			{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)n8 ); }
-	inline void SetUint8( uint8 un8 )		{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)un8 ); }
-	inline void SetInt16( int16 n16 )		{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)n16 ); }
-	inline void SetUint16( uint16 un16 )	{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)un16 ); }
-	inline void SetInt32( int32 n32 )		{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%d", n32 ); }
-	inline void SetUint32( uint32 un32 )	{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%u", un32 ); }
-	inline void SetInt64( int64 n64 )		{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%lld", n64 ); }
-	inline void SetUint64( uint64 un64 )	{ Q_snprintf( m_szBuf, sizeof(m_szBuf), "%llu", un64 ); }
+	inline void SetInt8( int8 n8 )			{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)n8 ); }
+	inline void SetUint8( uint8 un8 )		{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)un8 ); }
+	inline void SetInt16( int16 n16 )		{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)n16 ); }
+	inline void SetUint16( uint16 un16 )	{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%d", (int32)un16 ); }
+	inline void SetInt32( int32 n32 )		{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%d", n32 ); }
+	inline void SetUint32( uint32 un32 )	{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%u", un32 ); }
+	inline void SetInt64( int64 n64 )		{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%lld", n64 ); }
+	inline void SetUint64( uint64 un64 )	{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%llu", un64 ); }
 #endif
 
 	inline void SetDouble( double f )		{ V_snprintf( m_szBuf, sizeof(m_szBuf), "%.18g", f ); }
