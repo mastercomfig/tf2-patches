@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-cd "$(dirname "$0")"/../game
+cd "$(dirname "$0")"/game
 
 MANGO="$(command -v mangohud || true)"
 ARGS="-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -nobreakpad -console"
