@@ -3812,7 +3812,7 @@ void CMaterialSystem::EndFrame( void )
 		}
 
 		m_ThreadMode = nextThreadMode;
-		Assert( g_MatSysMutex.GetOwnerId() == 0 );
+//		Assert( g_MatSysMutex.GetOwnerId() == 0 );
 
 		g_pShaderAPI->EnableShaderShaderMutex( m_ThreadMode != MATERIAL_SINGLE_THREADED ); // use mutex even for queued to allow "disalow access" to function properly
 		g_pShaderAPI->EnableBuffer2FramesAhead( true );
