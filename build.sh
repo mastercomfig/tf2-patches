@@ -89,6 +89,7 @@ if [[ ! -f "thirdparty/protobuf-2.6.1/src/.libs/libprotobuf.a" ]]; then
 			export PATH=/bin:/usr/bin
 			export CC="$CC"
 			export CXX="$CXX"
+			autoreconf
 			chmod u+x configure
 			./configure "CFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
 				"CXXFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
@@ -96,6 +97,7 @@ if [[ ! -f "thirdparty/protobuf-2.6.1/src/.libs/libprotobuf.a" ]]; then
 			make "-j$CORES"
 EOF
 	else
+		autoreconf
 		chmod u+x configure
 		./configure "CFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
 			"CXXFLAGS=-m32 -Wno-reserved-user-defined-literal -D_GLIBCXX_USE_CXX11_ABI=0 ${CF_SUPPRESSION}" \
