@@ -139,7 +139,11 @@ enum
 
 	STATIC_PROP_NO_PER_TEXEL_LIGHTING = 0x100,				// whether we should do per-texel lightmaps in vrad.
 
-	STATIC_PROP_WC_MASK		= 0x1d8,						// all flags settable in hammer (?)
+	//STATIC_PROP_WC_MASK		= 0x1d8,						// all flags settable in hammer (?)
+															// (fiend) commenting out because it ultimately goes unused and i need the space.
+
+	// (fiend) Added to the end, but automatically computed like the ones up top
+	STATIC_PROP_FLAG_POPS	= 0x1d8,
 };
 
 struct StaticPropDictLump_t

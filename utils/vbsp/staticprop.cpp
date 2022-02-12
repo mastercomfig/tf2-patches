@@ -51,6 +51,7 @@ struct StaticPropBuild_t
 	float	m_FadeMinDist;
 	float	m_FadeMaxDist;
 	bool	m_FadesOut;
+	bool	m_PopsOut;
 	float	m_flForcedFadeScale;
 	unsigned short	m_nMinDXLevel;
 	unsigned short	m_nMaxDXLevel;
@@ -500,9 +501,13 @@ static void AddStaticPropToLump( StaticPropBuild_t const& build )
 	propLump.m_Solid = build.m_Solid;
 	propLump.m_Skin = build.m_Skin;
 	propLump.m_Flags = build.m_Flags;
-	if (build.m_FadesOut)
+	if ( build.m_FadesOut )
 	{
 		propLump.m_Flags |= STATIC_PROP_FLAG_FADES;
+	}
+	if ( build.m_PopsOut )
+	{
+		propLump.m_Flags |= STATIC_PROP_FLAG_POPS;
 	}
 	propLump.m_FadeMinDist = build.m_FadeMinDist;
 	propLump.m_FadeMaxDist = build.m_FadeMaxDist;
@@ -573,13 +578,13 @@ void EmitStaticProps()
 	if ( physicsFactory )
 	{
 		s_pPhysCollision = (IPhysicsCollision *)physicsFactory( VPHYSICS_COLLISION_INTERFACE_VERSION, NULL );
-		if( !s_pPhysCollision )
+		if ( !s_pPhysCollision )
 			return;
 	}
 
 	// Generate a list of lighting origins, and strip them out
 	int i;
-	for ( i = 0; i < num_entities; ++i)
+	for ( i = 0; i < num_entities; ++i )
 	{
 		char* pEntity = ValueForKey(&entities[i], "classname");
 		if (!Q_strcmp(pEntity, "info_lighting"))
@@ -589,7 +594,7 @@ void EmitStaticProps()
 	}
 
 	// Emit specifically specified static props
-	for ( i = 0; i < num_entities; ++i)
+	for ( i = 0; i < num_entities; ++i )
 	{
 		char* pEntity = ValueForKey(&entities[i], "classname");
 		if (!strcmp(pEntity, "static_prop") || !strcmp(pEntity, "prop_static"))
@@ -602,6 +607,7 @@ void EmitStaticProps()
 			build.m_Solid = IntForKey( &entities[i], "solid" );
 			build.m_Skin = IntForKey( &entities[i], "skin" );
 			build.m_FadeMaxDist = FloatForKey( &entities[i], "fademaxdist" );
+			build.m_FadeMinDist = FloatForKey( &entities[i], "fademindist" );
 			build.m_Flags = 0;//IntForKey( &entities[i], "spawnflags" ) & STATIC_PROP_WC_MASK;
 			if (IntForKey( &entities[i], "ignorenormals" ) == 1)
 			{
@@ -625,9 +631,9 @@ void EmitStaticProps()
 				build.m_Flags |= STATIC_PROP_SCREEN_SPACE_FADE;
 			}
 
-			if (IntForKey( &entities[i], "generatelightmaps") == 0)
+			if (IntForKey( &entities[i], "generatelightmaps" ) == 0)
 			{
-				build.m_Flags |= STATIC_PROP_NO_PER_TEXEL_LIGHTING;			
+				build.m_Flags |= STATIC_PROP_NO_PER_TEXEL_LIGHTING;
 				build.m_LightmapResolutionX = 0;
 				build.m_LightmapResolutionY = 0;
 			}
@@ -646,15 +652,12 @@ void EmitStaticProps()
 			{
 				build.m_flForcedFadeScale = 1;
 			}
-			build.m_FadesOut = (build.m_FadeMaxDist > 0);
+			build.m_FadesOut = (build.m_FadeMaxDist > 0 && build.m_FadeMaxDist != build.m_FadeMinDist && build.m_FadeMinDist >= 0);
+			build.m_PopsOut = (build.m_FadesOut == 0 && build.m_FadeMaxDist > 0 && (build.m_FadeMinDist < 0 || build.m_FadeMinDist == build.m_FadeMaxDist));
 			build.m_pLightingOrigin = ValueForKey( &entities[i], "lightingorigin" );
 			if (build.m_FadesOut)
-			{			  
+			{
 				build.m_FadeMinDist = FloatForKey( &entities[i], "fademindist" );
-				if (build.m_FadeMinDist < 0)
-				{
-					build.m_FadeMinDist = build.m_FadeMaxDist; 
-				}
 			}
 			else
 			{

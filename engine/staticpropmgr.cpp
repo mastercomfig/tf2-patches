@@ -269,6 +269,8 @@ public:
 
 	void SetFadeIndex( unsigned short nIndex ) { m_FadeIndex = nIndex; }
 	unsigned short FadeIndex() const { return m_FadeIndex; }
+	void SetPopIndex(unsigned short nIndex) { m_PopIndex = nIndex; }
+	unsigned short PopIndex() const { return m_PopIndex; }
 	float ForcedFadeScale() const { return m_flForcedFadeScale; }
 	int	DrawModelSlow( int flags );
 
@@ -308,6 +310,7 @@ private:
 	CBaseHandle				m_EntHandle;	// FIXME: Do I need client + server handles?
 	ClientRenderHandle_t	m_RenderHandle;
 	unsigned short			m_FadeIndex;	// Index into the m_StaticPropFade dictionary
+	unsigned short			m_PopIndex;		// (fiend) same as above but for pop
 	float					m_flForcedFadeScale;
 
 	// bbox is the same for both GetBounds and GetRenderBounds since static props never move.
@@ -403,6 +406,9 @@ private:
 	unsigned char ComputeScreenFade( CStaticProp &prop, float flMinSize, float flMaxSize, float flFalloffFactor );
 	void ChangeRenderGroup( CStaticProp &prop );
 
+	// (fiend) same as above but for pop
+	unsigned char ComputeScreenPop( CStaticProp& prop, float flMinSize);
+
 private:
 	// Unique static prop models
 	struct StaticPropDict_t
@@ -435,6 +441,9 @@ private:
 
 	// Static props that fade...
 	CUtlVector<StaticPropFade_t>	m_StaticPropFade;
+
+	// (fiend) Static props that pop
+	CUtlVector<StaticPropFade_t>	m_StaticPropPop;
 
 	bool							m_bLevelInitialized;
 	bool							m_bClientInitialized;
@@ -489,6 +498,7 @@ bool CStaticProp::Init( int index, StaticPropLump_t &lump, model_t *pModel )
 	m_LeafCount = lump.m_LeafCount;
 	m_nSolidType = lump.m_Solid;
 	m_FadeIndex = INVALID_FADE_INDEX;
+	m_PopIndex = INVALID_FADE_INDEX;
 
 	MDLCACHE_CRITICAL_SECTION_( g_pMDLCache );
 
@@ -532,7 +542,7 @@ bool CStaticProp::Init( int index, StaticPropLump_t &lump, model_t *pModel )
 
 	m_Alpha = 255;
 	m_Skin = (unsigned char)lump.m_Skin;
-	m_Flags = ( lump.m_Flags & (STATIC_PROP_SCREEN_SPACE_FADE | STATIC_PROP_FLAG_FADES | STATIC_PROP_NO_PER_VERTEX_LIGHTING) );
+	m_Flags = ( lump.m_Flags & ( STATIC_PROP_SCREEN_SPACE_FADE | STATIC_PROP_FLAG_POPS | STATIC_PROP_FLAG_FADES | STATIC_PROP_NO_PER_VERTEX_LIGHTING ) );
 
 	int nCurrentDXLevel = g_pMaterialSystemHardwareConfig->GetDXSupportLevel();
 	bool bNoDraw = ( lump.m_nMinDXLevel && lump.m_nMinDXLevel >	nCurrentDXLevel );
@@ -1351,7 +1361,7 @@ void CStaticPropMgr::UnserializeModels( CUtlBuffer& buf )
 		// to be faded out. Not sure if this is the optimal way of doing it
 		// but it's easy for now; we'll have to test later how large this list gets.
 		// If it's <100 or so, we should be fine
-		if (lump.m_Flags & STATIC_PROP_FLAG_FADES)
+		if ( lump.m_Flags & STATIC_PROP_FLAG_FADES )
 		{
 			int idx = m_StaticPropFade.AddToTail();
 			m_StaticProps[i].SetFadeIndex( (unsigned short)idx );
@@ -1360,26 +1370,32 @@ void CStaticPropMgr::UnserializeModels( CUtlBuffer& buf )
 			fade.m_MinDistSq = lump.m_FadeMinDist;
 			fade.m_MaxDistSq = lump.m_FadeMaxDist;
 
-			if ( (lump.m_Flags & STATIC_PROP_SCREEN_SPACE_FADE) == 0 )
+			if ( (lump.m_Flags & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
 			{
 				fade.m_MinDistSq *= fade.m_MinDistSq;
 				fade.m_MaxDistSq *= fade.m_MaxDistSq;
-			}
 
-			if (fade.m_MaxDistSq != fade.m_MinDistSq)
-			{
-				if (lump.m_Flags & STATIC_PROP_SCREEN_SPACE_FADE)
-				{
-					fade.m_FalloffFactor = 255.0f / (fade.m_MaxScreenWidth - fade.m_MinScreenWidth);
-				}
-				else
-				{
-					fade.m_FalloffFactor = 255.0f / (fade.m_MaxDistSq - fade.m_MinDistSq);
-				}
+				fade.m_FalloffFactor = 255.0f / (fade.m_MaxDistSq - fade.m_MinDistSq);
 			}
 			else
 			{
-				fade.m_FalloffFactor = 255.0f;
+				fade.m_FalloffFactor = 255.0f / (fade.m_MaxScreenWidth - fade.m_MinScreenWidth);
+			}
+		}
+		else if ( lump.m_Flags & STATIC_PROP_FLAG_POPS )
+		{
+			int idx = m_StaticPropPop.AddToTail();
+			m_StaticProps[i].SetPopIndex( (unsigned short)idx );
+			StaticPropFade_t& pop = m_StaticPropPop[idx];
+			pop.m_Model = i;
+
+			pop.m_MinDistSq = lump.m_FadeMinDist;
+			pop.m_MaxDistSq = lump.m_FadeMaxDist;
+
+			if ( ( lump.m_Flags & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
+			{
+				pop.m_MinDistSq *= pop.m_MinDistSq;
+				pop.m_MaxDistSq *= pop.m_MaxDistSq;
 			}
 		}
 
@@ -1488,6 +1504,7 @@ void CStaticPropMgr::LevelShutdown()
 	m_StaticProps.Purge();
 	m_StaticPropDict.Purge();
 	m_StaticPropFade.Purge();
+	m_StaticPropPop.Purge();
 }
 
 void CStaticPropMgr::LevelInitClient()
@@ -2050,6 +2067,29 @@ unsigned char CStaticPropMgr::ComputeScreenFade( CStaticProp &prop, float flMinS
 
 
 //-----------------------------------------------------------------------------
+// (fiend) Same as above but for pop
+//-----------------------------------------------------------------------------
+unsigned char CStaticPropMgr::ComputeScreenPop( CStaticProp& prop, float flMinSize )
+{
+	CMatRenderContextPtr pRenderContext( materials );
+
+	float flPixelWidth = pRenderContext->ComputePixelWidthOfSphere( prop.GetRenderOrigin(), prop.Radius() );
+
+	unsigned char alpha = 0;
+	if ( flPixelWidth < flMinSize )
+	{
+		alpha = 0;
+	}
+	else
+	{
+		alpha = 255;
+	}
+
+	return alpha;
+}
+
+
+//-----------------------------------------------------------------------------
 // Changes the render group based on alpha
 //-----------------------------------------------------------------------------
 void CStaticPropMgr::ChangeRenderGroup( CStaticProp &prop )
@@ -2106,7 +2146,7 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 		return;
 	}
 
-	if ( (prop.Flags() & STATIC_PROP_FLAG_FADES) != 0 )
+	if ( ( prop.Flags() & STATIC_PROP_FLAG_FADES ) != 0 )
 	{
 		// Distance-based fading.
 		// Step over the list of all things that want to be faded out and recompute alpha
@@ -2123,7 +2163,7 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 		unsigned char alpha;
 
 		// Calculate distance (badly)
-		if ( (prop.Flags() & STATIC_PROP_SCREEN_SPACE_FADE) == 0 )
+		if ( ( prop.Flags() & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
 		{
 			VectorSubtract( prop.GetRenderOrigin(), m_vecLastViewOrigin, v );
 			VectorScale( v, m_flLastViewFactor, v );
@@ -2132,9 +2172,9 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 			float sqDist = v.LengthSqr();
 			if ( sqDist < fade.m_MaxDistSq )
 			{
-				if ( (fade.m_MinDistSq >= 0) && (sqDist > fade.m_MinDistSq) )
+				if ( ( fade.m_MinDistSq >= 0) && (sqDist > fade.m_MinDistSq ) )
 				{
-					int nAlpha = fade.m_FalloffFactor * (fade.m_MaxDistSq - sqDist);
+					int nAlpha = fade.m_FalloffFactor * ( fade.m_MaxDistSq - sqDist );
 					alpha = clamp( nAlpha, 0, 255 );
 				}
 				else
@@ -2146,6 +2186,40 @@ void CStaticPropMgr::ComputePropOpacity( CStaticProp &prop )
 		else
 		{
 			alpha = ComputeScreenFade( prop, fade.m_MinScreenWidth, fade.m_MaxScreenWidth, fade.m_FalloffFactor ); 
+		}
+
+		prop.SetAlpha( alpha );
+		ChangeRenderGroup( prop );
+	}
+	else if ( ( prop.Flags() & STATIC_PROP_FLAG_POPS ) != 0 )
+	{
+		Assert( prop.PopIndex() != INVALID_FADE_INDEX );
+
+		Vector v;
+
+		StaticPropFade_t& pop = m_StaticPropPop[prop.PopIndex()];
+
+		unsigned char alpha;
+
+		if ( ( prop.Flags() & STATIC_PROP_SCREEN_SPACE_FADE ) == 0 )
+		{
+			VectorSubtract( prop.GetRenderOrigin(), m_vecLastViewOrigin, v );
+			VectorScale( v, m_flLastViewFactor, v );
+
+			alpha = 0;
+			float sqDist = v.LengthSqr();
+			if ( sqDist > pop.m_MaxDistSq )
+			{
+				alpha = 0;
+			}
+			else
+			{
+				alpha = 255;
+			}
+		}
+		else
+		{
+			alpha = ComputeScreenPop( prop, pop.m_MinScreenWidth );
 		}
 
 		prop.SetAlpha( alpha );
