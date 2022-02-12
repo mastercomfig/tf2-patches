@@ -1317,14 +1317,11 @@ void CHudBuildingStatusContainer_Engineer::OnTick()
 	{
 		bool bDisposableSentriesVisible = false;
 
-		if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() )
+		int nDisposableSentries = 0;
+		CALL_ATTRIB_HOOK_INT_ON_OTHER( pLocalPlayer, nDisposableSentries, engy_disposable_sentries );
+		if ( nDisposableSentries )
 		{
-			int nDisposableSentries = 0;
-			CALL_ATTRIB_HOOK_INT_ON_OTHER( pLocalPlayer, nDisposableSentries, engy_disposable_sentries );
-			if ( nDisposableSentries )
-			{
-				bDisposableSentriesVisible = true;
-			}
+			bDisposableSentriesVisible = true;
 		}
 
 #ifdef STAGING_ONLY	
