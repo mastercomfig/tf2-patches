@@ -17,6 +17,17 @@ Team Comtress 2 is a set of modifications on top of an older version of Team For
 
 TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and ***is not compatible*** with the modern game client.
 
+### Does TC2 include other community patches?
+
+Yes! We include quite a few high quality patches from the community, to represent a more comprehensive patch to the whole game, including UI and assets.
+
+This project currently includes...
+
+* [Ultimate TF2	Visual Fix Pack](https://github.com/agrastiOs/Ultimate-TF2-Visual-Fix-Pack)
+* [TF2 Community HUD Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=2153598398)
+* [Misc. Response Rule Fixes for Mann vs. Machine](https://steamcommunity.com/sharedfiles/filedetails/?id=2222988229)
+* [Misc. Cosmetic Material Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=2231815530)
+
 ## How can I help?
 
 1. **Report bugs that exist in live TF2 *or* TC2 through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
