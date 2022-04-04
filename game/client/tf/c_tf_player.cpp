@@ -735,7 +735,7 @@ private:
 	float m_flHeadScale;
 	float m_flTorsoScale;
 	float m_flHandScale;
-	int m_iKillerTeam;	// Grab the team of the killer, so that effects like dissolving are consistent rather than per team.
+	int m_iKillerTeam;	// (fiend) Grab the team of the killer, so that effects like dissolving are consistent rather than per team.
 						// fixes suicides with dissolving weapons using the wrong team color
 
 	CMaterialReference		m_MaterialOverride;
