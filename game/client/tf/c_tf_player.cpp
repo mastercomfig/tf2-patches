@@ -735,6 +735,8 @@ private:
 	float m_flHeadScale;
 	float m_flTorsoScale;
 	float m_flHandScale;
+	int m_iKillerTeam;	// (fiend) Grab the team of the killer, so that effects like dissolving are consistent rather than per team.
+						// fixes suicides with dissolving weapons using the wrong team color
 
 	CMaterialReference		m_MaterialOverride;
 
@@ -769,6 +771,7 @@ IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_TFRagdoll, DT_TFRagdoll, CTFRagdoll )
 	RecvPropFloat( RECVINFO( m_flHeadScale ) ),
 	RecvPropFloat( RECVINFO( m_flTorsoScale ) ),
 	RecvPropFloat( RECVINFO( m_flHandScale ) ),
+	RecvPropInt( RECVINFO( m_iKillerTeam ) ),
 END_RECV_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -808,6 +811,7 @@ C_TFRagdoll::C_TFRagdoll()
 	m_flHeadScale = 1.f;
 	m_flTorsoScale = 1.f;
 	m_flHandScale = 1.f;
+	m_iKillerTeam = -1;
 
 	UseClientSideAnimation();
 
@@ -1869,16 +1873,15 @@ void C_TFRagdoll::DissolveEntity( CBaseEntity* pEnt )
 		pDissolve->SetRenderColor( 255, 255, 255, 255 );
 
 		Vector vColor;
-		if ( m_iTeam == TF_TEAM_BLUE )
+		if ( m_iKillerTeam == TF_TEAM_BLUE )
 		{
-			vColor = TF_PARTICLE_WEAPON_RED_1 * 255;
-			pDissolve->SetEffectColor( vColor );
+			vColor = TF_PARTICLE_WEAPON_BLUE_1 * 255;
 		}
 		else
 		{
-			vColor = TF_PARTICLE_WEAPON_BLUE_1 * 255;
-			pDissolve->SetEffectColor( vColor );
+			vColor = TF_PARTICLE_WEAPON_RED_1 * 255;
 		}
+		pDissolve->SetEffectColor( vColor );
 
 		pDissolve->m_vDissolverOrigin = GetAbsOrigin();
 
