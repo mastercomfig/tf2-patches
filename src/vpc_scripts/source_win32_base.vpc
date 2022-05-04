@@ -16,10 +16,10 @@ $Configuration
 		$PlatformToolset "v110" [$VS2012 && $ANALYZE] // VS 2012 for /analyze
 		$PlatformToolset "v120_xp" [$VS2013 && !$ANALYZE] // VS 2013 targeting Windows XP - http://msdn.microsoft.com/en-us/library/vstudio/jj851139.aspx
 		$PlatformToolset "v120" [$VS2013 && $ANALYZE] // VS 2013 for /analyze
-		// HACK(mastercoms): only use v142 (no _xp) for VS 2019 support
+		// HACK(mastercoms): only use v143 (no _xp) for VS 2022 support
 		// $PlatformToolset "v140_xp" [$VS2015 && !$ANALYZE] // VS 2015 for /analyze
-		// HACK(mastercoms): use VS2019 in place of VS2015, because there's too many VS2015 definitions
-		$PlatformToolset "v142" [$VS2015] // VS 2019 for /analyze
+		// HACK(mastercoms): use VS2022 in place of VS2015, because there's too many VS2015 definitions
+		$PlatformToolset "v143" [$VS2015] // VS 2022 for /analyze
 	}
 
 	$General
