@@ -31,6 +31,7 @@ pythonenv*/
 # OSX/Linux build products
 *.mak
 *.mak.vpc_crc
+*.project
 *.xcodeproj/
 obj*/
 !src/devtools/*.mak
@@ -47,6 +48,9 @@ server.lib
 client.so
 server.so
 server_srv.so
+libtier0.so
+libtogl.so
+libvstdlib.so
 
 client.dylib
 client.dylib.dSYM/
@@ -88,40 +92,49 @@ Debug_*/
 UpgradeLog*.htm
 
 # third party build products
-src/thirdparty/protobuf-2.6.1/src/Makefile.in
-src/thirdparty/protobuf-2.6.1/protobuf.pc
+src/thirdparty/protobuf-2.6.1/aclocal.m4
 src/thirdparty/protobuf-2.6.1/autom4te.cache
 src/thirdparty/protobuf-2.6.1/compile
-src/thirdparty/protobuf-2.6.1/stamp-h1
-src/thirdparty/protobuf-2.6.1/Makefile
-src/thirdparty/protobuf-2.6.1/Makefile.in
-src/thirdparty/protobuf-2.6.1/libtool
-src/thirdparty/protobuf-2.6.1/config.log
-src/thirdparty/protobuf-2.6.1/protobuf-lite.pc
-src/thirdparty/protobuf-2.6.1/aclocal.m4
-src/thirdparty/protobuf-2.6.1/gtest/configure
-src/thirdparty/protobuf-2.6.1/configure
-src/thirdparty/protobuf-2.6.1/src/protoc
-src/thirdparty/protobuf-2.6.1/src/unittest_proto_middleman
-src/thirdparty/protobuf-2.6.1/**/Makefile
-src/thirdparty/protobuf-2.6.1/**/Makefile.in
-src/thirdparty/protobuf-2.6.1/**/libtool
-src/thirdparty/protobuf-2.6.1/**/.dirstamp
-src/thirdparty/protobuf-2.6.1/gtest/config.status
-src/thirdparty/protobuf-2.6.1/gtest/scripts/gtest-config
-src/thirdparty/protobuf-2.6.1/gtest/build-aux/config.h
-src/thirdparty/protobuf-2.6.1/**/stamp-h1
 src/thirdparty/protobuf-2.6.1/config.h
+src/thirdparty/protobuf-2.6.1/config.h.in
+src/thirdparty/protobuf-2.6.1/config.h.in~
+src/thirdparty/protobuf-2.6.1/config.log
 src/thirdparty/protobuf-2.6.1/config.status
-src/thirdparty/protobuf-2.6.1/test-driver
-src/thirdparty/protobuf-2.6.1/missing
+src/thirdparty/protobuf-2.6.1/configure
+src/thirdparty/protobuf-2.6.1/configure~
 src/thirdparty/protobuf-2.6.1/**/.deps
+src/thirdparty/protobuf-2.6.1/**/.dirstamp
+src/thirdparty/protobuf-2.6.1/gtest/aclocal.m4
+src/thirdparty/protobuf-2.6.1/gtest/autom4te.cache/
+src/thirdparty/protobuf-2.6.1/gtest/build-aux/config.h
+src/thirdparty/protobuf-2.6.1/gtest/build-aux/config.h.in
+src/thirdparty/protobuf-2.6.1/gtest/build-aux/config.h.in~
+src/thirdparty/protobuf-2.6.1/gtest/config.status
+src/thirdparty/protobuf-2.6.1/gtest/configure
+src/thirdparty/protobuf-2.6.1/gtest/configure~
+src/thirdparty/protobuf-2.6.1/gtest/Makefile.in
+src/thirdparty/protobuf-2.6.1/gtest/scripts/gtest-config
 src/thirdparty/protobuf-2.6.1/**/.libs
+src/thirdparty/protobuf-2.6.1/libtool
+src/thirdparty/protobuf-2.6.1/**/libtool
+src/thirdparty/protobuf-2.6.1/Makefile
+src/thirdparty/protobuf-2.6.1/**/Makefile
+src/thirdparty/protobuf-2.6.1/Makefile.in
+src/thirdparty/protobuf-2.6.1/**/Makefile.in
+src/thirdparty/protobuf-2.6.1/missing
+src/thirdparty/protobuf-2.6.1/protobuf-lite.pc
+src/thirdparty/protobuf-2.6.1/protobuf.pc
 src/thirdparty/protobuf-2.6.1/src/google/protobuf/compiler/cpp/cpp_test_bad_identifiers.pb.*
-src/thirdparty/protobuf-2.6.1/src/google/protobuf/unittest*.pb.*
 src/thirdparty/protobuf-2.6.1/src/google/protobuf/.deps/
 src/thirdparty/protobuf-2.6.1/src/google/protobuf/.dirstamp
 src/thirdparty/protobuf-2.6.1/src/google/protobuf/.libs/
+src/thirdparty/protobuf-2.6.1/src/google/protobuf/unittest*.pb.*
+src/thirdparty/protobuf-2.6.1/src/Makefile.in
+src/thirdparty/protobuf-2.6.1/src/protoc
+src/thirdparty/protobuf-2.6.1/src/unittest_proto_middleman
+src/thirdparty/protobuf-2.6.1/stamp-h1
+src/thirdparty/protobuf-2.6.1/**/stamp-h1
+src/thirdparty/protobuf-2.6.1/test-driver
 
 src/thirdparty/libpng-1.5.2/pngtest
 
@@ -388,3 +401,4 @@ generated_proto*/
 
 # ignore local build vpc
 devtools/bin/vpc.exe
+src/devtools/bin/vpc_linux
