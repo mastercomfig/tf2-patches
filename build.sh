@@ -16,10 +16,9 @@ MAKE_CFG="CFG=release"
 MAKE_VERBOSE=""
 VPC_FLAGS="/define:LTCG /define:CERT"
 CORES=$(nproc)
-# shellcheck disable=SC2155
-export CC="$(pwd)/devtools/bin/linux/ccache gcc"
-# shellcheck disable=SC2155
-export CXX="$(pwd)/devtools/bin/linux/ccache g++"
+: "${CC:="$(command -v gcc)"}"
+: "${CXX:="$(command -v g++)"}"
+export CC CXX
 export VALVE_NO_AUTO_P4=1
 
 while [[ ${1:0:1} == '-' ]]; do
@@ -50,16 +49,14 @@ while [[ ${1:0:1} == '-' ]]; do
 		"-r")
 			MAKE_SRT_FLAGS="PATH=/bin:/usr/bin"
 			CHROOT_NAME="$(pwd | sed 's/\//_/g')_"  # Trailing _ is required
-			# shellcheck disable=SC2155
-			export CC="$(pwd)/devtools/bin/linux/ccache gcc-9"
-			# shellcheck disable=SC2155
-			export CXX="$(pwd)/devtools/bin/linux/ccache g++-9"
+			CC="$(command -v gcc-9)"
+            CXX="$(command -v g++-9)"
+            export CC CXX
 		;;
 		"-l")
-			# shellcheck disable=SC2155
-			export CC="$(pwd)/devtools/bin/linux/ccache clang"
-			# shellcheck disable=SC2155
-			export CXX="$(pwd)/devtools/bin/linux/ccache clang++"
+			CC="$(command -v clang)"
+			CXX="$(command -v clang++)"
+			export CC CXX
 			VPC_FLAGS+=" /define:CLANG"
 		;;
 		*)
