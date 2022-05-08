@@ -642,15 +642,15 @@ inline void Vector4DAligned::InitZero( void )
 { 
 //#if !defined( _X360 )
 //#ifdef USE_DXMATH
-//	this->AsM128() = DirectX::XMVectorReplicateInt( 0 );
+//	this = DirectX::XMVectorReplicateInt( 0 );
 //#else
-//	this->AsM128() = _mm_set1_ps( 0 );
+//	this = _mm_set1_ps( 0 );
 //#endif
 //#else
-//	this->AsM128() = __vspltisw( 0 );
+//	this = __vspltisw( 0 );
 //#endif
 // FIXME(melvyn2): super-duper-omega-terrible-hack here, get the above code working and remove this
-    memset(this, 0, 16);
+    this->x = 0.0; this->y = 0.0; this->z = 0.0; this->w = 0.0;
 	Assert( IsValid() );
 }
 
