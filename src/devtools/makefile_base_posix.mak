@@ -207,7 +207,7 @@ endif
 
 ifeq ($(CLANG_BUILD),1)
 	# Clang specific flags
-	WARN_FLAGS += -Wno-unused-const-variable -Wno-unused-local-typedef
+	WARN_FLAGS += -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-register
 else ifeq ($(GCC_VER),-4.8)
 	WARN_FLAGS += -Wno-unused-result
 	WARN_FLAGS += -Wno-unused-but-set-variable
