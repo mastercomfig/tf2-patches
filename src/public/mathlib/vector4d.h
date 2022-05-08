@@ -640,15 +640,17 @@ inline void Vector4DAligned::Set( vec_t X, vec_t Y, vec_t Z, vec_t W )
 
 inline void Vector4DAligned::InitZero( void )
 { 
-#if !defined( _X360 )
-#ifdef USE_DXMATH
-	this->AsM128() = DirectX::XMVectorReplicateInt( 0 );
-#else
-	this->AsM128() = _mm_set1_ps( 0 );
-#endif
-#else
-	this->AsM128() = __vspltisw( 0 );
-#endif
+//#if !defined( _X360 )
+//#ifdef USE_DXMATH
+//	this->AsM128() = DirectX::XMVectorReplicateInt( 0 );
+//#else
+//	this->AsM128() = _mm_set1_ps( 0 );
+//#endif
+//#else
+//	this->AsM128() = __vspltisw( 0 );
+//#endif
+// FIXME(melvyn2): super-duper-omega-terrible-hack here, get the above code working and remove this
+    memset(this, 0, 16);
 	Assert( IsValid() );
 }
 
