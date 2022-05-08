@@ -71,7 +71,7 @@ static bool s_bShowDiag;
 
 #define WRAP( fn, ret, ... ) \
 	ret __real_##fn(__VA_ARGS__); \
-	ret __wrap_##fn(__VA_ARGS__)
+	__attribute__ ((visibility ("default"))) ret __wrap_##fn(__VA_ARGS__)
 
 #define CALL( fn ) __real_##fn
 
