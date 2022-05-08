@@ -2,28 +2,62 @@
 set -e
 cd "$(dirname "$0")"/game
 
-MANGO="$(command -v mangohud || true)"
-ARGS="-steam -game tf -insecure -novid -nojoy -nosteamcontroller -nohltv -particles 1 -noborder -particle_fallback 2 -dev -nobreakpad -console"
-export LD_LIBRARY_PATH="$(pwd)/bin:$(pwd)/tf/bin"
+export LD_LIBRARY_PATH='./bin:./tf/bin'
 
-if [[ "$1" == "-d" ]]; then
-	# shellcheck disable=SC2086
-	# shellcheck disable=SC2068
-	lldb "$(pwd)/hl2_linux" -- -allowdebug ${ARGS} ${@:2}
-elif [[ "$1" == "-b" ]]; then
-	rm tf/cfg/config.cfg
-	mkdir -p ../benchlogs
-	# shellcheck disable=SC2086
-	MANGOHUD_DLSYM=1 MANGOHUD_CONFIG="output_folder=$(pwd)/../benchlogs,toggle_logging=F12" mangohud \
-		"$(pwd)"/hl2_linux ${ARGS} "+bind f12 demo_resume" "+fps_max 0" "+playdemo demos/${2}" "+demo_pause"
-elif [[ "$1" == "-s" ]]; then
-	if [[ "$2"  == "-d" ]]; then
-		lldb "$(pwd)/srcds_linux" -- -allowdebug ${ARGS} ${@:3}
-	else
-		"$(pwd)/srcds_linux" ${ARGS} ${@:2}
-	fi
-else
-	# shellcheck disable=SC2086
-	# shellcheck disable=SC2068
-	MANGOHUD_DLSYM=1 ${MANGO} "$(pwd)"/hl2_linux ${ARGS} $@
+ARGS=('-steam' '-game tf' '-insecure' '-novid' '-nojoy' '-nosteamcontroller' '-nohltv' '-particles 1' '-noborder' '-particle_fallback 2' '-dev' '-nobreakpad' '-console')
+
+while [[ ${#1} == 2 && "${1:0:1}" == '-' ]]; do
+    case "${1}" in
+    -s)
+    	PREPEND=()
+    	: "${EXE:="./srcds_linux"}"
+	;;
+ 	-b)
+ 		if [[ -n "${!PREPEND*}" ]]; then
+			echo "conflicting flags given"
+			exit 1
+		fi
+ 		[[ ${MANGOHUD:="$(command -v mangohud)"} ]] || (echo mangohud not found && exit 1)
+ 		PREPEND=('MANGOHUD_DLSYM=1' "MANGOHUD_CONFIG='output_folder=$(pwd)/../benchlogs,toggle_logging=F12'" "${MANGOHUD}")
+ 		shift
+ 		if [[ -z "${1}" ]]; then
+ 			echo "no demo provided"
+ 			exit 1
+		fi
+ 		ARGS+=('+bind f12 demo_resume' '+fps_max 0' "+playdemo demos/${1}" '+demo_pause')
+	;;
+	-d)
+		if (( ${#PREPEND[@]} )); then
+			echo "conflicting flags given"
+			exit 1
+		fi
+		[[ ${LLDB:="$(command -v lldb)"} ]] || (echo "lldb not found" && exit 1)
+		PREPEND=("${LLDB}")
+		ARGS=("--" "${ARGS[@]}" '-allowdebug')
+	;;
+	-g)
+		if (( ${#PREPEND[@]} )); then
+			echo "conflicting flags given"
+			exit 1
+		fi
+		[[ ${GDB:="$(command -v gdb)"} ]] || (echo "gdb not found" && exit 1)
+		PREPEND=("${GDB}" "--args")
+		ARGS+=("-allowdebug")
+	;;
+	*)
+		echo "Unknown flag ${1}"
+		echo "Usage: ${0} [-b <demo name>] [-dgs] [game arguments]"
+		exit 1
+	;;
+	esac
+	shift
+done
+
+if [[ -z "${!PREPEND*}" ]]; then
+	PREPEND=("$(command -v mangohud || command -v env)")
 fi
+: "${EXE:="./hl2_linux"}"
+
+
+# shellcheck disable=SC2068
+"${PREPEND[@]}" "${EXE}" ${ARGS[@]} "${@}"
