@@ -3328,8 +3328,10 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 		{
 			pExt = "pcf";
 		}
+
+		static const int iFXQuality = CommandLine()->ParmValue("-fxquality", 2);
 		
-		if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
+		if ( iFXQuality == 0 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx80.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )
@@ -3337,7 +3339,7 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 				pFileName = pFallbackBuf;
 			}
 		}
-		else if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 &&  g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
+		else if ( iFXQuality == 1 || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() == 90 &&  g_pMaterialSystemHardwareConfig->PreferReducedFillrate() )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx90_slow.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )
