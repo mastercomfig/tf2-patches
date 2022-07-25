@@ -57,6 +57,10 @@ DEFINE_THINKFUNC( ZoomIn ),
 END_DATADESC()
 #endif
 
+#ifdef GAME_DLL
+ConVar tf_pipebomb_disable_random_launch("tf_pipebomb_disable_random_launch", "0", FCVAR_CHEAT, "Disable random velocity and spin when launching grenades and stickybombs.");
+#endif
+
 //=============================================================================
 //
 // TFWeaponBase Gun functions.
@@ -701,8 +705,11 @@ CBaseEntity *CTFWeaponBaseGun::FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombTy
 
 	float flLaunchSpeed = GetProjectileSpeed();
 	CALL_ATTRIB_HOOK_FLOAT( flLaunchSpeed, mult_projectile_range );
-	Vector vecVelocity = ( vecForward * flLaunchSpeed ) + ( vecUp * 200.0f ) + ( random->RandomFloat( -10.0f, 10.0f ) * vecRight ) +		
-		( random->RandomFloat( -10.0f, 10.0f ) * vecUp );
+	Vector vecVelocity = ( vecForward * flLaunchSpeed ) + ( vecUp * 200.0f );
+	if ( !tf_pipebomb_disable_random_launch.GetBool() )
+	{
+		vecVelocity += ( random->RandomFloat( -10.0f, 10.0f ) * vecRight ) + ( random->RandomFloat( -10.0f, 10.0f ) * vecUp );
+	}
 
 	float flMultDmg = 1.f;
 	CALL_ATTRIB_HOOK_FLOAT( flMultDmg, mult_dmg );
@@ -711,7 +718,7 @@ CBaseEntity *CTFWeaponBaseGun::FirePipeBomb( CTFPlayer *pPlayer, int iPipeBombTy
 	Vector angImpulse = AngularImpulse( 600, random->RandomInt( -1200, 1200 ), 0 );
 	int iNoSpin = 0;
 	CALL_ATTRIB_HOOK_INT( iNoSpin, grenade_no_spin );
-	if ( iNoSpin )
+	if ( iNoSpin || tf_pipebomb_disable_random_launch.GetBool() )
 	{
 		angImpulse.Zero();
 	}
