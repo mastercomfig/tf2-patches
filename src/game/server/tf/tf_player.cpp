@@ -7410,7 +7410,11 @@ bool CTFPlayer::ClientCommand( const CCommand &args )
 				return true;
 
 			int iAltFireTeleportToSpawn = 0;
-			CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iAltFireTeleportToSpawn, alt_fire_teleport_to_spawn );
+			// Example fix, can be used to block eureka teleport scripts without pulling out the wrench fully.
+			if ( gpGlobals->curtime >= pWeapon->GetLastReadyTime() )
+			{
+				CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iAltFireTeleportToSpawn, alt_fire_teleport_to_spawn );
+			}
 
 			if ( IsPlayerClass( TF_CLASS_ENGINEER ) && iAltFireTeleportToSpawn )
 			{
