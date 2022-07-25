@@ -7,6 +7,8 @@
 //=============================================================================//
 #include "cbase.h"
 #include "querycache.h"
+
+#if SUPPORT_QUERY_CACHE
 #include "tier0/vprof.h"
 #include "tier1/utlintrusivelist.h"
 #include "datacache/imdlcache.h"
@@ -339,5 +341,29 @@ CON_COMMAND( sv_querycache_stats, "Display status of the query cache (client onl
 			 s_SuccessfulSpeculatives, s_WastedSpeculativeUpdates );
 }
 
+#else
 
+// Keeping function stubs for compatibility
+void UpdateQueryCache( void )
+{
+}
+
+void InvalidateQueryCache( void )
+{
+}
+
+bool IsLineOfSightBetweenTwoEntitiesClear( CBaseEntity *pSrcEntity,
+										   EEntityOffsetMode_t nSrcOffsetMode,
+										   CBaseEntity *pDestEntity,
+										   EEntityOffsetMode_t nDestOffsetMode,
+										   CBaseEntity *pSkipEntity,
+										   int nCollisionGroup,
+										   unsigned int nTraceMask,
+										   ShouldHitFunc_t pTraceFilterCallback,
+										   float flMinimumUpdateInterval )
+{
+	return false;
+}
+
+#endif // SUPPORT_QUERY_CACHE
 
