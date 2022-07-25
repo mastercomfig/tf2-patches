@@ -395,7 +395,7 @@ void CTFDemoSupport::FireGameEvent( IGameEvent * event )
 			}
 
 			// if our kill-streak has increased, make an event entry
-			if ( ( nOldKillCount != m_nKillCount ) && ( m_nKillCount > 0 ) && ( m_nKillCount >= ds_min_streak.GetInt() ) )
+			if ( ( nOldKillCount != m_nKillCount ) && ( m_nKillCount >= 0 ) && ( m_nKillCount >= ds_min_streak.GetInt() ) )
 			{
 				LogEvent( eDemoEvent_Killstreak, m_nKillCount );
 			}
