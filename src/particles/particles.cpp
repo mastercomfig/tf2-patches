@@ -3333,8 +3333,11 @@ bool CParticleSystemMgr::ReadParticleConfigFile( const char *pFileName, bool bPr
 		{
 			pExt = "pcf";
 		}
-		
-		if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
+
+		static ConVarRef mat_reduceparticles( "mat_reduceparticles" );
+		const bool bForceLowQualityParticles = mat_reduceparticles.IsValid() && mat_reduceparticles.GetBool();
+
+		if ( bForceLowQualityParticles || g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 )
 		{
 			Q_snprintf( pFallbackBuf, sizeof(pFallbackBuf), "%s_dx80.%s", pTemp, pExt );
 			if ( g_pFullFileSystem->FileExists( pFallbackBuf ) )
