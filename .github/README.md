@@ -7,6 +7,9 @@
 
 ![benchmark](https://user-images.githubusercontent.com/2672245/176000726-21e45939-28ef-4e8e-b4f6-c0cba5ba4d1c.png)
 
+* [Community video benchmark 1](https://youtu.be/Jj4IjW0EQ6Q)
+* [Community video benchmark 2](https://youtu.be/VRMWTYv5Fmc)
+
 # Welcome to Team Comtress 2!
 
 ### What *is* TC2?
