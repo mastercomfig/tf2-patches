@@ -992,7 +992,8 @@ void CTFGameMovement::AirDash( void )
 	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_pTFPlayer, flJumpMod, mod_jump_height );
 	// Weapon-restricted version
 	CTFWeaponBase *pWpn = m_pTFPlayer->GetActiveTFWeapon();
-	if ( pWpn )
+	// Example fix, can be used to require Winger to be fully deployed.
+	if ( pWpn && gpGlobals->curtime >= pWpn->GetLastReadyTime() )
 	{
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWpn, flJumpMod, mod_jump_height_from_weapon );
 	}
@@ -1284,7 +1285,8 @@ bool CTFGameMovement::CheckJumpButton()
 	// Passive version
 	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_pTFPlayer, flJumpMod, mod_jump_height );
 	// Weapon-restricted version
-	if ( pWpn )
+	// Example fix, can be used to require Winger to be fully deployed.
+	if ( pWpn && gpGlobals->curtime >= pWpn->GetLastReadyTime() )
 	{
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWpn, flJumpMod, mod_jump_height_from_weapon );
 	}
