@@ -1056,18 +1056,7 @@ bool CTFWeaponBase::Deploy( void )
 		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flDeployTimeMultiplier, mult_deploy_time );
 		CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_single_wep_deploy_time );
 
-		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't been deployed for more than 0.67 second to match to weapon script switch time
-		// unless the player latched to a hook target, then allow switching right away
-		CTFWeaponBase *pLastWeapon = dynamic_cast< CTFWeaponBase* >( pPlayer->GetLastWeapon() );
-		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime - pLastWeapon->m_flLastDeployTime > flWeaponSwitchTime ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
-		}
-		
-		if ( pPlayer->m_Shared.InCond( TF_COND_BLASTJUMPING ) )
-		{
-			CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_rocketjump_deploy_time );
-		}
+		CTFWeaponBase* pLastWeapon = static_cast<CTFWeaponBase*>(pPlayer->GetLastWeapon());
 
 		int iIsSword = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( pLastWeapon, iIsSword, is_a_sword );
@@ -1076,6 +1065,11 @@ bool CTFWeaponBase::Deploy( void )
 		{
 			// swords deploy and holster 75% slower
 			flDeployTimeMultiplier *= 1.75f;
+		}
+
+		if ( pPlayer->m_Shared.InCond( TF_COND_BLASTJUMPING ) )
+		{
+			CALL_ATTRIB_HOOK_FLOAT( flDeployTimeMultiplier, mult_rocketjump_deploy_time );
 		}
 
 #ifdef STAGING_ONLY
@@ -1095,6 +1089,18 @@ bool CTFWeaponBase::Deploy( void )
 		if ( numHealers == 0 )
 		{
 			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flDeployTimeMultiplier, mod_medic_healed_deploy_time );
+		}
+
+		// Don't consider mult_switch_from_wep_deploy_time for base deploy time
+		// This avoid feedback loops and gets switch from bonuses in line with the default switch time
+		// This calculation replicates the flDeployTime calculation below
+		float flBaseDeployTime = flWeaponSwitchTime * MAX( flDeployTimeMultiplier, 0.00001f );
+
+		// don't apply mult_switch_from_wep_deploy_time attribute if the last weapon hasn't past its base deploy time
+		// unless the player latched to a hook target, then allow switching right away
+		if ( pPlayer->GetGrapplingHookTarget() != NULL || ( pLastWeapon && gpGlobals->curtime >= pLastWeapon->m_flLastDeployTime ) )
+		{
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLastWeapon, flDeployTimeMultiplier, mult_switch_from_wep_deploy_time );
 		}
 		
 		flDeployTimeMultiplier = MAX( flDeployTimeMultiplier, 0.00001f );
@@ -1116,7 +1122,8 @@ bool CTFWeaponBase::Deploy( void )
 
 		pPlayer->SetNextAttack( m_flNextPrimaryAttack );
 
-		m_flLastDeployTime = gpGlobals->curtime;
+		// Last deploy time now refers to the time we actually fully deployed, not the time we switched to the weapon
+		m_flLastDeployTime = gpGlobals->curtime + flBaseDeployTime;
 
 #ifdef GAME_DLL
 		// Reset our deploy-lifetime kill counter.
