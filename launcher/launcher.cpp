@@ -1438,6 +1438,10 @@ DLL_EXPORT int LauncherMain( int argc, char **argv )
 	{
 		SetPriorityClass( GetCurrentProcess(), HIGH_PRIORITY_CLASS );
 	}
+	else if ( CommandLine()->CheckParm( "-abovenormal" ) )
+	{
+			SetPriorityClass( GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS );
+	}
 #endif
 
 	// If game is not run from Steam then add -insecure in order to avoid client timeout message
