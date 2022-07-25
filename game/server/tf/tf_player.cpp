@@ -13887,6 +13887,13 @@ void CTFPlayer::ForceRespawn( void )
 		DropFlag();
 	}
 
+	// Prevent bypassing class limits
+	// TODO: inform users that their reservation was cancelled?
+	if (!TFGameRules()->CanPlayerChooseClass(this, iDesiredClass))
+	{
+		iDesiredClass = GetPlayerClass()->GetClassIndex();
+	}
+
 	if ( GetPlayerClass()->GetClassIndex() != iDesiredClass )
 	{
 		// clean up any pipebombs/buildings in the world (no explosions)
