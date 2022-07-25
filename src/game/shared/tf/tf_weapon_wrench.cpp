@@ -25,6 +25,7 @@
 	#include "particle_parse.h"
 	#include "tf_fx.h"
 	#include "tf_obj_sentrygun.h"
+	#include "ilagcompensationmanager.h"
 #endif
 
 // Maximum time between robo arm hits to maintain the three-hit-combo
@@ -487,8 +488,18 @@ void CTFRobotArm::Smack( void )
 	if ( !pPlayer )
 		return;
 
+#ifndef CLIENT_DLL
+	// Move other players back to history positions based on local player's lag
+	lagcompensation->StartLagCompensation( pPlayer, pPlayer->GetCurrentCommand() );
+#endif
+
 	trace_t trace;
 	bool btrace = DoSwingTrace( trace );
+
+#ifndef CLIENT_DLL
+	lagcompensation->FinishLagCompensation( pPlayer );
+#endif
+
 	if ( btrace && trace.DidHitNonWorldEntity() && trace.m_pEnt && trace.m_pEnt->IsPlayer() &&
 		 trace.m_pEnt->GetTeamNumber() != pPlayer->GetTeamNumber() )
 	{
