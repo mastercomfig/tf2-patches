@@ -1434,9 +1434,13 @@ DLL_EXPORT int LauncherMain( int argc, char **argv )
 	{
 		SetPriorityClass( GetCurrentProcess(), IDLE_PRIORITY_CLASS );
 	}
-	else if ( CommandLine()->CheckParm( "-high" ) )
+	else if ( CommandLine()->CheckParm( "-highpri" ) )
 	{
 		SetPriorityClass( GetCurrentProcess(), HIGH_PRIORITY_CLASS );
+	}
+	else if ( !CommandLine()->CheckParm( "-normalpri" ) )
+	{
+			SetPriorityClass( GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS );
 	}
 #endif
 
