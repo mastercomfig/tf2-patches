@@ -317,6 +317,12 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 	// Handle charging demomens
 	ChargeMove();
 
+	// Handle scouts that can move really fast with buffs
+	HighMaxSpeedMove();
+
+	// Limit diagonal movement
+	CheckParameters();
+
 	// Handle player stun.
 	StunMove();
 
@@ -325,9 +331,6 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 
 	// Handle grappling hook move
 	GrapplingHookMove();
-
-	// Handle scouts that can move really fast with buffs
-	HighMaxSpeedMove();
 
 	// Run the command.
 	PlayerMove();
