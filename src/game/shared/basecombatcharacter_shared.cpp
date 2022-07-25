@@ -699,7 +699,7 @@ bool CBaseCombatCharacter::IsLineOfSightClear( const Vector &pos, LineOfSightChe
 	{
 
 		// use the query cache unless it causes problems
-#if defined(GAME_DLL) && defined(TERROR)
+#if defined(GAME_DLL) && SUPPORT_QUERY_CACHE
 		return IsLineOfSightBetweenTwoEntitiesClear( const_cast<CBaseCombatCharacter *>(this), EOFFSET_MODE_EYEPOSITION,
 			entityToIgnore, EOFFSET_MODE_WORLDSPACE_CENTER,
 			entityToIgnore, COLLISION_GROUP_NONE,
