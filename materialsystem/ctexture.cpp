@@ -77,7 +77,7 @@ static void ConVarChanged_mat_managedtextures( IConVar *var, const char *pOldVal
 #endif
 
 static ConVar mat_spew_on_texture_size( "mat_spew_on_texture_size", "0", 0, "Print warnings about vtf content that isn't of the expected size" );
-static ConVar mat_lodin_time( "mat_lodin_time", "5.0", FCVAR_DEVELOPMENTONLY );
+static ConVar mat_lodin_time( "mat_lodin_time", "1.0", FCVAR_DEVELOPMENTONLY );
 static ConVar mat_lodin_hidden_pop( "mat_lodin_hidden_pop", "1", FCVAR_DEVELOPMENTONLY );
 
 #define TEXTURE_FNAME_EXTENSION			".vtf"
