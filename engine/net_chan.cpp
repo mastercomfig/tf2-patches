@@ -36,7 +36,7 @@ ConVar net_blocksize( "net_maxfragments", NETSTRING( MAX_ROUTABLE_PAYLOAD ), 0, 
 static ConVar net_showmsg( "net_showmsg", "0", 0, "Show incoming message: <0|1|name>" );
 static ConVar net_showfragments( "net_showfragments", "0", 0, "Show netchannel fragments" );
 static ConVar net_showpeaks( "net_showpeaks", "0", 0, "Show messages for large packets only: <size>" );
-static ConVar net_blockmsg( "net_blockmsg", "none", FCVAR_CHEAT, "Discards incoming message: <0|1|name>" );
+static ConVar net_blockmsg( "net_blockmsg", "0", FCVAR_CHEAT, "Discards incoming message: <0|1|name>" ); // "none" here is bad, causes superfluous strcmp on every net message
 static ConVar net_showdrop( "net_showdrop", "0", 0, "Show dropped packets in console" );
 static ConVar net_drawslider( "net_drawslider", "0", 0, "Draw completion slider during signon" );
 static ConVar net_chokeloopback( "net_chokeloop", "0", 0, "Apply bandwidth choke to loopback packets" );
@@ -1876,12 +1876,12 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 	const char * showmsgname = net_showmsg.GetString();
 	const char * blockmsgname = net_blockmsg.GetString();
 
-	if ( !Q_strcmp(showmsgname, "0") )
+	if ( showmsgname[0] == '0' )
 	{
 		showmsgname = NULL;	// dont do strcmp all the time
 	}
 
-	if ( !Q_strcmp(blockmsgname, "0") )
+	if ( blockmsgname[0] == '0' )
 	{
 		blockmsgname = NULL;	// dont do strcmp all the time
 	}
