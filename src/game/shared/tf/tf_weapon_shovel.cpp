@@ -125,6 +125,9 @@ float CTFShovel::GetSpeedMod( void )
 	if ( m_bHolstering || !HasSpeedBoost() )
 		return 1.f;
 
+	if ( gpGlobals->curtime < GetLastReadyTime() )
+		return 1.f;
+
 	CTFPlayer *pOwner = ToTFPlayer( GetOwner() );
 	if ( !pOwner )
 		return 0;

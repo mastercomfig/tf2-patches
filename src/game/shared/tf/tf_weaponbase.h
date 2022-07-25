@@ -424,6 +424,7 @@ class CTFWeaponBase : public CBaseCombatWeapon, public IHasOwner
 	virtual int			GetMaxHealthMod() { return 0; }
 
 	virtual float		GetLastDeployTime( void ) { return m_flLastDeployTime; }
+	virtual float		GetLastReadyTime( void ) { return m_flLastReadyTime; }
 
 	// Energy Weapons
 	virtual bool		IsEnergyWeapon( void ) const { return false; }
@@ -629,6 +630,8 @@ protected:
 	float			m_flLastRapidFireCritCheckTime;
 
 	float			m_flLastDeployTime;
+	float 		m_flLastReadyTime;
+	float			m_flLastSwitchMult;
 
 	char			m_szTracerName[MAX_TRACER_NAME];
 
