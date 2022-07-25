@@ -41,6 +41,7 @@
 #include "tier0/memdbgon.h"
 
 static ConVar demo_recordcommands( "demo_recordcommands", "1", FCVAR_CHEAT, "Record commands typed at console into .dem files." );
+static ConVar demo_readinitialcommands( "demo_readinitialcommands", "1", 0, "Apply commands from the initial tick of .dem files. These are typically demo cvars." );
 static ConVar demo_quitafterplayback( "demo_quitafterplayback", "0", 0, "Quits game after demo playback." );
 static ConVar demo_debug( "demo_debug", "0", 0, "Demo debug info." );
 static ConVar demo_interpolateview( "demo_interpolateview", "1", 0, "Do view interpolation during dem playback." );
@@ -1222,8 +1223,11 @@ netpacket_t *CDemoPlayer::ReadPacket( void )
 					Msg( "%d dem_consolecmd [%s]\n", tick, command );
 				}
 
-				Cbuf_AddText( command );
-				Cbuf_Execute();
+				if ( tick != 0 || demo_readinitialcommands.GetBool() )
+				{
+					Cbuf_AddText( command );
+					Cbuf_Execute();
+				}
 			}
 			break;
 		case dem_datatables:
