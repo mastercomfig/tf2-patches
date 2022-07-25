@@ -4550,7 +4550,10 @@ void CGameMovement::PlayerMove( void )
 {
 	VPROF( "CGameMovement::PlayerMove" );
 
+	// TF runs this with speed modifiers
+#if !defined(TF_DLL) && !defined(TF_CLIENT_DLL)
 	CheckParameters();
+#endif
 	
 	// clear output applied velocity
 	mv->m_outWishVel.Init();

@@ -39,7 +39,7 @@
 
 
 ConVar	tf_duck_debug_spew( "tf_duck_debug_spew", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
-ConVar	tf_showspeed( "tf_showspeed", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
+ConVar	tf_showspeed( "tf_showspeed", "0", FCVAR_REPLICATED | FCVAR_CHEAT, "1 = show speed during collisions, 2 = always show speed" );
 ConVar	tf_avoidteammates( "tf_avoidteammates", "1", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "Controls how teammates interact when colliding.\n  0: Teammates block each other\n  1: Teammates pass through each other, but push each other away (default)" );
 ConVar	tf_avoidteammates_pushaway( "tf_avoidteammates_pushaway", "1", FCVAR_REPLICATED, "Whether or not teammates push each other away when occupying the same space" );
 ConVar  tf_solidobjects( "tf_solidobjects", "1", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
@@ -317,6 +317,12 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 	// Handle charging demomens
 	ChargeMove();
 
+	// Handle scouts that can move really fast with buffs
+	HighMaxSpeedMove();
+
+	// Limit diagonal movement
+	CheckParameters();
+
 	// Handle player stun.
 	StunMove();
 
@@ -325,9 +331,6 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 
 	// Handle grappling hook move
 	GrapplingHookMove();
-
-	// Handle scouts that can move really fast with buffs
-	HighMaxSpeedMove();
 
 	// Run the command.
 	PlayerMove();
@@ -434,17 +437,19 @@ bool CTFGameMovement::GrapplingHookMove()
 	if ( tf_grapplinghook_use_acceleration.GetBool() )
 	{
 		// Use acceleration with dampening
-		float flSpeed = mv->m_vecVelocity.Length();
+		float flSpeed = mv->m_vecVelocity.LengthSqr();
 		if ( flSpeed > 0.f ) {
+			flSpeed = FastSqrt( flSpeed );
 			float flDampen = Min( tf_grapplinghook_dampening.GetFloat() * gpGlobals->frametime, flSpeed );
 			mv->m_vecVelocity *= ( flSpeed - flDampen ) / flSpeed;
 		}
 
 		mv->m_vecVelocity += vDesiredMove.Normalized() * ( tf_grapplinghook_acceleration.GetFloat() * gpGlobals->frametime );
 
-		flSpeed = mv->m_vecVelocity.Length();
+		flSpeed = mv->m_vecVelocity.LengthSqr();
 		if ( flSpeed > mv->m_flMaxSpeed )
 		{
+			flSpeed = FastSqrt( flSpeed );
 			mv->m_vecVelocity *= mv->m_flMaxSpeed / flSpeed;
 		}
 	}
@@ -530,6 +535,13 @@ bool CTFGameMovement::ChargeMove()
 	return true;
 }
 
+#ifdef STAGING_ONLY
+static ConVar tf_movement_stun_multiplier("tf_movement_stun_multiplier", "1", FCVAR_REPLICATED, "Multiplier for movement speed when stunned.");
+static ConVar tf_movement_stun_clip("tf_movement_stun_clip", "0.41421356237", FCVAR_REPLICATED, "Clip off stun amount.");
+#endif
+static ConVar tf_movement_stun_legacy_threshold("tf_movement_stun_legacy_threshold", "1.25", FCVAR_REPLICATED, "Relative point for legacy stun amount handling.");
+static ConVar tf_movement_stun_legacy_on_charge("tf_movement_stun_legacy_on_charge", "1", FCVAR_REPLICATED, "Always apply full stun to charging players.");
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -565,6 +577,42 @@ bool CTFGameMovement::StunMove()
 
 	// Handle movement stuns
 	float flStunAmount = m_pTFPlayer->m_Shared.GetAmountStunned( TF_STUN_MOVEMENT );
+	if ( flStunAmount )
+	{
+		// Handle legacy clipping value. Before the fix to stunned movement, stuns were applied to diagonal movement of sqrt(2) magnitude.
+		// This means effectively that the stun would have to reduce past the ~141.4% movement speed to have any effect.
+		//
+		// So, a stun amount would at minimum need to be greater than ~0.414 to reduce movement speed below 100%.
+		// Since this effectively meant stuns were clipped, there was non-linear scaling of stun amount to actual movement speed reduction.
+		//
+		// A stun value of 0.414 (or below) would have 0% effective stun, 0.6 would have ~31% effective stun, 1.0 would have ~59% effective stun.
+		//
+		// This legacy handling has been added so that we get similar slow amounts for stuns that were previously applied, but
+		// also have them be linear and consistent from 0 to 1.
+		if ( tf_movement_stun_legacy_on_charge.GetBool() && m_pTFPlayer->m_Shared.InCond( TF_COND_SHIELD_CHARGE ) )
+		{
+			// Slow down charging players the full amount. Charging players never had diagonal movement, so
+			// they always got the full slow amount, which would end their charge. Being able to end
+			// their charge is incredibly important, so we don't want to change that.
+			flStunAmount = flStunAmount;
+		}
+		else if ( flStunAmount > tf_movement_stun_legacy_threshold.GetFloat() )
+		{
+			// For any stun amount greater than the threshold, we use the legacy clip behavior.
+			flStunAmount = max( flStunAmount - 0.41421356237f, 0.0f ); // Reduce by sqrt(2) - 1.0f (see above)
+		}
+		else
+		{
+#ifdef STAGING_ONLY
+			// For playing around with the scaling.
+			flStunAmount = max( flStunAmount - tf_movement_stun_clip.GetFloat(), 0.0f ) * tf_movement_stun_multiplier.GetFloat();
+#else
+			// This equation essentially calculates the percentage of the stun amount that was effectively applied to diagonal movement
+			// at a certain stun amount and applies that to all stun amounts consistently now.
+			flStunAmount *= ( ( -0.41421356237f / tf_movement_stun_legacy_threshold.GetFloat() ) + 1 );
+#endif
+		}
+	}
 	// Lerp to the desired amount
 	if ( flStunAmount )
 	{
@@ -1089,10 +1137,11 @@ void CTFGameMovement::PreventBunnyJumping()
 		return;
 
 	// Current player speed
-	float spd = mv->m_vecVelocity.Length();
-	if ( spd <= maxscaledspeed )
+	float spd = mv->m_vecVelocity.LengthSqr();
+	if ( spd <= maxscaledspeed * maxscaledspeed )
 		return;
 
+	spd = FastSqrt(spd);
 	// Apply this cropping fraction to velocity
 	float fraction = ( maxscaledspeed / spd );
 
@@ -1871,7 +1920,8 @@ void CTFGameMovement::WalkMove( void )
 	{
 		// Made it to the destination (remove the base velocity).
 		mv->SetAbsOrigin( trace.endpos );
-		VectorSubtract( mv->m_vecVelocity, player->GetBaseVelocity(), mv->m_vecVelocity );
+		Vector baseVelocity = player->GetBaseVelocity();
+		VectorSubtract( mv->m_vecVelocity, baseVelocity, mv->m_vecVelocity );
 
 		// Save the wish velocity.
 		mv->m_outWishVel += ( vecWishDirection * flWishSpeed );
@@ -1879,6 +1929,22 @@ void CTFGameMovement::WalkMove( void )
 		// Try and keep the player on the ground.
 		// NOTE YWB 7/5/07: Don't do this here, our version of CategorizePosition encompasses this test
 		// StayOnGround();
+
+#if 1
+		// Debugging!!!
+		Vector vecTestVelocity = mv->m_vecVelocity;
+		vecTestVelocity.z = 0.0f;
+		float flTestSpeed = VectorLength( vecTestVelocity );
+		if ( tf_showspeed.GetInt() == 2 && baseVelocity.IsZero() && ( flTestSpeed > ( mv->m_flMaxSpeed + 1.0f ) ) )
+		{
+			Msg( "Step Max Speed < %f\n", flTestSpeed );
+		}
+
+		if ( tf_showspeed.GetInt() == 2 )
+		{
+			Msg( "Speed = %f\n", flTestSpeed );
+		}
+#endif
 
 #ifdef CLIENT_DLL
 		// Track how far we moved (if we're a Scout or an Engineer carrying a building).
@@ -1918,19 +1984,19 @@ void CTFGameMovement::WalkMove( void )
 	// NOTE YWB 7/5/07: Don't do this here, our version of CategorizePosition encompasses this test
 	// StayOnGround();
 
-#if 0
+#if 1
 	// Debugging!!!
 	Vector vecTestVelocity = mv->m_vecVelocity;
 	vecTestVelocity.z = 0.0f;
 	float flTestSpeed = VectorLength( vecTestVelocity );
-	if ( baseVelocity.IsZero() && ( flTestSpeed > ( mv->m_flMaxSpeed + 1.0f ) ) )
+	if ( tf_showspeed.GetInt() == 1 && baseVelocity.IsZero() && ( flTestSpeed > ( mv->m_flMaxSpeed + 1.0f ) ) )
 	{
 		Msg( "Step Max Speed < %f\n", flTestSpeed );
 	}
 
-	if ( tf_showspeed.GetBool() )
+	if ( tf_showspeed.GetInt() == 1 )
 	{
-		Msg( "Speed=%f\n", flTestSpeed );
+		Msg( "Speed = %f\n", flTestSpeed );
 	}
 
 #endif
