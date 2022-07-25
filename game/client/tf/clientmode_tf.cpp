@@ -353,13 +353,6 @@ void CTFModeManager::Init()
 void CTFModeManager::LevelInit( const char *newmap )
 {
 	g_pClientMode->LevelInit( newmap );
-
-	ConVarRef voice_steal( "voice_steal" );
-
-	if ( voice_steal.IsValid() )
-	{
-		voice_steal.SetValue( 1 );
-	}
 }
 
 void CTFModeManager::LevelShutdown( void )
