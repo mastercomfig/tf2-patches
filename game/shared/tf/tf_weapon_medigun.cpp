@@ -1209,7 +1209,8 @@ bool CWeaponMedigun::FindAndHealTargets( void )
 
 		// Charge up our power if we're not releasing it, and our target
 		// isn't receiving any benefit from our healing.
-		if ( !m_bChargeRelease )
+		// Also do not charge if the server is paused
+		if ( !m_bChargeRelease && !engine->IsPaused() )
 		{
 			float flChargeRate = weapon_medigun_charge_rate.GetFloat();
 			float flChargeAmount = gpGlobals->frametime / flChargeRate;
