@@ -505,6 +505,11 @@ void CTFMapOverview::DrawVoiceIconForPlayer( int playerIndex )
 
 	if ( cl_voicetest.GetInt() || GetClientVoiceMgr()->IsPlayerSpeaking( player->index+1 ) )
 	{
+		if ( sv_alltalk.GetBool() && pPlayer->m_Shared.IsFullyInvisible() && !InSameTeam( pPlayer ) )
+		{
+			return;
+		}
+
 		MapObject_t obj;
 		memset( &obj, 0, sizeof(MapObject_t) );
 
@@ -517,6 +522,11 @@ void CTFMapOverview::DrawVoiceIconForPlayer( int playerIndex )
 	}
 	else if ( m_flPlayerChatTime[player->index] > gpGlobals->curtime )
 	{
+		if ( sv_alltalk.GetBool() && pPlayer->m_Shared.IsFullyInvisible() && !InSameTeam( pPlayer ) )
+		{
+			return;
+		}
+
 		MapObject_t obj;
 		memset( &obj, 0, sizeof(MapObject_t) );
 
