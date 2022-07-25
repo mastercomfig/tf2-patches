@@ -69,6 +69,10 @@ END_DATADESC()
 ConVar tf_rocket_show_radius( "tf_rocket_show_radius", "0", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "Render rocket radius." );
 #endif
 
+#ifdef CLIENT_DLL
+extern ConVar tf_projectiles_no_history;
+#endif
+
 //=============================================================================
 //
 // Shared (client/server) functions.
@@ -190,6 +194,11 @@ void CTFBaseRocket::PostDataUpdate( DataUpdateType_t type )
 
 	if ( type == DATA_UPDATE_CREATED )
 	{
+		if ( tf_projectiles_no_history.GetBool() )
+		{
+			return;
+		}
+
 		// Now stick our initial velocity and angles into the interpolation history.
 		CInterpolatedVar<Vector> &interpolator = GetOriginInterpolator();
 		interpolator.ClearHistory();

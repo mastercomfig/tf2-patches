@@ -28,6 +28,10 @@
 ConVar tf_debug_projectile( "tf_debug_projectile", "0", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY | FCVAR_CHEAT );
 #endif // _DEBUG
 
+#ifdef CLIENT_DLL
+ConVar tf_projectiles_no_history( "tf_projectiles_no_history", "0", FCVAR_NONE, "Disable interpolator history on projectile spawn." );
+#endif
+
 IMPLEMENT_NETWORKCLASS_ALIASED( TFBaseProjectile, DT_TFBaseProjectile )
 
 BEGIN_NETWORK_TABLE( CTFBaseProjectile, DT_TFBaseProjectile )
@@ -254,6 +258,11 @@ void CTFBaseProjectile::PostDataUpdate( DataUpdateType_t type )
 
 	if ( type == DATA_UPDATE_CREATED )
 	{
+		if ( tf_projectiles_no_history.GetBool() )
+		{
+			return;
+		}
+
 		// Now stick our initial velocity and angles into the interpolation history.
 		CInterpolatedVar<Vector> &interpolator = GetOriginInterpolator();
 		interpolator.ClearHistory();
