@@ -64,7 +64,7 @@ private:
 
 	void Reset();
 	void SetDefaultSelections();
-	void UpdateDialog();
+	void UpdateDialog(bool bUpdateTip = true);
 	void UpdateBarCharts();
 	void UpdateClassDetails( bool bIsMVM = false );
 	void UpdateTip();
