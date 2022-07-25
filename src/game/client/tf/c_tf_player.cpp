@@ -333,7 +333,8 @@ ConVar sb_close_browser_on_connect( "sb_close_browser_on_connect", "1", FCVAR_AR
 ConVar tf_spectate_pyrovision( "tf_spectate_pyrovision", "0", FCVAR_ARCHIVE, "When on, spectator will see the world with Pyrovision active", VisionMode_ChangeCallback );
 ConVar tf_replay_pyrovision( "tf_replay_pyrovision", "0", FCVAR_ARCHIVE, "When on, replays will be seen with Pyrovision active", VisionMode_ChangeCallback );
 
-ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_NONE, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person( "tf_taunt_first_person", "0", FCVAR_ARCHIVE, "1 = taunts remain first-person" );
+ConVar tf_taunt_first_person_always( "tf_taunt_first_person_always", "0", FCVAR_REPLICATED, "1 = taunts are forced to remain first-person" );
 
 ConVar tf_romevision_opt_in( "tf_romevision_opt_in", "0", FCVAR_ARCHIVE, "Enable Romevision in Mann vs. Machine mode when available." );
 ConVar tf_romevision_skip_prompt( "tf_romevision_skip_prompt", "0", FCVAR_ARCHIVE, "If nonzero, skip the prompt about sharing Romevision." );
@@ -5941,7 +5942,7 @@ void C_TFPlayer::TurnOnTauntCam( void )
 	m_TauntCameraData.m_vecHullMin.Init( -9.0f, -9.0f, -9.0f );
 	m_TauntCameraData.m_vecHullMax.Init( 9.0f, 9.0f, 9.0f );
 
-	if ( tf_taunt_first_person.GetBool() )
+	if ( tf_taunt_first_person.GetBool() || tf_taunt_first_person_always.GetBool() )
 	{
 		// Remain in first-person.
 	}
