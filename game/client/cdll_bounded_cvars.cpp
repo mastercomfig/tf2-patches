@@ -109,9 +109,10 @@ public:
 	  {
 		  static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
 		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
+			static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
 		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 )
 		  {
-			  return MAX( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat() );
+			  return MIN( MAX( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat() ), pMax->GetFloat() / pUpdateRate->GetFloat() );
 		  }
 		  else
 		  {
