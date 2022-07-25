@@ -353,24 +353,24 @@ void CEngine::Frame( void )
 			// If we are meeting our frame rate then go idle for a while
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
-			int nSleepMS = (int)( ( m_flMinFrameTime - m_flFrameTime ) * 1000 - fBusyWaitMS );
-			if ( nSleepMS > 0 )
+			float fWaitTime = m_flMinFrameTime - m_flFrameTime;
+			float fWaitEnd = m_flCurrentTime + fWaitTime;
+			int nSleepMS = (int)( fWaitTime * 1000 - fBusyWaitMS );
+			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep( nSleepMS );
 			}
-			else
+
+			// On x86, busy-wait using PAUSE instruction which encourages power savings by idling
+			// (also yielding to the other logical hyperthread core if the CPU supports it)
+			while ( Sys_FloatTime() < fWaitEnd )
 			{
-				// On x86, busy-wait using PAUSE instruction which encourages
-				// power savings by idling for ~10 cycles (also yielding to
-				// the other logical hyperthread core if the CPU supports it)
-				for (int i = 2000; i >= 0; --i)
-				{
 #if defined(POSIX)
-					__asm( "pause" ); __asm( "pause" ); __asm( "pause" ); __asm( "pause" );
+				__asm( "pause" );
 #elif defined(IS_WINDOWS_PC)
-					_asm { pause }; _asm { pause }; _asm { pause }; _asm { pause };
+				_asm { pause };
 #endif
-				}
+				ThreadSleep( 0 );
 			}
 
 			// Go back to the top of the loop and see if it is time yet.
