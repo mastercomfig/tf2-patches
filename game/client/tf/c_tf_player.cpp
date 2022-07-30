@@ -4619,10 +4619,13 @@ void C_TFPlayer::SetDormant( bool bDormant )
 		}
 	}
 
+	// UNDONE: unused and expensive, removing
+#if 0
 	if ( bDormant == false )
 	{
 		m_rtSpottedInPVSTime = steamapicontext && steamapicontext->SteamUtils() ? steamapicontext->SteamUtils()->GetServerRealTime() : CRTime::RTime32TimeCur();
 	}
+#endif
 
 	// Deliberately skip base combat weapon
 	C_BaseEntity::SetDormant( bDormant );
@@ -5174,6 +5177,8 @@ void C_TFPlayer::OnDataChanged( DataUpdateType_t updateType )
 		m_bUpdateObjectHudState = false;
 	}
 
+	// UNDONE: unused and expensive, removing
+#if 0
 	if ( m_iOldTeam != GetTeamNumber() )
 	{
 		if ( GetTeamNumber() == TEAM_SPECTATOR )
@@ -5185,6 +5190,7 @@ void C_TFPlayer::OnDataChanged( DataUpdateType_t updateType )
 			m_rtJoinedNormalTeam = steamapicontext && steamapicontext->SteamUtils() ? steamapicontext->SteamUtils()->GetServerRealTime() : CRTime::RTime32TimeCur();
 		}
 	}
+#endif
 }
 
 
