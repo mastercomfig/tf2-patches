@@ -9325,12 +9325,7 @@ bool C_TFPlayer::CanShowTeamMenu( void )
 	if ( IsHLTV() )
 		return false;
 
-#ifdef STAGING_ONLY
 	if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
-#else
-	if ( TFGameRules() && ( TFGameRules()->IsCompetitiveMode() || TFGameRules()->IsPowerupMode() ) )
-#endif // STAGING_ONLY
-	
 		return false;
 
 	return ( GetTeamNumber() != TEAM_UNASSIGNED );

@@ -206,7 +206,6 @@ void C_ObjectTeleporter::SetInvisibilityLevel( float flValue )
 //-----------------------------------------------------------------------------
 void C_ObjectTeleporter::UpdateTeleporterEffects( void )
 {
-#ifdef STAGING_ONLY
 	C_TFPlayer *pTFOwner = GetOwner();
 	if ( ( pTFOwner && pTFOwner->m_Shared.IsEnteringOrExitingFullyInvisible() ) || GetInvisibilityLevel() == 1.f  )
 	{
@@ -215,7 +214,6 @@ void C_ObjectTeleporter::UpdateTeleporterEffects( void )
 		StopChargedEffects();
 		return;
 	}
-#endif // STAGING_ONLY
 
 	if ( m_bMatchBuilding )
 	{
@@ -329,13 +327,11 @@ void C_ObjectTeleporter::ClientThink( void )
 		SetPoseParameter( m_iDirectionArrowPoseParam, m_flYawToExit);
 	}
 
-#ifdef STAGING_ONLY
 	C_TFPlayer *pTFOwner = GetOwner();
 	if ( pTFOwner && pTFOwner->m_Shared.IsEnteringOrExitingFullyInvisible() )
 	{
 		UpdateTeleporterEffects();
 	}
-#endif // STAGING_ONLY
 }
 
 //-----------------------------------------------------------------------------
