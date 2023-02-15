@@ -695,6 +695,7 @@ void CHudMainMenuOverride::OnTick()
 		}
 	}
 
+#ifdef VALVE_PURE
 	// See if its time to nag about joining the war
 	float flTimeSinceWarNag = Plat_FloatTime() - m_flLastWarNagTime;
 	if ( !m_bPlayListExpanded && m_pHighlightAnims[ MMHA_WAR ] && ( flTimeSinceWarNag > 300.f || m_flLastWarNagTime == 0.f ) )
@@ -730,6 +731,7 @@ void CHudMainMenuOverride::OnTick()
 			}
 		}
 	}
+#endif
 
 
 #ifdef STAGING_ONLY
