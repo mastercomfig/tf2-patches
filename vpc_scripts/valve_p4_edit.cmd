@@ -21,14 +21,14 @@ if [%3] NEQ [] (
 )
 
 :: // Fallback to old functionality and just change file attribs
-if NOT "%VALVE_NO_AUTO_P4%"=="" (
-	echo [valve_p4_edit] VALVE_NO_AUTO_P4 defined. Changing file attribs only!
+:: // if NOT "%VALVE_NO_AUTO_P4%"=="" (
+	:: // echo [valve_p4_edit] VALVE_NO_AUTO_P4 defined. Changing file attribs only!
 	if EXIST %valveTmpFileFromVS2005% (
 		attrib -r %valveTmpFileFromVS2005%
 	)
 	endlocal
 	exit /b 0
-)
+:: // )
 
 rem // :: // First check if file exists
 rem // if NOT EXIST %valveTmpFileFromVS2005% (
