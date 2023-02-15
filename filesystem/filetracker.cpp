@@ -99,8 +99,10 @@ int CFileTracker2::SubmitThreadedMD5Request( uint8 *pubBuffer, int cubBuffer, in
 		}
 		else
 		{
+#ifdef VALVE_PURE
 			// this is an error, we should already know about the file
 			Assert(0);
+#endif
 			return 0;
 		}
 
