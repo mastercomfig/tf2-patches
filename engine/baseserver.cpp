@@ -1773,6 +1773,11 @@ void CBaseServer::CheckMasterServerRequestRestart()
 	if ( !Steam3Server().SteamGameServer() || !Steam3Server().SteamGameServer()->WasRestartRequested() )
 		return;
 	
+#ifndef VALVE_PURE
+	// HACK(mastercoms): stop update check
+	return;
+#endif
+
 	// Connection was rejected by the HLMaster (out of date version)
 
 	// hack, vgui console looks for this string; 

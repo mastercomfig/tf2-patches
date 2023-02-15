@@ -2748,7 +2748,11 @@ void CL_InitLanguageCvar()
 }
 
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue );
+#ifdef VALVE_PURE
+ConVar cl_cloud_settings( "cl_cloud_settings", "1", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
+#else
 ConVar cl_cloud_settings( "cl_cloud_settings", "0", FCVAR_HIDDEN, "Cloud enabled from (from HKCU\\Software\\Valve\\Steam\\Apps\\appid\\Cloud)", CL_ChangeCloudSettingsCvar );
+#endif
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue )
 {
 	// !! bug do i need to do something linux-wise here.
@@ -2768,6 +2772,7 @@ void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOl
 
 void CL_InitCloudSettingsCvar()
 {
+#ifdef VALVE_PURE
 	if ( IsPC()	&& Steam3Client().SteamRemoteStorage() )
 	{
 		int iCloudSettings = STEAMREMOTESTORAGE_CLOUD_OFF;
@@ -2776,6 +2781,7 @@ void CL_InitCloudSettingsCvar()
 		
 		cl_cloud_settings.SetValue( iCloudSettings );
 	}
+#endif
 	else
 	{
 		// If not on PC or steam not available, set to 0 to make sure no replication occurs or is attempted
