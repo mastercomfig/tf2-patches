@@ -75,15 +75,18 @@ config.cfg
 *.ipdb
 *.dbg
 
+!src/thirdparty/protobuf-2.6.1/vsprojects/Debug/libprotobuf.lib
+!src/thirdparty/protobuf-2.6.1/vsprojects/Release/libprotobuf.lib
+
 # ignore vs-generated folders
 .vs/
 .vscode/
-Retail/
-Retail_*/
-Release/
-Release_*/
-Debug/
-Debug_*/
+Retail/*
+Retail_*/*
+Release/*
+Release_*/*
+Debug/*
+Debug_*/*
 *.tlog/
 UpgradeLog*.htm
 
