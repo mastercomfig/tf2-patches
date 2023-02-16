@@ -214,7 +214,7 @@
 		}
 		if_christmas
 		{
-			"image"		"../console/background_xmas2011_widescreen"
+			"image"		"../console/background_xmas2020_widescreen"
 		}
 	}
 					
@@ -1902,29 +1902,79 @@
 
 				"items"
 				{
-					"0"
+										"0"
 					{
-						"item"		"Rainy Day Cosmetic Key" 
+						"item"		"Winter 2022 Cosmetic Key"
 						"show_market"	"0"
 					}
 					"1"
 					{
-						"item"		"Rainy Day Cosmetic Case"
+						"item"		"Winter 2022 Cosmetic Case"
 						"show_market"	"1"
-					}
-					"2"
-					{
-						"item"		"Taunt: The Table Tantrum"
-						"show_market"	"0"
-					}
-					"3"
-					{
-						"item"		"Taunt: Didgeridrongo"
-						"show_market"	"0"
 					}
 					"4"
 					{
-						"item"		"Taunt: Scotsmann's Stagger"
+						"item"		"Taunt: Russian Rubdown"
+						"show_market"	"0"
+					}
+					"5"
+					{
+						"item"		"Taunt: Tailored Terminal"
+						"show_market"	"0"
+					}
+					"6"
+					{
+						"item"		"Taunt: Roasty Toasty"
+						"show_market"	"0"
+					}
+					"7"
+					{
+						"item"		"Map Token Frostwatch"
+						"show_market"	"0"
+					}
+					"8"
+					{
+						"item"		"Map Token Frostcliff"
+						"show_market"	"0"
+					}
+					"9"
+					{
+						"item"		"Map Token Rumford"
+						"show_market"	"0"
+					}
+					"10"
+					{
+						"item"		"Map Token Frosty"
+						"show_market"	"0"
+					}
+					"11"
+					{
+						"item"		"Map Token Coal Pit"
+						"show_market"	"0"
+					}
+					"12"
+					{
+						"item"		"Strange Filter: Frostwatch (Community)"
+						"show_market"	"0"
+					}
+					"13"
+					{
+						"item"		"Strange Filter: Frostcliff (Community)"
+						"show_market"	"0"
+					}
+					"14"
+					{
+						"item"		"Strange Filter: Rumford (Community)"
+						"show_market"	"0"
+					}
+					"15"
+					{
+						"item"		"Strange Filter: Frosty (Community)"
+						"show_market"	"0"
+					}
+					"16"
+					{
+						"item"		"Strange Filter: Coal Pit (Community)"
 						"show_market"	"0"
 					}
 				}
