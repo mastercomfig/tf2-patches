@@ -28,9 +28,9 @@ Not at the moment, we are focusing on our own patches to send to Valve.
 
 ## How can I help?
 
-1. **Report bugs that exist in live TF2 *or* TC2 through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
+1. **Report bugs that exist in live TF2 *or* TC2 through the [issues page](https://github.com/mastercomfig/tf2-patches/issues).**
 	* Bugs that are present in modern TF2 but are not present in TC2 cannot be fixed in this project.
-2. **Suggest quality of life improvements (*not balance changes*) through the [issues page](https://github.com/mastercomfig/team-comtress-2/issues).**
+2. **Suggest quality of life improvements (*not balance changes*) through the [issues page](https://github.com/mastercomfig/tf2-patches/issues).**
 	* These changes should not affect gameplay, and should be unanimously desired.
 3. **Install TC2 and play the game to test stability, bugfixes, and performance.**
 	* As a separate game, you cannot play normal TF2 matchmaking. You can *only* connect to TC2 servers.
@@ -43,24 +43,24 @@ New users should follow this approach.
 1. Copy your current `Team Fortress 2` installation to a new folder.
 2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 	* Do *not* delete the entire `tf/cfg` folder!
-3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_dist.zip` from the latest release.
+3. [Download](https://github.com/mastercomfig/tf2-patches/releases/latest) `game_dist.zip` from the latest release.
 4. ![Unblock ZIP](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
 5. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
 6. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
 7. Double click `start_tf2.bat`. Note that you must have Steam running.
 8. Enjoy!
 
-*Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/team-comtress-2/wiki/Advanced-Installation-Instructions).*
+*Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/tf2-patches/wiki/Advanced-Installation-Instructions).*
 
 ## For players:
 
-### [Things to keep in mind with TC2](https://github.com/mastercomfig/team-comtress-2/wiki/Things-to-keep-in-mind-with-TC2)
-### [New console commands and launch options](https://github.com/mastercomfig/team-comtress-2/wiki/New-console-commands-and-launch-options)
+### [Things to keep in mind with TC2](https://github.com/mastercomfig/tf2-patches/wiki/Things-to-keep-in-mind-with-TC2)
+### [New console commands and launch options](https://github.com/mastercomfig/tf2-patches/wiki/New-console-commands-and-launch-options)
 
 ## For developers:
 
-### [Windows Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Windows-Build-Instructions)
-### [Linux Build Instructions](https://github.com/mastercomfig/team-comtress-2/wiki/Linux-Build-Instructions)
+### [Windows Build Instructions](https://github.com/mastercomfig/tf2-patches/wiki/Windows-Build-Instructions)
+### [Linux Build Instructions](https://github.com/mastercomfig/tf2-patches/wiki/Linux-Build-Instructions)
 
 ## Legal
 
