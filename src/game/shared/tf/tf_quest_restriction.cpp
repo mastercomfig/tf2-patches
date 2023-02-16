@@ -474,10 +474,13 @@ public:
 			CTFQuestRestriction *pNewRestriction = CreateRestrictionByName( pszType, this );
 			SCHEMA_INIT_CHECK( pNewRestriction != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
 
-			SCHEMA_INIT_CHECK( pNewRestriction->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
+			if (pNewRestriction != NULL)
+			{
+				SCHEMA_INIT_CHECK( pNewRestriction->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
 
-			m_vecRestrictions.AddToTail( pNewRestriction );
-			nInputCount++;
+				m_vecRestrictions.AddToTail( pNewRestriction );
+				nInputCount++;
+			}
 		}
 		SCHEMA_INIT_CHECK( nInputCount > 0 && nInputCount <= GetMaxInputCount(), "%s", CFmtStr( "Invalid number of specified input. Expected from 0 to %d inputs.", GetMaxInputCount() ).Get() );
 
@@ -2305,13 +2308,15 @@ public:
 
 		FOR_EACH_TRUE_SUBKEY( pKVItem, pSubKey )
 		{
-			SCHEMA_INIT_CHECK( !m_pRestrictions, "%s", CFmtStr( "Too many input for operator '%s'.", GetConditionName() ).Get() );
+			//SCHEMA_INIT_CHECK( !m_pRestrictions, "%s", CFmtStr( "Too many input for operator '%s'.", GetConditionName() ).Get() );
 
 			const char *pszType = pSubKey->GetString( "type" );
 			m_pRestrictions = CreateRestrictionByName( pszType, this );
-			SCHEMA_INIT_CHECK( m_pRestrictions != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
-
-			SCHEMA_INIT_CHECK( m_pRestrictions->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
+			//SCHEMA_INIT_CHECK( m_pRestrictions != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
+			if (m_pRestrictions != NULL)
+			{
+				SCHEMA_INIT_CHECK( m_pRestrictions->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
+			}
 		}
 
 		return true;
@@ -2516,13 +2521,16 @@ public:
 		{
 			const char *pszType = pSubKey->GetString( "type" );
 			CTFQuestEvaluator *pNewCond = assert_cast< CTFQuestEvaluator* >( CreateEvaluatorByName( pszType, this ) );
-			SCHEMA_INIT_CHECK( pNewCond && pNewCond->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
+			//SCHEMA_INIT_CHECK( pNewCond && pNewCond->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
 
-			const char *pszAction = pSubKey->GetString( "action", NULL );
-			SCHEMA_INIT_CHECK( pszAction != NULL, "Missing action key" );
-			pNewCond->SetAction( pszAction );
+			if (pNewCond && pNewCond->BInitFromKV(pSubKey, pVecErrors))
+			{
+				const char *pszAction = pSubKey->GetString( "action", NULL );
+				SCHEMA_INIT_CHECK( pszAction != NULL, "Missing action key" );
+				pNewCond->SetAction( pszAction );
 
-			m_vecChildren.AddToTail( pNewCond );
+				m_vecChildren.AddToTail( pNewCond );
+			}
 		}
 
 		return true;
