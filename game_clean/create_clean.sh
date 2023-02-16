@@ -7,7 +7,7 @@ cd "${BIN_DIR}" || exit 2
 set -e
 
 DEV_DIR=../game
-CLEAN_DIR=../${DEV_DIR}_clean
+CLEAN_DIR=../game_dist
 CLEAN_DEBUG_DIR=${CLEAN_DIR}_debug
 rm -rf ${CLEAN_DIR}
 rm -rf ${CLEAN_DEBUG_DIR}
