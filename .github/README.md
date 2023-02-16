@@ -24,14 +24,7 @@ TC2 is based on the 2017 TF2 source code leak, which contained an in-development
 
 ### Does TC2 include other community patches?
 
-Yes! We include quite a few high quality patches from the community, to represent a more comprehensive patch to the whole game, including UI and assets.
-
-This project currently includes...
-
-* [Ultimate TF2	Visual Fix Pack](https://github.com/agrastiOs/Ultimate-TF2-Visual-Fix-Pack)
-* [TF2 Community HUD Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=2153598398)
-* [Misc. Response Rule Fixes for Mann vs. Machine](https://steamcommunity.com/sharedfiles/filedetails/?id=2222988229)
-* [Misc. Cosmetic Material Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=2231815530)
+Not at the moment, we are focusing on our own patches to send to Valve.
 
 ## How can I help?
 
@@ -50,7 +43,7 @@ New users should follow this approach.
 1. Copy your current `Team Fortress 2` installation to a new folder.
 2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
 	* Do *not* delete the entire `tf/cfg` folder!
-3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_clean.zip` from the latest release.
+3. [Download](https://github.com/mastercomfig/team-comtress-2/releases/latest) `game_dist.zip` from the latest release.
 4. ![Unblock ZIP](https://support.winzip.com/hc/article_attachments/360059191533/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
 5. Extract the downloaded ZIP to your copied TF2 folder, overwriting existing files.
 6. On your Steam Library, right click TF2, click properties then open the "Updates" tab and untick the option "Enable Steam Cloud Synchronization for TF2".
