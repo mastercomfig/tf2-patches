@@ -15,7 +15,7 @@ assignees:
 
 ### Checklist
 <!-- You do not have to answer "yes" to all of these to open a pull request -->
-- [ ] This PR targets the `community` branch.
+- [ ] This PR targets the `changes` branch.
 - [ ] This idea has been filed as an issue.
 - [ ] No other PRs implement this idea.
 
