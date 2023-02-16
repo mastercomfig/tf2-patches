@@ -3132,6 +3132,11 @@ bool CParticleSystemMgr::ReadParticleDefinitions( CUtlBuffer &buf, const char *p
 {
 	DECLARE_DMX_CONTEXT_DECOMMIT( bDecommitTempMemory );
 
+	if (!V_stricmp(pFileName, "particles/weapon_unusual_isotope.pcf"))
+	{
+		return false;
+	}
+
 	CDmxElement *pRoot;
 	if ( !UnserializeDMX( buf, &pRoot, pFileName ) || !pRoot )
 	{
