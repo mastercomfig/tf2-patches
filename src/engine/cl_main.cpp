@@ -2755,6 +2755,7 @@ ConVar cl_cloud_settings( "cl_cloud_settings", "0", FCVAR_HIDDEN, "Cloud enabled
 #endif
 void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOldValue )
 {
+#ifdef VALVE_PURE
 	// !! bug do i need to do something linux-wise here.
 	if ( IsPC() && Steam3Client().SteamRemoteStorage() )
 	{
@@ -2768,6 +2769,7 @@ void CL_ChangeCloudSettingsCvar( IConVar *var, const char *pOldValue, float flOl
 		}
 
 	}
+#endif
 }
 
 void CL_InitCloudSettingsCvar()
@@ -2781,8 +2783,8 @@ void CL_InitCloudSettingsCvar()
 		
 		cl_cloud_settings.SetValue( iCloudSettings );
 	}
-#endif
 	else
+#endif
 	{
 		// If not on PC or steam not available, set to 0 to make sure no replication occurs or is attempted
 		cl_cloud_settings.SetValue( STEAMREMOTESTORAGE_CLOUD_OFF );
