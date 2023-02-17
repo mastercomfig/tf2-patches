@@ -1709,7 +1709,9 @@ bool CDemoPlayer::StartPlayback( const char *filename, bool bAsTimeDemo )
 	m_nTimeDemoCurrentFrame = -1;
 	m_nTimeDemoStartFrame = -1;
 
+#ifdef VALVE_PURE
 	if ( m_bTimeDemo )
+#endif
 	{
 		SeedRandomNumberGenerator( true );
 	}
