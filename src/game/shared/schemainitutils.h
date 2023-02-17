@@ -25,6 +25,12 @@
 		}																\
 		else															\
 		{																\
+			Warning( "%s\n", msg.String() );							\
+			/*
+				todo(maximsmol):
+				we do not support upstream item schema
+			*/															\
+			return false;												\
 			pVecErrors->AddToTail( msg );								\
 		}																\
 		return false;													\
