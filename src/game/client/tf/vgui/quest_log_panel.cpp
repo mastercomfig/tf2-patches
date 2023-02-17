@@ -809,6 +809,10 @@ void CQuestLogPanel::OnCommand( const char *pCommand )
 //-----------------------------------------------------------------------------
 void CQuestLogPanel::FireGameEvent( IGameEvent *event )
 {
+#ifndef VALVE_PURE
+	// FIXME(mastercoms): disable quests
+	return;
+#endif
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 	// Listen for inventory updates in case our item gets changed while the user
 	// is looking at us.  We want to re-do our entire layout since a quest might

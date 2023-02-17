@@ -2587,9 +2587,12 @@ bool CTFItemSchema::BInitQuestObjectiveConditions( KeyValues *pKVConditionsBlock
 	FOR_EACH_TRUE_SUBKEY( pKVConditionsBlock, pKVCondition )
 	{
 		CTFQuestObjectiveConditionsDefinition *pNewCondition = new CTFQuestObjectiveConditionsDefinition();
-		//SCHEMA_INIT_SUBSTEP( pNewCondition->BInitFromKV( pKVCondition, pVecErrors ) );
 
+#ifdef VALVE_PURE
+		SCHEMA_INIT_SUBSTEP( pNewCondition->BInitFromKV( pKVCondition, pVecErrors ) );
+#else
 		if (pNewCondition->BInitFromKV(pKVCondition, pVecErrors))
+#endif
 		{
 			m_mapQuestObjectiveConditions.Insert( pNewCondition->GetDefIndex(), pNewCondition );
 		}

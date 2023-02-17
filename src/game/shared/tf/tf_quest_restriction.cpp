@@ -474,7 +474,9 @@ public:
 			CTFQuestRestriction *pNewRestriction = CreateRestrictionByName( pszType, this );
 			SCHEMA_INIT_CHECK( pNewRestriction != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
 
+#ifndef VALVE_PURE
 			if (pNewRestriction != NULL)
+#endif
 			{
 				SCHEMA_INIT_CHECK( pNewRestriction->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
 
@@ -2308,12 +2310,17 @@ public:
 
 		FOR_EACH_TRUE_SUBKEY( pKVItem, pSubKey )
 		{
-			//SCHEMA_INIT_CHECK( !m_pRestrictions, "%s", CFmtStr( "Too many input for operator '%s'.", GetConditionName() ).Get() );
+#ifdef VALVE_PURE
+			SCHEMA_INIT_CHECK( !m_pRestrictions, "%s", CFmtStr( "Too many input for operator '%s'.", GetConditionName() ).Get() );
+#endif
 
 			const char *pszType = pSubKey->GetString( "type" );
 			m_pRestrictions = CreateRestrictionByName( pszType, this );
-			//SCHEMA_INIT_CHECK( m_pRestrictions != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
+#ifdef VALVE_PURE
+			SCHEMA_INIT_CHECK( m_pRestrictions != NULL, "%s", CFmtStr( "Failed to create quest restriction name '%s' for '%s'", pszType, GetConditionName() ).Get() );
+#else
 			if (m_pRestrictions != NULL)
+#endif
 			{
 				SCHEMA_INIT_CHECK( m_pRestrictions->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
 			}
@@ -2355,6 +2362,10 @@ public:
 
 	virtual void FireGameEvent( IGameEvent *pEvent ) OVERRIDE
 	{
+#ifndef VALVE_PURE
+		// FIXME(mastercoms): disable quest restrictions
+		return;
+#endif
 		// This can happen when the player's SteamID isn't setup yet after a 
 		// disconnect -> reconnect
 		if ( GetQuestOwner() == NULL )
@@ -2521,9 +2532,11 @@ public:
 		{
 			const char *pszType = pSubKey->GetString( "type" );
 			CTFQuestEvaluator *pNewCond = assert_cast< CTFQuestEvaluator* >( CreateEvaluatorByName( pszType, this ) );
-			//SCHEMA_INIT_CHECK( pNewCond && pNewCond->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
-
+#ifdef VALVE_PURE
+			SCHEMA_INIT_CHECK( pNewCond && pNewCond->BInitFromKV( pSubKey, pVecErrors ), "Failed to init from KeyValues" );
+#else
 			if (pNewCond && pNewCond->BInitFromKV(pSubKey, pVecErrors))
+#endif
 			{
 				const char *pszAction = pSubKey->GetString( "action", NULL );
 				SCHEMA_INIT_CHECK( pszAction != NULL, "Missing action key" );

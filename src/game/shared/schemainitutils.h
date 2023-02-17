@@ -13,7 +13,7 @@
 
 // used for initialization functions. Adds an error message if we're recording
 // them or returns false if we're not
-#ifdef DEBUG
+#if defined(DEBUG) || defined(VALVE_PURE)
 #define SCHEMA_INIT_CHECK( expr, ... )							\
 	if ( false == ( expr ) )											\
 	{																	\
@@ -25,12 +25,14 @@
 		}																\
 		else															\
 		{																\
+#ifndef VALVE_PURE														\
 			Warning( "%s\n", msg.String() );							\
 			/*
 				todo(maximsmol):
 				we do not support upstream item schema
 			*/															\
 			return false;												\
+#endif																	\
 			pVecErrors->AddToTail( msg );								\
 		}																\
 		return false;													\
