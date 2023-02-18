@@ -84,6 +84,8 @@ void InitializeToRandom( void *pMem, int nSize )
 
 void DoApplyMemoryInitializations( void *pMem, int nSize )
 {
+	// UNDONE(mastercoms): disable mem init for profiling purposes
+#if defined(VALVE_PURE) || 0
 	if ( !pMem )
 		return;
 	
@@ -135,6 +137,7 @@ void DoApplyMemoryInitializations( void *pMem, int nSize )
 #endif
 		}
 	}
+#endif
 }
 
 size_t CalcHeapUsed()
