@@ -2281,19 +2281,6 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 		pfnWait = DefaultWaitFunc;
 	}
 
-#ifdef WIN32
-	CThreadEvent threadEvent( GetThreadHandle() );
-#endif
-	
-	CThreadEvent *waits[] =
-	{
-#ifdef WIN32
-		&threadEvent,
-#endif
-		&m_EventComplete
-	};
-	
-
 	unsigned result;
 	bool bInDebugger = Plat_IsInDebugSession();
 
@@ -2307,8 +2294,7 @@ int CWorkerThread::WaitForReply( unsigned timeout, WaitFunc_t pfnWait )
 			break;
 		}
 #endif
-		result = (*pfnWait)((sizeof(waits) / sizeof(waits[0])), waits, false,
-			(timeout != TT_INFINITE) ? timeout : 30000);
+		result = WaitForSingleObject(m_EventComplete, (timeout != TT_INFINITE) ? timeout : 30000);
 
 		AssertMsg(timeout != TT_INFINITE || result != WAIT_TIMEOUT, "Possible hung thread, call to thread timed out");
 
