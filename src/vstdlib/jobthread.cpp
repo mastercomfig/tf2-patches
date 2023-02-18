@@ -24,6 +24,7 @@
 #endif
 
 #include "tier0/memdbgon.h"
+#include "eventcount.h"
 
 
 class CJobThread;
@@ -270,6 +271,7 @@ private:
 private:
 	friend class CJobThread;
 
+	CEventCount				m_GotWork;
 	CJobQueue				m_SharedQueue;
 	CInterlockedInt			m_nIdleThreads;
 	CUtlVector<CJobThread *> m_Threads;
@@ -332,6 +334,7 @@ class CJobThread : public CWorkerThread
 {
 public:
 	CJobThread( CThreadPool *pOwner, int iThread ) : 
+		m_GotWork( pOwner->m_GotWork ),
 		m_SharedQueue( pOwner->m_SharedQueue ),
 		m_pOwner( pOwner ),
 		m_iThread( iThread )
@@ -351,52 +354,22 @@ public:
 private:
 	unsigned Wait()
 	{
-		unsigned waitResult;
 		tmZone( TELEMETRY_LEVEL0, TMZF_IDLE, "%s", __FUNCTION__ );
-#ifdef WIN32
-		enum Event_t
-		{
-			CALL_FROM_MASTER,
-			SHARED_QUEUE,
-			DIRECT_QUEUE,
 
-			NUM_EVENTS
-		};
+		CThreadEvent& callH = GetCallHandle();
 
-		HANDLE	 waitHandles[NUM_EVENTS];
+		do {
+			if (callH.Check()) return WAIT_OBJECT_0;
+			if (m_SharedQueue.Count() > 0) return WAIT_OBJECT_0;
+
+			int pre = m_GotWork.PrepareWait();
+
+			if (callH.Check()) return WAIT_OBJECT_0;
+			if (m_SharedQueue.Count() > 0) return WAIT_OBJECT_0;
 		
-		waitHandles[CALL_FROM_MASTER]	= GetCallHandle().GetHandle();
-		waitHandles[SHARED_QUEUE]		= m_SharedQueue.GetEventHandle().GetHandle();
-		waitHandles[DIRECT_QUEUE] 		= m_DirectQueue.GetEventHandle().GetHandle();
-		
-#ifdef _DEBUG
-		while ( ( waitResult = WaitForMultipleObjects( ARRAYSIZE(waitHandles), waitHandles, FALSE, 10 ) ) == WAIT_TIMEOUT )
-		{
-			waitResult = waitResult; // break here
+			m_GotWork.Wait(pre);
 		}
-#else
-		waitResult = WaitForMultipleObjects( ARRAYSIZE(waitHandles), waitHandles, FALSE, INFINITE );
-#endif
-#else // !win32
-		bool bSet = false;
-		int nWaitTime = 100;
-
-		while( !bSet )
-		{
-			// Jobs are typically enqueued to the shared job queue so wait on it first.
-			bSet = m_SharedQueue.GetEventHandle().Wait( nWaitTime );
-			if( !bSet )
-				bSet = m_DirectQueue.GetEventHandle().Wait( 10 );
-			if ( !bSet )
-				bSet = GetCallHandle().Wait( 0 );
-		}
-
-		if ( !bSet )
-			waitResult = WAIT_TIMEOUT;
-		else
-			waitResult = WAIT_OBJECT_0;
-#endif
-		return waitResult;
+		while (true);
 	}
 
 	int Run()
@@ -487,6 +460,7 @@ private:
 		return 0;
 	}
 
+	CEventCount &		m_GotWork;
 	CJobQueue			m_DirectQueue;
 	CJobQueue &			m_SharedQueue;
 	CThreadPool *		m_pOwner;
@@ -543,6 +517,8 @@ void CThreadPool::ExecuteHighPriorityFunctor( CFunctor *pFunctor )
 		m_Threads[i]->CallWorker( TPM_RUNFUNCTOR, 0, false, pFunctor );
 	}
 
+	m_GotWork.NotifyAll();
+
 	for ( i = 0; i < m_Threads.Count(); i++ )
 	{
 		m_Threads[i]->WaitForReply();
@@ -565,6 +541,8 @@ int CThreadPool::SuspendExecution()
 		{
 			m_Threads[i]->CallWorker( TPM_SUSPEND, 0 );
 		}
+
+		m_GotWork.NotifyAll();
 
 		for ( i = 0; i < m_Threads.Count(); i++ )
 		{
@@ -754,6 +732,7 @@ void CThreadPool::InsertJobInQueue( CJob *pJob )
 	}
 
 	m_nJobs -= pQueue->Push( pJob );
+	m_GotWork.NotifyAll();
 }
 
 //---------------------------------------------------------
@@ -790,6 +769,7 @@ void CThreadPool::ChangePriority( CJob *pJob, JobPriority_t priority )
 	{
 		pJob->SetPriority( priority );
 		m_SharedQueue.Push( pJob );
+		m_GotWork.NotifyAll();
 	}
 	else
 	{
@@ -1114,6 +1094,8 @@ bool CThreadPool::Stop( int timeout )
 	{
 		m_Threads[i]->CallWorker( TPM_EXIT );
 	}
+	
+	m_GotWork.NotifyAll();
 
 	for ( int i = 0; i < m_Threads.Count(); ++i )
 	{
