@@ -365,8 +365,18 @@ private:
 
 		CThreadEvent& callH = GetCallHandle();
 
-		if (callH.Check()) return WAIT_OBJECT_0;
-		if (m_SharedQueue.Count() > 0) return WAIT_OBJECT_0;
+		for (int ctr = 1; ctr < 10; ++ctr) {
+			if (callH.Check()) return WAIT_OBJECT_0;
+			if (m_SharedQueue.Count() > 0) return WAIT_OBJECT_0;
+			
+			if (ctr <= 3) {
+				for (int i = 0; i < (1 << ctr); ++i)
+					YieldProcessor();
+			}
+			else {
+				SwitchToThread();
+			}
+		}
 
 		do {
 			int pre = m_GotWork.PrepareWait();
