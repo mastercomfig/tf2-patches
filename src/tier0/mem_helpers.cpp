@@ -124,8 +124,11 @@ void DoApplyMemoryInitializations( void *pMem, int nSize )
 	{
 		if ( bDebuggerPresent )
 		{
+			// UNDONE(mastercoms): disable mem init for profiling purposes
+#if defined(VALVE_PURE) || 0
 			// Ok, it's already set to 0xbaadf00d, but we want something that will make floating-point #'s NANs.
 			InitializeToFeeFee( pMem, nSize );
+#endif
 		}
 		else
 		{
