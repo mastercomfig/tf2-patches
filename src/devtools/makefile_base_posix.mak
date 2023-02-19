@@ -92,9 +92,13 @@ ifeq ($(CLANG_BUILD),1)
 	BASE_CXXFLAGS += -ftemplate-depth=900
 	# Needed for older versions of clang (newer versions are compatible with gcc syntax)
 	PCH_CXXFLAGS += -emit-pch
+
+	PCH_CXXFLAGS += -fcolor-diagnostics
 else
 	# GCC specific - better PCH behavior w/ccache and better debugging information
 	BASE_CFLAGS += -fpch-preprocess -fvar-tracking-assignments
+
+	BASE_CFLAGS+= -fdiagnostics-color=always
 endif
 
 DEFINES += -DVPROF_LEVEL=1 -DGNUC -DNO_HOOK_MALLOC
@@ -217,6 +221,37 @@ endif
 WARN_FLAGS += -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-value
 WARN_FLAGS += -Wno-invalid-offsetof -Wno-float-equal -Wno-reorder -Werror=return-type
 WARN_FLAGS += -fdiagnostics-show-option -Wformat -Wformat-security
+
+# note(replaycoding): Ideally we would fix the code to get rid of these
+# warnings, there are likely some nasty bugs hiding behind this, especially on
+# newer compilers.
+WARN_FLAGS += \
+	-Wno-misleading-indentation \
+	-Wno-maybe-uninitialized \
+	-Wno-class-memaccess \
+	-Wno-sign-compare \
+	-Wno-deprecated-declarations \
+	-Wno-int-in-bool-context \
+	-Wno-ignored-attributes \
+	-Wno-stringop-truncation \
+	-Wno-stringop-overflow \
+	-Wno-unused-but-set-variable \
+	-Wno-switch \
+	-Wno-packed-not-aligned \
+	-Wno-nonnull-compare \
+	-Wno-delete-non-virtual-dtor \
+	-Wno-address \
+	-Wno-comment \
+	-Wno-conversion-null \
+	-Wno-format-overflow \
+	-Wno-catch-value \
+	-Wno-unused-local-typedefs \
+	-Wno-placement-new \
+	-Wno-sequence-point \
+	-Wno-logical-not-parentheses \
+	-Wno-uninitialized \
+	-Wno-cpp \
+	-Wno-parentheses
 
 ifeq ($(TARGET_PLATFORM),linux64)
 	# nocona = pentium4 + 64bit + MMX, SSE, SSE2, SSE3 - no SSSE3 (that's three s's - added in core2)
