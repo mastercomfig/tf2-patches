@@ -186,6 +186,40 @@ src/thirdparty/protobuf-2.6.1/src/Makefile.in
 
 src/thirdparty/libpng-1.5.2/pngtest
 
+src/thirdparty/libedit-3.1/Makefile.in
+src/thirdparty/libedit-3.1/aclocal.m4
+src/thirdparty/libedit-3.1/config.h.in
+src/thirdparty/libedit-3.1/configure
+src/thirdparty/libedit-3.1/doc/Makefile.in
+src/thirdparty/libedit-3.1/examples/Makefile.in
+src/thirdparty/libedit-3.1/src/Makefile.in
+src/thirdparty/libedit-3.1/Makefile
+src/thirdparty/libedit-3.1/autom4te.cache/
+src/thirdparty/libedit-3.1/config.h
+src/thirdparty/libedit-3.1/config.h.in~
+src/thirdparty/libedit-3.1/config.status
+src/thirdparty/libedit-3.1/doc/Makefile
+src/thirdparty/libedit-3.1/doc/editline.3
+src/thirdparty/libedit-3.1/doc/editline.7
+src/thirdparty/libedit-3.1/doc/editrc.5
+src/thirdparty/libedit-3.1/examples/.deps/
+src/thirdparty/libedit-3.1/examples/.libs/
+src/thirdparty/libedit-3.1/examples/Makefile
+src/thirdparty/libedit-3.1/examples/fileman
+src/thirdparty/libedit-3.1/examples/tc1
+src/thirdparty/libedit-3.1/examples/wtc1
+src/thirdparty/libedit-3.1/libedit.pc
+src/thirdparty/libedit-3.1/libtool
+src/thirdparty/libedit-3.1/src/.libs/
+src/thirdparty/libedit-3.1/src/Makefile
+src/thirdparty/libedit-3.1/src/common.h
+src/thirdparty/libedit-3.1/src/emacs.h
+src/thirdparty/libedit-3.1/src/fcns.h
+src/thirdparty/libedit-3.1/src/func.h
+src/thirdparty/libedit-3.1/src/help.h
+src/thirdparty/libedit-3.1/src/vi.h
+src/thirdparty/libedit-3.1/stamp-h1
+
 # ignore generated protobufs
 generated_proto*/
 

@@ -13,12 +13,16 @@
 
 #include <sys/ioctl.h>
 
+// Must be before any valve headers, otherwise it will conflict with tier0's
+// definition of wcsdup. (tier0 undefs it, which is why this works)
+#include "../thirdparty/libedit-3.1/src/histedit.h"
+
 #include "TextConsoleUnix.h"
 #include "tier0/icommandline.h"
 #include "tier1/utllinkedlist.h"
 #include "filesystem.h"
-#include "../thirdparty/libedit-3.1/src/histedit.h"
 #include "tier0/vprof.h"
+
 
 #define CONSOLE_LOG_FILE "console.log"
 
