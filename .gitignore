@@ -20,6 +20,7 @@ ipch
 *.idb
 *.sln
 *.recipe
+*.project
 pythonenv*/
 /src/enc_temp_folder
 
@@ -27,6 +28,7 @@ pythonenv*/
 *.a
 *.la
 *.o
+*.so
 *.lo
 *.Plo
 *.obj
@@ -37,6 +39,7 @@ pythonenv*/
 *.mak
 *.mak.vpc_crc
 *.xcodeproj/
+src/devtools/bin/vpc_linux
 obj*/
 !src/devtools/*.mak
 !src/utils/smdlexp/smdlexp.mak
@@ -239,9 +242,10 @@ src/unittests/testprocess/testprocess.exe
 !src/lib/common/lgLcd.lib
 !src/lib/common/libcurl.lib
 !src/lib/common/libjpeg.lib
+!src/lib/common/linux32/libSDL2-2.0.so.0
 !src/lib/common/linux32/libSDL2_mixer.a
-!src/lib/common/linux32/libcrypto.a
-!src/lib/common/linux32/libcryptopp.a
+!src/lib/common/ubuntu12_32/libcrypto.a
+!src/lib/common/ubuntu12_32/libcryptopp.a
 !src/lib/common/linux32/libcurl.a
 !src/lib/common/linux32/libcurlssl.a
 !src/lib/common/linux32/libjpeg.a
