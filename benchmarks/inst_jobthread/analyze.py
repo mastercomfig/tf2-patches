@@ -9,9 +9,9 @@ if len(sys.argv) < 2:
 
 data = pd.read_csv(sys.argv[1], names=["event", "param"])
 
-goodWakeupShareds = ((data.event == "goodWakup") & (data.param == "shared")).sum()
-goodWakeupDirects = ((data.event == "goodWakup") & (data.param == "direct")).sum()
-goodWakeupCalls = ((data.event == "goodWakup") & (data.param == "call")).sum()
+goodWakeupShareds = ((data.event == "goodWakeup") & (data.param == "shared")).sum()
+goodWakeupDirects = ((data.event == "goodWakeup") & (data.param == "direct")).sum()
+goodWakeupCalls = ((data.event == "goodWakeup") & (data.param == "call")).sum()
 badWakeups = (data.event == "badWakeup").sum()
 totals = goodWakeupShareds + goodWakeupDirects + goodWakeupCalls + badWakeups
 print("Wakeups:")
