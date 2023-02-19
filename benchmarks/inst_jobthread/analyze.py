@@ -13,7 +13,9 @@ goodWakeupShareds = ((data.event == "goodWakeup") & (data.param == "shared")).su
 goodWakeupDirects = ((data.event == "goodWakeup") & (data.param == "direct")).sum()
 goodWakeupCalls = ((data.event == "goodWakeup") & (data.param == "call")).sum()
 badWakeupCondchecks = ((data.event == "badWakeup") & (data.param == "condCheck")).sum()
-badWakeupQueuePops = ((data.event == "badWakeup") & (data.param == "queuePop")).sum()
+badWakeupQueuePops = (
+    (data.event == "badWakeup") & ((data.param == "queuePop") | (data.param.isnull()))
+).sum()
 totals = (
     goodWakeupShareds
     + goodWakeupDirects
@@ -46,6 +48,7 @@ print(
     pd.DataFrame(
         {
             "Min": [jobLatencies.quantile(0)],
+            "p10": [jobLatencies.quantile(0.1)],
             "p50": [jobLatencies.quantile(0.5)],
             "p90": [jobLatencyP90],
             "p95": [jobLatencies.quantile(0.95)],
@@ -63,6 +66,7 @@ print(
     pd.DataFrame(
         {
             "Min": [waitTimes.quantile(0)],
+            "p10": [waitTimes.quantile(0.1)],
             "p50": [waitTimes.quantile(0.5)],
             "p90": [waitLatencyP90],
             "p95": [waitTimes.quantile(0.95)],
