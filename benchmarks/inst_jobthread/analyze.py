@@ -12,8 +12,15 @@ data = pd.read_csv(sys.argv[1], names=["event", "param"])
 goodWakeupShareds = ((data.event == "goodWakeup") & (data.param == "shared")).sum()
 goodWakeupDirects = ((data.event == "goodWakeup") & (data.param == "direct")).sum()
 goodWakeupCalls = ((data.event == "goodWakeup") & (data.param == "call")).sum()
-badWakeups = (data.event == "badWakeup").sum()
-totals = goodWakeupShareds + goodWakeupDirects + goodWakeupCalls + badWakeups
+badWakeupCondchecks = ((data.event == "badWakeup") & (data.param == "condCheck")).sum()
+badWakeupQueuePops = ((data.event == "badWakeup") & (data.param == "queuePop")).sum()
+totals = (
+    goodWakeupShareds
+    + goodWakeupDirects
+    + goodWakeupCalls
+    + badWakeupCondchecks
+    + badWakeupQueuePops
+)
 print("Wakeups:")
 print(
     pd.DataFrame(
@@ -21,7 +28,11 @@ print(
             "Shared task": [goodWakeupShareds, f"{goodWakeupShareds/totals*100:.2f}%"],
             "Direct task": [goodWakeupDirects, f"{goodWakeupDirects/totals*100:.2f}%"],
             "Call": [goodWakeupCalls, f"{goodWakeupCalls/totals*100:.2f}%"],
-            "Spurious": [badWakeups, f"{badWakeups/totals*100:.2f}%"],
+            "Spurious 1": [
+                badWakeupCondchecks,
+                f"{badWakeupCondchecks/totals*100:.2f}%",
+            ],
+            "Spurious 2": [badWakeupQueuePops, f"{badWakeupQueuePops/totals*100:.2f}%"],
             "Total": [totals, "100%"],
         },
     )
