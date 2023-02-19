@@ -785,7 +785,7 @@ void CThreadPool::InsertJobInQueue( CJob *pJob )
 	}
 
 	m_nJobs -= pQueue->Push( pJob );
-	m_GotWork.NotifyAll();
+	m_GotWork.NotifyOne();
 }
 
 //---------------------------------------------------------
@@ -822,7 +822,7 @@ void CThreadPool::ChangePriority( CJob *pJob, JobPriority_t priority )
 	{
 		pJob->SetPriority( priority );
 		m_SharedQueue.Push( pJob );
-		m_GotWork.NotifyAll();
+		m_GotWork.NotifyOne();
 	}
 	else
 	{
