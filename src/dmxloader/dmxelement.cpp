@@ -138,11 +138,6 @@ CDmxAttribute *CDmxElement::AddAttribute( const char *pAttributeName )
 	CDmxElementModifyScope modify( this );
 	m_bResortNeeded = true;
 	CDmxAttribute *pAttribute = new CDmxAttribute( pAttributeName );
-	if (!pAttribute)
-	{
-		Warning("%s dmx attribute was not parsed.", pAttributeName);
-		return nullptr;
-	}
 	m_Attributes.InsertNoSort( pAttribute );
 	return pAttribute;
 }
