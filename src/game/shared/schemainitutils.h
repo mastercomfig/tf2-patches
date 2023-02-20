@@ -26,7 +26,7 @@
 		else															\
 		{																\
 #ifndef VALVE_PURE														\
-			Warning( "%s\n", msg.String() );							\
+			DevWarning( "%s\n", msg.String() );							\
 			/*
 				todo(maximsmol):
 				we do not support upstream item schema
@@ -43,7 +43,7 @@
 	{																	\
 		CUtlString msg;													\
 		msg.Format( __VA_ARGS__ );										\
-		Warning( "%s\n", msg.String() );						    \
+		DevWarning( "%s\n", msg.String() );						    \
 		return false;													\
 	}
 #endif
