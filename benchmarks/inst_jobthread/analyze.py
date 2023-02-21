@@ -4,77 +4,136 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 if len(sys.argv) < 2:
-    print("Usage: analyze <path>")
+    print("Usage: analyze <path> [baseline path]")
     sys.exit(1)
 
-data = pd.read_csv(sys.argv[1], names=["event", "param"])
+baseline = sys.argv[2] if len(sys.argv) > 2 else None
 
-goodWakeupShareds = ((data.event == "goodWakeup") & (data.param == "shared")).sum()
-goodWakeupDirects = ((data.event == "goodWakeup") & (data.param == "direct")).sum()
-goodWakeupCalls = ((data.event == "goodWakeup") & (data.param == "call")).sum()
-badWakeupCondchecks = ((data.event == "badWakeup") & (data.param == "condCheck")).sum()
-badWakeupQueuePops = (
-    (data.event == "badWakeup") & ((data.param == "queuePop") | (data.param.isnull()))
-).sum()
-totals = (
-    goodWakeupShareds
-    + goodWakeupDirects
-    + goodWakeupCalls
-    + badWakeupCondchecks
-    + badWakeupQueuePops
+data = pd.read_csv(sys.argv[1], names=["event", "param"])
+baseline_data = (
+    pd.read_csv(baseline, names=["event", "param"]) if baseline is not None else None
 )
+
+
+def analyze_wakeups(data):
+    if data is None:
+        return None
+
+    res = {
+        "good": {
+            "shared": ((data.event == "goodWakeup") & (data.param == "shared")).sum(),
+            "direct": ((data.event == "goodWakeup") & (data.param == "direct")).sum(),
+            "call": ((data.event == "goodWakeup") & (data.param == "call")).sum(),
+        },
+        "bad": {
+            "cond": ((data.event == "badWakeup") & (data.param == "condCheck")).sum(),
+            "pop": (
+                (data.event == "badWakeup")
+                & ((data.param == "queuePop") | (data.param.isnull()))
+            ).sum(),
+        },
+        "total": 0,
+    }
+
+    for v in res["good"].values():
+        res["total"] += v
+    for v in res["bad"].values():
+        res["total"] += v
+
+    return res
+
+
+wakeups = analyze_wakeups(data)
+assert wakeups is not None
+
+wakeups_baseline = analyze_wakeups(baseline_data)
+
+
+def render_wakeups(keys):
+    val = wakeups
+    baseline = wakeups_baseline
+    for k in keys:
+        val = val[k]
+        if baseline is not None:
+            baseline = baseline[k]
+
+    pct = val / wakeups["total"] * 100
+
+    if baseline is None:
+        return [val, f"{pct:.2f}%"]
+
+    pct_change = (val - baseline) / wakeups_baseline["total"] * 100
+
+    return [f"{val} {val - baseline:+}", f"{pct:.2f}% {pct_change:+.2f}%"]
+
+
 print("Wakeups:")
 print(
     pd.DataFrame(
         {
-            "Shared task": [goodWakeupShareds, f"{goodWakeupShareds/totals*100:.2f}%"],
-            "Direct task": [goodWakeupDirects, f"{goodWakeupDirects/totals*100:.2f}%"],
-            "Call": [goodWakeupCalls, f"{goodWakeupCalls/totals*100:.2f}%"],
-            "Spurious 1": [
-                badWakeupCondchecks,
-                f"{badWakeupCondchecks/totals*100:.2f}%",
+            "Shared task": render_wakeups(["good", "shared"]),
+            "Direct task": render_wakeups(["good", "direct"]),
+            "Call": render_wakeups(["good", "call"]),
+            "Spurious 1": render_wakeups(["bad", "cond"]),
+            "Spurious 2": render_wakeups(["bad", "pop"]),
+            "Total": [
+                f"{wakeups['total']} {wakeups['total'] - wakeups_baseline['total']:+}"
+                if wakeups_baseline is not None
+                else wakeups["total"],
+                f"100% {(wakeups['total'] - wakeups_baseline['total']) / wakeups_baseline['total']*100:+.2f}%"
+                if wakeups_baseline is not None
+                else "100%",
             ],
-            "Spurious 2": [badWakeupQueuePops, f"{badWakeupQueuePops/totals*100:.2f}%"],
-            "Total": [totals, "100%"],
         },
     )
 )
 print()
 
-jobLatencies = data[data.event == "jobLatency"].param.astype("int64")
-jobLatencyP90 = jobLatencies.quantile(0.9)
-print("Job Latency:")
-print(
-    pd.DataFrame(
+
+def render_quantile(dat, base, quant):
+    dq = int(dat.quantile(quant))
+    if base is None:
+        return [dq]
+
+    bq = int(base.quantile(quant))
+    return [f"{dq} {dq - bq:+}", f"{(dq - bq) / bq * 100:+.2f}%"]
+
+
+def render_quantile_table(dat, base):
+    return pd.DataFrame(
         {
-            "Min": [jobLatencies.quantile(0)],
-            "p10": [jobLatencies.quantile(0.1)],
-            "p50": [jobLatencies.quantile(0.5)],
-            "p90": [jobLatencyP90],
-            "p95": [jobLatencies.quantile(0.95)],
-            "p99": [jobLatencies.quantile(0.99)],
-            "Max": [jobLatencies.quantile(1)],
+            "Min": render_quantile(dat, base, 0.00),
+            "p10": render_quantile(dat, base, 0.10),
+            "p50": render_quantile(dat, base, 0.50),
+            "p90": render_quantile(dat, base, 0.90),
+            "p95": render_quantile(dat, base, 0.95),
+            "p99": render_quantile(dat, base, 0.99),
+            "Max": render_quantile(dat, base, 1.00),
         },
     )
+
+
+jobLatencies = data[data.event == "jobLatency"].param.astype("int64")
+jobLatenciesBaseline = (
+    baseline_data[baseline_data.event == "jobLatency"].param.astype("int64")
+    if baseline_data is not None
+    else None
 )
+
+jobLatencyP90 = jobLatencies.quantile(0.9)
+print("Job Latency:")
+print(render_quantile_table(jobLatencies, jobLatenciesBaseline))
 print()
 
 waitTimes = data[data.event == "wait"].param.astype("int64")
+waitTimesBaseline = (
+    baseline_data[baseline_data.event == "wait"].param.astype("int64")
+    if baseline_data is not None
+    else None
+)
 waitLatencyP90 = waitTimes.quantile(0.9)
 print("Wait Latency:")
-print(
-    pd.DataFrame(
-        {
-            "Min": [waitTimes.quantile(0)],
-            "p10": [waitTimes.quantile(0.1)],
-            "p50": [waitTimes.quantile(0.5)],
-            "p90": [waitLatencyP90],
-            "p95": [waitTimes.quantile(0.95)],
-            "p99": [waitTimes.quantile(0.99)],
-            "Max": [waitTimes.quantile(1)],
-        },
-    )
-)
+print(render_quantile_table(waitTimes, waitTimesBaseline))
 
 fig, axs = plt.subplots(2)
 axs[0].set_title("Job Latencies")
