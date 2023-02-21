@@ -143,6 +143,14 @@ axs[0].hist(
     cumulative=True,
     histtype="step",
 )
+if jobLatenciesBaseline is not None:
+    axs[0].hist(
+        jobLatenciesBaseline[jobLatenciesBaseline <= jobLatencyP90],
+        density=True,
+        cumulative=True,
+        histtype="step",
+        color="red",
+    )
 
 axs[1].set_title("Wait Latencies")
 axs[1].hist(
@@ -151,7 +159,14 @@ axs[1].hist(
     cumulative=True,
     histtype="step",
 )
-axs[1]
+if waitTimesBaseline is not None:
+    axs[1].hist(
+        waitTimesBaseline[waitTimesBaseline <= waitLatencyP90],
+        density=True,
+        cumulative=True,
+        histtype="step",
+        color="red",
+    )
 
 plt.tight_layout()
 plt.show()
