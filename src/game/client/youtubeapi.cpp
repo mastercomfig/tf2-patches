@@ -618,6 +618,9 @@ CYouTubeSystem::~CYouTubeSystem()
 bool CYouTubeSystem::Init()
 {
 	m_pThreadPool = CreateThreadPool();
+#if defined( TRACE_CJOBTHREAD )
+	m_pThreadPool->SetName("YouTube System");
+#endif
 	m_pThreadPool->Start( ThreadPoolStartParams_t( false, 4 ), "YouTubeSystem" );
 	return true;
 }

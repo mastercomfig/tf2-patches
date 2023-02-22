@@ -664,6 +664,9 @@ void CBaseFileSystem::InitAsync()
 	{
 		// create the i/o thread pool
 		m_pThreadPool = CreateThreadPool();
+#if defined( TRACE_CJOBTHREAD )
+		m_pThreadPool->SetName("FileSystem Async");
+#endif
 
 		ThreadPoolStartParams_t params;
 		params.iThreadPriority = 0;
@@ -812,10 +815,20 @@ FSAsyncStatus_t CBaseFileSystem::AsyncReadMultipleCreditAlloc( const FileAsyncRe
 		if ( pRequests[i].nBytes >= 0 )
 		{
 			pJob = new CFileAsyncReadJob( pRequests[i], this );
+#if defined( TRACE_CJOBTHREAD )
+			char *buf = new char[256];
+			snprintf(buf, 256, "File Async Read %s", pRequests[i].pszFilename);
+			pJob->m_name = buf;
+#endif
 		}
 		else
 		{
 			pJob =  new CFileAsyncFileSizeJob( pRequests[i], this );
+#if defined( TRACE_CJOBTHREAD )
+			char *buf = new char[256];
+			snprintf(buf, 256, "File Async Size %s", pRequests[i].pszFilename);
+			pJob->m_name = buf;
+#endif
 		}
 
 #if (defined(_DEBUG) || defined(USE_MEM_DEBUG))

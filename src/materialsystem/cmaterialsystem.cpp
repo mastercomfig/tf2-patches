@@ -3565,6 +3565,9 @@ IThreadPool *CMaterialSystem::CreateMatQueueThreadPool()
 		startParams.bExecOnThreadPoolThreadsOnly = true;
 
 		m_pMatQueueThreadPool = CreateThreadPool();
+#if defined( TRACE_CJOBTHREAD )
+		m_pMatQueueThreadPool->SetName("Material Queue");
+#endif
 		m_pMatQueueThreadPool->Start( startParams, "MatQueue" );
 	}
 

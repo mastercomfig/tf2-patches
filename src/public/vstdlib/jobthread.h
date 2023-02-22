@@ -59,9 +59,10 @@
 #pragma once
 #endif
 
-#define INST_CJOBTHREAD
+// #define INST_CJOBTHREAD
+ #define TRACE_CJOBTHREAD
 
-#if defined( INST_CJOBTHREAD )
+#if defined( INST_CJOBTHREAD ) || defined( TRACE_CJOBTHREAD )
 #include <chrono>
 #endif
 
@@ -157,6 +158,10 @@ abstract_class IThreadPool : public IRefCounted
 {
 public:
 	virtual ~IThreadPool() {};
+
+#if defined( TRACE_CJOBTHREAD )
+	virtual void SetName(const char* name) = 0;
+#endif
 
 	//-----------------------------------------------------
 	// Thread functions
@@ -456,6 +461,11 @@ public:
 		m_iServicingThread( -1 )
 	{
 		m_szDescription[ 0 ] = 0;
+#if defined( TRACE_CJOBTHREAD )
+		// this file is used outside the vstdlib DLL so we cannot really share a counter between everything
+		m_traceId = reinterpret_cast<intptr_t>(this);
+		m_name = "";
+#endif
 	}
 
 	//-----------------------------------------------------
@@ -530,6 +540,11 @@ public:
 
 #if defined( INST_CJOBTHREAD )
 	std::chrono::steady_clock::time_point instQueuedAt;
+#endif
+
+#if defined( TRACE_CJOBTHREAD )
+	intptr_t m_traceId;
+	const char* m_name;
 #endif
 
 private:

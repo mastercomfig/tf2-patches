@@ -29,6 +29,11 @@
 #if defined( INST_CJOBTHREAD )
 static FILE* instOutput = nullptr;
 #endif
+#if defined( TRACE_CJOBTHREAD )
+#include <atomic>
+
+static FILE* traceOutput = nullptr;
+#endif
 
 class CJobThread;
 
@@ -253,6 +258,13 @@ public:
 
 	void WaitForIdle( bool bAll = true );
 
+#if defined( TRACE_CJOBTHREAD )
+	void SetName(const char* name) {
+		m_name = name;
+	}
+	const char* m_name;
+#endif
+
 private:
 	enum
 	{
@@ -288,6 +300,10 @@ private:
 	//	and the main thread coming in and "helping" with jobs breaks that pretty nicely. This flag states that
 	//	only the threadpool threads should execute these jobs.
 	bool					m_bExecOnThreadPoolThreadsOnly;
+
+#if defined( TRACE_CJOBTHREAD )
+	int m_traceId;
+#endif
 };
 
 //-----------------------------------------------------------------------------
@@ -307,6 +323,14 @@ JOB_INTERFACE void DestroyThreadPool( IThreadPool *pPool )
 class CGlobalThreadPool : public CThreadPool
 {
 public:
+#if defined( TRACE_CJOBTHREAD )
+	CGlobalThreadPool() :
+		CThreadPool()
+	{
+		m_name = "Global";
+	}
+#endif
+
 	virtual bool Start( const ThreadPoolStartParams_t &startParamsIn )
 	{
 		int nThreads = ( CommandLine()->ParmValue( "-threads", -1 ) - 1 );
@@ -333,6 +357,10 @@ public:
 
 //-----------------------------------------------------------------------------
 
+#if defined( TRACE_CJOBTHREAD )
+static std::atomic<int> cjobthreadCounter = 0;
+#endif
+
 class CJobThread : public CWorkerThread
 {
 public:
@@ -345,6 +373,16 @@ public:
 #if defined( INST_CJOBTHREAD )
 		if (instOutput == nullptr)
 			instOutput = fopen("inst_cjobthread.csv", "w");
+#endif
+#if defined( TRACE_CJOBTHREAD )
+		m_traceId = cjobthreadCounter.fetch_add(1, std::memory_order_relaxed);
+		fprintf(
+			traceOutput,
+			"{\"t\": %lld, \"e\": \"new_thread\", \"thread_id\": %d, \"pool_id\": %d}\n",
+			std::chrono::steady_clock::now().time_since_epoch().count(),
+			m_traceId,
+			pOwner->m_traceId
+		);
 #endif
 	}
 
@@ -371,8 +409,8 @@ private:
 			
 			if (ctr <= 3) {
 				for (int i = 0; i < (1 << ctr); ++i)
-					YieldProcessor();
-			}
+			YieldProcessor();
+		}
 			else {
 				SwitchToThread();
 			}
@@ -387,9 +425,25 @@ private:
 #if defined( INST_CJOBTHREAD )
 			std::chrono::steady_clock::time_point waitStart = std::chrono::steady_clock::now();
 #endif
+#if defined( TRACE_CJOBTHREAD )
+			fprintf(
+				traceOutput,
+				"{\"t\": %lld, \"e\": \"start_wait\", \"thread_id\": %d}\n",
+				std::chrono::steady_clock::now().time_since_epoch().count(),
+				m_traceId
+			);
+#endif
 
 			m_GotWork.Wait(pre);
 
+#if defined( TRACE_CJOBTHREAD )
+			fprintf(
+				traceOutput,
+				"{\"t\": %lld, \"e\": \"done_wait\", \"thread_id\": %d}\n",
+				std::chrono::steady_clock::now().time_since_epoch().count(),
+				m_traceId
+			);
+#endif
 #if defined( INST_CJOBTHREAD )
 			std::chrono::nanoseconds waitDur = std::chrono::steady_clock::now() - waitStart;
 			fprintf(instOutput, "wait,%lld\n", waitDur.count());
@@ -398,7 +452,9 @@ private:
 			if (callH.Check()) return WAIT_OBJECT_0;
 			if (m_SharedQueue.Count() > 0) return WAIT_OBJECT_0;
 
+#if defined( INST_CJOBTHREAD )
 			fprintf(instOutput, "badWakeup,condCheck\n");
+#endif
 		}
 		while (true);
 	}
@@ -488,6 +544,16 @@ private:
 					std::chrono::nanoseconds latency = std::chrono::steady_clock::now() - pJob->instQueuedAt;
 					fprintf(instOutput, "jobLatency,%lld\n", latency.count());
 #endif
+#if defined( TRACE_CJOBTHREAD )
+					fprintf(
+						traceOutput,
+						"{\"t\": %lld, \"e\": \"start_job\", \"thread_id\": %d, \"job_id\": %ld, \"name\": \"%s\"}\n",
+						std::chrono::steady_clock::now().time_since_epoch().count(),
+						m_traceId,
+						pJob->m_traceId,
+						pJob->m_name != nullptr ? pJob->m_name : pJob->Describe()
+					);
+#endif
 
 					if ( !bTookJob )
 					{
@@ -496,6 +562,18 @@ private:
 						bTookJob = true;
 					}
 					ServiceJobAndRelease( pJob, m_iThread );
+
+#if defined( TRACE_CJOBTHREAD )
+					fprintf(
+						traceOutput,
+						"{\"t\": %lld, \"e\": \"finish_job\", \"thread_id\": %d, \"job_id\": %ld, \"name\": \"%s\"}\n",
+						std::chrono::steady_clock::now().time_since_epoch().count(),
+						m_traceId,
+						pJob->m_traceId,
+						pJob->m_name != nullptr ? pJob->m_name : pJob->Describe()
+					);
+#endif
+
 					m_pOwner->m_nJobs--;
 				} while ( !PeekCall() );
 
@@ -517,6 +595,10 @@ private:
 	CThreadPool *		m_pOwner;
 	CThreadManualEvent	m_IdleEvent;
 	int					m_iThread;
+
+#if defined( TRACE_CJOBTHREAD )
+	int m_traceId;
+#endif
 };
 
 //-----------------------------------------------------------------------------
@@ -530,11 +612,22 @@ IThreadPool *g_pThreadPool = &g_ThreadPool;
 //
 //-----------------------------------------------------------------------------
 
+#if defined( TRACE_CJOBTHREAD )
+static std::atomic<int> cthreadpoolCounter = 0;
+#endif
+
 CThreadPool::CThreadPool() :
 	m_nIdleThreads( 0 ),
 	m_nJobs( 0 ),
 	m_nSuspend( 0 )
 {
+#if defined( TRACE_CJOBTHREAD )
+	if (traceOutput == nullptr)
+		traceOutput = fopen("trace_cjobthread.txt", "w");
+
+	m_traceId = cthreadpoolCounter.fetch_add(1, std::memory_order_relaxed);
+	m_name = nullptr;
+#endif
 }
 
 //---------------------------------------------------------
@@ -651,7 +744,27 @@ int CThreadPool::YieldWait( CThreadEvent **pEvents, int nEvents, bool bWaitAll, 
 	{
 		if ( !m_bExecOnThreadPoolThreadsOnly && m_SharedQueue.Pop( &pJob ) )
 		{
+#if defined( TRACE_CJOBTHREAD )
+			fprintf(
+				traceOutput,
+				"{\"t\": %lld, \"e\": \"yield_wait_start\", \"pool_id\": %d, \"job_id\": %ld, \"name\": \"%s\"}\n",
+				std::chrono::steady_clock::now().time_since_epoch().count(),
+				m_traceId,
+				pJob->m_traceId,
+				pJob->m_name != nullptr ? pJob->m_name : pJob->Describe()
+			);
+#endif
 			ServiceJobAndRelease( pJob );
+#if defined( TRACE_CJOBTHREAD )
+			fprintf(
+				traceOutput,
+				"{\"t\": %lld, \"e\": \"yield_wait_finish\", \"pool_id\": %d, \"job_id\": %ld, \"name\": \"%s\"}\n",
+				std::chrono::steady_clock::now().time_since_epoch().count(),
+				m_traceId,
+				pJob->m_traceId,
+				pJob->m_name != nullptr ? pJob->m_name : pJob->Describe()
+			);
+#endif
 			m_nJobs--;
 		}
 		else
@@ -765,8 +878,6 @@ void CThreadPool::InsertJobInQueue( CJob *pJob )
 {
 	CJobQueue *pQueue;
 
-	pJob->instQueuedAt = std::chrono::steady_clock::now();
-
 	if ( !( pJob->GetFlags() & JF_SERIAL ) )
 	{
 		int iThread = pJob->GetServiceThread();
@@ -785,6 +896,25 @@ void CThreadPool::InsertJobInQueue( CJob *pJob )
 	}
 
 	m_nJobs -= pQueue->Push( pJob );
+
+#if defined( INST_CJOBTHREAD )
+	pJob->instQueuedAt = std::chrono::steady_clock::now();
+#endif
+#if defined( TRACE_CJOBTHREAD )
+	//if (pJob->m_name == nullptr)
+	//	DebugBreak();
+	fprintf(
+		traceOutput,
+		"{\"t\": %lld, \"e\": \"new_job\", \"pool_id\": %d, \"job_id\": %ld, \"name\": \"%s\", \"prio\": %d}\n",
+		std::chrono::steady_clock::now().time_since_epoch().count(),
+		m_traceId,
+		pJob->m_traceId,
+		pJob->m_name != nullptr ? pJob->m_name : pJob->Describe(),
+		pJob->GetPriority()
+	);
+	fflush(traceOutput);
+#endif
+
 	m_GotWork.NotifyOne();
 }
 
@@ -877,6 +1007,7 @@ int CThreadPool::ExecuteToPriority( JobPriority_t iToPriority, JobFilter_t pfnFi
 		while ( m_SharedQueue.Count( (JobPriority_t)iCurPriority ) )
 		{
 			m_SharedQueue.Pop( &pJob );
+			DebugBreak();
 			if ( pfnFilter && !(*pfnFilter)( pJob ) )
 			{
 				if ( pJob->CanExecute() )
@@ -921,6 +1052,7 @@ int CThreadPool::AbortAll()
 	int iAborted = 0;
 	while ( m_SharedQueue.Pop( &pJob ) )
 	{
+		DebugBreak();
 		pJob->Abort();
 		pJob->Release();
 		iAborted++;
@@ -951,6 +1083,18 @@ int CThreadPool::AbortAll()
 
 bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char *pszName )
 {
+#if defined( TRACE_CJOBTHREAD )
+	if (m_name == nullptr)
+		DebugBreak();
+	fprintf(
+		traceOutput,
+		"{\"t\": %lld, \"e\": \"new_thread_pool\", \"pool_id\": %d, \"name\": \"%s\"}\n",
+		std::chrono::steady_clock::now().time_since_epoch().count(),
+		m_traceId,
+		m_name == nullptr ? "" : m_name
+	);
+#endif
+
 	int nThreads = startParams.nThreads;
 
 	m_bExecOnThreadPoolThreadsOnly = startParams.bExecOnThreadPoolThreadsOnly;
@@ -1143,6 +1287,13 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
 
 bool CThreadPool::Stop( int timeout )
 {
+#if defined( INST_CJOBTHREAD )
+	fflush(instOutput);
+#endif
+#if defined( TRACE_CJOBTHREAD )
+	fflush(traceOutput);
+#endif
+
 	for ( int i = 0; i < m_Threads.Count(); i++ )
 	{
 		m_Threads[i]->CallWorker( TPM_EXIT );
