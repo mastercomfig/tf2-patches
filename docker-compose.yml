@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  build:
+    environment:
+      - CCACHE_DIR=/ccache
+    image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk
+    container_name: tf2-patches-build
+    volumes:
+      - ./:/build:z
+      - ./ccache:/ccache:z
+    entrypoint: /build/src/build.sh
