@@ -181,7 +181,7 @@ void CTFStickBomb::Smack( void )
 			// Halloween Spell
 			int iHalloweenSpell = 0;
 			int iCustomParticleIndex = INVALID_STRING_INDEX;
-			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 			{
 				CALL_ATTRIB_HOOK_INT_ON_OTHER( this, iHalloweenSpell, halloween_pumpkin_explosions );
 				if ( iHalloweenSpell > 0 )

@@ -1333,7 +1333,7 @@ void C_BaseAnimating::DelayedInitModelEffects( void )
 					{
 						// Halloween Spell Effect Check
 						int iHalloweenSpell = 0;
-						if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+						if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 						{
 							// if the owner is a Sentry, Check its owner
 							if ( GetOwnerEntity() && GetOwnerEntity()->IsBaseObject() )

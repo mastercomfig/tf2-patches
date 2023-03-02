@@ -783,7 +783,7 @@ void CTFInventoryManager::GetActiveSets( CUtlVector<const CEconItemSetDefinition
 		if ( pData->GetHolidayRestriction() )
 		{
 			int iHolidayRestriction = UTIL_GetHolidayForString( pData->GetHolidayRestriction() );
-			if ( iHolidayRestriction != kHoliday_None && (!TFGameRules() || !TFGameRules()->IsHolidayActive( iHolidayRestriction )) )
+			if ( iHolidayRestriction != kHoliday_None && (!TFGameRules() || !TFGameRules()->IsHolidayActive( iHolidayRestriction )) && false )
 				continue;
 		}
 

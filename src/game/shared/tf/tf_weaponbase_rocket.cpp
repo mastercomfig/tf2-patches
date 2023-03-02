@@ -446,7 +446,7 @@ void CTFBaseRocket::Explode( trace_t *pTrace, CBaseEntity *pOther )
 	// if the owner is a Sentry, Check its owner
 	CBaseEntity *pPlayerOwner = GetOwnerPlayer();
 
-	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( pPlayerOwner, iHalloweenSpell, halloween_pumpkin_explosions );
 		if ( iHalloweenSpell > 0 )

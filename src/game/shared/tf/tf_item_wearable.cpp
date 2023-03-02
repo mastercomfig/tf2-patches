@@ -729,7 +729,7 @@ bool CTFWearable::CanEquip( CBaseEntity *pOther )
 		if ( pData && pData->GetHolidayRestriction() )
 		{
 			int iHolidayRestriction = UTIL_GetHolidayForString( pData->GetHolidayRestriction() );
-			if ( iHolidayRestriction != kHoliday_None && !TFGameRules()->IsHolidayActive( iHolidayRestriction ) )
+			if ( iHolidayRestriction != kHoliday_None && !TFGameRules()->IsHolidayActive( iHolidayRestriction ) && false )
 				return false;
 		}		
 	}

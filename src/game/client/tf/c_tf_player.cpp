@@ -8486,7 +8486,7 @@ int C_TFPlayer::GetVisionFilterFlags( bool bWeaponsCheck /*= false */  )
 
 	// check for holidays and add them in to the mix
 	// Halloween / Fullmoon vision
-	if ( TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+	if ( TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
 		nVisionOptInFlags |= TF_VISION_FILTER_HALLOWEEN;
 	}
@@ -9497,7 +9497,7 @@ void C_TFPlayer::FireEvent( const Vector& origin, const QAngle& angles, int even
 
 			// Halloween-specific bonus footsteps
 			int iHalloweenFootstepType = 0;
-			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 			{
 				CALL_ATTRIB_HOOK_INT( iHalloweenFootstepType, halloween_footstep_type );
 			}

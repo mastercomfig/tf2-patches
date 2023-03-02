@@ -2847,7 +2847,7 @@ void CTFPlayerShared::ConditionGameRulesThink( void )
 			}
 		
 			// Halloween Spell
-			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+			if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 			{
 				int iHalloweenSpell = 0;
 				CALL_ATTRIB_HOOK_INT_ON_OTHER( m_hBurnWeapon, iHalloweenSpell, halloween_green_flames );
@@ -11532,7 +11532,7 @@ void CTFPlayer::OnEmitFootstepSound( const CSoundParameters& params, const Vecto
 	if ( !ShouldDrawThisPlayer() && !m_Shared.IsStealthed() && !m_Shared.InCond( TF_COND_DISGUISED ) )
 	{
 		int iHalloweenFootstepType = 0;
-		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 		{
 			CALL_ATTRIB_HOOK_INT( iHalloweenFootstepType, halloween_footstep_type );
 		}

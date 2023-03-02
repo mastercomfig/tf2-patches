@@ -1492,7 +1492,7 @@ Vector CTFFlameThrower::GetMuzzlePosHelper( bool bVisualPos )
 void CTFFlameThrower::CalculateHalloweenSpell( void )
 {
 	m_bHasHalloweenSpell.Set( false );
-	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
 		int iHalloweenSpell = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( this, iHalloweenSpell, halloween_green_flames );

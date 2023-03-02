@@ -338,7 +338,7 @@ void CTFWeaponBaseGrenadeProj::Explode( trace_t *pTrace, int bitsDamageType )
 	// Halloween Custom Spell Effect
 	int iHalloweenSpell = 0;
 	int iCustomParticleIndex = GetCustomParticleIndex();
-	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( m_hLauncher, iHalloweenSpell, halloween_pumpkin_explosions );
 		if ( iHalloweenSpell > 0 )

@@ -656,7 +656,7 @@ bool CRopeManager::IsHolidayLightMode( void )
 	if ( !m_bHolidayInitialized && GameRules() )
 	{
 		m_bHolidayInitialized = true;
-		m_bDrawHolidayLights = GameRules()->IsHolidayActive( kHoliday_Christmas );
+		m_bDrawHolidayLights = GameRules()->IsHolidayActive( kHoliday_Christmas ) || true;
 	}
 
 	bDrawHolidayLights = m_bDrawHolidayLights;

@@ -3246,7 +3246,7 @@ void CItemModelPanel::UpdatePanels( void )
 				break;
 			case 2:
 				// Check if most players who have not specifically opted in will see the item.
-				if ( TFGameRules() ? TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) : TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+				if ( TFGameRules() ? TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) : TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 				{
 					m_pVisionRestrictionImage->SetImage( "viewmode_spooky" );
 				}
