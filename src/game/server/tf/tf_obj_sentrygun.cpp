@@ -1951,9 +1951,12 @@ int CObjectSentrygun::OnTakeDamage( const CTakeDamageInfo &info )
 		flDamage *= ( 1.0 - m_flHeavyBulletResist );
 		newInfo.SetDamage( flDamage );
 	}
+
+	int iPierceResists = 0;
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( info.GetWeapon(), iPierceResists, mod_pierce_resists_absorbs );
 	
 	// If we are shielded due to player control, we take less damage.
-	bool bFullyShielded = ( m_nShieldLevel > 0 ) && !HasSapper() && !IsPlasmaDisabled();
+	bool bFullyShielded = !iPierceResists && ( m_nShieldLevel > 0 ) && !HasSapper() && !IsPlasmaDisabled();
 	if ( bFullyShielded )
 	{
 		float flDamage = newInfo.GetDamage();
