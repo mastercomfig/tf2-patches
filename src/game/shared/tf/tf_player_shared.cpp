@@ -10460,6 +10460,10 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 
 	// If we have an item with a move speed modification, apply it to the final speed.
 	CALL_ATTRIB_HOOK_FLOAT( maxfbspeed, mult_player_movespeed );
+	if ( GetActiveTFWeapon() )
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetActiveTFWeapon(), maxfbspeed, mult_player_movespeed_active )
+	}
 
 	if ( m_Shared.IsShieldEquipped() )
 	{
@@ -12166,7 +12170,7 @@ bool CTFPlayer::CanAirDash( void ) const
 	int iDashCount = tf_scout_air_dash_count.GetInt();
 	if ( GetActiveWeapon() && GetActiveTFWeapon()->GetWeaponID() == TF_WEAPON_BAT )
 	{
-		if ( gpGlobals->curtime - pLastWeapon->m_flLastDeployTime > 0.7f )
+		if ( gpGlobals->curtime - GetActiveTFWeapon()->GetLastDeployTime() > 0.7f )
 		{
 			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetActiveWeapon(), iDashCount, air_dash_count );
 		}
