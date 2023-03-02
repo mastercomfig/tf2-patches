@@ -14,7 +14,6 @@
 
 #include "vgui/ISystem.h"
 
-#include "tf_streams.h"
 #include "tf_badge_panel.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -202,12 +201,7 @@ void CLadderLobbyLeaderboard::PerformLayout()
 //-----------------------------------------------------------------------------
 void CLadderLobbyLeaderboard::OnCommand( const char *command )
 {
-	if ( Q_strnicmp( command, "stream", 6 ) == 0 )
-	{
-		vgui::system()->ShellExecute( "open", command + 7 );
-		return;
-	}
-	else if ( FStrEq( "global", command ) )
+	if ( FStrEq( "global", command ) )
 	{
 		if ( m_bGlobal != true )
 		{
@@ -288,14 +282,6 @@ bool CLadderLobbyLeaderboard::UpdateLeaderboards()
 			const LeaderboardEntry_t *pLeaderboardEntry = scores[i];
 			const CSteamID &steamID = pLeaderboardEntry->m_steamIDUser;
 
-#ifdef TWITCH_LEADERBOARD
-			TwitchTvAccountInfo_t *pTwitchInfo = StreamManager()->GetTwitchTvAccountInfo( steamID.ConvertToUint64() );
-			ETwitchTvState_t twitchState = pTwitchInfo ? pTwitchInfo->m_eTwitchTvState : k_ETwitchTvState_Error;
-			// still waiting for twitch info to load
-			if ( twitchState <= k_ETwitchTvState_Loading )
-				return false;
-#endif // TWITCH_LEADERBOARD
-
 			bool bIsLocalPlayer = steamapicontext && steamapicontext->SteamUser() && steamapicontext->SteamUser()->GetSteamID() == steamID;
 			pContainer->SetDialogVariable( "position", m_bGlobal ? CFmtStr( "%d.", pLeaderboardEntry->m_nGlobalRank ) : "" );
 			pContainer->SetDialogVariable( "username", InventoryManager()->PersonaName_Get( steamID.GetAccountID() ) );
@@ -331,23 +317,6 @@ bool CLadderLobbyLeaderboard::UpdateLeaderboards()
 				pRankImage->SetMouseInputEnabled( true );
 				pRankImage->SetVisible( true );
 				pRankImage->SetTooltip( m_pToolTip, szLocalized );
-			}
-
-			CExImageButton *pStreamImage = dynamic_cast< CExImageButton* >( pContainer->FindChildByName( "StreamImageButton" ) );
-			if ( pStreamImage )
-			{
-#ifdef TWITCH_LEADERBOARD
-				if ( twitchState == k_ETwitchTvState_Linked )
-				{
-					pStreamImage->SetVisible( true );
-					pStreamImage->SetCommand( CFmtStr( "stream %s", pTwitchInfo->m_sTwitchTvChannel.String() ) );
-				}
-				else
-#endif // TWITCH_LEADERBOARD
-				{
-					pStreamImage->SetVisible( false );
-					pStreamImage->SetCommand( "" );
-				}
 			}
 		}
 	}

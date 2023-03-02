@@ -789,8 +789,6 @@ $Project "Client (TF)"
 				$File	"tf\vgui\sc_hinticon.h"
 				$File	"tf\vgui\report_player_dialog.cpp"
 				$File	"tf\vgui\report_player_dialog.h"
-				$File	"tf\tf_streams.h"
-				$File	"tf\tf_streams.cpp"
 			}
 			
 			$Folder	"halloween"

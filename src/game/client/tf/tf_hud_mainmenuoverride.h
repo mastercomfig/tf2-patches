@@ -35,7 +35,6 @@ using namespace GCSDK;
 class CExButton;
 class HTML;
 class CSaxxyAwardsPanel;
-class CTFStreamListPanel;
 class CLobbyContainerFrame_Comp;
 class CLobbyContainerFrame_MvM;
 class CLobbyContainerFrame_Casual;
@@ -107,7 +106,6 @@ public:
 	void		 SetMOTDButtonVisible( bool bVisible );
 	void		 SetMOTDVisible( bool bVisible );
 	void		 SetQuestLogVisible( bool bVisible );
-	void		 SetWatchStreamVisible( bool bVisible );
 	void		 OpenMvMMMPanel();
 	void		 OpenCompMMPanel();
 	void		 OpenCasualMMPanel();
@@ -268,8 +266,6 @@ private:
 	EditablePanel	*m_pSafeModeContainer;
 
 	vgui::DHANDLE<vgui::Frame> m_hReportPlayerDialog;
-
-	CTFStreamListPanel	*m_pWatchStreamsPanel;
 
 	bool m_bPlayListExpanded;
 	bool m_bStabilizedInitialLayout;

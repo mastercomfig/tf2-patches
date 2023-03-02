@@ -39,7 +39,6 @@
 #include "tf_item_inventory.h"
 #include "quest_log_panel.h"
 #include "econ_quests.h"
-#include "tf_streams.h"
 #include "tf_matchmaking_shared.h"
 #include "tf_lobby_container_frame_comp.h"
 #include "tf_lobby_container_frame_mvm.h"
@@ -622,8 +621,6 @@ CHudMainMenuOverride::CHudMainMenuOverride( IViewPort *pViewPort ) : BaseClass( 
 	m_bStabilizedInitialLayout = false;
 
 	m_bBackgroundUsesCharacterImages = true;
-
-	m_pWatchStreamsPanel = new CTFStreamListPanel( this, "StreamListPanel" );
 
 	vgui::ivgui()->AddTickSignal( GetVPanel(), 50 );
 }
@@ -1881,7 +1878,6 @@ void CHudMainMenuOverride::SetMOTDVisible( bool bVisible )
 		SetMOTDButtonVisible( true );
 		SetNotificationsPanelVisible( false );
 		SetQuestLogVisible( false );
-		SetWatchStreamVisible( false );
 		//SetNotificationsButtonVisible( false );
 
 		// Consider new MOTDs as having been viewed.
@@ -1905,22 +1901,6 @@ void CHudMainMenuOverride::SetQuestLogVisible( bool bVisible )
 	{
 		SetMOTDVisible( false );
 		SetNotificationsPanelVisible( false );
-		SetWatchStreamVisible( false );
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CHudMainMenuOverride::SetWatchStreamVisible( bool bVisible )
-{
-	m_pWatchStreamsPanel->SetVisible( bVisible );
-
-	if ( bVisible )
-	{
-		SetMOTDVisible( false );
-		SetNotificationsPanelVisible( false );
-		SetQuestLogVisible( false );
 	}
 }
 
@@ -2124,7 +2104,6 @@ void CHudMainMenuOverride::SetNotificationsPanelVisible( bool bVisible )
 
 			SetMOTDVisible( false );
 			SetQuestLogVisible( false );
-			SetWatchStreamVisible( false );
 
 			m_pNotificationsShowPanel->SetVisible( false );
 
@@ -2558,10 +2537,6 @@ void CHudMainMenuOverride::OnCommand( const char *command )
 	else if ( FStrEq( "questlog", command ) )
 	{
 		SetQuestLogVisible( !GetQuestLog()->IsVisible() );
-	}
-	else if ( FStrEq( "watch_stream", command ) )
-	{
-		SetWatchStreamVisible( !m_pWatchStreamsPanel->IsVisible() );
 	}
 	else if ( FStrEq( "view_update_page", command ) )
 	{
