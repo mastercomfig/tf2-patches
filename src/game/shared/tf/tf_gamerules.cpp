@@ -21253,6 +21253,17 @@ bool CTFGameRules::CanUpgradeWithAttrib( CTFPlayer *pPlayer, int iWeaponSlot, at
 		{
 			return ( iWeaponID == TF_WEAPON_MEDIGUN );
 		}
+#ifndef VALVE_PURE
+	case 870: // impact radius pushback
+	case 871: // impact radius stun
+	case 872: // thermal thruster air launch
+	case 874: // item meter faster recharge rate
+	case 875: // explode on ignite
+	{
+		// TODO(mastercoms): Jungle Inferno upgrades not implemented
+		return false;
+	}
+#endif
 #ifdef STAGING_ONLY
 	case 553:	// rocket pack
 	case 558:	// mod flamethrower napalm
