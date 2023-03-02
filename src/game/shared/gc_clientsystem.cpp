@@ -59,6 +59,9 @@ CON_COMMAND( dump_cache, "Dump the contents of a user's SOCache" )
 #ifdef GAME_DLL
 CON_COMMAND( dump_all_caches, "Dump the contents all subsribed SOCaches" )
 {
+	if ( !UTIL_IsCommandIssuedByServerAdmin() )
+		return;
+
 	GCClientSystem()->GetGCClient()->Dump();
 }
 #endif
