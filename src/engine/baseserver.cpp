@@ -1764,7 +1764,11 @@ bool CBaseServer::ShouldUpdateMasterServer()
 {
 	// If the game server itself is ever running, then it's the one who gets to update the master server.
 	// (SourceTV will not update it in this case).
+#ifdef VALVE_PURE
 	return true;
+#else
+	return !CommandLine()->CheckParm("-nomaster");
+#endif
 }
 
 
