@@ -78,7 +78,7 @@ void RestoreMaterialSystemObjects( int nChangeFlags );
 extern ConVar mat_colorcorrection;
 extern ConVar sv_allow_color_correction;
 
-ConVar mat_debugalttab( "mat_debugalttab", "0", FCVAR_CHEAT );
+ConVar mat_debugalttab( "mat_debugalttab", "1", FCVAR_CHEAT );
 
 // Static pointers to renderable textures
 static CTextureReference g_PowerOfTwoFBTexture;
