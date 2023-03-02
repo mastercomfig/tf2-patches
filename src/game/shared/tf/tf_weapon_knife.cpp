@@ -372,6 +372,9 @@ bool CTFKnife::CanPerformBackstabAgainstTarget( CTFPlayer *pTarget )
 	if ( iNoBackstab )
 		return false;
 
+	 if (pTarget->m_Shared.GetCarryingRuneType() == RUNE_RESIST)
+		 return false;
+
 	// Behind and facing target's back?
 	if ( IsBehindAndFacingTarget( pTarget ) )
 		return true;
