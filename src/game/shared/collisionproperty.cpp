@@ -422,6 +422,7 @@ void CCollisionProperty::Init( CBaseEntity *pEntity )
 	m_vecMaxs.GetForModify().Init();
 	m_flRadius = 0.0f;
 	m_triggerBloat = 0;
+	m_bUniformTriggerBloat = false;
 	m_usSolidFlags = 0;
 	m_nSolidType = SOLID_NONE;
 
@@ -752,10 +753,14 @@ void CCollisionProperty::WorldSpaceTriggerBounds( Vector *pVecWorldMins, Vector 
 	// Don't bloat below, we don't want to trigger it with our heads
 	pVecWorldMins->x -= m_triggerBloat;
 	pVecWorldMins->y -= m_triggerBloat;
+	if (m_bUniformTriggerBloat)
+	{
+		pVecWorldMins->z -= m_triggerBloat;
+	}
 
 	pVecWorldMaxs->x += m_triggerBloat;
 	pVecWorldMaxs->y += m_triggerBloat;
-	pVecWorldMaxs->z += (float)m_triggerBloat * 0.5f;
+	pVecWorldMaxs->z += m_bUniformTriggerBloat ? m_triggerBloat : (float)m_triggerBloat * 0.5f;
 }
 
 void CCollisionProperty::UseTriggerBounds( bool bEnable, float flBloat )
