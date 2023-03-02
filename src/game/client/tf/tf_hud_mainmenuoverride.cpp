@@ -2402,7 +2402,7 @@ void CHudMainMenuOverride::OnCommand( const char *command )
 
 		if ( steamapicontext && steamapicontext->SteamFriends() )
 		{
-			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "http://forums.steampowered.com/forums/forumdisplay.php?f=906" );
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage( "https://steamcommunity.com/app/440/discussions/" );
 		}
 		return;
 	}
