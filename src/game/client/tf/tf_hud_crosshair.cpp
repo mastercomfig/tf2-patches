@@ -123,7 +123,7 @@ void CHudTFCrosshair::FireGameEvent( IGameEvent * event )
 {
 	if ( FStrEq( "restart_timer_time", event->GetName() ) )
 	{
-		if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
+		if ( TFGameRules() )
 		{
 			int nTime = event->GetInt( "time" );
 			if ( ( nTime <= 10 ) && ( nTime > 0 ) )

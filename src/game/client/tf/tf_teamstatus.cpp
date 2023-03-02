@@ -497,9 +497,11 @@ bool CTFTeamStatus::ShouldDraw( void )
 
 	if ( TFGameRules() )
 	{
-		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-		if ( !pMatchDesc || !pMatchDesc->m_params.m_bUseMatchHud )
+		static ConVarRef tf_use_match_hud("tf_use_match_hud");
+		if ( tf_use_match_hud.IsValid() && !tf_use_match_hud.GetBool() )
+		{
 			return false;
+		}
 
 		if ( TFGameRules()->ShowMatchSummary() )
 			return false; 

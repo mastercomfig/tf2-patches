@@ -9310,7 +9310,9 @@ bool C_TFPlayer::CanShowClassMenu( void )
 
 		// Dont allow the change class menu to come up when we're doing the doors and things.  There's really weird
 		// sorting issues that go on even though the class menu is supposed to draw under the match status panel.
+#ifdef VALVE_PURE
 		if ( TFGameRules()->IsCompetitiveMode() )
+#endif
 		{
 			float flRestartTime = TFGameRules()->GetRoundRestartTime() - gpGlobals->curtime;
 			if ( flRestartTime > 0.f && flRestartTime < 10.f )
@@ -11518,7 +11520,6 @@ void C_TFPlayer::FireGameEvent( IGameEvent *event )
 				pLocalPlayer &&
 				pLocalPlayer == this &&
 				TFGameRules() &&
-				TFGameRules()->IsCompetitiveMode() &&
 				TFGameRules()->State_Get() == GR_STATE_RND_RUNNING )
 			{
 				CBaseHudChat *pHudChat = (CBaseHudChat*)GET_HUDELEMENT( CHudChat );
