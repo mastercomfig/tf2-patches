@@ -34,28 +34,14 @@ using namespace vgui;
 
 void AddSubKeyNamed( KeyValues *pKeys, const char *pszName );
 
+static ConVar tf_use_match_hud("tf_use_match_hud", "1", FCVAR_ARCHIVE);
+
 //-----------------------------------------------------------------------------
-// Purpose: Use the new match HUD or the old?  Right now, Comp is the key
+// Purpose: Use the new match HUD or the old?
 //-----------------------------------------------------------------------------
 bool ShouldUseMatchHUD()
 {
-	const IMatchGroupDescription* pMatchDesc = NULL;
-
-	if ( GTFGCClientSystem()->BHaveLiveMatch() )
-	{
-		pMatchDesc = GetMatchGroupDescription( GTFGCClientSystem()->GetLiveMatchGroup() );
-	}
-	else if ( TFGameRules() )
-	{
-		pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-	}
-
-	if ( pMatchDesc )
-	{
-		return pMatchDesc->m_params.m_bUseMatchHud;
-	}
-
-	return false;
+	return tf_use_match_hud.GetBool();
 }
 
 const int g_nMaxSupportedRounds = 5;
@@ -367,13 +353,9 @@ void CTFHudMatchStatus::ApplySchemeSettings(IScheme *pScheme)
 		pConditions = new KeyValues( "conditions" );
 		AddSubKeyNamed( pConditions, "if_match" );
 
-		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GTFGCClientSystem()->GetLiveMatchGroup() );
-		if ( pMatchDesc )
+		if (GetGlobalTeam(TF_TEAM_RED)->GetNumPlayers() >= 12 || GetGlobalTeam(TF_TEAM_BLUE)->GetNumPlayers() >= 12)
 		{
-			if ( pMatchDesc->m_params.m_pmm_match_group_size->GetInt() > 12 )
-			{
-				AddSubKeyNamed( pConditions, "if_large" );
-			}
+			AddSubKeyNamed( pConditions, "if_large" );
 		}
 	}
 
