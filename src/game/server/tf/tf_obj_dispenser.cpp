@@ -973,7 +973,7 @@ void CObjectDispenser::StopHealing( CBaseEntity *pOther )
 //-----------------------------------------------------------------------------
 bool CObjectDispenser::CouldHealTarget( CBaseEntity *pTarget )
 {
-	if ( !HasSpawnFlags( SF_DISPENSER_IGNORE_LOS ) && !pTarget->FVisible( this, MASK_BLOCKLOS ) )
+	if ( !HasSpawnFlags( SF_DISPENSER_IGNORE_LOS ) && !pTarget->FVisible( this, MASK_SHOT | CONTENTS_GRATE ) )
 		return false;
 
 	if ( pTarget->IsPlayer() && pTarget->IsAlive() )
