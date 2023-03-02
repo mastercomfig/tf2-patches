@@ -3,7 +3,7 @@
 [![ko-fi](https://img.shields.io/badge/Support%20me%20on-Ko--fi-FF5E5B.svg?logo=ko-fi&style=flat-square)](https://ko-fi.com/mastercoms)
 [![Liberapay](https://img.shields.io/liberapay/receives/mastercoms.svg?logo=liberapay&style=flat-square)](https://liberapay.com/mastercoms/)
 [![Steam donate](https://img.shields.io/badge/Donate%20via-Steam-00adee.svg?style=flat-square&logo=steam)](https://steamcommunity.com/tradeoffer/new/?partner=85845165&token=M9cQHh8N)
-[![Join the Discord chat](https://img.shields.io/badge/Discord-%23team--comtress-5865F2.svg?style=flat-square&logo=discord)](https://discord.gg/CuPb2zV)
+[![Join the Discord chat](https://img.shields.io/badge/Discord-%23patch--pack-5865F2.svg?style=flat-square&logo=discord)](https://discord.gg/CuPb2zV)
 
 ![benchmark](https://user-images.githubusercontent.com/2672245/176000726-21e45939-28ef-4e8e-b4f6-c0cba5ba4d1c.png)
 
