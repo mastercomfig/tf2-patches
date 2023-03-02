@@ -112,6 +112,7 @@
 #include "tf_player_resource.h"
 #include "gcsdk/gcclient_sharedobjectcache.h"
 #include "tf_party.h"
+#include "info_camera_link.h"
 #ifdef STAGING_ONLY
 #include "tf_extra_map_entity.h"
 #endif
@@ -3452,6 +3453,9 @@ void CTFPlayer::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, i
 	{
 		BaseClass::SetupVisibility( pViewEntity, pvs, pvssize );
 	}
+
+	int area = pViewEntity ? pViewEntity->NetworkProp()->AreaNum() : NetworkProp()->AreaNum();
+	PointCameraSetupVisibility(this, area, pvs, pvssize);
 }
 
 //-----------------------------------------------------------------------------
