@@ -27,6 +27,7 @@
 #include <vgui_controls/TextEntry.h>
 #include <../common/GameUI/cvarslider.h>
 #include "filesystem.h"
+#include "vgui/ISystem.h"
 
 using namespace vgui;
 
@@ -432,6 +433,18 @@ void CTFAdvancedOptionsDialog::OnCommand( const char *command )
 		OnClose();
 		return;
 	}
+	else if (FStrEq("open_chat_filter_settings", command))
+	{
+		if (steamapicontext && steamapicontext->SteamFriends() && steamapicontext->SteamUtils() && steamapicontext->SteamUtils()->IsOverlayEnabled())
+		{
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage("https://store.steampowered.com/account/preferences#CommunityContentPreferences");
+		}
+		else
+		{
+			system()->ShellExecute("open", "https://store.steampowered.com/account/preferences#CommunityContentPreferences");
+		}
+		return;
+	}
 
 	BaseClass::OnCommand( command );
 }
@@ -601,6 +614,7 @@ void CTFAdvancedOptionsDialog::CreateControls()
 	mpcontrol_t	*pCtrl;
 
 	CheckButton *pBox;
+	Button *pButton;
 	TextEntry *pEdit;
 	ComboBox *pCombo;
 	CCvarSlider *pSlider;
@@ -645,6 +659,15 @@ void CTFAdvancedOptionsDialog::CreateControls()
 			pBox->SetSelectedColor( tanDark, pBox->GetBgColor() );
 			pBox->SetHighlightColor( tanDark );
 			pBox->GetCheckImage()->SetColor( tanDark );
+			break;
+		case O_BUTTON:
+			pButton = new Button(pCtrl, "DescCheckButton", pObj->prompt);
+			pButton->AddActionSignalTarget(this);
+			pButton->SetCommand(pObj->defValue);
+			pCtrl->pControl = (Panel*)pButton;
+			pButton->SetFont(hTextFont);
+
+			pButton->InvalidateLayout(true, true);
 			break;
 		case O_STRING:
 		case O_NUMBER:
@@ -692,7 +715,7 @@ void CTFAdvancedOptionsDialog::CreateControls()
 			break;
 		}
 
-		if ( pCtrl->type != O_BOOL )
+		if ( pCtrl->type != O_BOOL && pCtrl->type != O_BUTTON )
 		{
 			pCtrl->pPrompt = new vgui::Label( pCtrl, "DescLabel", "" );
 			pCtrl->pPrompt->SetContentAlignment( vgui::Label::a_west );
@@ -722,6 +745,7 @@ void CTFAdvancedOptionsDialog::CreateControls()
 		case O_NUMBER:
 		case O_LIST:
 		case O_CATEGORY:
+		case O_BUTTON:
 			pCtrl->SetSize( m_iControlW, m_iControlH );
 			break;
 		case O_SLIDER:
