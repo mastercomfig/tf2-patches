@@ -1008,7 +1008,7 @@ float CTFMinigun::GetWeaponSpread( void )
 	float flPreFireWindUp = GetWindUpDuration() - TF_MINIGUN_SPINUP_TIME;
 	// DevMsg( "PreFireTime: %.2f\n", flPreFireWindUp );
 
-	if ( GetFiringDuration() < TF_MINIGUN_PENALTY_PERIOD && flPreFireWindUp < 1.f )
+	if ( flPreFireWindUp < 1.f )
 	{
 		// If we've spun up - prior to pressing fire - reduce accuracy penalty
 		float flSpinTime = Max( flPreFireWindUp, GetFiringDuration() );
