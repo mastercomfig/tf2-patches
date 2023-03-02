@@ -12164,7 +12164,17 @@ bool CTFPlayer::CanAirDash( void ) const
 	}
 
 	int iDashCount = tf_scout_air_dash_count.GetInt();
-	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetActiveWeapon(), iDashCount, air_dash_count );
+	if ( GetActiveWeapon() && GetActiveTFWeapon()->GetWeaponID() == TF_WEAPON_BAT )
+	{
+		if ( gpGlobals->curtime - pLastWeapon->m_flLastDeployTime > 0.7f )
+		{
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetActiveWeapon(), iDashCount, air_dash_count );
+		}
+	}
+	else
+	{
+		CALL_ATTRIB_HOOK_INT( iDashCount, air_dash_count );
+	}
 	if ( m_Shared.GetAirDash() >= iDashCount ) 
 		return false;
 
