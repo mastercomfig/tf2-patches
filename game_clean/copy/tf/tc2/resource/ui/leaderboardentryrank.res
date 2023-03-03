@@ -88,44 +88,5 @@
 			"enabled"		"1"
 			"proportionaltoparent"	"1"
 		}
-		"StreamImageButton"
-		{
-			"ControlName"	"CExImageButton"
-			"fieldName"		"StreamImageButton"
-			"xpos"			"rs1-20"
-			"ypos"			"2"
-			"zpos"			"1"
-			"wide"			"20"
-			"tall"			"20"
-			"visible"		"0"
-			"enabled"		"1"
-			"scaleImage"	"1"
-			"labelText"		""
-			"proportionaltoparent"	"1"
-			"actionsignallevel" "4"
-
-			"sound_depressed"	"UI/buttonclick.wav"
-			"sound_released"	"UI/buttonclickrelease.wav"
-			"Command"		""
-			
-			"paintbackground"	"0"
-			
-			"image_drawcolor"	"235 226 202 255"
-			"image_armedcolor"	"255 255 255 255"
-			"SubImage"
-			{
-				"ControlName"	"ImagePanel"
-				"fieldName"		"SubImage"
-				"xpos"			"0"
-				"ypos"			"0"
-				"zpos"			"1"
-				"wide"			"16"
-				"tall"			"16"
-				"visible"		"1"
-				"enabled"		"1"
-				"image"			"button_streaming_glb"
-				"scaleImage"	"1"
-			}
-		}
 	}	
 }
