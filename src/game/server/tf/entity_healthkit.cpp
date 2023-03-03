@@ -87,7 +87,7 @@ bool CHealthKit::MyTouch( CBasePlayer *pPlayer )
 		}
 		else
 		{
-			float flHealth = ceil( pPlayer->GetMaxHealth()  * PackRatios[GetPowerupSize()] );
+			float flHealth = ceil( pPlayer->GetMaxHealth() * PackRatios[GetPowerupSize()] );
 
 			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pPlayer, flHealth, mult_health_frompacks );
 
