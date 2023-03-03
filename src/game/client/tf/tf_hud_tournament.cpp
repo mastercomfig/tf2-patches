@@ -170,7 +170,7 @@ void CHudTournament::PlaySounds( int nTime )
 				}
 				else if ( TFObjectiveResource()->GetMannVsMachineWaveCount() <= 1 )
 				{
-					if ( GTFGCClientSystem()->GetLobby() && IsMannUpGroup( GTFGCClientSystem()->GetLobby()->GetMatchGroup() ) )
+					if ( ( GTFGCClientSystem()->GetLobby() && IsMannUpGroup( GTFGCClientSystem()->GetLobby()->GetMatchGroup() ) ) || RandomInt(1, 2) > 1 )
 					{
 						pLocalPlayer->EmitSound( "Announcer.MVM_Manned_Up" );
 					}

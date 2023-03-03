@@ -20723,6 +20723,10 @@ void CTFGameRules::MatchSummaryEnd( void )
 	tf_bot_quota_mode.SetValue( tf_bot_quota_mode.GetDefault() );
 }
 
+#ifndef VALVE_PURE
+ConVar tf_sv_mvm_forced_players("tf_sv_mvm_forced_players", "6", FCVAR_REPLICATED);
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -20750,6 +20754,14 @@ int CTFGameRules::GetTeamAssignmentOverride( CTFPlayer *pTFPlayer, int iDesiredT
 
 			// Count ad-hoc players on defenders team
 			int nAdHocDefenders = 0;
+			int iTeamSize = kMVM_DefendersTeamSize;
+#ifndef VALVE_PURE
+			if ( tf_sv_mvm_forced_players.GetInt() > iTeamSize )
+			{
+				iTeamSize = tf_sv_mvm_forced_players.GetInt();
+			}
+#endif
+			int nSlotsLeft = iTeamSize - nMatchPlayers - nAdHocDefenders;
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *pPlayer = UTIL_PlayerByIndex( i );
