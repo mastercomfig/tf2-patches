@@ -10887,7 +10887,7 @@ void CTFPlayer::Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &
 
 		// Halloween Death Ghosts
 		// Check the weapon I used to kill with this player and if it has my desired attribute
-		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
+		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 		{
 			int iHalloweenDeathGhosts = 0;
 			CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iHalloweenDeathGhosts, halloween_death_ghosts );
