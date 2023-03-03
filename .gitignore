@@ -359,7 +359,7 @@ generated_proto*/
 !src/lib/public/osx32/libpng.a
 !src/lib/public/osx32/libprotobuf-lite.a
 !src/lib/public/osx32/libprotobuf.a
-/!src/lib/public/osx32/libprotoc.a
+!src/lib/public/osx32/libprotoc.a
 !src/lib/public/osx32/libsteam_api.dylib
 !src/lib/public/osx32/libsteamnetworkingsockets.dylib
 !src/lib/public/python/valvePython_python2.5.lib
