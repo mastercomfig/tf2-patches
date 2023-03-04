@@ -21,10 +21,6 @@ $Configuration
 		// Language
 		$EnableRunTimeTypeInfo			"No (/GR-)"
 	}
-	$Compiler [$WIN32]
-	{
-		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions (/arch:SSE)"
-	}
 
 	$Linker
 	{
