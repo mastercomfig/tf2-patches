@@ -70,7 +70,14 @@ ActionResult< CTFBot >	CTFBotSpyHide::Update( CTFBot *me, float interval )
 	if ( m_talkTimer.IsElapsed() )
 	{
 		m_talkTimer.Start( RandomFloat( 5.0f, 10.0f ) );
-		me->EmitSound( "Spy.TeaseVictim" );
+		if ( TFGameRules()->IsMannVsMachineMode() )
+		{
+			me->EmitSound( "Spy.MVM_TeaseVictim" );
+		}
+		else
+		{
+			me->EmitSound( "Spy.TeaseVictim" );
+		}
 	}
 
 	if ( m_isAtGoal )
