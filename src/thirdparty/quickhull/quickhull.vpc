@@ -17,10 +17,6 @@ $Configuration
 		$DisableSpecificWarnings	"$BASE;4127;4239" [$WINDOWS]
 		$EnableRunTimeTypeInfo		"No (/GR-)"
 	}
-	$Compiler [$WINDOWS]
-	{
-		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions (/arch:SSE)"
-	}
 }
 
 $Project "quickhull"
