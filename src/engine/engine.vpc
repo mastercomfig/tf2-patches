@@ -29,11 +29,6 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;ENABLE_RPT" [$ENABLE_RPT]
 	}
 
-	$Compiler [$WIN32]
-	{
-		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions (/arch:SSE)"
-	}
-
 	$Linker
 	{
 		$AdditionalDependencies			"$BASE dinput8.lib winmm.lib wsock32.lib ws2_32.lib wininet.lib vfw32.lib Rpcrt4.lib" [$WINDOWS]
