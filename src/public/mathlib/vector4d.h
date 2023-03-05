@@ -635,20 +635,21 @@ inline void Vector4DMultiplyAligned( Vector4DAligned const& a, Vector4DAligned c
 #endif
 }
 
-inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
+inline void Vector4DWeightMADSSE( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
 {
 	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
 
-#if !defined( _X360 )
-	vOutA.x += vInA.x * w;
-	vOutA.y += vInA.y * w;
-	vOutA.z += vInA.z * w;
-	vOutA.w += vInA.w * w;
+#if USE_DXMATH
+	DirectX::XMVECTOR packed = DirectX::XMVectorReplicate(w);
+	vOutA.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInA.AsM128(), vOutA.AsM128());
+	vOutB.AsM128() = DirectX::XMVectorMultiplyAdd(packed, vInB.AsM128(), vOutB.AsM128());
+#elif !defined( _X360 )
+	// Replicate scalar float out to 4 components
+    __m128 packed = _mm_set1_ps( w );
 
-	vOutB.x += vInB.x * w;
-	vOutB.y += vInB.y * w;
-	vOutB.z += vInB.z * w;
-	vOutB.w += vInB.w * w;
+	// 4D SSE Vector MAD
+	vOutA.AsM128() = _mm_add_ps( vOutA.AsM128(), _mm_mul_ps( vInA.AsM128(), packed ) );
+	vOutB.AsM128() = _mm_add_ps( vOutB.AsM128(), _mm_mul_ps( vInB.AsM128(), packed ) );
 #else
     __vector4 temp;
 
@@ -660,17 +661,24 @@ inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAli
 #endif
 }
 
-inline void Vector4DWeightMADSSE( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
+inline void Vector4DWeightMAD( vec_t w, Vector4DAligned const& vInA, Vector4DAligned& vOutA, Vector4DAligned const& vInB, Vector4DAligned& vOutB )
 {
 	Assert( vInA.IsValid() && vInB.IsValid() && IsFinite(w) );
 
 #if !defined( _X360 )
-	// Replicate scalar float out to 4 components
-    __m128 packed = _mm_set1_ps( w );
+#if USE_DXMATH
+	Vector4DWeightMADSSE(w, vInA, vOutA, vInB, vOutB);
+#else
+	vOutA.x += vInA.x * w;
+	vOutA.y += vInA.y * w;
+	vOutA.z += vInA.z * w;
+	vOutA.w += vInA.w * w;
 
-	// 4D SSE Vector MAD
-	vOutA.AsM128() = _mm_add_ps( vOutA.AsM128(), _mm_mul_ps( vInA.AsM128(), packed ) );
-	vOutB.AsM128() = _mm_add_ps( vOutB.AsM128(), _mm_mul_ps( vInB.AsM128(), packed ) );
+	vOutB.x += vInB.x * w;
+	vOutB.y += vInB.y * w;
+	vOutB.z += vInB.z * w;
+	vOutB.w += vInB.w * w;
+#endif
 #else
     __vector4 temp;
 
