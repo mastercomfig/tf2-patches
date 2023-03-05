@@ -20,6 +20,8 @@
 #endif
 
 ConVar tf_use_fixed_weaponspreads( "tf_use_fixed_weaponspreads", "0", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a non-random pellet distribution." );
+ConVar tf_weaponspread_scalar( "tf_weaponspread_scalar", "0.5", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set >= 0, weapons that fire multiple pellets per shot will use this scalar for their pellet distribution." );
+ConVar tf_use_circular_weaponspreads( "tf_use_circular_weaponspreads", "1", FCVAR_REPLICATED | FCVAR_NOTIFY, "If set to 1, weapons that fire multiple pellets per shot will use a true circular pellet distribution (for both random and fixed spread)." );
 
 // Client specific.
 #ifdef CLIENT_DLL
@@ -119,6 +121,20 @@ Vector g_vecFixedWpnSpreadPellets[] =
 	Vector( 0.85,0.85,0 ),	
 	Vector( -0.85,-0.85,0 ),	
 	Vector( -0.85,0.85,0 ),	
+	Vector( 0,0,0 ),	// last pellet goes down the middle as well to reward fine aim
+};
+
+Vector g_vecFixedWpnSpreadPelletsCircular[] = 
+{
+	Vector( 0,0,0 ),	// First pellet goes down the middle
+	Vector( 1,0,0 ),	
+	Vector( -1,0,0 ),	
+	Vector( 0,-1,0 ),	
+	Vector( 0,1,0 ),	
+	Vector( 0.707,-0.707,0 ),	
+	Vector( 0.707,0.707,0 ),	
+	Vector( -0.707,-0.707,0 ),	
+	Vector( -0.707,0.707,0 ),	
 	Vector( 0,0,0 ),	// last pellet goes down the middle as well to reward fine aim
 };
 
@@ -305,9 +321,17 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 			{
 				iSpread -= ARRAYSIZE(g_vecFixedWpnSpreadPellets);
 			}
-			float flScalar = 0.5;
-			x = g_vecFixedWpnSpreadPellets[iSpread].x * flScalar;
-			y = g_vecFixedWpnSpreadPellets[iSpread].y * flScalar;
+			float flScalar = tf_weaponspread_scalar.GetFloat() >= 0 ? tf_weaponspread_scalar.GetFloat() : 0.5f;
+			if ( tf_use_circular_weaponspreads.GetBool() )
+			{
+				x = g_vecFixedWpnSpreadPelletsCircular[iSpread].x * flScalar;
+				y = g_vecFixedWpnSpreadPelletsCircular[iSpread].y * flScalar;
+			}
+			else
+			{
+				x = g_vecFixedWpnSpreadPellets[iSpread].x * flScalar;
+				y = g_vecFixedWpnSpreadPellets[iSpread].y * flScalar;
+			}
 		}
 		else if ( bFirePerfect )
 		{
@@ -315,8 +339,23 @@ void FX_FireBullets( CTFWeaponBase *pWpn, int iPlayer, const Vector &vecOrigin, 
 		}
 		else
 		{
-			x = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
-			y = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
+			float flScalar = tf_weaponspread_scalar.GetFloat() >= 0 ? tf_weaponspread_scalar.GetFloat() : 1.0f;
+			if ( tf_use_circular_weaponspreads.GetBool() )
+			{
+				float angle = 2.0 * M_PI * RandomFloat();
+				float radius = flScalar * FastSqrt( RandomFloat() );
+				float s, c;
+				FastSinCos( angle, &s, &c );
+				x = radius * s;
+				y = radius * c;
+			}
+			else
+			{
+				x = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
+				y = RandomFloat( -0.5, 0.5 ) + RandomFloat( -0.5, 0.5 );
+			}
+			x *= flScalar;
+			y *= flScalar;
 		}
 
 		// Initialize the varialbe firing information.
