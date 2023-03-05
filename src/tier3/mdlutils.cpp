@@ -292,7 +292,7 @@ void CMDL::SetUpBones( const matrix3x4_t& rootToWorld, int nMaxBoneCount, matrix
 	flCycle -= (int)(flCycle);
 
 	Vector		pos[MAXSTUDIOBONES];
-	Quaternion	q[MAXSTUDIOBONES];
+	QuaternionAligned	q[MAXSTUDIOBONES];
 
 	IBoneSetup boneSetup( &studioHdr, BONE_USED_BY_ANYTHING_AT_LOD( m_nLOD ), pPoseParameter, NULL );
 	boneSetup.InitPose( pos, q );
@@ -420,7 +420,7 @@ void CMDL::SetupBonesWithBoneMerge( const CStudioHdr *pMergeHdr, matrix3x4_t *pM
 	flCycle -= (int)(flCycle);
 
 	Vector pos[MAXSTUDIOBONES];
-	Quaternion q[MAXSTUDIOBONES];
+	QuaternionAligned q[MAXSTUDIOBONES];
 
 	IBoneSetup boneSetup( pMergeHdr,  BONE_USED_BY_ANYTHING_AT_LOD( m_nLOD ), pPoseParameter );
 	boneSetup.InitPose( pos, q );

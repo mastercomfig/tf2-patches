@@ -2188,12 +2188,24 @@ FORCEINLINE vec_t InvRSquared( float const *v )
 
 FORCEINLINE vec_t InvRSquared( const Vector &v )
 {
+#if USE_DXMATH
+	DirectX::XMVECTOR xmV = DirectX::XMVector3ReciprocalLength( _mm_loadu_ps( reinterpret_cast<const float *>( v.Base() ) ) );
+	xmV = DirectX::XMVector3Dot( xmV, xmV );
+	vec_t temp;
+	_mm_store_ss(&temp, xmV);
+	return temp;
+#else
 	return InvRSquared(&v.x);
+#endif
 }
 
-#if defined(__i386__) || defined(_M_IX86)
 inline void _SSE_RSqrtInline( float a, float* out )
 {
+#if USE_DXMATH
+	const __m128 vec = _mm_set_ss(a);
+	const __m128 r = DirectX::XMVectorReciprocalSqrt(vec);
+	_mm_store_ss( out, r );
+#else
 	__m128  xx = _mm_load_ss( &a );
 	__m128  xr = _mm_rsqrt_ss( xx );
 	__m128  xt;
@@ -2203,29 +2215,18 @@ inline void _SSE_RSqrtInline( float a, float* out )
 	xt = _mm_mul_ss( xt, _mm_set_ss(0.5f) );
 	xr = _mm_mul_ss( xr, xt );
 	_mm_store_ss( out, xr );
-}
 #endif
+}
 
 // FIXME: Change this back to a #define once we get rid of the vec_t version
 FORCEINLINE float VectorNormalize( Vector& vec )
 {
-#ifndef DEBUG // stop crashing my edit-and-continue!
-	#if defined(__i386__) || defined(_M_IX86)
-		#define DO_SSE_OPTIMIZATION
-	#endif
-#endif
-
-#if defined( DO_SSE_OPTIMIZATION )
 	float sqrlen = vec.LengthSqr() + 1.0e-10f, invlen;
 	_SSE_RSqrtInline(sqrlen, &invlen);
 	vec.x *= invlen;
 	vec.y *= invlen;
 	vec.z *= invlen;
 	return sqrlen * invlen;
-#else
-	extern float (FASTCALL *pfVectorNormalize)(Vector& v);
-	return (*pfVectorNormalize)(vec);
-#endif
 }
 
 // FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
@@ -2236,7 +2237,7 @@ FORCEINLINE float VectorNormalize( float * v )
 
 FORCEINLINE void VectorNormalizeFast( Vector &vec )
 {
-	VectorNormalize(vec);
+	VectorNormalize( vec );
 }
 
 #else
@@ -2308,4 +2309,3 @@ inline bool Vector::IsLengthLessThan( float val ) const
 }
 
 #endif
-
