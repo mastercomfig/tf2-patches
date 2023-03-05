@@ -482,6 +482,7 @@ private:
 	void							UpdateRelevantInterpolatedVars();
 	void							AddBaseAnimatingInterpolatedVars();
 	void							RemoveBaseAnimatingInterpolatedVars();
+	bool							ShouldSkipAnimationFrame( float currentTime );
 
 public:
 	CRagdoll						*m_pRagdoll;
@@ -618,6 +619,10 @@ private:
 	// These are compared against each other to determine if the entity should muzzle flash.
 	CNetworkVar( unsigned char, m_nMuzzleFlashParity );
 	unsigned char m_nOldMuzzleFlashParity;
+
+	int								m_nLastNonSkippedFrame;
+	Vector						m_pos_cached[MAXSTUDIOBONES];
+	QuaternionAligned			m_q_cached[MAXSTUDIOBONES];
 
 	bool							m_bInitModelEffects;
 	bool							m_bDelayInitModelEffects;

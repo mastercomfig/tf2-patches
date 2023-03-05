@@ -679,6 +679,8 @@ C_BaseAnimating::C_BaseAnimating() :
 	m_iv_flPoseParameter( "C_BaseAnimating::m_iv_flPoseParameter" ),
 	m_iv_flEncodedController("C_BaseAnimating::m_iv_flEncodedController")
 {
+	m_nLastNonSkippedFrame = 0;
+
 	m_vecForce.Init();
 	m_nForceBone = -1;
 	
@@ -749,6 +751,12 @@ C_BaseAnimating::C_BaseAnimating() :
 	Q_memset(&m_mouth, 0, sizeof(m_mouth));
 	m_flCycle = 0;
 	m_flOldCycle = 0;
+
+	for ( int i=0; i<MAXSTUDIOBONES; i++ )
+	{
+		m_pos_cached[i].Init();
+		m_q_cached[i].Init();
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2780,6 +2788,54 @@ void C_BaseAnimating::ThreadedBoneSetup()
 	g_PreviousBoneSetups.RemoveAll();
 }
 
+#ifdef DEBUG
+ConVar cl_limit_anim_fps("cl_limit_anim_fps", "1");
+#endif
+
+#define FPS_TO_FRAMETIME_SECS( _n ) (1000.0f / _n) * 0.001f
+bool C_BaseAnimating::ShouldSkipAnimationFrame( float currentTime )
+{
+#ifdef DEBUG
+	if ( !cl_limit_anim_fps.GetBool() )
+		return false;
+#endif
+
+	// only applies to players
+	if ( !IsPlayer() )
+		return false;
+
+	int nFrameCount = gpGlobals->framecount;
+	if ( !m_nLastNonSkippedFrame || abs( nFrameCount - m_nLastNonSkippedFrame ) >= 2 )
+		return false;
+
+	if ( gpGlobals->frametime < FPS_TO_FRAMETIME_SECS(300.0f) )
+	{
+		nFrameCount += (entindex() % 3); // offset lookups
+		if ( (nFrameCount % 3) != 0 ) // at 300+ fps, compute every third animation frame to floor animation at 100fps
+		{
+			return true;
+		}
+	}
+	else if ( gpGlobals->frametime < FPS_TO_FRAMETIME_SECS(200.0f) )
+	{
+		nFrameCount += (entindex() % 2); // offset lookups
+		if ( (nFrameCount % 2) != 0 ) // at 200+ fps, compute every other animation frame to floor animation at 100fps
+		{
+			return true;
+		}
+	}
+	else if ( gpGlobals->frametime < FPS_TO_FRAMETIME_SECS(150.0f) )
+	{
+		nFrameCount += (entindex() % 3); // offset lookups
+		if ( (nFrameCount % 3) == 0 ) // at 150+ fps, skip every third animation frame to floor animation at 100fps
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, int boneMask, float currentTime )
 {
 	VPROF_BUDGET( "C_BaseAnimating::SetupBones", VPROF_BUDGETGROUP_CLIENT_ANIMATION );
@@ -2835,6 +2891,20 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		{
 			return false;
 		}
+	}
+
+	// If we're setting up LOD N, we have set up all lower LODs also
+	// because lower LODs always use subsets of the bones of higher LODs.
+	int nLOD = 0;
+	int nMask = BONE_USED_BY_VERTEX_LOD0;
+	for( ; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1 )
+	{
+		if ( boneMask & nMask )
+			break;
+	}
+	for( ; nLOD < MAX_NUM_LODS; ++nLOD, nMask <<= 1 )
+	{
+		boneMask |= nMask;
 	}
 
 #ifdef DEBUG_BONE_SETUP_THREADING
@@ -2904,7 +2974,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			return false;
 
 		// Setup our transform based on render angles and origin.
-		matrix3x4_t parentTransform;
+		ALIGN16 matrix3x4_t parentTransform ALIGN16_POST;
 		AngleMatrix( GetRenderAngles(), GetRenderOrigin(), parentTransform );
 
 		// Load the boneMask with the total of what was asked for last frame.
@@ -2958,7 +3028,10 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			memset( q, 0xFF, sizeof(q) );
 #endif
 
-			int bonesMaskNeedRecalc = boneMask | oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
+			const int bonesMaskNeedRecalc = boneMask;
+#if !defined( TF_CLIENT_DLL )
+			bonesMaskNeedRecalc =| oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
+#endif
 
 			if ( m_pIk )
 			{
@@ -2971,9 +3044,25 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			// Let pose debugger know that we are blending
 			g_pPoseDebugger->StartBlending( this, hdr );
 
-			StandardBlendingRules( hdr, pos, q, currentTime, bonesMaskNeedRecalc );
+			const bool bSkipThisFrame = ShouldSkipAnimationFrame( currentTime );
 
 			CBoneBitList boneComputed;
+
+			if ( !bSkipThisFrame )
+			{
+				StandardBlendingRules( hdr, pos, q, currentTime, bonesMaskNeedRecalc );
+
+				m_nLastNonSkippedFrame = gpGlobals->framecount;
+			}
+			else
+			{
+				memcpy( pos, m_pos_cached, sizeof( Vector ) * hdr->numbones() );
+				memcpy( q, m_q_cached, sizeof( QuaternionAligned ) * hdr->numbones() );
+
+				boneComputed.ClearAll(); // because we need to re-BuildTransformations on all our bones with a new root xform
+				boneMask = m_BoneAccessor.GetWritableBones();
+			}
+
 			// don't calculate IK on ragdolls
 			if ( m_pIk && !IsRagdoll() )
 			{
@@ -2989,6 +3078,11 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			
 			RemoveFlag( EFL_SETTING_UP_BONES );
 			ControlMouth( hdr );
+			if ( !bSkipThisFrame )
+			{
+				memcpy( m_pos_cached, pos, sizeof( Vector ) * hdr->numbones() );
+				memcpy( m_q_cached, q, sizeof( QuaternionAligned ) * hdr->numbones() );
+			}
 		}
 		
 		if( !( oldReadableBones & BONE_USED_BY_ATTACHMENT ) && ( boneMask & BONE_USED_BY_ATTACHMENT ) )
