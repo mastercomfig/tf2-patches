@@ -574,7 +574,7 @@ Vector C_BaseFlex::SetViewTarget( CStudioHdr *pStudioHdr )
 	if (m_iEyeAttachment > 0)
 	{
 		matrix3x4_t attToWorld;
-		if (!GetAttachment( m_iEyeAttachment, attToWorld ))
+		if (!GetAttachmentDeferred( m_iEyeAttachment, attToWorld ))
 		{
 			return Vector( 0, 0, 0);
 		}

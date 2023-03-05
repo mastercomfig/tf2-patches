@@ -612,10 +612,10 @@ void CParticleProperty::UpdateControlPoint( ParticleEffectList_t *pEffect, int i
 				{
 					matrix3x4_t attachmentToWorld;
 
-					if ( !pAnimating->GetAttachment( pPoint->iAttachmentPoint, attachmentToWorld ) )
+					if ( !pAnimating->GetAttachmentDeferred( pPoint->iAttachmentPoint, attachmentToWorld ) )
 					{
 						// try C_BaseAnimating if attach point is not on the weapon
-						if ( !pAnimating->C_BaseAnimating::GetAttachment( pPoint->iAttachmentPoint, attachmentToWorld ) )
+						if ( !pAnimating->C_BaseAnimating::GetAttachmentDeferred( pPoint->iAttachmentPoint, attachmentToWorld ) )
 						{
 							Warning( "Cannot update control point %d for effect '%s'.\n", pPoint->iAttachmentPoint, pEffect->pParticleEffect->GetEffectName() );
 							// Remove the effect cause this warning means something is orphaned
