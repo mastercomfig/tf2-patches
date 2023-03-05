@@ -844,6 +844,9 @@ CEconItem *CEconItemView::GetSOCData( void ) const
 	if ( m_pNonSOEconItem )
 		return m_pNonSOEconItem;
 
+	if (m_pSOCDataCache)
+		return m_pSOCDataCache;
+
 #ifdef CLIENT_DLL
 	// We need to find the inventory that contains this item. If we're not connected 
 	// to a server, and the owner is the same as the local player, use the local inventory.
@@ -1084,7 +1087,7 @@ int CEconItemView::GetQualityParticleType() const
 	if ( !pItem )
 		return 0;
 
-	if( GetSOCData()->GetQuality() == AE_SELFMADE || GetSOCData()->GetQuality() == AE_COMMUNITY )
+	if( pItem->GetQuality() == AE_SELFMADE || pItem->GetQuality() == AE_COMMUNITY )
 		return pSparkleSystem ? pSparkleSystem->nSystemID : 0;
 	else
 		return 0;
