@@ -1349,6 +1349,9 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 		if ( ( IsMiscSlot( iLoadoutSlot ) && IsMiscSlot( iPosition ) ) ||
 			 ( IsValidPickupWeaponSlot( iLoadoutSlot ) && iLoadoutSlot == iPosition ) )
 		{
+			return pItem;
+			// UNDONE: this check is making model panel absurdly expensively, and for what?
+#if 0
 			const char * pDisplayModel = pItem->GetPlayerDisplayModel( m_iCurrentClassIndex, m_iTeam );
 			if ( pDisplayModel )
 			{
@@ -1362,6 +1365,7 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 				}
 				vgui::MDLCache()->Release(hMDLFindResult);
 			}
+#endif
 		}
 	}
 
