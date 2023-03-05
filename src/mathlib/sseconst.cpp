@@ -17,6 +17,8 @@ const fltx4 Four_Threes={3.0,3.0,3.0,3.0};
 const fltx4 Four_Fours={4.0,4.0,4.0,4.0};
 const fltx4 Four_Origin={0,0,0,1};
 const fltx4 Four_NegativeOnes={-1,-1,-1,-1};
+const fltx4 Four_DegToRad = { ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)), ((float)(M_PI_F / 180.f)) };
+const fltx4 Four_360 = { 360.f, 360.f, 360.f, 360.f };
 
 const fltx4 Four_2ToThe21s={ (float) (1<<21), (float) (1<<21), (float) (1<<21), (float)(1<<21) };
 const fltx4 Four_2ToThe22s={ (float) (1<<22), (float) (1<<22), (float) (1<<22), (float)(1<<22) };
@@ -57,6 +59,8 @@ const uint32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST =
 	{ 0xffffffff, 0xffffffff, 0x00000000, 0x00000000 },
 	{ 0xffffffff, 0xffffffff, 0xffffffff, 0x00000000 },
 };
+
+const int32 ALIGN16 g_SIMD_EveryOtherMask[4] = { 0, ~0, 0, ~0 };
 
 
 	// FUNCTIONS

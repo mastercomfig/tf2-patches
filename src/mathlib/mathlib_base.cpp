@@ -21,13 +21,6 @@
 
 #include "mathlib/mathlib.h"
 #include "mathlib/vector.h"
-#if !defined( _X360 )
-#include "mathlib/amd3dx.h"
-#ifndef OSX
-#include "3dnow.h"
-#endif
-#include "sse.h"
-#endif
 
 #include "mathlib/ssemath.h"
 #include "mathlib/ssequaternion.h"
@@ -46,83 +39,6 @@ const Vector vec3_origin(0,0,0);
 const QAngle vec3_angle(0,0,0);
 const Vector vec3_invalid( FLT_MAX, FLT_MAX, FLT_MAX );
 const int nanmask = 255<<23;
-
-//-----------------------------------------------------------------------------
-// Standard C implementations of optimized routines:
-//-----------------------------------------------------------------------------
-float _sqrtf(float _X)
-{
-	Assert( s_bMathlibInitialized );
-	return sqrtf(_X); 
-}
-
-float _rsqrtf(float x)
-{
-	Assert( s_bMathlibInitialized );
-
-	return 1.f / _sqrtf( x );
-}
-
-float FASTCALL _VectorNormalize (Vector& vec)
-{
-#ifdef _VPROF_MATHLIB
-	VPROF_BUDGET( "_VectorNormalize", "Mathlib" );
-#endif
-	Assert( s_bMathlibInitialized );
-	float radius = sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
-
-	// FLT_EPSILON is added to the radius to eliminate the possibility of divide by zero.
-	float iradius = 1.f / ( radius + FLT_EPSILON );
-	
-	vec.x *= iradius;
-	vec.y *= iradius;
-	vec.z *= iradius;
-	
-	return radius;
-}
-
-// TODO: Add fast C VectorNormalizeFast.
-// Perhaps use approximate rsqrt trick, if the accuracy isn't too bad.
-void FASTCALL _VectorNormalizeFast (Vector& vec)
-{
-	Assert( s_bMathlibInitialized );
-
-	// FLT_EPSILON is added to the radius to eliminate the possibility of divide by zero.
-	float iradius = 1.f / ( sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z) + FLT_EPSILON );
-	
-	vec.x *= iradius;
-	vec.y *= iradius;
-	vec.z *= iradius;
-	
-}
-
-float _InvRSquared(const float* v)
-{
-	Assert( s_bMathlibInitialized );
-	float	r2 = DotProduct(v, v);
-	return r2 < 1.f ? 1.f : 1/r2;
-}
-
-//-----------------------------------------------------------------------------
-// Function pointers selecting the appropriate implementation
-//-----------------------------------------------------------------------------
-float (*pfSqrt)(float x)  = _sqrtf;
-float (*pfRSqrt)(float x) = _rsqrtf;
-float (*pfRSqrtFast)(float x) = _rsqrtf;
-float (FASTCALL *pfVectorNormalize)(Vector& v) = _VectorNormalize;
-void  (FASTCALL *pfVectorNormalizeFast)(Vector& v) = _VectorNormalizeFast;
-float (*pfInvRSquared)(const float* v) = _InvRSquared;
-void  (*pfFastSinCos)(float x, float* s, float* c) = SinCos;
-float (*pfFastCos)(float x) = cosf;
-
-float SinCosTable[SIN_TABLE_SIZE];
-void InitSinCosTable()
-{
-	for( int i = 0; i < SIN_TABLE_SIZE; i++ )
-	{
-		SinCosTable[i] = sin(i * 2.0 * M_PI / SIN_TABLE_SIZE);
-	}
-}
 
 qboolean VectorsEqual( const float *v1, const float *v2 )
 {
@@ -1200,7 +1116,7 @@ void AngleMatrix( const QAngle &angles, matrix3x4_t& matrix )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( angles.Base() );
 	scale = ReplicateX4( M_PI_F / 180.f ); 
@@ -2024,7 +1940,7 @@ void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( &angles.x );
 	scale = ReplicateX4( 0.5f ); 
@@ -2068,7 +1984,7 @@ void AngleQuaternion( const QAngle &angles, Quaternion &outQuat )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( angles.Base() );
 	scale = ReplicateX4( 0.5f * M_PI_F / 180.f ); 
@@ -3317,92 +3233,14 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	// FIXME: Hook SSE into VectorAligned + Vector4DAligned
 
 #if !defined( _X360 )
-	// Grab the processor information:
-	const CPUInformation& pi = *GetCPUInformation();
-
-	// Select the default generic routines.
-	pfSqrt = _sqrtf;
-	pfRSqrt = _rsqrtf;
-	pfRSqrtFast = _rsqrtf;
-	pfVectorNormalize = _VectorNormalize;
-	pfVectorNormalizeFast = _VectorNormalizeFast;
-	pfInvRSquared = _InvRSquared;
-	pfFastSinCos = SinCos;
-	pfFastCos = cosf;
-
-	if ( bAllowMMX && pi.m_bMMX )
-	{
-		// Select the MMX specific routines if available
-		// (MMX routines were used by SW span fillers - not currently used for HW)
-		s_bMMXEnabled = true;
-	}
-	else
-	{
-		s_bMMXEnabled = false;
-	}
-
-	// SSE Generally performs better than 3DNow when present, so this is placed 
-	// first to allow SSE to override these settings.
-#if !defined( OSX ) && !defined( PLATFORM_WINDOWS_PC64 ) && !defined(LINUX)
-	if ( bAllow3DNow && pi.m_b3DNow )
-	{
-		s_b3DNowEnabled = true;
-
-		// Select the 3DNow specific routines if available;
-		pfVectorNormalize = _3DNow_VectorNormalize;
-		pfVectorNormalizeFast = _3DNow_VectorNormalizeFast;
-		pfInvRSquared = _3DNow_InvRSquared;
-		pfSqrt = _3DNow_Sqrt;
-		pfRSqrt = _3DNow_RSqrt;
-		pfRSqrtFast = _3DNow_RSqrt;
-	}
-	else
-#endif
-	{
-		s_b3DNowEnabled = false;
-	}
-
-	if ( bAllowSSE && pi.m_bSSE )
-	{
-		s_bSSEEnabled = true;
-
-#ifndef PLATFORM_WINDOWS_PC64
-		// These are not yet available.
-		// Select the SSE specific routines if available
-		pfVectorNormalize = _VectorNormalize;
-		pfVectorNormalizeFast = _SSE_VectorNormalizeFast;
-		pfInvRSquared = _SSE_InvRSquared;
-		pfSqrt = _SSE_Sqrt;
-		pfRSqrt = _SSE_RSqrtAccurate;
-		pfRSqrtFast = _SSE_RSqrtFast;
-#endif
-#ifdef PLATFORM_WINDOWS_PC32
-		pfFastSinCos = _SSE_SinCos;
-		pfFastCos = _SSE_cos;
-#endif
-	}
-	else
-	{
-		s_bSSEEnabled = false;
-	}
-
-	if ( bAllowSSE2 && pi.m_bSSE2 )
-	{
-		s_bSSE2Enabled = true;
-#ifdef PLATFORM_WINDOWS_PC32
-		pfFastSinCos = _SSE2_SinCos;
-		pfFastCos = _SSE2_cos;
-#endif
-	} 
-	else
-	{
-		s_bSSE2Enabled = false;
-	}
+	s_b3DNowEnabled = false;
+	s_bMMXEnabled = false;
+	s_bSSEEnabled = true;
+	s_bSSE2Enabled = true;
 #endif // !_X360
 
 	s_bMathlibInitialized = true;
 
-	InitSinCosTable();
 	BuildGammaTable( gamma, texGamma, brightness, overbright );
 }
 
