@@ -97,7 +97,6 @@ private:
 
 
 
-#ifdef DEBUG // stop crashing edit-and-continue
 FORCEINLINE float clamp( float val, float minVal, float maxVal )
 {
 	if ( maxVal < minVal )
@@ -109,23 +108,6 @@ FORCEINLINE float clamp( float val, float minVal, float maxVal )
 	else
 		return val;
 }
-#else // DEBUG
-FORCEINLINE float clamp( float val, float minVal, float maxVal )
-{
-#if defined(__i386__) || defined(_M_IX86)
-	_mm_store_ss( &val,
-		_mm_min_ss(
-			_mm_max_ss(
-				_mm_load_ss(&val),
-				_mm_load_ss(&minVal) ),
-			_mm_load_ss(&maxVal) ) );
-#else
-	val = fpmax(minVal, val);
-	val = fpmin(maxVal, val);
-#endif
-	return val;
-}
-#endif // DEBUG
 
 //
 // Returns a clamped value in the range [min, max].

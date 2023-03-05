@@ -2057,8 +2057,7 @@ FORCEINLINE fltx4 SinSIMD( const fltx4 &radians )
 FORCEINLINE void SinCos3SIMD( fltx4 &sine, fltx4 &cosine, const fltx4 &radians )
 {
 #if USE_DXMATH
-	//DirectX::XMVectorSinCos( &sine, &cosine, radians );
-	sincos_ps(radians, &sine, &cosine);
+	DirectX::XMVectorSinCos( &sine, &cosine, radians );
 #else
 	// FIXME: Make a fast SSE version
 	SinCos( SubFloat( radians, 0 ), &SubFloat( sine, 0 ), &SubFloat( cosine, 0 ) );
