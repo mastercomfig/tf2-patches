@@ -47,9 +47,13 @@ ActionResult< CTFBot >	CTFBotUseItem::Update( CTFBot *me, float interval )
 	{
 		if ( m_cooldownTimer.IsElapsed() )
 		{
-			// use it
-			me->PressFireButton();
-			m_cooldownTimer.Invalidate();
+			// Wait for the weapon to finish deploying before trying to use it.
+			if ( myCurrentWeapon->GetLastDeployTime() <= gpGlobals->curtime )
+			{
+				// use it
+				me->PressFireButton();
+				m_cooldownTimer.Invalidate();
+			}
 		}
 	}
 	else // used
