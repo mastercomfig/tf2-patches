@@ -655,6 +655,15 @@ bool CBaseViewModel::GetAttachment( int number, matrix3x4_t &matrix )
 	return BaseClass::GetAttachment( number, matrix );
 }
 
+bool C_BaseViewModel::GetAttachmentDeferred( int number, matrix3x4_t &matrix )
+{
+	// Update priority for your own viewmodel (no deferral)
+	if ( m_hWeapon.Get() && m_hWeapon.Get()->WantsToOverrideViewmodelAttachments() )
+		return m_hWeapon.Get()->GetAttachment(number, matrix);
+
+	return BaseClass::GetAttachment( number, matrix );
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

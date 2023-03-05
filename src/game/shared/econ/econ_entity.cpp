@@ -1947,6 +1947,14 @@ bool CEconEntity::GetAttachment( int number, matrix3x4_t &matrix )
 	return BaseClass::GetAttachment( number, matrix );
 }
 
+bool C_EconEntity::GetAttachmentDeferred( int number, matrix3x4_t &matrix )
+{
+	if ( m_hViewmodelAttachment )
+		return m_hViewmodelAttachment->GetAttachmentDeferred( number, matrix );
+
+	return BaseClass::GetAttachmentDeferred( number, matrix );
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

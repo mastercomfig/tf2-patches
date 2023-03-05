@@ -265,6 +265,7 @@ public:
 	// Attachments.
 	bool							GetAttachment( const char *szName, Vector &absOrigin );
 	bool							GetAttachment( const char *szName, Vector &absOrigin, QAngle &absAngles );
+	virtual bool			GetAttachmentDeferred( int number, matrix3x4_t &matrix );
 
 	// Inherited from C_BaseEntity
 	virtual bool					GetAttachment( int number, Vector &origin );
