@@ -2177,55 +2177,26 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 
 FORCEINLINE vec_t InvRSquared( float const *v )
 {
-#if defined(__i386__) || defined(_M_IX86)
-	float sqrlen = v[0]*v[0]+v[1]*v[1]+v[2]*v[2] + 1.0e-10f, result;
-	_mm_store_ss(&result, _mm_rcp_ss( _mm_max_ss( _mm_set_ss(1.0f), _mm_load_ss(&sqrlen) ) ));
-	return result;
-#else
-	return 1.f/fpmax(1.f, v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-#endif
+	// The compiler will make it good
+	return 1.f / (v[0]*v[0]+v[1]*v[1]+v[2]*v[2] + 1.0e-10f);
 }
 
 FORCEINLINE vec_t InvRSquared( const Vector &v )
 {
-	return InvRSquared(&v.x);
+	// The compiler will make it good
+	return 1.0f / (v.x*v.x + v.y*v.y + v.z*v.z + 1.0e-10f);
 }
-
-#if defined(__i386__) || defined(_M_IX86)
-inline void _SSE_RSqrtInline( float a, float* out )
-{
-	__m128  xx = _mm_load_ss( &a );
-	__m128  xr = _mm_rsqrt_ss( xx );
-	__m128  xt;
-	xt = _mm_mul_ss( xr, xr );
-	xt = _mm_mul_ss( xt, xx );
-	xt = _mm_sub_ss( _mm_set_ss(3.f), xt );
-	xt = _mm_mul_ss( xt, _mm_set_ss(0.5f) );
-	xr = _mm_mul_ss( xr, xt );
-	_mm_store_ss( out, xr );
-}
-#endif
 
 // FIXME: Change this back to a #define once we get rid of the vec_t version
 FORCEINLINE float VectorNormalize( Vector& vec )
 {
-#ifndef DEBUG // stop crashing my edit-and-continue!
-	#if defined(__i386__) || defined(_M_IX86)
-		#define DO_SSE_OPTIMIZATION
-	#endif
-#endif
-
-#if defined( DO_SSE_OPTIMIZATION )
-	float sqrlen = vec.LengthSqr() + 1.0e-10f, invlen;
-	_SSE_RSqrtInline(sqrlen, &invlen);
+	// The compiler will make it good
+	const float len = sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z + 1.0e-10f);
+	const float invlen = 1.0f / len;
 	vec.x *= invlen;
 	vec.y *= invlen;
 	vec.z *= invlen;
-	return sqrlen * invlen;
-#else
-	extern float (FASTCALL *pfVectorNormalize)(Vector& v);
-	return (*pfVectorNormalize)(vec);
-#endif
+	return len;
 }
 
 // FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
@@ -2236,7 +2207,11 @@ FORCEINLINE float VectorNormalize( float * v )
 
 FORCEINLINE void VectorNormalizeFast( Vector &vec )
 {
-	VectorNormalize(vec);
+	// The previous version just called VectorNormalize but it's significant to be able to do a rsqrtss here.
+	const float invlen = 1.0f / sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z + 1.0e-10f);
+	vec.x *= invlen;
+	vec.y *= invlen;
+	vec.z *= invlen;
 }
 
 #else
@@ -2308,4 +2283,3 @@ inline bool Vector::IsLengthLessThan( float val ) const
 }
 
 #endif
-

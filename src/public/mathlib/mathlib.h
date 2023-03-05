@@ -7,6 +7,8 @@
 #ifndef MATH_LIB_H
 #define MATH_LIB_H
 
+#include "dxmath.h"
+
 #include <math.h>
 #include "minmax.h"
 #include "tier0/basetypes.h"
@@ -95,7 +97,7 @@ private:
 
 
 
-#ifdef DEBUG  // stop crashing edit-and-continue
+#ifdef DEBUG // stop crashing edit-and-continue
 FORCEINLINE float clamp( float val, float minVal, float maxVal )
 {
 	if ( maxVal < minVal )
@@ -438,10 +440,12 @@ inline vec_t RoundInt (vec_t in)
 int Q_log2(int val);
 
 // Math routines done in optimized assembly math package routines
-void inline SinCos( float radians, float *sine, float *cosine )
+void FORCEINLINE SinCos( float radians, float *sine, float *cosine )
 {
 #if defined( _X360 )
 	XMScalarSinCos( sine, cosine, radians );
+#elif USE_DXMATH
+	DirectX::XMScalarSinCos( sine, cosine, radians );
 #elif defined( PLATFORM_WINDOWS_PC32 )
 	_asm
 	{
@@ -466,35 +470,7 @@ void inline SinCos( float radians, float *sine, float *cosine )
 #endif
 }
 
-#define SIN_TABLE_SIZE	256
-#define FTOIBIAS		12582912.f
-extern float SinCosTable[SIN_TABLE_SIZE];
-
-inline float TableCos( float theta )
-{
-	union
-	{
-		int i;
-		float f;
-	} ftmp;
-
-	// ideally, the following should compile down to: theta * constant + constant, changing any of these constants from defines sometimes fubars this.
-	ftmp.f = theta * ( float )( SIN_TABLE_SIZE / ( 2.0f * M_PI ) ) + ( FTOIBIAS + ( SIN_TABLE_SIZE / 4 ) );
-	return SinCosTable[ ftmp.i & ( SIN_TABLE_SIZE - 1 ) ];
-}
-
-inline float TableSin( float theta )
-{
-	union
-	{
-		int i;
-		float f;
-	} ftmp;
-
-	// ideally, the following should compile down to: theta * constant + constant
-	ftmp.f = theta * ( float )( SIN_TABLE_SIZE / ( 2.0f * M_PI ) ) + FTOIBIAS;
-	return SinCosTable[ ftmp.i & ( SIN_TABLE_SIZE - 1 ) ];
-}
+#define FastSinCos( angle, s, c) SinCos(angle, s, c)
 
 template<class T>
 FORCEINLINE T Square( T const &a )
@@ -1205,7 +1181,7 @@ inline float SimpleSplineRemapValClamped( float val, float A, float B, float C, 
 FORCEINLINE int RoundFloatToInt(float f)
 {
 #if defined(__i386__) || defined(_M_IX86) || defined( PLATFORM_WINDOWS_PC64 ) || defined(__x86_64__)
-	return _mm_cvtss_si32(_mm_load_ss(&f));
+	return _mm_cvt_ss2si(_mm_set_ss(f + f + 0.5f)) >> 1;
 #elif defined( _X360 )
 #ifdef Assert
 	Assert( IsFPUControlWordSet() );
@@ -1310,17 +1286,11 @@ FORCEINLINE int Float2Int( float a )
 // Over 15x faster than: (int)floor(value)
 inline int Floor2Int( float a )
 {
-	int RetVal;
-#if defined( __i386__ )
-	// Convert to int and back, compare, subtract one if too big
-	__m128 a128 = _mm_set_ss(a);
-	RetVal = _mm_cvtss_si32(a128);
-    __m128 rounded128 = _mm_cvt_si2ss(_mm_setzero_ps(), RetVal);
-	RetVal -= _mm_comigt_ss( rounded128, a128 );
+#if defined( _X360 )
+	return static_cast<int>( floor(a) );
 #else
-	RetVal = static_cast<int>( floor(a) );
+	return _mm_cvt_ss2si(_mm_set_ss(a + a - 0.5f)) >> 1;
 #endif
-	return RetVal;
 }
 
 //-----------------------------------------------------------------------------
@@ -1366,18 +1336,12 @@ inline float ClampToMsec( float in )
 
 // Over 15x faster than: (int)ceil(value)
 inline int Ceil2Int( float a )
-{
-   int RetVal;
-#if defined( __i386__ )
-   // Convert to int and back, compare, add one if too small
-   __m128 a128 = _mm_load_ss(&a);
-   RetVal = _mm_cvtss_si32(a128);
-   __m128 rounded128 = _mm_cvt_si2ss(_mm_setzero_ps(), RetVal);
-   RetVal += _mm_comilt_ss( rounded128, a128 );
+{ 
+#if defined( _X360 )
+  return static_cast<int>( ceil(a) );
 #else
-   RetVal = static_cast<int>( ceil(a) );
+  return -(_mm_cvt_ss2si(_mm_set_ss(-0.5f - (a + a))) >> 1);
 #endif
-	return RetVal;
 }
 
 
@@ -2169,7 +2133,7 @@ inline bool CloseEnough( const Vector &a, const Vector &b, float epsilon = EQUAL
 // Fast compare
 // maxUlps is the maximum error in terms of Units in the Last Place. This 
 // specifies how big an error we are willing to accept in terms of the value
-// of the least significant digit of the floating point number’s 
+// of the least significant digit of the floating point number's
 // representation. maxUlps can also be interpreted in terms of how many 
 // representable floats we are willing to accept between A and B. 
 // This function will allow maxUlps-1 floats between A and B.

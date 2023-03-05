@@ -27,9 +27,7 @@ $Project "mathlib"
 		$File	"powsse.cpp"
 		$File	"sparse_convolution_noise.cpp"
 		$File	"sseconst.cpp"
-		$File	"sse.cpp"					[$WINDOWS||$POSIX]
 		$File	"ssenoise.cpp"				
-		$File	"3dnow.cpp"					[$WINDOWS||$LINUX]
 		$File	"anorms.cpp"
 		$File	"bumpvects.cpp"
 		$File	"IceKey.cpp"
@@ -76,7 +74,5 @@ $Project "mathlib"
 	$Folder	"Header Files"
 	{
 		$File	"noisedata.h"
-		$File	"sse.h"					[$WINDOWS||$POSIX]
-		$File	"3dnow.h"				[$WINDOWS||$LINUX]
 	}
 }

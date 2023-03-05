@@ -147,7 +147,11 @@
 #endif
 #endif // !_XM_NO_INTRINSICS_
 
-#include "sal.h"
+#ifdef _WIN32
+#include <sal.h>
+#else
+#include "../../dotnetrt/sal.h"
+#endif
 #include <assert.h>
 
 #ifdef _MSC_VER
