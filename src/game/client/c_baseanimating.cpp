@@ -2996,7 +2996,10 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			memset( q, 0xFF, sizeof(q) );
 #endif
 
-			int bonesMaskNeedRecalc = boneMask | oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
+			int bonesMaskNeedRecalc = boneMask;
+#if !defined( TF_CLIENT_DLL )
+			bonesMaskNeedRecalc =| oldReadableBones; // Hack to always recalc bones, to fix the arm jitter in the new CS player anims until Ken makes the real fix
+#endif
 
 			if ( m_pIk )
 			{
