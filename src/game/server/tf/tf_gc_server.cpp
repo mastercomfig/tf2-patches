@@ -1593,10 +1593,6 @@ void CTFGCServerSystem::ClientDisconnected( CSteamID steamIDClient )
 	}
 }
 
-#ifndef VALVE_PURE
-extern ConVar tf_sv_mvm_forced_players;
-#endif
-
 //-----------------------------------------------------------------------------
 void CTFGCServerSystem::PreClientUpdate( )
 {
@@ -1703,6 +1699,7 @@ void CTFGCServerSystem::PreClientUpdate( )
 
 		int playerCount = kMVM_DefendersTeamSize + spectatorCount;
 #ifndef VALVE_PURE
+		ConVarRef tf_sv_mvm_forced_players("tf_sv_mvm_forced_players");
 		if ( tf_sv_mvm_forced_players.GetInt() > playerCount )
 		{
 			playerCount = tf_sv_mvm_forced_players.GetInt();

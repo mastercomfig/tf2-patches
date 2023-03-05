@@ -811,10 +811,20 @@ void CTFTeamMenu::OnTick()
 	
 	int iCurrentTeam = pLocalPlayer->GetTeamNumber();
 
+	int iTeamSize = kMVM_DefendersTeamSize;
+
+#ifndef VALVE_PURE
+	ConVarRef tf_sv_mvm_forced_players("tf_sv_mvm_forced_players");
+	if (tf_sv_mvm_forced_players.GetInt() > iTeamSize)
+	{
+		iTeamSize = tf_sv_mvm_forced_players.GetInt();
+	}
+#endif
+
 	if ( ( bUnbalanced && iHeavyTeam == TF_TEAM_RED ) || 
 		 ( pRules->WouldChangeUnbalanceTeams( TF_TEAM_RED, iCurrentTeam ) ) ||
 		 ( bHighlander && GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= TF_LAST_NORMAL_CLASS - 1 ) ||
-		 ( pRules->IsMannVsMachineMode() && ( GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= kMVM_DefendersTeamSize ) )	 )
+		 ( pRules->IsMannVsMachineMode() && ( GetGlobalTeam( TF_TEAM_RED )->GetNumPlayers() >= iTeamSize ) )	 )
 	{
 		m_bRedDisabled = true;
 	}
