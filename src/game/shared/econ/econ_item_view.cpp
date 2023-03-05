@@ -1084,7 +1084,7 @@ int CEconItemView::GetQualityParticleType() const
 	if ( !pItem )
 		return 0;
 
-	if( GetSOCData()->GetQuality() == AE_SELFMADE || GetSOCData()->GetQuality() == AE_COMMUNITY )
+	if( pItem->GetQuality() == AE_SELFMADE || pItem->GetQuality() == AE_COMMUNITY )
 		return pSparkleSystem ? pSparkleSystem->nSystemID : 0;
 	else
 		return 0;
