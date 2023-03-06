@@ -22,6 +22,10 @@
 
 #define AUDIOSOURCE_CACHE_ROOTDIR	"maps/soundcache"
 
+#if !defined(_X360)
+#define THREADED_SOUND_UPDATE
+#endif
+
 class CSfxTable;
 enum soundlevel_t;
 struct SoundInfo_t;
