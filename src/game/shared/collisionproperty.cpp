@@ -167,6 +167,10 @@ void CDirtySpatialPartitionEntityList::OnPreQuery( SpatialPartitionListMask_t li
 	if ( m_partitionWriteId != 0 && m_partitionWriteId == ThreadGetCurrentId() )
 		return;
 
+	// Don't break the cache by running in a separate thread! Not thread-safe!
+	if ( !ThreadInMainThread() )
+		return;
+
 #ifdef CLIENT_DLL
 	// FIXME: This should really be an assertion... feh!
 	if ( !C_BaseEntity::IsAbsRecomputationsEnabled() )
@@ -1107,7 +1111,8 @@ void CCollisionProperty::ComputeSurroundingBox( Vector *pVecWorldMins, Vector *p
 		{
 			Assert( GetSolid() != SOLID_CUSTOM );
 			bool bUseVPhysics = false;
-			if ( ( GetSolid() == SOLID_VPHYSICS ) && ( GetOuter()->GetMoveType() == MOVETYPE_VPHYSICS ) )
+			// VPhysics is not thread-safe!
+			if ( ThreadInMainThread() && ( GetSolid() == SOLID_VPHYSICS ) && ( GetOuter()->GetMoveType() == MOVETYPE_VPHYSICS ) )
 			{
 				// UNDONE: This may not be necessary any more.
 				IPhysicsObject *pPhysics = GetOuter()->VPhysicsGetObject();
@@ -1128,7 +1133,9 @@ void CCollisionProperty::ComputeSurroundingBox( Vector *pVecWorldMins, Vector *p
 		break;
 
 	case USE_HITBOXES:
-		ComputeHitboxSurroundingBox( pVecWorldMins, pVecWorldMaxs );
+		// Client code is not thread-safe!
+		if (ThreadInMainThread())
+			ComputeHitboxSurroundingBox( pVecWorldMins, pVecWorldMaxs );
 		break;
 
 	case USE_ROTATION_EXPANDED_BOUNDS:
@@ -1141,7 +1148,9 @@ void CCollisionProperty::ComputeSurroundingBox( Vector *pVecWorldMins, Vector *p
 		break;
 
 	case USE_GAME_CODE:
-		GetOuter()->ComputeWorldSpaceSurroundingBox( pVecWorldMins, pVecWorldMaxs );
+		// Client code is not thread-safe!
+		if (ThreadInMainThread())
+			GetOuter()->ComputeWorldSpaceSurroundingBox( pVecWorldMins, pVecWorldMaxs );
 		Assert( pVecWorldMins->x <= pVecWorldMaxs->x );
 		Assert( pVecWorldMins->y <= pVecWorldMaxs->y );
 		Assert( pVecWorldMins->z <= pVecWorldMaxs->z );
