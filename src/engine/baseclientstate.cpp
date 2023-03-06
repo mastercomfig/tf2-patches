@@ -41,6 +41,7 @@
 #include "replay_internal.h"
 #include "replayserver.h"
 #endif
+#include "sound.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -737,6 +738,8 @@ void CBaseClientState::Disconnect( const char *pszReason, bool bShowMainMenu )
 #if !defined( SWDS ) && defined( ENABLE_RPT )
 	CL_NotifyRPTOfDisconnect( );
 #endif
+
+	S_StopAllSounds( true );
 
 	m_nSignonState = SIGNONSTATE_NONE;
 

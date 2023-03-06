@@ -145,10 +145,18 @@ struct ResourceLocker
 		// Need to temporarily disable queued material system, then lock it
 		m_QMS = Host_AllowQueuedMaterialSystem( false );
 		m_MatLock = g_pMaterialSystem->Lock();
+		// Disable threaded sound updates while loading
+#ifdef THREADED_SOUND_UPDATE
+		S_EnableThreadedMixing(false);
+#endif
 	}
 
 	~ResourceLocker()
 	{
+		// Restore threaded sound update
+#ifdef THREADED_SOUND_UPDATE
+		S_EnableThreadedMixing(true);
+#endif
 		// Restore QMS
 		materials->Unlock( m_MatLock );
 		Host_AllowQueuedMaterialSystem( m_QMS );

@@ -36,6 +36,7 @@ public:
 	virtual void FrameUpdatePostEntityThink( void );
 	virtual void LevelInitPreEntity( void );
 	virtual void LevelInitPostEntity();
+	virtual void LevelShutdownPreEntity();
 
 	virtual void AddSoundscapeFile( const char *filename );
 	int	GetSoundscapeIndex( const char *pName );

@@ -53,7 +53,8 @@ bool BChannelLowVolume( channel_t *pch, int vol_min );
 void ChannelCopyVolumes( channel_t *pch, int *pvolume_dest, int ivol_start, int cvol );
 float ChannelLoudestCurVolume( const channel_t * RESTRICT pch );
 
-extern int g_soundtime;
+extern int64 g_soundtime;
+extern double g_soundtimeerror;
 extern float host_frametime;
 extern float host_frametime_unbounded;
 
@@ -434,7 +435,7 @@ void S_FreeChannel(channel_t *ch)
 
 	ch->flags.isSentence = false;
 //	Msg("End sound %s\n", ch->sfx->getname() );
-	
+
 	delete ch->pMixer;
 	ch->pMixer = NULL;
 	ch->sfx = NULL;
@@ -2267,9 +2268,9 @@ void MIX_PaintChannels( int endtime, bool bIsUnderwater )
 	VPROF("MIX_PaintChannels");
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
-	int 	end;
+	int64 	end;
 	int		count;
-	bool	b_spatial_delays = dsp_enhance_stereo.GetInt() != 0 ? true : false;
+	bool	b_spatial_delays = dsp_enhance_stereo.GetBool();
 	bool room_fsurround_sav;
 	bool room_fsurround_center_sav;
 	paintbuffer_t	*proom = MIX_GetPPaintFromIPaint(SOUND_BUFFER_ROOM);
@@ -4196,6 +4197,7 @@ void SND_RecordInit()
 {
 	g_paintedtime = 0;
 	g_soundtime = 0;
+	g_soundtimeerror = 0.0;
 
 	// TMP Wave file supports stereo only, so force stereo
 	if ( snd_surround.GetInt() != 2 )

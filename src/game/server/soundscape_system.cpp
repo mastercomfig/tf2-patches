@@ -263,6 +263,11 @@ void CSoundscapeSystem::LevelInitPostEntity()
 	}
 }
 
+void CSoundscapeSystem::LevelShutdownPreEntity()
+{
+	g_SoundscapeSystem.Shutdown();
+}
+
 int	CSoundscapeSystem::GetSoundscapeIndex( const char *pName )
 {
 	return m_soundscapes.GetStringID( pName );
