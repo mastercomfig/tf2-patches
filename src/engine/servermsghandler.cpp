@@ -236,8 +236,6 @@ void CClientState::Disconnect( const char *pszReason, bool bShowMainMenu )
 	demoplayer->StopPlayback();
 	demorecorder->StopRecording();
 #endif
-
-	S_StopAllSounds( true );
 	
 	R_DecalTermAll();
 
