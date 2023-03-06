@@ -70,7 +70,7 @@ extern IVideoServices *g_pVideo;
 #define DIST_MULT_TO_SNDLVL( dist_mult ) (soundlevel_t)(int)( dist_mult ? ( 20 * log10( pow( 10.0f, snd_refdb.GetFloat() / 20 ) / (dist_mult * snd_refdist.GetFloat()) ) ) : 0 )
 
 #if !defined( _X360 )
-#define THREADED_MIX_TIME 0.005
+#define THREADED_MIX_TIME 0.015
 #else
 #define THREADED_MIX_TIME XMA_POLL_RATE * 0.001
 #endif
@@ -470,11 +470,7 @@ static ConVar volume( "volume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Soun
 // user configurable music volume
 ConVar snd_musicvolume( "snd_musicvolume", "1.0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX, "Music volume", true, 0.0f, true, 1.0f );	
 
-#ifdef THREADED_SOUND_UPDATE
-ConVar snd_mixahead( "snd_threaded_mixahead", "0.1", 0 );
-#else
-ConVar snd_mixahead( "snd_mixahead", "0.1", 0 );
-#endif
+ConVar snd_mixahead( "snd_mixahead", "0.1", FCVAR_DEVELOPMENTONLY ); // 
 #ifdef THREADED_SOUND_UPDATE
 ConVar snd_mix_async( "snd_mix_async", "1" );
 #else
