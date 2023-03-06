@@ -213,7 +213,7 @@ void VerifySequenceIndex( CStudioHdr *pstudiohdr )
 		return;
 	}
 
-	if( pstudiohdr->GetActivityListVersion( ) != g_nActivityListVersion )
+	if( pstudiohdr->GetActivityListVersion( ) < g_nActivityListVersion ) // sometimes the server's numbers can get ahead of the client's if we're sharing memory between the two, so it's only necessary to reindex if a model is lagging the version number.
 	{
 		// this model's sequences have not yet been indexed by activity
 		IndexModelSequences( pstudiohdr );
