@@ -3206,6 +3206,7 @@ public:
 
 	// Fast Index! No need to call advance index, and no random access allowed
 	void FastIndex( unsigned short index );
+	void FastQuad( int index );
 
 	// Fast Vertex! No need to call advance vertex, and no random access allowed. 
 	// WARNING - these are low level functions that are intended only for use
@@ -3773,6 +3774,11 @@ FORCEINLINE void CMeshBuilder::FastIndex( unsigned short idx )
 FORCEINLINE void CMeshBuilder::FastIndex2( unsigned short nIndex1, unsigned short nIndex2 )
 {
 	m_IndexBuilder.FastIndex2( nIndex1, nIndex2 );
+}
+
+FORCEINLINE void CMeshBuilder::FastQuad( int nIndex )
+{
+	m_IndexBuilder.FastQuad( nIndex );
 }
 
 //-----------------------------------------------------------------------------
