@@ -905,6 +905,9 @@ void C_OP_RenderSprites::RenderUnsortedNonSpriteCardOriented( CParticleCollectio
 void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_RenderSpritesContext_t *pCtx, SpriteRenderInfo_t& info, int hParticle, ParticleRenderData_t const *pSortList, Vector *pCamera ) const
 {
 	Assert( hParticle != -1 );
+	unsigned char ac = pSortList->m_nAlpha;
+	if (! ac )
+		return;
 	int nGroup = hParticle / 4;
 	int nOffset = hParticle & 0x3;
 
@@ -921,7 +924,6 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 	unsigned char rc = FastFToC( r );
 	unsigned char gc = FastFToC( g );
 	unsigned char bc = FastFToC( b );
-	unsigned char ac = pSortList->m_nAlpha;
 
 	float rad = pSortList->m_flRadius;
 	if ( !IsFinite( rad ) )
@@ -959,16 +961,15 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 // 			float flLifetime = SubFloat( pLifeDuration[ nGroup * ld_stride ], nOffset );
 // 			flAgeScale = ( flLifetime > 0.0f ) ? ( 1.0f / flLifetime ) * SEQUENCE_SAMPLE_COUNT : 0.0f;
 // 		}
+		int nSequence = SubFloat( info.m_pSequenceNumber[ nGroup * info.m_nSequenceStride ], nOffset );
 		if ( m_bAnimateInFPS )
 		{
-			int nSequence = SubFloat( info.m_pSequenceNumber[ nGroup * info.m_nSequenceStride ], nOffset );
 			flAgeScale = flAgeScale / info.m_pParticles->m_Sheet()->m_flFrameSpan[nSequence];
 		}
 		pSample = GetSampleForSequence( info.m_pSheet,
 			SubFloat( info.m_pCreationTimeStamp[ nGroup * info.m_nCreationTimeStride ], nOffset ), 
 			info.m_pParticles->m_flCurTime, 
-			flAgeScale,
-			SubFloat( info.m_pSequenceNumber[ nGroup * info.m_nSequenceStride ], nOffset ) );
+			flAgeScale, nSequence );
 	}
 
 	const SequenceSampleTextureCoords_t *pSample0 = &(pSample->m_TextureCoordData[0]);
@@ -1015,12 +1016,7 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 		meshBuilder.TexCoord4f( 4, pSecondTexture0->m_fLeft_U0, pSecondTexture0->m_fTop_V0, pSecondTexture0->m_fRight_U0, pSecondTexture0->m_fBottom_V0 );
 		meshBuilder.AdvanceVertex();
 
-		meshBuilder.FastIndex( info.m_nVertexOffset );
-		meshBuilder.FastIndex( info.m_nVertexOffset + 1 );
-		meshBuilder.FastIndex( info.m_nVertexOffset + 2 );
-		meshBuilder.FastIndex( info.m_nVertexOffset );
-		meshBuilder.FastIndex( info.m_nVertexOffset + 2 );
-		meshBuilder.FastIndex( info.m_nVertexOffset + 3 );
+		meshBuilder.FastQuad( info.m_nVertexOffset );
 		info.m_nVertexOffset += 4;
 	}
 }
