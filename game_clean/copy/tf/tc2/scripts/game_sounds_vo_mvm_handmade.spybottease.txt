@@ -1,0 +1,23 @@
+"Spy.MVM_TeaseVictim"
+{
+	"channel"		"CHAN_VOICE"
+	"volume"		"1"
+	"pitch"			"PITCH_NORM"
+
+	"soundlevel"	"SNDLVL_95dB"
+
+	"rndwave"
+	{
+		"wave"		"vo/mvm/norm/spy_mvm_cloakedspy03.mp3"
+		"wave"		"vo/mvm/norm/spy_mvm_cloakedspy04.mp3"
+		"wave"		"vo/mvm/norm/spy_mvm_Revenge01.mp3"
+		"wave"		"vo/mvm/norm/spy_mvm_Revenge02.mp3"
+		"wave"		"vo/mvm/norm/spy_mvm_Revenge03.mp3"
+		// "wave"		"vo/mvm/norm/spy_mvm_specialcomplete04.mp3"
+		// "wave"		"vo/mvm/norm/spy_mvm_specialcomplete10.mp3"
+		// "wave"		"vo/mvm/norm/spy_mvm_specialcomplete12.mp3"
+        "wave"      "vo/mvm/norm/spy_mvm_specialcompleted04.mp3"
+        "wave"      "vo/mvm/norm/spy_mvm_specialcompleted10.mp3"
+        "wave"      "vo/mvm/norm/spy_mvm_specialcompleted12.mp3"
+	}
+}
