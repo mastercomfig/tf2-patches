@@ -11,7 +11,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then  # Mac
   declare -a LIBS=(
                     lib/common/osx32/libcryptopp.a
                   )
-else; then  # Windows
+else  # Windows
   declare -a LIBS=(
                     lib/public/dme_controls.lib
                     lib/common/win32/2015/debug/cryptlib.lib
