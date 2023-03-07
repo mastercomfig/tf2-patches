@@ -10,21 +10,15 @@
 * [Community video benchmark 1](https://youtu.be/Jj4IjW0EQ6Q)
 * [Community video benchmark 2](https://youtu.be/VRMWTYv5Fmc)
 
+Come play with us! `connect tc2.mastercomfig.com`
+
 # Welcome to Team Comtress 2!
 
 ### What *is* TC2?
 
 Team Comtress 2 is a set of modifications on top of an older version of Team Fortress 2, with a community development team fixing bugs, improving performance, and adding quality of life features, with the goal of having those changes pulled upstream by Valve to the modern game.
 
-### What is TC2 *not*?
-
-**TC2 is *not* an alternative, more stable game experience**
-
-TC2 is based on the 2017 TF2 source code leak, which contained an in-development version of Jungle Inferno. This build is rife with issues and incomplete features, and ***is not compatible*** with the modern game client.
-
-### Does TC2 include other community patches?
-
-Not at the moment, we are focusing on our own patches to send to Valve.
+TC2 is mostly about the changes made _on top_ of a mid-Jungle Inferno development build of the game, so please keep in mind that it isn't a fully polished experience.
 
 ## How can I help?
 
@@ -41,7 +35,7 @@ Not at the moment, we are focusing on our own patches to send to Valve.
 New users should follow this approach.
 
 1. Copy your current `Team Fortress 2` installation to a new folder.
-2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`).
+2. In your copied TF2 folder, delete the `tf/custom` and `tf/addons` folders if you have them, as well as `tf/cfg/autoexec.cfg`, `tf/cfg/config.cfg`, and any class configs (such as `heavyweapons.cfg` or `spy.cfg`). One of the points of the changes we are making is to remove the need for graphical or networking configs. Do not have mastercomfig installed.
 	* Do *not* delete the entire `tf/cfg` folder!
 3. [Download](https://github.com/mastercomfig/tf2-patches/releases/latest) `game_dist.zip` from the latest release.
 4. ![Unblock ZIP](https://kb.corel.com/Attachments/kcs-180590/unblock3.png) <br> Right click on the ZIP, open Properties, and then Unblock it to speed up extraction and prevent conflicts with anti-virus software triggering false positives.
