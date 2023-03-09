@@ -23,6 +23,7 @@
 #endif
 
 #include "tier1/lzmaDecoder.h"
+#include "tier1/strtools.h"
 
 #ifdef CSTRIKE_DLL
 #include "cs_shareddefs.h"
@@ -1373,26 +1374,50 @@ const CUtlVector< Place > *CNavMesh::GetPlacesFromNavFile( bool *hasUnnamedPlace
 
 //--------------------------------------------------------------------------------------------------------------
 /**
+ * Generates a "clean" map name based on the full map name (such as from gpGlobals->mapname).
+ * sizeof(pszCleanMapName) must be at least MAX_PATH
+ */
+const char* GetCleanMapName(const char* pszFullMapName, char* pszCleanMapName)
+{
+	const char* pszCleanMapNameNoPrefix = StringAfterPrefixCaseSensitive(pszFullMapName, "workshop\\");
+	if ( pszCleanMapNameNoPrefix == NULL )
+		pszCleanMapNameNoPrefix = StringAfterPrefixCaseSensitive(pszFullMapName, "workshop/");
+
+	if ( pszCleanMapNameNoPrefix == NULL )
+		pszCleanMapNameNoPrefix = pszFullMapName;
+
+	V_strncpy( pszCleanMapName, pszCleanMapNameNoPrefix, MAX_PATH );
+
+	char* pszUgcPosition = V_strstr( pszCleanMapName, ".ugc" );
+	if ( pszUgcPosition )
+		*pszUgcPosition = '\0';
+
+	return pszCleanMapName;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+/**
  * Fetch raw nav data into buffer
  */
 NavErrorType CNavMesh::GetNavDataFromFile( CUtlBuffer &outBuffer, bool *pNavDataFromBSP )
 {
-	// nav filename is derived from map filename
-	char filename[MAX_PATH] = { 0 };
-	Q_snprintf( filename, sizeof( filename ), FORMAT_NAVFILE, STRING( gpGlobals->mapname ) );
+	char filename[MAX_PATH];
+	V_snprintf( filename, sizeof(filename), FORMAT_NAVFILE, STRING( gpGlobals->mapname ));
+	// Try to load "maps/<NON-clean map name>" from mod files, ignoring files in BSP.
+	if (!g_pFullFileSystem->ReadFile(filename, "MOD", outBuffer)) {
+		char szCleanedMapName[MAX_PATH];
+		GetCleanMapName( STRING( gpGlobals->mapname ), szCleanedMapName );
+		V_snprintf(filename, sizeof( filename ), FORMAT_NAVFILE, szCleanedMapName);
 
-	if ( !filesystem->ReadFile( filename, "MOD", outBuffer ) )	// this ignores .nav files embedded in the .bsp ...
-	{
-		if ( !filesystem->ReadFile( filename, "BSP", outBuffer ) )	// ... and this looks for one if it's the only one around.
-		{
-			// Finally, check for the special embed name for in-BSP nav meshes only
-			if ( !filesystem->ReadFile( PATH_NAVFILE_EMBEDDED, "BSP", outBuffer ) )
-			{
+		// Couldn't find a navmesh in mod files, try to load "maps/<clean map name>.nav" file in BSP
+		if (!g_pFullFileSystem->ReadFile(filename, "BSP", outBuffer)) {
+			// Fallback to "maps/embed.nav"
+			if (!g_pFullFileSystem->ReadFile(PATH_NAVFILE_EMBEDDED, "BSP", outBuffer)) {
 				return NAV_CANT_ACCESS_FILE;
 			}
 		}
-		if ( pNavDataFromBSP )
-		{
+
+		if ( pNavDataFromBSP ) {
 			*pNavDataFromBSP = true;
 		}
 	}
