@@ -45,12 +45,6 @@ $Configuration	"Release"
 
 $Configuration
 {
-	$General
-	{
-		$OutputDirectory			".\$GAMENAME"
-		$IntermediateDirectory		".\$GAMENAME"
-	}
-
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	".\;$BASE;$SRCDIR\vgui2\include;$SRCDIR\vgui2\controls;$SRCDIR\game\shared;.\game_controls;$SRCDIR\thirdparty\sixensesdk\include"

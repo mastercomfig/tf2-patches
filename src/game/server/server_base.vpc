@@ -45,12 +45,6 @@ $Configuration	"Release"
 
 $Configuration
 {
-	$General
-	{
-		$OutputDirectory			".\$GAMENAME"
-		$IntermediateDirectory		".\$GAMENAME"
-	}
-
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	"$BASE;.\;$SRCDIR\game\shared;$SRCDIR\utils\common;$SRCDIR\game\shared\econ;$SRCDIR\game\server\NextBot"
