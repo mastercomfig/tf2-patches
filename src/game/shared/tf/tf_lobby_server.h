@@ -15,7 +15,7 @@
 #include "tf_matchmaking_shared.h"
 #include "playergroup.h"
 
-class CTFGSLobby : public GCSDK::CProtoBufSharedObject<CSOTFGameServerLobby, k_EProtoObjectTFGameServerLobby>
+class CTFGSLobby final : public GCSDK::CProtoBufSharedObject<CSOTFGameServerLobby, k_EProtoObjectTFGameServerLobby>
 {
 	typedef GCSDK::CProtoBufSharedObject<CSOTFGameServerLobby, k_EProtoObjectTFGameServerLobby> BaseClass;
 public:

@@ -24,7 +24,7 @@ namespace GCSDK
 
 const int k_nTFPartyMaxSize = 6;
 
-class CTFParty : public GCSDK::CProtoBufSharedObject<CSOTFParty, k_EProtoObjectTFParty>, public GCSDK::IParty
+class CTFParty final : public GCSDK::CProtoBufSharedObject<CSOTFParty, k_EProtoObjectTFParty>, public GCSDK::IParty
 {
 #ifdef GC
 	DECLARE_CLASS_MEMPOOL( CTFParty );

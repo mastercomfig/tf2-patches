@@ -282,7 +282,7 @@ template < typename T >	uint32 WrapDeprecatedUntypedEconItemAttribute( T tValue 
 template < typename TAttribInMemoryType >
 schema_attribute_stat_bucket_t ISchemaAttributeTypeBase<TAttribInMemoryType>::s_InstanceStats;
 
-class CEconItem : public GCSDK::CSharedObject, public CMaterialOverrideContainer< IEconItemInterface >
+class CEconItem final : public GCSDK::CSharedObject, public CMaterialOverrideContainer< IEconItemInterface >
 {
 #ifdef GC_DLL
 	DECLARE_CLASS_MEMPOOL( CEconItem );
