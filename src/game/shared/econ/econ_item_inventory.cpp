@@ -304,6 +304,16 @@ bool CInventoryManager::Init( void )
 //-----------------------------------------------------------------------------
 void CInventoryManager::PostInit( void )
 {
+#ifdef GAME_DLL
+	if ( engine->IsDedicatedServer() )
+#endif
+	{
+		InitializeInventory();
+	}
+}
+
+void CInventoryManager::InitializeInventory()
+{
 	// Initialize the item system.
 	ItemSystem()->Init();
 }
@@ -442,7 +452,6 @@ void CInventoryManager::LevelShutdownPostEntity( void )
 	// We reset the cached attribute class strings, since it's invalidated by level changes
 	ItemSystem()->ResetAttribStringCache();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Lets the client know that we're now connected to the GC

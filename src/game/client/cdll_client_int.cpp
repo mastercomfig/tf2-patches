@@ -60,6 +60,7 @@
 #include "datacache/imdlcache.h"
 #include "kbutton.h"
 #include "tier0/icommandline.h"
+#include "vstdlib/jobthread.h"
 #include "gamerules_register.h"
 #include "vgui_controls/AnimationController.h"
 #include "bitmap/tgawriter.h"
@@ -838,6 +839,14 @@ bool IsEngineThreaded()
 	return false;
 }
 
+bool InitParticleManager()
+{
+	if (!ParticleMgr()->Init(MAX_TOTAL_PARTICLES, materials))
+		return false;
+
+	return true;
+}
+
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
@@ -991,8 +1000,8 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	if (!Initializer::InitializeAllObjects())
 		return false;
 
-	if (!ParticleMgr()->Init(MAX_TOTAL_PARTICLES, materials))
-		return false;
+	CFunctorJob *pGameJob = new CFunctorJob( CreateFunctor( InitParticleManager ) );
+	g_pThreadPool->AddJob( pGameJob );
 
 
 	if (!VGui_Startup( appSystemFactory ))
@@ -1034,6 +1043,8 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 #endif
 
 	modemanager->Init( );
+
+	pGameJob->WaitForFinishAndRelease();
 
 	g_pClientMode->InitViewport();
 
