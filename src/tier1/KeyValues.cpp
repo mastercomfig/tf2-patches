@@ -534,6 +534,7 @@ const char *KeyValues::GetName( void ) const
 //-----------------------------------------------------------------------------
 // Purpose: Read a single token from buffer (0 terminated)
 //-----------------------------------------------------------------------------
+#pragma warning( push )
 #pragma warning (disable:4706)
 const char *KeyValues::ReadToken( CUtlBuffer &buf, bool &wasQuoted, bool &wasConditional )
 {
@@ -618,7 +619,7 @@ const char *KeyValues::ReadToken( CUtlBuffer &buf, bool &wasQuoted, bool &wasCon
 	s_pTokenBuf[ nCount ] = 0;
 	return s_pTokenBuf;
 }
-#pragma warning (default:4706)
+#pragma warning( pop )
 
 	
 
@@ -681,7 +682,8 @@ bool KeyValues::LoadFromFile( IBaseFileSystem *filesystem, const char *resourceN
 	So all vmt's files can bypass sv_pure 1. And I believe this mod is mostly
 	made of vmt files, so valve's sv_pure 1 bull is pretty redundant.
 	*/
-	const bool bUseCache = false;
+	// UNDONE: the above exploit is no longer relevant because the KeyValues cache is now invalidated for sv_pure
+	const bool bUseCache = s_pfGetSymbolForString == KeyValues::GetSymbolForStringClassic;
 #endif
 
 	// If pathID is null, we cannot cache the result because that has a weird iterate-through-a-bunch-of-locations behavior.
