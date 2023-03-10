@@ -128,6 +128,8 @@ private:
 		char c;
 	};
 
+	enum { ABCWIDTHS_CACHE_SIZE = 256 };
+	abc_t* m_ABCWidthsCache[ABCWIDTHS_CACHE_SIZE];
 #if !defined( _X360 )
 	// On PC we cache char widths on demand when actually requested to minimize our use of the kernels 
 	// paged pool (GDI may cache information about glyphs we have requested and take up lots of paged pool)
@@ -138,10 +140,6 @@ private:
 	};
 	CUtlRBTree<abc_cache_t, unsigned short> m_ExtendedABCWidthsCache;
 	static bool ExtendedABCWidthsCacheLessFunc(const abc_cache_t &lhs, const abc_cache_t &rhs);
-#else
-	// 360 requires all possible characters during font init
-	enum { ABCWIDTHS_CACHE_SIZE = 256 };
-	abc_t m_ABCWidthsCache[ABCWIDTHS_CACHE_SIZE];
 #endif
 };
 
