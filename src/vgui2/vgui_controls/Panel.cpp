@@ -6343,7 +6343,7 @@ PanelAnimationMapEntry *Panel::FindPanelAnimationEntry( char const *scriptname, 
 	{
 		PanelAnimationMapEntry *e = &map->entries[ i ];
 
-		if ( !stricmp( e->name(), scriptname ) )
+		if ( !V_stricmp( e->name(), scriptname ) )
 		{
 			return e;
 		}

@@ -731,7 +731,7 @@ bool CLocalizedStringTable::SymLess(localizedstring_t const &i1, localizedstring
 	const char *str2 = (i2.nameIndex == INVALID_LOCALIZE_STRING_INDEX) ? i2.pszValueString :
 											&g_StringTable.m_Names[i2.nameIndex];
 	
-	return stricmp(str1, str2) < 0;
+	return V_stricmp(str1, str2) < 0;
 }
 
 
