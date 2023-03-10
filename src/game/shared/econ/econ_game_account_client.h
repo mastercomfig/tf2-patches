@@ -17,7 +17,7 @@
 //---------------------------------------------------------------------------------
 // Purpose: All the account-level information that the GC tracks
 //---------------------------------------------------------------------------------
-class CEconGameAccountClient : public GCSDK::CProtoBufSharedObject< CSOEconGameAccountClient, k_EEconTypeGameAccountClient >
+class CEconGameAccountClient final : public GCSDK::CProtoBufSharedObject< CSOEconGameAccountClient, k_EEconTypeGameAccountClient >
 {
 #ifdef GC
 	DECLARE_CLASS_MEMPOOL( CEconGameAccountClient );

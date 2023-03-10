@@ -27,7 +27,7 @@
 //---------------------------------------------------------------------------------
 // Purpose: The shared object that contains a ladder player's stats		
 //---------------------------------------------------------------------------------
-class CSOTFLadderData : public GCSDK::CProtoBufSharedObject< CSOTFLadderPlayerStats, k_EEConTypeLadderData >
+class CSOTFLadderData final : public GCSDK::CProtoBufSharedObject< CSOTFLadderPlayerStats, k_EEConTypeLadderData >
 {
 public:
 	CSOTFLadderData();
@@ -55,7 +55,7 @@ CSOTFLadderData *GetLocalPlayerLadderData( EMatchGroup nMatchGroup );	// TODO: G
 //---------------------------------------------------------------------------------
 // Purpose: The shared object that contains stats from a specific match - for match history on the client
 //---------------------------------------------------------------------------------
-class CSOTFMatchResultPlayerInfo : public GCSDK::CProtoBufSharedObject< CSOTFMatchResultPlayerStats, k_EEConTypeMatchResultPlayerInfo >
+class CSOTFMatchResultPlayerInfo final : public GCSDK::CProtoBufSharedObject< CSOTFMatchResultPlayerStats, k_EEConTypeMatchResultPlayerInfo >
 {
 public:
 	CSOTFMatchResultPlayerInfo();
