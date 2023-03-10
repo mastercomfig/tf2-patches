@@ -15,7 +15,7 @@
 //-----------------------------------------------------------------------------
 // globals
 //-----------------------------------------------------------------------------
-CUtlSymbolTableMT CDmxAttribute::s_AttributeNameSymbols;
+CUtlSymbolTableLargeMT CDmxAttribute::s_AttributeNameSymbols;
 
 
 //-----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ CDmxAttribute::CDmxAttribute( const char *pAttributeName )
 	m_pData = NULL;
 }
 
-CDmxAttribute::CDmxAttribute( CUtlSymbol attributeName )
+CDmxAttribute::CDmxAttribute( CUtlSymbolLarge attributeName )
 {
 	m_Name = attributeName;
 	m_Type = AT_UNKNOWN;
@@ -221,7 +221,7 @@ inline const char* CDmxAttribute::GetTypeString() const
 //-----------------------------------------------------------------------------
 const char *CDmxAttribute::GetName() const
 {
-	return s_AttributeNameSymbols.String( m_Name );
+	return m_Name.String();
 }
 
 
