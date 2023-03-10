@@ -24,7 +24,7 @@
 //---------------------------------------------------------------------------------
 // Purpose: The shared object that contains a user's stats for a war	
 //---------------------------------------------------------------------------------
-class CWarData : public GCSDK::CProtoBufSharedObject< CSOWarData, k_EEConTypeWarData >
+class CWarData final : public GCSDK::CProtoBufSharedObject< CSOWarData, k_EEConTypeWarData >
 {
 public:
 	CWarData();
