@@ -220,6 +220,11 @@ CTFInventoryManager::~CTFInventoryManager( void )
 void CTFInventoryManager::PostInit( void )
 {
 	BaseClass::PostInit();
+}
+
+void CTFInventoryManager::InitializeInventory()
+{
+	BaseClass::InitializeInventory();
 	GenerateBaseItems();
 }
 
