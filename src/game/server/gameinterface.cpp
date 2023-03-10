@@ -565,6 +565,8 @@ EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CServerGameDLL, IServerGameDLL, INTERFACEVERSI
 // When bumping the version to this interface, check that our assumption is still valid and expose the older version in the same way
 COMPILE_TIME_ASSERT( INTERFACEVERSION_SERVERGAMEDLL_INT == 10 );
 
+static bool bParsedParticles = false;
+
 bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory, 
 		CreateInterfaceFn physicsFactory, CreateInterfaceFn fileSystemFactory, 
 		CGlobalVars *pGlobals)
@@ -727,7 +729,11 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	InvalidateQueryCache();
 
 	// Parse the particle manifest file & register the effects within it
-	ParseParticleEffects( false, false );
+	if ( engine->IsDedicatedServer() )
+	{
+		ParseParticleEffects( false, false );
+		bParsedParticles = true;
+	}
 
 	// try to get debug overlay, may be NULL if on HLDS
 	debugoverlay = (IVDebugOverlay *)appSystemFactory( VDEBUG_OVERLAY_INTERFACE_VERSION, NULL );
@@ -958,6 +964,11 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 	if ( pItemSchema )
 	{
 		pItemSchema->BInitFromDelayedBuffer();
+		// First valid class must be non-zero if we have a valid schema
+		if ( pItemSchema->GetFirstValidClass() == 0 )
+		{
+			InventoryManager()->InitializeInventory();
+		}
 	}
 #endif // USES_ECON_ITEMS
 
@@ -968,6 +979,12 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 	{
 		// Single player games tell xbox live what game & chapter the user is playing
 		UpdateRichPresence();
+	}
+
+	if ( !bParsedParticles )
+	{
+		ParseParticleEffects( false, false );
+		bParsedParticles = true;
 	}
 
 	//Tony; parse custom manifest if exists!
