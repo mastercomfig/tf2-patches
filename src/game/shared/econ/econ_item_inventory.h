@@ -216,6 +216,8 @@ public:
 	virtual void LevelInitPreEntity( void ) OVERRIDE;
 	virtual void LevelShutdownPostEntity( void ) OVERRIDE;
 
+	virtual void InitializeInventory( void );
+
 #ifdef CLIENT_DLL
 	// Gets called each frame
 	virtual void Update( float frametime ) OVERRIDE;

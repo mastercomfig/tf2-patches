@@ -220,7 +220,17 @@ CTFInventoryManager::~CTFInventoryManager( void )
 void CTFInventoryManager::PostInit( void )
 {
 	BaseClass::PostInit();
-	GenerateBaseItems();
+}
+
+void CTFInventoryManager::InitializeInventory()
+{
+	BaseClass::InitializeInventory();
+#ifdef GAME_DLL
+	if ( engine->IsDedicatedServer() )
+#endif
+	{
+		GenerateBaseItems();
+	}
 }
 
 //-----------------------------------------------------------------------------
