@@ -66,8 +66,8 @@ public:
 	static void SetErrorReportFunc( MemoryPoolReportFunc_t func );
 
 	// returns number of allocated blocks
-	int Count() { return m_BlocksAllocated; }
-	int PeakCount() { return m_PeakAlloc; }
+	int Count() const { return m_BlocksAllocated; }
+	int PeakCount() const { return m_PeakAlloc; }
 
 protected:
 	class CBlob
@@ -111,7 +111,7 @@ protected:
 class CMemoryPoolMT : public CUtlMemoryPool
 {
 public:
-	CMemoryPoolMT(int blockSize, int numElements, int growMode = UTLMEMORYPOOL_GROW_FAST, const char *pszAllocOwner = NULL) : CUtlMemoryPool( blockSize, numElements, growMode, pszAllocOwner) {}
+	CMemoryPoolMT(int blockSize, int numElements, int growMode = UTLMEMORYPOOL_GROW_FAST, const char *pszAllocOwner = NULL, int nAlignment = 0) : CUtlMemoryPool( blockSize, numElements, growMode, pszAllocOwner, nAlignment) {}
 
 
 	void*		Alloc()	{ AUTO_LOCK( m_mutex ); return CUtlMemoryPool::Alloc(); }
