@@ -21,7 +21,7 @@
 //---------------------------------------------------------------------------------
 // Purpose: The shared object that contains a specific MM rating
 //---------------------------------------------------------------------------------
-class CTFRatingData : public GCSDK::CProtoBufSharedObject< CSOTFRatingData, k_EProtoObjectTFRatingData, /* bPublicMutable */ false >
+class CTFRatingData final : public GCSDK::CProtoBufSharedObject< CSOTFRatingData, k_EProtoObjectTFRatingData, /* bPublicMutable */ false >
 {
 public:
 	CTFRatingData();
