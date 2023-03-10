@@ -580,10 +580,8 @@ public:
 
 			if ( *ppszFilename && !Q_IsAbsolutePath( *ppszFilename ) )
 			{
-				// Copy paths to minimize mutex lock time
-				pFileSystem->m_SearchPathsMutex.Lock();
+				// Copy to keep filesystem intact
 				CopySearchPaths( pFileSystem->m_SearchPaths );
-				pFileSystem->m_SearchPathsMutex.Unlock();
 
 				pFileSystem->FixUpPath ( *ppszFilename, m_Filename, sizeof( m_Filename ) );
 			}
@@ -611,10 +609,8 @@ public:
 			{
 				m_pathID =  UTL_INVAL_SYMBOL;
 			}
-			// Copy paths to minimize mutex lock time
-			pFileSystem->m_SearchPathsMutex.Lock();
+			// Copy to keep filesystem intact
 			CopySearchPaths( pFileSystem->m_SearchPaths );
-			pFileSystem->m_SearchPathsMutex.Unlock();
 			m_Filename[0] = '\0';
 		}
 
