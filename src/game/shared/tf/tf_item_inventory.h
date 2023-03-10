@@ -150,6 +150,7 @@ public:
 	~CTFInventoryManager();
 
 	virtual void		PostInit( void );
+	virtual void		InitializeInventory();
 
 #ifdef CLIENT_DLL
 	virtual CPlayerInventory *GeneratePlayerInventoryObject() const { return new CTFPlayerInventory; }
