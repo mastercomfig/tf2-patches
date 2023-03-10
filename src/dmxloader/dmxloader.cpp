@@ -443,7 +443,7 @@ bool CDmxSerializer::Unserialize( CUtlBuffer &buf, int nEncodingVersion, CDmxEle
 	}
 
 	// Read in the element count.
-	int nElementCount = buf.GetInt();
+	const int nElementCount = buf.GetInt();
 	if ( !nElementCount )
 	{
 		// Empty (but valid) file
@@ -474,10 +474,10 @@ bool CDmxSerializer::Unserialize( CUtlBuffer &buf, int nEncodingVersion, CDmxEle
 		}
 		else
 		{
-			buf.GetString( pTypeBuf );
+			buf.GetString<256>( pTypeBuf );
 			pType = pTypeBuf;
 		}
-		buf.GetString( pName );
+		buf.GetString<2048>( pName );
 		buf.Get( &id, sizeof(DmObjectId_t) );
 
 		CDmxElement *pElement = new CDmxElement( pType );
