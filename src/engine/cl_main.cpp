@@ -181,6 +181,11 @@ void CL_ReloadFilesInList( IFileList *pFilesToReload )
 
 	ResourceLocker crashPreventer;
 
+	// Handle KeyValues
+	// TODO: only reload paths we need to reload
+	// this is still better than completely disabling the KV cache...
+	KeyValuesSystem()->InvalidateCache();
+
 	// Handle materials..
 	materials->ReloadFilesInList( pFilesToReload );
 
@@ -406,12 +411,12 @@ void WriteConfig_f( ConVar *var, const char *pOldString )
 void CL_CheckClientState( void )
 {
 	// Setup the local network backdoor (we do this each frame so it can be toggled on and off).
-	bool useBackdoor = cl_LocalNetworkBackdoor.GetInt() && 
+	bool useBackdoor = cl_LocalNetworkBackdoor.GetInt() &&
+						Host_IsSinglePlayerGame() &&
 						(cl.m_NetChannel ? cl.m_NetChannel->IsLoopback() : false) &&
 						sv.IsActive() &&
 						!demorecorder->IsRecording() &&
-						!demoplayer->IsPlayingBack() &&
-						Host_IsSinglePlayerGame();
+						!demoplayer->IsPlayingBack();
 
 	CL_SetupLocalNetworkBackDoor( useBackdoor );
 }
