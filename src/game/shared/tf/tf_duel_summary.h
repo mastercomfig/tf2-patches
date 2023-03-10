@@ -44,7 +44,7 @@ const uint32 kWinsPerLevel = 10;
 //---------------------------------------------------------------------------------
 // Purpose: 
 //---------------------------------------------------------------------------------
-class CTFDuelSummary : public GCSDK::CProtoBufSharedObject< CSOTFDuelSummary, k_EEconTypeDuelSummary >
+class CTFDuelSummary final : public GCSDK::CProtoBufSharedObject< CSOTFDuelSummary, k_EEconTypeDuelSummary >
 {
 #ifdef GC
 	DECLARE_CLASS_MEMPOOL( CTFDuelSummary );

@@ -22,7 +22,7 @@ namespace GCSDK
 //---------------------------------------------------------------------------------
 // Purpose: All the account-level information that the GC tracks for TF
 //---------------------------------------------------------------------------------
-class CTFMapContribution : public GCSDK::CProtoBufSharedObject< CSOTFMapContribution, k_EEconTypeMapContribution >
+class CTFMapContribution final : public GCSDK::CProtoBufSharedObject< CSOTFMapContribution, k_EEconTypeMapContribution >
 {
 #ifdef GC
 	DECLARE_CLASS_MEMPOOL( CTFMapContribution );
