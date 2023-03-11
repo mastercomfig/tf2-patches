@@ -35,6 +35,9 @@
 #include "vgui_baseui_interface.h"
 #endif
 #include "tier0/etwprof.h"
+#ifdef IS_WINDOWS_PC
+#include <windows.h>
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -244,13 +247,13 @@ bool CEngine::FilterTime( float dt )
 	// Dedicated's tic_rate regulates server frame rate.  Don't apply fps filter here.
 	// Only do this restriction on the client. Prevents clients from accomplishing certain
 	// hacks by pausing their client for a period of time.
-	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 30 )
+	if ( IsPC() && !sv.IsDedicated() && !CanCheat() && fps_max.GetFloat() < 49 )
 	{
 		// Don't do anything if fps_max=0 (which means it's unlimited).
 		if ( fps_max.GetFloat() != 0.0f )
 		{
-			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 30 (or set to 0).\n" );
-			fps_max.SetValue( 30.0f );
+			Warning( "sv_cheats is 0 and fps_max is being limited to a minimum of 49 (or set to 0).\n" );
+			fps_max.SetValue( 49.0f );
 		}
 	}
 
@@ -343,7 +346,9 @@ void CEngine::Frame( void )
 		{
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last one or two milliseconds to ensure very tight timing.
-			float fBusyWaitMS = IsWindows() ? 2.25f : 1.5f;
+			float fBusyWaitMS = IsWindows() ? 2.0f : 1.5f;
+			float fWaitTime = m_flMinFrameTime - m_flFrameTime;
+			float fWaitEnd = m_flCurrentTime + fWaitTime;
 			if ( sv.IsDedicated() )
 			{
 				fBusyWaitMS = host_timer_spin_ms.GetFloat();
@@ -354,23 +359,20 @@ void CEngine::Frame( void )
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
 			int nSleepMS = (int)( ( m_flMinFrameTime - m_flFrameTime ) * 1000 - fBusyWaitMS );
-			if ( nSleepMS > 0 )
+			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep( nSleepMS );
 			}
-			else
+
+			while ( Plat_FloatTime() < fWaitEnd )
 			{
-				// On x86, busy-wait using PAUSE instruction which encourages
-				// power savings by idling for ~10 cycles (also yielding to
-				// the other logical hyperthread core if the CPU supports it)
-				for (int i = 2000; i >= 0; --i)
-				{
-#if defined(POSIX)
-					__asm( "pause" ); __asm( "pause" ); __asm( "pause" ); __asm( "pause" );
-#elif defined(IS_WINDOWS_PC)
-					_asm { pause }; _asm { pause }; _asm { pause }; _asm { pause };
+				ThreadPause();
+				// Yield the CPU to other threads.
+#ifdef IS_WINDOWS_PC
+				SwitchToThread();
+#elif defined( POSIX )
+				sched_yield();
 #endif
-				}
 			}
 
 			// Go back to the top of the loop and see if it is time yet.
