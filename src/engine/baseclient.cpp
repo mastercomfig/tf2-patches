@@ -201,9 +201,9 @@ void CBaseClient::SetUserCVar( const char *pchCvar, const char *value)
 
 void CBaseClient::SetUpdateRate(int udpaterate, bool bForce)
 {
-	udpaterate = clamp( udpaterate, 1, 100 );
+	udpaterate = clamp( udpaterate, 1.0f, 133.0f );
 
-	m_fSnapshotInterval = 1.0f / udpaterate;
+	m_fSnapshotInterval = MAX( 1.0f / udpaterate, host_state.interval_per_tick );
 }
 
 int CBaseClient::GetUpdateRate(void) const
@@ -1431,7 +1431,7 @@ void CBaseClient::UpdateUserSettings()
 	SetRate( rate, false );
 
 	// set server to client update rate
-	SetUpdateRate( m_ConVars->GetInt( "cl_updaterate", 20), false );
+	SetUpdateRate( m_ConVars->GetInt( "cl_updaterate", 33), false );
 
 	SetMaxRoutablePayloadSize( m_ConVars->GetInt( "net_maxroutable", MAX_ROUTABLE_PAYLOAD ) );
 

@@ -1411,7 +1411,7 @@ int CPrediction::ComputeFirstCommandToExecute( bool received_new_world_update, i
 #ifdef STAGING_ONLY	
 		int nPredictedLimit = cl_pred_optimize_prefer_server_data.GetBool() ? m_nCommandsPredicted - 1 : m_nCommandsPredicted;
 #else
-		int nPredictedLimit = m_nCommandsPredicted;		
+		int nPredictedLimit = m_nCommandsPredicted - 1;		
 #endif // STAGING_ONLY
 		// Otherwise, there is a second optimization, wherein if we did receive an update, but no
 		//  values differed (or were outside their epsilon) and the server actually acknowledged running

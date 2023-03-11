@@ -101,7 +101,7 @@ public:
 	  ConVar_ServerBounded( "cl_interp", 
 		  "0.1", 
 		  FCVAR_USERINFO | FCVAR_NOT_CONNECTED | FCVAR_ARCHIVE, 
-		  "Sets the interpolation amount (bounded on low side by server interp ratio settings).", true, 0.0f, true, 0.5f )
+		  "Sets the interpolation amount (bounded by server interp ratio settings).", true, 0.0f, true, 0.2f )
 	  {
 	  }
 
@@ -109,9 +109,10 @@ public:
 	  {
 		  static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
 		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
-		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 )
+		  static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
+		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 && pMax )
 		  {
-			  return MAX( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat() );
+			  return MIN( MAX( GetBaseFloatValue(), pMin->GetFloat() / pUpdateRate->GetFloat() ), pMax->GetFloat() / pUpdateRate->GetFloat() );
 		  }
 		  else
 		  {

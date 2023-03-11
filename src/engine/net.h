@@ -19,9 +19,9 @@
 #include "proto_version.h"
 
 // Flow control bytes per second limits
-#define MAX_RATE		(1024*1024)				
-#define MIN_RATE		1000
-#define DEFAULT_RATE	80000
+#define MAX_RATE		786432				
+#define MIN_RATE		16000
+#define DEFAULT_RATE	131072
 
 #define SIGNON_TIME_OUT				300.0f  // signon disconnect timeout
 
@@ -62,7 +62,7 @@
 #define UDP_HEADER_SIZE				(20+8)	// IP = 20, UDP = 8
 
 
-#define MAX_ROUTABLE_PAYLOAD		1260	// Matches x360 size
+#define MAX_ROUTABLE_PAYLOAD		1200	// x360 requires <= 1260, but now that listen servers can support "steam" mediated sockets, steam enforces 1200 byte limit
 
 #if (MAX_ROUTABLE_PAYLOAD & 3) != 0
 #error Bit buffers must be a multiple of 4 bytes

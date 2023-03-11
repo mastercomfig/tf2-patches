@@ -155,7 +155,7 @@ typedef struct
 static ConVar sv_maxroutable
 	( 
 	"sv_maxroutable", 
-	"1260", 
+	"1200", 
 	0, 
 	"Server upper bound on net_maxroutable that a client can use.", 
 	true, MIN_USER_MAXROUTABLE_SIZE, 
@@ -165,7 +165,7 @@ static ConVar sv_maxroutable
 ConVar net_maxroutable
 	( 
 	"net_maxroutable", 
-	"1260", 
+	"1200", 
 	FCVAR_ARCHIVE | FCVAR_USERINFO, 
 	"Requested max packet size before packets are 'split'.", 
 	true, MIN_USER_MAXROUTABLE_SIZE, 
