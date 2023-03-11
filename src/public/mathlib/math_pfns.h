@@ -14,35 +14,34 @@
 #if !USE_DXMATH
 #include <xmmintrin.h>
 #endif
+#define USE_SSE2
+#include "../thirdparty/sse_mathfun/sse_mathfun.h"
 #endif
 
 #if !defined( _X360 )
 
 FORCEINLINE float RSqrt(float x)
 {
-#if USE_DXMATH
-	const __m128 vec = _mm_set_ss(x);
-	const __m128 r = DirectX::XMVectorReciprocalSqrt(vec);
-#else
-	const __m128 one = _mm_set_ss(1.0f);
-	const __m128 y = _mm_set_ss(x);
-	const __m128 x0 = _mm_sqrt_ss(y);
-	const __m128 r = _mm_div_ss(one, x0);
-#endif
+	// The compiler will generate ideal instructions for a Newton-Raphson
+	// Specifying it directly results in worse assembly.
+	return 1.0f / sqrtf(x);
+}
+
+FORCEINLINE float RSqrtFast(float x)
+{
+	// This results in the compiler simplifying down to a plain rsqrtss
+	const __m128 vec = _mm_set_ss( x );
+	const __m128 r = _mm_rsqrt_ps( vec );
 	float temp;
 	_mm_store_ss(&temp, r);
 	return temp;
 }
 
-FORCEINLINE float RSqrtFast(float x)
+FORCEINLINE float CosFast(float x)
 {
-#if USE_DXMATH
-	const __m128 vec = _mm_set_ss(x);
-	const __m128 r = DirectX::XMVectorReciprocalSqrtEst(vec);
-#else
-	const __m128 vec = _mm_set_ss(x);
-	const __m128 r = _mm_rsqrt_ps(vec);
-#endif
+	// Compiler doesn't optimize ::cosf call, use a vectorized cos. This is better than DirectX::XMScalarCos
+	const __m128 vec = _mm_set_ss( x );
+	const __m128 r = cos_ps(vec);
 	float temp;
 	_mm_store_ss(&temp, r);
 	return temp;
@@ -50,13 +49,12 @@ FORCEINLINE float RSqrtFast(float x)
 
 // The following are not declared as macros because they are often used in limiting situations,
 // and sometimes the compiler simply refuses to inline them for some reason
-// On x86, the inline FPU or SSE sqrt instruction is faster than
-// the overhead of setting up a function call and saving/restoring
-// the FPU or SSE register state and can be scheduled better, too.
+
+// sqrt is optimized to an efficient SSE call with modern compilers
 #define FastSqrt(x)			::sqrtf(x)
 #define	FastRSqrt(x)		RSqrt(x)
 #define FastRSqrtFast(x)    RSqrtFast(x)
-#define FastCos(x)			::cosf(x)
+#define FastCos(x)			CosFast(x)
 
 #endif // !_X360
 

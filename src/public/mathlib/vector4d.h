@@ -641,7 +641,7 @@ inline void Vector4DWeightMADSSE( vec_t w, Vector4DAligned const& vInA, Vector4D
 
 #if !defined( _X360 )
 	// Replicate scalar float out to 4 components
-    __m128 packed = _mm_set1_ps( w );
+	__m128 packed = _mm_set_ps1( w );
 
 	// 4D SSE Vector MAD
 	vOutA.AsM128() = _mm_add_ps( vOutA.AsM128(), _mm_mul_ps( vInA.AsM128(), packed ) );

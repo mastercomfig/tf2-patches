@@ -10095,8 +10095,8 @@ void CTFPlayer::FireBullet( CTFWeaponBase *pWpn, const FireBulletsInfo_t &info, 
 }
 
 #ifdef CLIENT_DLL
-static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "0", FCVAR_CHEAT, "Draw impact debris effects." );
-static ConVar tf_impactwatertime( "tf_impactwatertime", "1.0f", FCVAR_CHEAT, "Draw impact debris effects." );
+static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "0", 0, "Draw impact debris effects." );
+static ConVar tf_impactwatertime( "tf_impactwatertime", "1.0f", 0, "Draw impact debris effects." );
 #endif
 
 //-----------------------------------------------------------------------------

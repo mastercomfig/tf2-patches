@@ -833,24 +833,25 @@ bool CEconItemPaintKitDefinition::BInitFromKV( KeyValues *pKVPItemPaintKit, CUtl
 	KeyValues *pKVWearInputItems = NULL;
 
 	pKVWearInputItems = pKVPItemPaintKit->FindKey( "wear_level_1", false );
+	pKVWearInputItems = pKVWearInputItems->MakeCopy();
 	SCHEMA_INIT_CHECK( VerifyPaintKitComposite( pKVWearInputItems, m_pszName, 1, pVecErrors ), "Could Not Create Weapon Skin Compositor for [%s][Wear %d]", m_pszName, 1 );
-	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems->MakeCopy() );
+	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems );
 	
 	pKVWearInputItems = pKVPItemPaintKit->FindKey( "wear_level_2", false );
 	SCHEMA_INIT_CHECK( VerifyPaintKitComposite( pKVWearInputItems, m_pszName, 2, pVecErrors ), "Could Not Create Weapon Skin Compositor for [%s][Wear %d]", m_pszName, 2 );
-	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems->MakeCopy() );
+	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems );
 
 	pKVWearInputItems = pKVPItemPaintKit->FindKey( "wear_level_3", false );
 	SCHEMA_INIT_CHECK( VerifyPaintKitComposite( pKVWearInputItems, m_pszName, 3, pVecErrors ), "Could Not Create Weapon Skin Compositor for [%s][Wear %d]", m_pszName, 3 );
-	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems->MakeCopy() );
+	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems );
 
 	pKVWearInputItems = pKVPItemPaintKit->FindKey( "wear_level_4", false );
 	SCHEMA_INIT_CHECK( VerifyPaintKitComposite( pKVWearInputItems, m_pszName, 4, pVecErrors ), "Could Not Create Weapon Skin Compositor for [%s][Wear %d]", m_pszName, 4 );
-	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems->MakeCopy() );
+	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems );
 
 	pKVWearInputItems = pKVPItemPaintKit->FindKey( "wear_level_5", false );
 	SCHEMA_INIT_CHECK( VerifyPaintKitComposite( pKVWearInputItems, m_pszName, 5, pVecErrors ), "Could Not Create Weapon Skin Compositor for [%s][Wear %d]", m_pszName, 5 );
-	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems->MakeCopy() );
+	m_vecPaintKitWearKVP.AddToTail( pKVWearInputItems );
 
 	return SCHEMA_INIT_SUCCESS();
 }

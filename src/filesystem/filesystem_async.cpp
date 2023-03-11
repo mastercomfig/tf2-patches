@@ -342,7 +342,7 @@ public:
 		else
 		{
 			int iPrevPriority = ThreadGetPriority();
-			ThreadSetPriority( 2 );
+			ThreadSetPriority( TP_PRIORITY_HIGHEST );
 			retval = BaseFileSystem()->SyncRead( *this );
 			ThreadSetPriority( iPrevPriority );
 		}
@@ -666,7 +666,7 @@ void CBaseFileSystem::InitAsync()
 		m_pThreadPool = CreateThreadPool();
 
 		ThreadPoolStartParams_t params;
-		params.iThreadPriority = 0;
+		params.iThreadPriority = TP_PRIORITY_LOW;
 		params.bIOThreads = true;
 		params.nThreadsMax = 4; // Limit count of IO threads to a maximum of 4.
 		if ( IsX360() )
@@ -682,6 +682,7 @@ void CBaseFileSystem::InitAsync()
 		{
 			// override defaults
 			// maximum # of async I/O thread on PC is 2
+			params.nStackSize = 256 * 1024;
 			params.nThreads = 1;
 		}
 

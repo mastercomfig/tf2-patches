@@ -3361,6 +3361,29 @@ void CTFGameRules::LevelInitPostEntity( void )
 		pMatchDesc->InitGameRulesSettingsPostEntity();
 	}
 
+#ifndef VALVE_PURE
+	CTeamControlPointMaster *pMaster = ( g_hControlPointMasters.Count() ) ? g_hControlPointMasters[0] : NULL;
+	bool bMultiStagePLR = ( tf_gamemode_payload.GetBool() && pMaster && pMaster->PlayingMiniRounds() && 
+							pMaster->GetNumRounds() > 1 && TFGameRules()->HasMultipleTrains() );
+	bool bCTF = tf_gamemode_ctf.GetBool();
+	bool bUseStopWatch = TFGameRules()->MatchmakingShouldUseStopwatchMode();
+
+	// Exec our match settings
+	const char *pszExecFile = bUseStopWatch ? "server_casual_stopwatch_win_conditions.cfg" : 
+							  ( ( bMultiStagePLR || bCTF ) ? "server_casual_max_rounds_win_conditions.cfg" : "server_casual_rounds_win_conditions.cfg" );
+
+	if ( TFGameRules()->IsPowerupMode() )
+	{
+		pszExecFile = "server_casual_max_rounds_win_conditions_mannpower.cfg";
+	}
+
+	engine->ServerCommand( CFmtStr( "exec %s\n", pszExecFile ) );
+
+	// leave stopwatch off for now
+	TFGameRules()->SetInStopWatch( false );//bUseStopWatch );
+	mp_tournament_stopwatch.SetValue( false );//bUseStopWatch );
+#endif
+
 #endif // GAME_DLL
 }
 

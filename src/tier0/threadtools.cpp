@@ -205,10 +205,20 @@ void ThreadSleep(unsigned nMilliseconds)
 		timeBeginPeriod( 1 );
 	}
 #endif // IS_WINDOWS_PC
-
 	Sleep( nMilliseconds );
 #elif defined(POSIX)
    usleep( nMilliseconds * 1000 ); 
+#endif
+}
+
+//-----------------------------------------------------------------------------
+
+void ThreadYield()
+{
+#ifdef _WIN32
+	SwitchToThread();
+#elif defined(POSIX)
+   sched_yield();
 #endif
 }
 

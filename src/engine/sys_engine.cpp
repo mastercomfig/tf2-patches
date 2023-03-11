@@ -35,9 +35,6 @@
 #include "vgui_baseui_interface.h"
 #endif
 #include "tier0/etwprof.h"
-#ifdef IS_WINDOWS_PC
-#include <windows.h>
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -367,12 +364,9 @@ void CEngine::Frame( void )
 			while ( Plat_FloatTime() < fWaitEnd )
 			{
 				ThreadPause();
-				// Yield the CPU to other threads.
-#ifdef IS_WINDOWS_PC
-				SwitchToThread();
-#elif defined( POSIX )
-				sched_yield();
-#endif
+				// Yield the CPU to other threads so we don't spin too tightly
+				// ThreadSleep(0) is not tight enough.
+				ThreadYield();
 			}
 
 			// Go back to the top of the loop and see if it is time yet.

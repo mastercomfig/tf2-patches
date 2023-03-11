@@ -2209,7 +2209,7 @@ static ConVar r_queued_post_processing( "r_queued_post_processing", "0" );
 
 // How much to dice up the screen during post-processing on 360
 // This has really marginal effects, but 4x1 does seem vaguely better for post-processing
-static ConVar mat_postprocess_x( "mat_postprocess_x", "4" );
+static ConVar mat_postprocess_x( "mat_postprocess_x", "1" );
 static ConVar mat_postprocess_y( "mat_postprocess_y", "1" );
 
 void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, bool bPostVGui )

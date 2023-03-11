@@ -21,6 +21,12 @@
 
 #include "appframework/IAppSystem.h"
 
+#if defined( _X360 )
+#define AsyncMdlCache() 0	// Explicitly OFF for 360 (incompatible)
+#else
+#define AsyncMdlCache() 1
+#endif
+
 //-----------------------------------------------------------------------------
 // Forward declarations
 //-----------------------------------------------------------------------------
