@@ -128,7 +128,13 @@ private:
 	bool m_bObeyDxCommandlineOverride : 1;
 	bool m_bAdapterInfoIntialized : 1;
 };
-
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+FORCEINLINE IDirect3DDevice9Ex* Dx9ExDevice()
+{
+	return (IDirect3DDevice9Ex*)g_pD3DDevice;
+}
+#endif
+`
 extern CShaderDeviceMgrDx8* g_pShaderDeviceMgrDx8;
 
 
