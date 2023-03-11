@@ -683,7 +683,7 @@ bool KeyValues::LoadFromFile( IBaseFileSystem *filesystem, const char *resourceN
 	made of vmt files, so valve's sv_pure 1 bull is pretty redundant.
 	*/
 	// UNDONE: the above exploit is no longer relevant because the KeyValues cache is now invalidated for sv_pure
-	const bool bUseCache = s_pfGetSymbolForString == KeyValues::GetSymbolForStringClassic;
+	const bool bUseCache = false;
 #endif
 
 	// If pathID is null, we cannot cache the result because that has a weird iterate-through-a-bunch-of-locations behavior.

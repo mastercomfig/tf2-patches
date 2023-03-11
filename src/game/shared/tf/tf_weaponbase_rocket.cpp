@@ -187,7 +187,7 @@ void CTFBaseRocket::PostDataUpdate( DataUpdateType_t type )
 {
 	// Pass through to the base class.
 	BaseClass::PostDataUpdate( type );
-
+	return;
 	if ( type == DATA_UPDATE_CREATED )
 	{
 		// Now stick our initial velocity and angles into the interpolation history.

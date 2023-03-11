@@ -1562,11 +1562,11 @@ void CTeamplayRoundBasedRules::State_Enter_PREROUND( void )
 	{
 		float flTransitionTime = 5 * mp_enableroundwaittime.GetFloat();
 #ifdef TF_DLL
-		if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
+		if ( TFGameRules() && (TFGameRules()->IsCompetitiveMode() || true) )
 		{
 			flTransitionTime = tf_competitive_preround_duration.GetFloat();
 			m_flCountdownTime = -1.f;
-			if ( ( TFGameRules()->GetRoundsPlayed() > 0 ) && !( GetActiveRoundTimer() && ( GetActiveRoundTimer()->GetSetupTimeLength() > 0 ) ) )
+			if ( ( TFGameRules()->GetRoundsPlayed() >= 0 ) && !( GetActiveRoundTimer() && ( GetActiveRoundTimer()->GetSetupTimeLength() > 0 ) ) )
 			{
 				// we do a countdown after the first round, so we need some extra pre-round time
 				flTransitionTime += tf_competitive_preround_countdown_duration.GetFloat();
@@ -1953,7 +1953,7 @@ void CTeamplayRoundBasedRules::State_Think_TEAM_WIN( void )
 				State_Enter( GR_STATE_GAME_OVER );
 				return;
 			}
-			else if ( TFGameRules() && TFGameRules()->UsePlayerReadyStatusMode() )
+			else if ( false && TFGameRules() && TFGameRules()->UsePlayerReadyStatusMode() )
 			{
 				for ( int i = 1; i <= MAX_PLAYERS; i++ )
 				{

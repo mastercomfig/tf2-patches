@@ -5022,7 +5022,7 @@ void CModelLoader::Studio_LoadModel( model_t *pModel, bool bTouchAllData )
 	if ( bLoadPhysics && !bPreLoaded )
 	{
 		// load the collision data now
-		bool bSynchronous = bTouchAllData;
+		bool bSynchronous = bTouchAllData && !AsyncMdlCache();
 		double t1 = Plat_FloatTime();
 		g_pMDLCache->GetVCollideEx( pModel->studio, bSynchronous );
 

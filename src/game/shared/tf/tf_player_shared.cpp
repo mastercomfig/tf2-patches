@@ -10095,8 +10095,8 @@ void CTFPlayer::FireBullet( CTFWeaponBase *pWpn, const FireBulletsInfo_t &info, 
 }
 
 #ifdef CLIENT_DLL
-static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "0", FCVAR_CHEAT, "Draw impact debris effects." );
-static ConVar tf_impactwatertime( "tf_impactwatertime", "1.0f", FCVAR_CHEAT, "Draw impact debris effects." );
+static ConVar tf_impactwatertimeenable( "tf_impactwatertimeenable", "0", 0, "Draw impact debris effects." );
+static ConVar tf_impactwatertime( "tf_impactwatertime", "1.0f", 0, "Draw impact debris effects." );
 #endif
 
 //-----------------------------------------------------------------------------
@@ -10258,7 +10258,7 @@ bool CTFPlayer::CanPlayerMove() const
 	}
 
 	bool bInRoundRestart = TFGameRules() && TFGameRules()->InRoundRestart();
-	if ( bInRoundRestart && TFGameRules()->IsCompetitiveMode() )
+	if ( bInRoundRestart && (TFGameRules()->IsCompetitiveMode() || true) )
 	{
 		if ( TFGameRules()->GetRoundsPlayed() > 0 )
 		{
@@ -12400,7 +12400,7 @@ void CTFPlayer::GetActiveSets( CUtlVector<const CEconItemSetDefinition *> *pItem
 bool CTFPlayer::CanMoveDuringTaunt()
 {
 
-	if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
+	if ( TFGameRules() && (TFGameRules()->IsCompetitiveMode() || true) )
 	{
 		if ( ( TFGameRules()->GetRoundRestartTime() > -1.f ) && ( (int)( TFGameRules()->GetRoundRestartTime() - gpGlobals->curtime ) <= mp_tournament_readymode_countdown.GetInt() ) )
 			return false;

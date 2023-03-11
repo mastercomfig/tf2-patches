@@ -1349,6 +1349,7 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 		if ( ( IsMiscSlot( iLoadoutSlot ) && IsMiscSlot( iPosition ) ) ||
 			 ( IsValidPickupWeaponSlot( iLoadoutSlot ) && iLoadoutSlot == iPosition ) )
 		{
+			// TODO: GetPlayerDisplayModel is INCREDIBLY expensive, lots of Steam API calls,
 			const char * pDisplayModel = pItem->GetPlayerDisplayModel( m_iCurrentClassIndex, m_iTeam );
 			if ( pDisplayModel )
 			{

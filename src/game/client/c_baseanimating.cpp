@@ -1096,6 +1096,7 @@ CStudioHdr *C_BaseAnimating::OnNewModel()
 		}
 	}
 	m_BoneAccessor.Init( this, m_CachedBoneData.Base() ); // Always call this in case the studiohdr_t has changed.
+	m_iAccumulatedBoneMask = 0; // Reset the accumulated bone mask.
 
 	// Free any IK data
 	if (m_pIk)
@@ -2904,7 +2905,10 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 			m_flLastBoneSetupTime = currentTime;
 		}
 		m_iPrevBoneMask = m_iAccumulatedBoneMask;
-		m_iAccumulatedBoneMask = 0;
+		// UNDONE: don't fully reset this so we can accumulate all usage of this entity over time for setting up all dependencies on the first call.
+		// Basically, if we know this model will be used for attachments, set those up so we don't have an additional evaluation at that time
+		m_iAccumulatedBoneMask = m_iAccumulatedBoneMask & BONE_USED_BY_ATTACHMENT;
+		
 
 #ifdef STUDIO_ENABLE_PERF_COUNTERS
 		CStudioHdr *hdr = GetModelPtr();
@@ -2923,7 +2927,7 @@ bool C_BaseAnimating::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, i
 		g_PreviousBoneSetups.AddToTail( this );
 	}
 
-	// Keep track of everthing asked for over the entire frame
+	// Keep track of everything asked for over the entire frame
 	m_iAccumulatedBoneMask |= boneMask;
 
 	// Make sure that we know that we've already calculated some bone stuff this time around.

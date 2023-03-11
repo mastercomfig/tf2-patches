@@ -1746,7 +1746,8 @@ void CShadowMgr::ApplyShadowToLeaf( const Shadow_t &shadow, mleaf_t* RESTRICT pL
 	// computation and at that point we'll remove surfaces that don't
 	// actually hit the surface
 	SurfaceHandle_t *pHandle = &host_state.worldbrush->marksurfaces[pLeaf->firstmarksurface];
-	for ( int i = 0; i < pLeaf->nummarksurfaces; i++ )
+	const int nMarkSurfaces = pLeaf->nummarksurfaces;
+	for ( int i = 0; i < nMarkSurfaces; i++ )
 	{
 		SurfaceHandleRestrict_t surfID = pHandle[i];
 		

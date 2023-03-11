@@ -171,6 +171,16 @@ bool IGameSystem::InitAllSystems()
 	{
 		// first add any auto systems to the end
 		CAutoGameSystem *pSystem = s_pSystemList;
+		CAutoGameSystem *pPrev = NULL;
+		// Reverse the system list so initialization order is respected..
+		while ( pSystem )
+		{
+			CAutoGameSystem *pNext = pSystem->m_pNext;
+			pSystem->m_pNext = pPrev;
+			pPrev = pSystem;
+			pSystem = pNext;
+		}
+		pSystem = pPrev;
 		while ( pSystem )
 		{
 			if ( s_GameSystems.Find( pSystem ) == s_GameSystems.InvalidIndex() )
@@ -188,6 +198,16 @@ bool IGameSystem::InitAllSystems()
 
 	{
 		CAutoGameSystemPerFrame *pSystem = s_pPerFrameSystemList;
+		CAutoGameSystemPerFrame *pPrev = NULL;
+		// Reverse the system list so initialization order is respected..
+		while ( pSystem )
+		{
+			CAutoGameSystemPerFrame *pNext = pSystem->m_pNext;
+			pSystem->m_pNext = pPrev;
+			pPrev = pSystem;
+			pSystem = pNext;
+		}
+		pSystem = pPrev;
 		while ( pSystem )
 		{
 			if ( s_GameSystems.Find( pSystem ) == s_GameSystems.InvalidIndex() )

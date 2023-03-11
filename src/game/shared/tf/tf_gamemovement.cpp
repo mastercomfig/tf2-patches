@@ -539,7 +539,7 @@ bool CTFGameMovement::ChargeMove()
 static ConVar tf_movement_stun_multiplier("tf_movement_stun_multiplier", "1", FCVAR_REPLICATED, "Multiplier for movement speed when stunned.");
 static ConVar tf_movement_stun_clip("tf_movement_stun_clip", "0.41421356237", FCVAR_REPLICATED, "Clip off stun amount.");
 #endif
-static ConVar tf_movement_stun_legacy_threshold("tf_movement_stun_legacy_threshold", "1.0", FCVAR_REPLICATED, "Relative point for legacy stun amount handling.");
+static ConVar tf_movement_stun_legacy_threshold("tf_movement_stun_legacy_threshold", "1.5", FCVAR_REPLICATED, "Relative point for legacy stun amount handling.");
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -590,24 +590,29 @@ bool CTFGameMovement::StunMove()
 	// The highest buffed value is at 0.414 stun amount, where instead of 0% effective stun, we now have an effective stun of 12.5%.
 	// This gradually decreases to 0.0 increase of effective stun at 0.6 stun amount.
 	//
-	// However, we also want to preserve the ability to have a stun amount greater than 0.6 for community setups
+	// 
+	// However, if the  we also want to preserve the ability to have a stun amount greater than 0.6 for community setups
 	// and the new scaling is off by up to 2x in the case of a 100% slow, so we have this legacy threshold
 	// to apply the old clipping behavior, but now consistently regardless of moving along a diagonal or not.
-	if ( flStunAmount > tf_movement_stun_legacy_threshold.GetFloat() )
+	if ( flStunAmount )
 	{
-		// For any stun amount greater than the threshold, we use the legacy clip behavior.
-		flStunAmount = max( flStunAmount - 0.41421356237f, 0.0f ); // Reduce by sqrt(2) - 1.0f (see above)
-	}
-	else
-	{
-#ifdef STAGING_ONLY
-		// For playing around with the scaling.
-		flStunAmount = max( flStunAmount - tf_movement_stun_clip.GetFloat(), 0.0f ) * tf_movement_stun_multiplier.GetFloat();
-#else
-		// This equation essentially calculates the percentage of the stun amount that was effectively applied to diagonal movement.
-		// For 0.6 stun amount, this comes out to a 0.309644 multiplier.
-		flStunAmount *= ( ( -0.41421356237f / tf_movement_stun_legacy_threshold.GetFloat() ) + 1 );
-#endif
+		if ( flStunAmount > tf_movement_stun_legacy_threshold.GetFloat() )
+		{
+			// For any stun amount greater than the threshold, we use the legacy clip behavior.
+			flStunAmount = max( flStunAmount - 0.41421356237f, 0.0f ); // Reduce by sqrt(2) - 1.0f (see above)
+		}
+		else
+		{
+	#ifdef STAGING_ONLY
+			// For playing around with the scaling.
+			flStunAmount = max( flStunAmount - tf_movement_stun_clip.GetFloat(), 0.0f ) * tf_movement_stun_multiplier.GetFloat();
+	#else
+			// This equation essentially calculates the percentage of the stun amount that was effectively applied to diagonal movement.
+			// For 0.6 stun amount, this comes out to a 0.309644 multiplier.
+			// For a 1.0 stun amount, this comes out to a 
+			flStunAmount *= ( ( -0.41421356237f / tf_movement_stun_legacy_threshold.GetFloat() ) + 1 );
+	#endif
+		}
 	}
 	// Lerp to the desired amount
 	if ( flStunAmount )
@@ -1554,7 +1559,7 @@ bool CTFGameMovement::CheckWater( void )
 
 	if ( m_nOldWaterLevel != wl )
 	{
-		m_pTFPlayer->TeamFortress_SetSpeed();
+		m_pTFPlayer->	TeamFortress_SetSpeed();
 	}
 
 	return ( wl > WL_Feet );

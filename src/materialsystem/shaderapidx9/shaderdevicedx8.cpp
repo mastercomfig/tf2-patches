@@ -3445,7 +3445,16 @@ void CShaderDeviceDx8::Present()
 		else
 		{
 			g_pShaderAPI->OwnGPUResources( false );
-			hr = Dx9Device()->Present( 0, 0, 0, 0 );
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+			if (g_ShaderDeviceUsingD3D9Ex)
+			{
+				hr = Dx9ExDevice()->PresentEx(0, 0, 0, 0, D3DPRESENT_DONOTWAIT);
+			}
+			else
+#endif
+			{
+				hr = Dx9Device()->Present( 0, 0, 0, 0 );
+			}
 		}
 	}
 

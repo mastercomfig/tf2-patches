@@ -1509,7 +1509,7 @@ bool CEconItem::BAddDestroyToMessage( std::string *pBuffer ) const
 bool CEconItem::BIsKeyLess( const CSharedObject & soRHS ) const
 {
 	Assert( GetTypeID() == soRHS.GetTypeID() );
-	const CEconItem & soSchemaRHS = (const CEconItem &)soRHS;
+	const CEconItem & soSchemaRHS = static_cast<const CEconItem &>(soRHS);
 
 	return m_ulID < soSchemaRHS.m_ulID;
 }
