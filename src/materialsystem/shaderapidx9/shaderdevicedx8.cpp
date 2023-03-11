@@ -2401,6 +2401,15 @@ bool CShaderDeviceDx8::CreateD3DDevice( void* pHWnd, int nAdapter, const ShaderD
 
 	g_pHardwareConfig->SetupHardwareCaps( info, g_ShaderDeviceMgrDx8.GetHardwareCaps( nAdapter ) );
 
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+	if ( g_ShaderDeviceUsingD3D9Ex )
+	{
+		Dx9ExDevice()->SetMaximumFrameLatency(2);
+		static ConVarRef mat_forcehardwaresync("mat_forcehardwaresync");
+		mat_forcehardwaresync.SetValue(0);
+	}
+#endif
+
 	// FIXME: Bake this into hardware config
 	// What texture formats do we support?
 	if ( D3DSupportsCompressedTextures() )
@@ -3371,20 +3380,35 @@ void CShaderDeviceDx8::Present()
 	// if we're in queued mode, don't present if the device is already lost
 	bool bValidPresent = true;
 	bool bInMainThread = ThreadInMainThread();
-	if ( !bInMainThread )
+	static bool s_bSetPriority = true;
+	if ( bInMainThread )
+	{
+		s_bSetPriority = true;
+	}
+	else
 	{
 		// don't present if the device is in an invalid state and in queued mode
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
 		// check for lost device early in threaded mode
 		CheckDeviceLost( m_bOtherAppInitializing );
 		if ( m_DeviceState != DEVICE_STATE_OK )
 		{
+			s_bSetPriority = true;
 			bValidPresent = false;
 		}
 	}
+#if defined(IS_WINDOWS_PC) && defined(SHADERAPIDX9)
+	if ( bValidPresent && s_bSetPriority && g_ShaderDeviceUsingD3D9Ex )
+	{
+		s_bSetPriority = false;
+		Dx9ExDevice()->SetGPUThreadPriority(7);
+		Dx9ExDevice()->SetMaximumFrameLatency(2);
+	}
+#endif
 	// Copy the back buffer into the non-interactive temp buffer
 	if ( m_NonInteractiveRefresh.m_Mode == MATERIAL_NON_INTERACTIVE_MODE_LEVEL_LOAD )
 	{
