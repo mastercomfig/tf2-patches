@@ -19,9 +19,9 @@
 #include "proto_version.h"
 
 // Flow control bytes per second limits
-#define MAX_RATE		(1024*1024)				
+#define MAX_RATE		786432				
 #define MIN_RATE		1000
-#define DEFAULT_RATE	80000
+#define DEFAULT_RATE	131072
 
 #define SIGNON_TIME_OUT				300.0f  // signon disconnect timeout
 
