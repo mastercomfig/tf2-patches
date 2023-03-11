@@ -344,6 +344,8 @@ void CEngine::Frame( void )
 			// ThreadSleep may be imprecise. On non-dedicated servers, we busy-sleep
 			// for the last one or two milliseconds to ensure very tight timing.
 			float fBusyWaitMS = IsWindows() ? 2.25f : 1.5f;
+			float fWaitTime = m_flMinFrameTime - m_flFrameTime;
+			float fWaitEnd = m_flCurrentTime + fWaitTime;
 			if ( sv.IsDedicated() )
 			{
 				fBusyWaitMS = host_timer_spin_ms.GetFloat();
@@ -354,23 +356,17 @@ void CEngine::Frame( void )
 			// to avoid wasting power and to let other threads/processes run.
 			// Calculate how long we need to wait.
 			int nSleepMS = (int)( ( m_flMinFrameTime - m_flFrameTime ) * 1000 - fBusyWaitMS );
-			if ( nSleepMS > 0 )
+			if ( nSleepMS > fBusyWaitMS )
 			{
 				ThreadSleep( nSleepMS );
 			}
-			else
+
+			while ( Plat_FloatTime() < fWaitEnd )
 			{
-				// On x86, busy-wait using PAUSE instruction which encourages
-				// power savings by idling for ~10 cycles (also yielding to
-				// the other logical hyperthread core if the CPU supports it)
-				for (int i = 2000; i >= 0; --i)
-				{
-#if defined(POSIX)
-					__asm( "pause" ); __asm( "pause" ); __asm( "pause" ); __asm( "pause" );
-#elif defined(IS_WINDOWS_PC)
-					_asm { pause }; _asm { pause }; _asm { pause }; _asm { pause };
-#endif
-				}
+				ThreadPause();
+				// Yield the CPU to other threads so we don't spin too tightly
+				// ThreadSleep(0) is not tight enough.
+				ThreadYield();
 			}
 
 			// Go back to the top of the loop and see if it is time yet.
