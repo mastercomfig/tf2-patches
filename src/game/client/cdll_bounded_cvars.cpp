@@ -99,9 +99,9 @@ class CBoundedCvar_Interp : public ConVar_ServerBounded
 public:
 	CBoundedCvar_Interp() :
 	  ConVar_ServerBounded( "cl_interp", 
-		  "0.1", 
+		  "0.105", 
 		  FCVAR_USERINFO | FCVAR_NOT_CONNECTED | FCVAR_ARCHIVE, 
-		  "Sets the interpolation amount (bounded on low side by server interp ratio settings).", true, 0.0f, true, 0.5f )
+		  "Sets the interpolation amount (bounded on low side by server interp ratio settings).", true, 0.0f, true, 0.2f )
 	  {
 	  }
 
