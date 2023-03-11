@@ -214,6 +214,17 @@ void ThreadSleep(unsigned nMilliseconds)
 
 //-----------------------------------------------------------------------------
 
+void ThreadYield()
+{
+#ifdef _WIN32
+	SwitchToThread();
+#elif defined(POSIX)
+	sched_yield();
+#endif
+}
+
+//-----------------------------------------------------------------------------
+
 #ifndef ThreadGetCurrentId
 uint ThreadGetCurrentId()
 {
