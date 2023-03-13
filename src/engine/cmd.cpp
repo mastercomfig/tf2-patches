@@ -685,7 +685,7 @@ void Cmd_Exec_f( const CCommand &args )
 		}
 	}
 	// force any queued convar changes to flush before reading/writing them
-	UpdateMaterialSystemConfig();
+	//UpdateMaterialSystemConfig();
 }
 
 
