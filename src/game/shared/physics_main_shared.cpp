@@ -1130,6 +1130,15 @@ unsigned int CBaseEntity::PhysicsSolidMaskForEntity( void ) const
 	return MASK_SOLID;
 }
 
+static inline int GetWaterContents( const Vector &point )
+{
+#ifdef HL2_DLL
+	return UTIL_PointContents(point);
+#else
+	// left 4 dead doesn't support moveable water brushes, only world water
+	return enginetrace->GetPointContents_WorldOnly(point);
+#endif
+}
 
 //-----------------------------------------------------------------------------
 // Computes the water level + type
@@ -1146,7 +1155,7 @@ void CBaseEntity::UpdateWaterState()
 
 	SetWaterLevel( 0 );
 	SetWaterType( CONTENTS_EMPTY );
-	int cont = UTIL_PointContents (point);
+	int cont = GetWaterContents (point);
 
 	if (( cont & MASK_WATER ) == 0)
 		return;
@@ -1164,14 +1173,14 @@ void CBaseEntity::UpdateWaterState()
 		// Check the exact center of the box
 		point[2] = WorldSpaceCenter().z;
 
-		int midcont = UTIL_PointContents (point);
+		int midcont = GetWaterContents (point);
 		if ( midcont & MASK_WATER )
 		{
 			// Now check where the eyes are...
 			SetWaterLevel( 2 );
 			point[2] = EyePosition().z;
 
-			int eyecont = UTIL_PointContents (point);
+			int eyecont = GetWaterContents (point);
 			if ( eyecont & MASK_WATER )
 			{
 				SetWaterLevel( 3 );
