@@ -113,8 +113,13 @@ const char *CSharedObject::PchClassUpdateNodeName( int nTypeID )
 bool CSharedObject::BIsKeyEqual( const CSharedObject & soRHS ) const
 {
 	// Make sure they are the same type.
+#ifdef GC
 	if ( GetTypeID() != soRHS.GetTypeID() )
 		return false;
+#else
+	// BIsKeyEqual is only used for objects of the same type within their CSharedObjectTypeCache.
+	Assert ( GetTypeID() == soRHS.GetTypeID() );
+#endif
 
 	return !BIsKeyLess( soRHS ) && !soRHS.BIsKeyLess( *this );
 }
