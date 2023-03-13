@@ -184,6 +184,8 @@ void CTFWeaponBaseGrenadeProj::OnDataChanged( DataUpdateType_t type )
 {
 	BaseClass::OnDataChanged( type );
 
+	return;
+
 	if ( type == DATA_UPDATE_CREATED )
 	{
 		// Now stick our initial velocity into the interpolation history 
