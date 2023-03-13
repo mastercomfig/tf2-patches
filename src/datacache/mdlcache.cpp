@@ -78,12 +78,6 @@ namespace {
 #define MdlCacheMsg		if ( !LogMdlCache() ) ; else Msg
 #define MdlCacheWarning if ( !LogMdlCache() ) ; else Warning
 
-#if defined( _X360 )
-#define AsyncMdlCache() 0	// Explicitly OFF for 360 (incompatible)
-#else
-#define AsyncMdlCache() 0
-#endif
-
 #define ERROR_MODEL		"models/error.mdl"
 #define IDSTUDIOHEADER	(('T'<<24)+('S'<<16)+('D'<<8)+'I')
 
@@ -184,7 +178,7 @@ private:
 // ConVars
 //-----------------------------------------------------------------------------
 static ConVar r_rootlod( "r_rootlod", "0", FCVAR_ARCHIVE );
-static ConVar mod_forcedata( "mod_forcedata", ( AsyncMdlCache() ) ? "0" : "1",	0, "Forces all model file data into cache on model load." );
+static ConVar mod_forcedata( "mod_forcedata", ( AsyncMdlCache() && IsX360() ) ? "0" : "1",	0, "Forces all model file data into cache on model load." );
 static ConVar mod_test_not_available( "mod_test_not_available", "0", FCVAR_CHEAT );
 static ConVar mod_test_mesh_not_available( "mod_test_mesh_not_available", "0", FCVAR_CHEAT );
 static ConVar mod_test_verts_not_available( "mod_test_verts_not_available", "0", FCVAR_CHEAT );
