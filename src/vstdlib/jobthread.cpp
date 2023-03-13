@@ -1023,6 +1023,7 @@ bool CThreadPool::Start( const ThreadPoolStartParams_t &startParams, const char 
 
 void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
 {
+#ifdef _X360
 	if ( bDistribute )
 	{
 		const CPUInformation &ci = *GetCPUInformation();
@@ -1104,6 +1105,7 @@ void CThreadPool::Distribute( bool bDistribute, int *pAffinityTable )
 		}
 #endif
 	}
+#endif
 }
 
 //---------------------------------------------------------
