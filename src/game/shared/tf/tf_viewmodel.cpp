@@ -384,8 +384,8 @@ public:
 	virtual void OnBind( C_BaseEntity *pC_BaseEntity );
 };
 
-#define TF_VM_MIN_INVIS		0.22
-#define TF_VM_MAX_INVIS		0.5
+#define TF_VM_MIN_INVIS		0.22f
+#define TF_VM_MAX_INVIS		0.5f
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -475,6 +475,9 @@ class CInvisProxy : public CBaseInvisMaterialProxy
 {
 public:
 	virtual void OnBind( C_BaseEntity *pC_BaseEntity ) OVERRIDE;
+private:
+	CTFPlayer *pPlayer = NULL;
+	C_BaseEntity *pCachedEntity = NULL;
 };
 
 //-----------------------------------------------------------------------------
@@ -487,59 +490,64 @@ void CInvisProxy::OnBind( C_BaseEntity *pC_BaseEntity )
 
 	C_BaseEntity *pEnt = pC_BaseEntity;
 
-	CTFPlayer *pPlayer = NULL;
-
-	// Check if we have a move parent and if it's a player
-	C_BaseEntity *pMoveParent = pEnt->GetMoveParent();
-	if ( pMoveParent && pMoveParent->IsPlayer() )
+	if ( pEnt != pCachedEntity )
 	{
-		pPlayer = ToTFPlayer( pMoveParent );
+		pPlayer = NULL;
+		pCachedEntity = pEnt;
 	}
 
-	// If it's not a player then check for viewmodel.
 	if ( !pPlayer )
 	{
-		CBaseEntity *pEntParent = pMoveParent ? pMoveParent : pEnt;
+		// Check if we have a move parent and if it's a player
+		C_BaseEntity *pMoveParent = pEnt->GetMoveParent();
+		if ( pMoveParent && pMoveParent->IsPlayer() )
+		{
+			pPlayer = ToTFPlayer( pMoveParent );
+		}
+		// If it's not a player then check for viewmodel.
+		if ( !pPlayer )
+		{
+			CBaseEntity *pEntParent = pMoveParent ? pMoveParent : pEnt;
 
-		CTFViewModel *pVM = dynamic_cast<CTFViewModel *>( pEntParent );
-		if ( pVM )
-		{
-			pPlayer = ToTFPlayer( pVM->GetOwner() );
-		}
-	}
-	
-	if ( !pPlayer )
-	{
-		if ( pEnt->IsPlayer() )
-		{
-			pPlayer = dynamic_cast<C_TFPlayer*>( pEnt );
-		}
-		else
-		{
-			IHasOwner *pOwnerInterface = dynamic_cast<IHasOwner*>( pEnt );
-			if ( pOwnerInterface )
+			CTFViewModel *pVM = dynamic_cast<CTFViewModel *>( pEntParent );
+			if ( pVM )
 			{
-				pPlayer = ToTFPlayer( pOwnerInterface->GetOwnerViaInterface() );
+				pPlayer = ToTFPlayer( pVM->GetOwner() );
 			}
 		}
-	}
-	
-	if ( !pPlayer )
-	{
-		m_pPercentInvisible->SetFloatValue( 0.0f );
-		return;
+		
+		if ( !pPlayer )
+		{
+			if ( pEnt->IsPlayer() )
+			{
+				pPlayer = dynamic_cast<C_TFPlayer*>( pEnt );
+			}
+			else
+			{
+				IHasOwner *pOwnerInterface = dynamic_cast<IHasOwner*>( pEnt );
+				if ( pOwnerInterface )
+				{
+					pPlayer = ToTFPlayer( pOwnerInterface->GetOwnerViaInterface() );
+				}
+			}
+		}
+		
+		if ( !pPlayer )
+		{
+			m_pPercentInvisible->SetFloatValue( 0.0f );
+			return;
+		}
 	}
 
 	// If we're the local player, use the old "vm_invis" code. Otherwise, use the "weapon_invis".
 	if ( pPlayer->IsLocalPlayer() )
 	{
 		float flPercentInvisible = pPlayer->GetPercentInvisible();
-		float flWeaponInvis = flPercentInvisible;
 
 		// remap from 0.22 to 0.5
 		// but drop to 0.0 if we're not invis at all
-		flWeaponInvis = ( flPercentInvisible < 0.01 ) ?
-			0.0 :
+		float flWeaponInvis = ( flPercentInvisible < 0.01f ) ?
+			0.0f :
 		RemapVal( flPercentInvisible, 0.0, 1.0, TF_VM_MIN_INVIS, TF_VM_MAX_INVIS );
 
 		// Exaggerated blink effect on bump.
