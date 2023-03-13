@@ -73,7 +73,7 @@ public:
 	CEngineTrace() { m_pRootMoveParent = NULL; }
 	// Returns the contents mask at a particular world-space position
 	virtual int		GetPointContents( const Vector &vecAbsPosition, IHandleEntity** ppEntity );
-
+	virtual int GetPointContents_WorldOnly( const Vector &vecAbsPosition );
 	virtual int		GetPointContents_Collideable( ICollideable *pCollide, const Vector &vecAbsPosition );
 
 	// Traces a ray against a particular edict
@@ -375,6 +375,15 @@ private:
 	Vector m_Pos;
 };
 
+//-----------------------------------------------------------------------------
+// Returns the world contents
+//-----------------------------------------------------------------------------
+int	CEngineTrace::GetPointContents_WorldOnly( const Vector &vecAbsPosition )
+{
+	int nContents = CM_PointContents( vecAbsPosition, 0 );
+
+	return nContents;
+}
 
 //-----------------------------------------------------------------------------
 // Returns the contents mask at a particular world-space position

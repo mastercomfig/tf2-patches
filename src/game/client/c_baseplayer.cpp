@@ -499,7 +499,7 @@ bool C_BasePlayer::AudioStateIsUnderwater( Vector vecMainViewOrigin )
 	if ( IsObserver() )
 	{
 		// Just check the view position
-		int cont = enginetrace->GetPointContents ( vecMainViewOrigin );
+		int cont = enginetrace->GetPointContents_WorldOnly ( vecMainViewOrigin );
 		return (cont & MASK_WATER);
 	}
 
