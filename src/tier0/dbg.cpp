@@ -870,6 +870,7 @@ void ValidateSpew( CValidator &validator )
 //-----------------------------------------------------------------------------
 void COM_TimestampedLog( char const *fmt, ... )
 {
+#ifdef _DEBUG
 	static float s_LastStamp = 0.0;
 	static bool s_bShouldLog = false;
 	static bool s_bShouldLogToETW = false;
@@ -925,6 +926,7 @@ void COM_TimestampedLog( char const *fmt, ... )
 	}
 
 	s_LastStamp = curStamp;
+#endif
 }
 
 //-----------------------------------------------------------------------------
