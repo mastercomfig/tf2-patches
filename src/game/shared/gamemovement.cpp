@@ -3490,7 +3490,7 @@ int CGameMovement::GetPointContentsCached( const Vector &point, int slot )
 
 		if ( m_CachedGetPointContents[ idx ][ slot ] == -9999 || point.DistToSqr( m_CachedGetPointContentsPoint[ idx ][ slot ] ) > 1 )
 		{
-			m_CachedGetPointContents[ idx ][ slot ] = enginetrace->GetPointContents ( point );
+			m_CachedGetPointContents[ idx ][ slot ] = enginetrace->GetPointContents_WorldOnly ( point );
 			m_CachedGetPointContentsPoint[ idx ][ slot ] = point;
 		}
 		
@@ -3498,7 +3498,7 @@ int CGameMovement::GetPointContentsCached( const Vector &point, int slot )
 	}
 	else
 	{
-		return enginetrace->GetPointContents ( point );
+		return enginetrace->GetPointContents_WorldOnly ( point );
 	}
 }
 
