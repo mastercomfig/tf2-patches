@@ -1708,7 +1708,9 @@ void CPrediction::_Update( bool received_new_world_update, bool validframe,
 	Assert( C_BaseEntity::IsAbsQueriesValid() );
 	
 	// FIXME: What about hierarchy here?!?
+#if 0 // Where is this ever used?
 	SetIdealPitch( localPlayer, localPlayer->GetLocalOrigin(), localPlayer->GetLocalAngles(), localPlayer->m_vecViewOffset );
+#endif
 #endif
 }
 
