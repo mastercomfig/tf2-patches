@@ -30,7 +30,7 @@ TC2 is mostly about the changes made _on top_ of a mid-Jungle Inferno developmen
 	* As a separate game, you cannot play normal TF2 matchmaking. You can *only* connect to TC2 servers.
 	* Information about multiplayer playtests can be found [on our Discord server](https://discord.gg/CuPb2zV).
 
-## Basic Installation
+## Basic Installation (Windows)
 
 New users should follow this approach.
 
@@ -45,6 +45,16 @@ New users should follow this approach.
 8. Enjoy!
 
 *Advanced installation instructions (for contributors and developers) [can be found here](https://github.com/mastercomfig/tf2-patches/wiki/Advanced-Installation-Instructions).*
+
+## Basic Installation (Linux)
+
+New users should follow this approach.
+
+1. [Download](https://github.com/mastercomfig/tf2-patches/releases/latest) `game_dist_linux.zip` from the latest release.
+2. Extract the downloaded ZIP to a directory on your computer.
+3. Open a shell, `cd` to the directory you extracted TC2 into, and run `./link.sh`
+4. In the same directory, run `./start_tf2.sh`. Note that you must have Steam running.
+5. Enjoy!
 
 ## For players:
 
