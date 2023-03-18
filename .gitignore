@@ -1,3 +1,7 @@
+# temp files
+/*.txt
+/*.diff
+
 # Visual Studio 
 *.suo
 *.user
