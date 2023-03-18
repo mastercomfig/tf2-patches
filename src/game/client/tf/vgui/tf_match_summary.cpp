@@ -190,7 +190,7 @@ void CTFMatchSummary::ApplySchemeSettings( vgui::IScheme *pScheme )
 		const IMatchGroupDescription* pMatch = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
 		if ( pMatch )
 		{
-			if ( pMatch->m_params.m_pmm_match_group_size->GetInt() > 12 )
+			if ( true || pMatch->m_params.m_pmm_match_group_size->GetInt() > 12 )
 			{
 				pConditions = new KeyValues( "conditions" );
 				AddSubKeyNamed( pConditions, "if_large" );

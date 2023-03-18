@@ -354,7 +354,7 @@ void CTFTeamMenu::ShowPanel( bool bShow )
 		if ( C_TFPlayer::GetLocalTFPlayer()->GetTeamNumber() >= FIRST_GAME_TEAM )
 		{
 			const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-			if ( pMatchDesc && !pMatchDesc->m_params.m_bAllowTeamChange )
+			if ( (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) || pMatchDesc && !pMatchDesc->m_params.m_bAllowTeamChange )
 			{
 				bDisallowChange = true;
 			}

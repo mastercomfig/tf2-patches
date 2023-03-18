@@ -3770,7 +3770,7 @@ void CTFPlayer::Spawn()
 	if ( TFGameRules()->State_Get() == GR_STATE_BETWEEN_RNDS )
 	{
 		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-		if ( pMatchDesc && pMatchDesc->m_params.m_bAutoReady )
+		if ( (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) || pMatchDesc && pMatchDesc->m_params.m_bAutoReady )
 		{
 			TFGameRules()->PlayerReadyStatus_UpdatePlayerState( this, true );
 		}
@@ -5975,7 +5975,7 @@ void CTFPlayer::HandleCommand_JoinTeam( const char *pTeamName )
 	if ( GetTeamNumber() == TF_TEAM_RED || GetTeamNumber() == TF_TEAM_BLUE )
 	{
 		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-		if ( pMatchDesc && !pMatchDesc->m_params.m_bAllowTeamChange )
+		if ( (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) || pMatchDesc && !pMatchDesc->m_params.m_bAllowTeamChange )
 		{
 			ClientPrint( this, HUD_PRINTCENTER, "#TF_Ladder_NoTeamChange" );
 			return;

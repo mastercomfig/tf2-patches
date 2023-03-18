@@ -10258,7 +10258,7 @@ bool CTFPlayer::CanPlayerMove() const
 	}
 
 	bool bInRoundRestart = TFGameRules() && TFGameRules()->InRoundRestart();
-	if ( bInRoundRestart && TFGameRules()->IsCompetitiveMode() )
+	if ( bInRoundRestart && (TFGameRules()->IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode())) )
 	{
 		if ( TFGameRules()->GetRoundsPlayed() > 0 )
 		{
@@ -12400,7 +12400,7 @@ void CTFPlayer::GetActiveSets( CUtlVector<const CEconItemSetDefinition *> *pItem
 bool CTFPlayer::CanMoveDuringTaunt()
 {
 
-	if ( TFGameRules() && TFGameRules()->IsCompetitiveMode() )
+	if ( TFGameRules() && (TFGameRules()->IsCompetitiveMode() (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode())) )
 	{
 		if ( ( TFGameRules()->GetRoundRestartTime() > -1.f ) && ( (int)( TFGameRules()->GetRoundRestartTime() - gpGlobals->curtime ) <= mp_tournament_readymode_countdown.GetInt() ) )
 			return false;
