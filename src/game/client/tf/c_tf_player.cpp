@@ -11514,7 +11514,7 @@ void C_TFPlayer::FireGameEvent( IGameEvent *event )
 	}
 	else if ( FStrEq( event->GetName(), "player_changeclass" ) )
 	{
-		if ( TFGameRules() && TFGameRules()->IsMatchTypeCompetitive() )
+		if ( TFGameRules() )
 		{
 			if ( g_PR &&
 				pLocalPlayer &&

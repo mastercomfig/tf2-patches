@@ -1641,7 +1641,7 @@ void CTeamplayRoundBasedRules::State_Think_PREROUND( void )
 #ifdef TF_DLL
 	else
 	{
-		if ( TFGameRules() ) 
+		if ( TFGameRules() && (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) ) 
 		{
 			if ( ( TFGameRules()->GetRoundsPlayed() > 0 ) && ( m_flCountdownTime > 0 ) )
 			{

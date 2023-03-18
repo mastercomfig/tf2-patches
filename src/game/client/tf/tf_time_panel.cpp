@@ -626,7 +626,7 @@ void CTFHudTimeStatus::ApplySchemeSettings( IScheme *pScheme )
 	if ( TFGameRules() )
 	{
 		static ConVarRef tf_use_match_hud("tf_use_match_hud");
-		if ( tf_use_match_hud.IsValid() && tf_use_match_hud.GetBool() )
+		if ( tf_use_match_hud.IsValid() && tf_use_match_hud.GetBool() && !TFGameRules()->IsMannVsMachineMode() )
 		{
 			pConditions = new KeyValues( "conditions" );
 			AddSubKeyNamed( pConditions, "if_match" );
@@ -990,7 +990,7 @@ void CTFHudKothTimeStatus::ApplySchemeSettings( IScheme *pScheme )
 	if ( TFGameRules() )
 	{
 		static ConVarRef tf_use_match_hud("tf_use_match_hud");
-		if ( tf_use_match_hud.IsValid() && tf_use_match_hud.GetBool() )
+		if ( tf_use_match_hud.IsValid() && tf_use_match_hud.GetBool() && !TFGameRules()->IsMannVsMachineMode() )
 		{
 			pConditions = new KeyValues( "conditions" );
 			AddSubKeyNamed( pConditions, "if_match" );

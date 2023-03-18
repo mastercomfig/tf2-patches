@@ -1972,7 +1972,7 @@ bool CTFGameRules::IsMatchTypeCompetitive( void ) const
 
 bool CTFGameRules::BInMatchStartCountdown() const
 {
-	if ( IsCompetitiveMode() )
+	if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 	{
 		float flTime = GetRoundRestartTime();
 		if ( ( flTime > 0.f ) && ( (int)( flTime - gpGlobals->curtime ) <= mp_tournament_readymode_countdown.GetInt() ) )
@@ -2589,7 +2589,7 @@ bool CTFGameRules::PlayerReadyStatus_HaveMinPlayersToEnable( void )
 {
 	// we always have enough players if the match wants players to autoready
 	const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
-	if ( pMatchDesc && pMatchDesc->m_params.m_bAutoReady )
+	if ( pMatchDesc && pMatchDesc->m_params.m_bAutoReady || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		return true;
 
 #ifdef GAME_DLL
@@ -2662,7 +2662,7 @@ bool CTFGameRules::PlayerReadyStatus_ArePlayersOnTeamReady( int iTeam )
 		if ( nMatchPlayers <= 0 )
 			return false;
 
-		int iPlayerReadyCount = 0;
+		int iPlayerReadyCount = (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) ? 1 : 0;
 		for ( int i = 0; i < nMatchPlayers; i++ )
 		{
 			CMatchInfo::PlayerMatchData_t *pPlayerData = pMatch->GetMatchDataForPlayer( i );
@@ -2682,7 +2682,7 @@ bool CTFGameRules::PlayerReadyStatus_ArePlayersOnTeamReady( int iTeam )
 		}
 
 		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
-		if ( pMatchDesc && pMatchDesc->m_params.m_bAutoReady )
+		if ( (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) || (pMatchDesc && pMatchDesc->m_params.m_bAutoReady) )
 		{
 			return iPlayerReadyCount > 0 || pMatch->GetNumTotalMatchPlayers() == 1 ;
 		}
@@ -2833,7 +2833,7 @@ void CTFGameRules::PlayerReadyStatus_UpdatePlayerState( CTFPlayer *pTFPlayer, bo
 	}
 	else
 	{
-		if ( IsMannVsMachineMode() || IsCompetitiveMode() )
+		if ( IsMannVsMachineMode() || IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			// Reduce timer as each player hits Ready, but only once per-player
 			if ( !m_bPlayerReadyBefore[nEntIndex] && m_flRestartRoundTime > gpGlobals->curtime + 60.f )
@@ -3361,6 +3361,34 @@ void CTFGameRules::LevelInitPostEntity( void )
 		pMatchDesc->InitGameRulesSettingsPostEntity();
 	}
 
+	if (!(TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()))
+	{
+		return;
+	}
+
+#ifndef VALVE_PURE
+	CTeamControlPointMaster *pMaster = ( g_hControlPointMasters.Count() ) ? g_hControlPointMasters[0] : NULL;
+	bool bMultiStagePLR = ( tf_gamemode_payload.GetBool() && pMaster && pMaster->PlayingMiniRounds() && 
+							pMaster->GetNumRounds() > 1 && TFGameRules()->HasMultipleTrains() );
+	bool bCTF = tf_gamemode_ctf.GetBool();
+	bool bUseStopWatch = TFGameRules()->MatchmakingShouldUseStopwatchMode();
+
+	// Exec our match settings
+	const char *pszExecFile = bUseStopWatch ? "server_casual_stopwatch_win_conditions.cfg" : 
+							  ( ( bMultiStagePLR || bCTF ) ? "server_casual_max_rounds_win_conditions.cfg" : "server_casual_rounds_win_conditions.cfg" );
+
+	if ( TFGameRules()->IsPowerupMode() )
+	{
+		pszExecFile = "server_casual_max_rounds_win_conditions_mannpower.cfg";
+	}
+
+	engine->ServerCommand( CFmtStr( "exec %s\n", pszExecFile ) );
+
+	// leave stopwatch off for now
+	TFGameRules()->SetInStopWatch( bUseStopWatch );//bUseStopWatch );
+	mp_tournament_stopwatch.SetValue( bUseStopWatch );//bUseStopWatch );
+#endif
+
 #endif // GAME_DLL
 }
 
@@ -3481,7 +3509,7 @@ int CTFGameRules::GetGameTeamForGCTeam( TF_GC_TEAM nGCTeam )
 {
 	if ( nGCTeam == TF_GC_TEAM_INVADERS )
 	{
-		if ( IsCompetitiveMode() )
+		if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			return ( m_bTeamsSwitched ) ? TF_TEAM_RED : TF_TEAM_BLUE;
 		}
@@ -3490,7 +3518,7 @@ int CTFGameRules::GetGameTeamForGCTeam( TF_GC_TEAM nGCTeam )
 	}
 	else if ( nGCTeam == TF_GC_TEAM_DEFENDERS )
 	{
-		if ( IsCompetitiveMode() )
+		if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			return ( m_bTeamsSwitched ) ? TF_TEAM_BLUE : TF_TEAM_RED;
 		}
@@ -3508,7 +3536,7 @@ TF_GC_TEAM CTFGameRules::GetGCTeamForGameTeam( int nGameTeam )
 {
 	if ( nGameTeam == TF_TEAM_BLUE )
 	{
-		if ( IsCompetitiveMode() )
+		if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			return ( m_bTeamsSwitched ) ? TF_GC_TEAM_DEFENDERS : TF_GC_TEAM_INVADERS;
 		}
@@ -3517,7 +3545,7 @@ TF_GC_TEAM CTFGameRules::GetGCTeamForGameTeam( int nGameTeam )
 	}
 	else if ( nGameTeam == TF_TEAM_RED )
 	{
-		if ( IsCompetitiveMode() )
+		if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			return ( m_bTeamsSwitched ) ? TF_GC_TEAM_INVADERS : TF_GC_TEAM_DEFENDERS;
 		}
@@ -4557,7 +4585,7 @@ void CTFGameRules::RespawnPlayers( bool bForceRespawn, bool bTeam, int iTeam )
 {
 	// Skip the respawn at the beginning of a round in casual/comp mode since we already
 	// handled it when the pre-round doors closed over the players' views
-	if ( IsCompetitiveMode() && ( GetRoundsPlayed() == 0 ) && bForceRespawn && ( State_Get() == GR_STATE_BETWEEN_RNDS || State_Get() == GR_STATE_PREROUND ) )
+	if ( (IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode())) && ( GetRoundsPlayed() == 0 ) && bForceRespawn && ( State_Get() == GR_STATE_BETWEEN_RNDS || State_Get() == GR_STATE_PREROUND ) )
 	{
 		CTeamControlPointMaster *pMaster = g_hControlPointMasters.Count() ? g_hControlPointMasters[0] : NULL;
 		if ( !pMaster || !pMaster->PlayingMiniRounds() || ( pMaster->GetCurrentRoundIndex() == 0 ) )
@@ -7435,7 +7463,7 @@ bool CTFGameRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args )
 				return true;
 
 			const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
-			if ( pMatchDesc && pMatchDesc->m_params.m_bAutoReady )
+			if ( (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) || (pMatchDesc && pMatchDesc->m_params.m_bAutoReady) )
 				return true;
 
 			// Make sure we have enough to allow ready mode commands
@@ -7766,105 +7794,111 @@ void CTFGameRules::Think()
 			}
 		}
 
-		if ( IsCompetitiveMode() )
+		if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 		{
 			const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
-			Assert( pMatch ); // Should not be in competitive mode without a match
-
-			//
-			// Check if this is mode requires a complete match, but doesn't have one
-			//
-			bool bEndMatch = false;
-			int nActiveMatchPlayers = pMatch->GetNumActiveMatchPlayers();
-			int nMissingPlayers = pMatch->GetCanonicalMatchSize() - nActiveMatchPlayers;
-			if ( pMatchDesc->m_params.m_bRequireCompleteMatch &&
-			     !IsManagedMatchEnded() &&
-			     nMissingPlayers )
+#ifndef VALVE_PURE
+			if ( pMatch )
+#endif
 			{
-				// See if we are requesting late join right now, and give that time to work
-				if ( pMatchDesc->ShouldRequestLateJoin() )
-				{
-					// End match if GC system didn't request late join in response to players leaving
-					auto *pGCSys = GTFGCClientSystem();
-					double flRequestedLateJoin = pGCSys->GetTimeRequestedLateJoin();
+				Assert( pMatch ); // Should not be in competitive mode without a match
 
-					if ( flRequestedLateJoin == -1.f )
+
+				//
+				// Check if this is mode requires a complete match, but doesn't have one
+				//
+				bool bEndMatch = false;
+				int nActiveMatchPlayers = pMatch->GetNumActiveMatchPlayers();
+				int nMissingPlayers = pMatch->GetCanonicalMatchSize() - nActiveMatchPlayers;
+				if ( pMatchDesc->m_params.m_bRequireCompleteMatch &&
+					 !IsManagedMatchEnded() &&
+					 nMissingPlayers )
+				{
+					// See if we are requesting late join right now, and give that time to work
+					if ( pMatchDesc->ShouldRequestLateJoin() )
 					{
-						bEndMatch = true;
-						Msg( "Failed to request late join, ending competitive match\n" );
+						// End match if GC system didn't request late join in response to players leaving
+						auto *pGCSys = GTFGCClientSystem();
+						double flRequestedLateJoin = pGCSys->GetTimeRequestedLateJoin();
+
+						if ( flRequestedLateJoin == -1.f )
+						{
+							bEndMatch = true;
+							Msg( "Failed to request late join, ending competitive match\n" );
+						}
+						else
+						{
+							// Otherwise, since we can't proceed without players, apply a timeout after which we'll
+							// cancel the match and release these players. The time to wait is shorter if the GC
+							// hasn't confirmed our late join request, so we're not spending the full time waiting
+							// when the GC is just non-responsive.
+							double flTimeWaitingForLateJoin = CRTime::RTime32TimeCur() - flRequestedLateJoin;
+							bool bGotLateJoin = pGCSys->BLateJoinEligible();
+							double flWaitLimit = bGotLateJoin ? tf_competitive_required_late_join_timeout.GetFloat()
+																: tf_competitive_required_late_join_confirm_timeout.GetFloat();
+							if ( flTimeWaitingForLateJoin > flWaitLimit )
+							{
+								Msg( "Exceeded wait time limit for late joiners, canceling match\n" );
+								bEndMatch = true;
+							}
+						}
 					}
 					else
 					{
-						// Otherwise, since we can't proceed without players, apply a timeout after which we'll
-						// cancel the match and release these players. The time to wait is shorter if the GC
-						// hasn't confirmed our late join request, so we're not spending the full time waiting
-						// when the GC is just non-responsive.
-						double flTimeWaitingForLateJoin = CRTime::RTime32TimeCur() - flRequestedLateJoin;
-						bool bGotLateJoin = pGCSys->BLateJoinEligible();
-						double flWaitLimit = bGotLateJoin ? tf_competitive_required_late_join_timeout.GetFloat()
-							                                : tf_competitive_required_late_join_confirm_timeout.GetFloat();
-						if ( flTimeWaitingForLateJoin > flWaitLimit )
+						// Can't request late joiners, tank match if number of active players get below some threshold
+						int iRedActive = 0;
+						int iBlueActive = 0;
+						for ( int idxPlayer = 0; idxPlayer < pMatch->GetNumTotalMatchPlayers(); idxPlayer++ )
 						{
-							Msg( "Exceeded wait time limit for late joiners, canceling match\n" );
+							CMatchInfo::PlayerMatchData_t *pMatchPlayer = pMatch->GetMatchDataForPlayer( idxPlayer );
+							if ( !pMatchPlayer->bDropped )
+							{
+								int iTeam = GetGameTeamForGCTeam( pMatchPlayer->eGCTeam );
+								if ( iTeam == TF_TEAM_RED )
+									iRedActive++;
+								else
+									iBlueActive++;
+							}
+						}
+
+						int iTeamSize = pMatch->GetCanonicalMatchSize() / 2;
+						if ( iRedActive == 0 || iBlueActive == 0 || ( iTeamSize - iRedActive ) > tf_mm_abandoned_players_per_team_max.GetInt() || ( iTeamSize - iBlueActive ) > tf_mm_abandoned_players_per_team_max.GetInt() )
+						{
+							Msg( "Match type requires a complete match, but there are not enough active players left and we are not requesting late join.  Stopping match.\n" );
 							bEndMatch = true;
 						}
 					}
 				}
+				else if ( !IsManagedMatchEnded() && nActiveMatchPlayers < 1 )
+				{
+					// For non-complete mode, just stop the match if we lose all players
+					Msg( "Competitive managed match in progress, but no remaining match players.  Stopping match.\n" );
+					bEndMatch = true;
+				}
+
+				if ( bEndMatch )
+				{
+					StopCompetitiveMatch( CMsgGC_Match_Result_Status_MATCH_FAILED_ABANDON );
+				}
 				else
 				{
-					// Can't request late joiners, tank match if number of active players get below some threshold
-					int iRedActive = 0;
-					int iBlueActive = 0;
-					for ( int idxPlayer = 0; idxPlayer < pMatch->GetNumTotalMatchPlayers(); idxPlayer++ )
+					// If the match was ended but we're still playing, kick off a timer to remind people that
+					// they're in a dead match.
+					AssertMsg( !IsManagedMatchEnded() || ( pMatch->BMatchTerminated() && bEveryoneSafeToLeave ),
+								"Expect everyone to be safe to leave and the match info to reflect that after the match is over" );
+					bool bGameRunning = ( State_Get() == GR_STATE_BETWEEN_RNDS || State_Get() == GR_STATE_RND_RUNNING );
+					bool bDeadMatch = bGameRunning && IsManagedMatchEnded() && pMatch->BMatchTerminated() && bEveryoneSafeToLeave;
+					if ( bDeadMatch && ( m_flSafeToLeaveTimer == -.1f ||
+											m_flSafeToLeaveTimer - gpGlobals->curtime <= 0.f ) )
 					{
-						CMatchInfo::PlayerMatchData_t *pMatchPlayer = pMatch->GetMatchDataForPlayer( idxPlayer );
-						if ( !pMatchPlayer->bDropped )
+						// Periodic nag event
+						m_flSafeToLeaveTimer = gpGlobals->curtime + 30.f;
+						IGameEvent *pEvent = gameeventmanager->CreateEvent( "player_abandoned_match" );
+						if ( pEvent )
 						{
-							int iTeam = GetGameTeamForGCTeam( pMatchPlayer->eGCTeam );
-							if ( iTeam == TF_TEAM_RED )
-								iRedActive++;
-							else
-								iBlueActive++;
+							pEvent->SetBool( "game_over", false );
+							gameeventmanager->FireEvent( pEvent );
 						}
-					}
-
-					int iTeamSize = pMatch->GetCanonicalMatchSize() / 2;
-					if ( iRedActive == 0 || iBlueActive == 0 || ( iTeamSize - iRedActive ) > tf_mm_abandoned_players_per_team_max.GetInt() || ( iTeamSize - iBlueActive ) > tf_mm_abandoned_players_per_team_max.GetInt() )
-					{
-						Msg( "Match type requires a complete match, but there are not enough active players left and we are not requesting late join.  Stopping match.\n" );
-						bEndMatch = true;
-					}
-				}
-			}
-			else if ( !IsManagedMatchEnded() && nActiveMatchPlayers < 1 )
-			{
-				// For non-complete mode, just stop the match if we lose all players
-				Msg( "Competitive managed match in progress, but no remaining match players.  Stopping match.\n" );
-				bEndMatch = true;
-			}
-
-			if ( bEndMatch )
-			{
-				StopCompetitiveMatch( CMsgGC_Match_Result_Status_MATCH_FAILED_ABANDON );
-			}
-			else
-			{
-				// If the match was ended but we're still playing, kick off a timer to remind people that
-				// they're in a dead match.
-				AssertMsg( !IsManagedMatchEnded() || ( pMatch->BMatchTerminated() && bEveryoneSafeToLeave ),
-					        "Expect everyone to be safe to leave and the match info to reflect that after the match is over" );
-				bool bGameRunning = ( State_Get() == GR_STATE_BETWEEN_RNDS || State_Get() == GR_STATE_RND_RUNNING );
-				bool bDeadMatch = bGameRunning && IsManagedMatchEnded() && pMatch->BMatchTerminated() && bEveryoneSafeToLeave;
-				if ( bDeadMatch && ( m_flSafeToLeaveTimer == -.1f ||
-					                    m_flSafeToLeaveTimer - gpGlobals->curtime <= 0.f ) )
-				{
-					// Periodic nag event
-					m_flSafeToLeaveTimer = gpGlobals->curtime + 30.f;
-					IGameEvent *pEvent = gameeventmanager->CreateEvent( "player_abandoned_match" );
-					if ( pEvent )
-					{
-						pEvent->SetBool( "game_over", false );
-						gameeventmanager->FireEvent( pEvent );
 					}
 				}
 			}
@@ -9303,7 +9337,7 @@ void CTFGameRules::SetWinningTeam( int team, int iWinReason, bool bForceMapReset
 
 	CTeamplayRoundBasedRules::SetWinningTeam( team, iWinReason, bForceMapReset, bSwitchTeams, bDontAddScore, bFinal );
 
-	if ( IsCompetitiveMode() )
+	if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 	{
 		HaveAllPlayersSpeakConceptIfAllowed( IsGameOver() ? MP_CONCEPT_MATCH_OVER_COMP : MP_CONCEPT_GAME_OVER_COMP );
 	}
@@ -12818,7 +12852,7 @@ void CTFGameRules::ClientDisconnected( edict_t *pClient )
 			if ( !pPlayer->IsBot() && State_Get() != GR_STATE_RND_RUNNING )
 			{
 				const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
-				if ( !pMatchDesc || !pMatchDesc->m_params.m_bAutoReady )
+				if ( !(TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) && (!pMatchDesc || !pMatchDesc->m_params.m_bAutoReady) )
 				{
 					// Always reset when a player leaves this type of match
 					PlayerReadyStatus_ResetState();
@@ -16969,6 +17003,9 @@ bool CTFGameRules::ShouldConfirmOnDisconnect()
 //-----------------------------------------------------------------------------
 bool CTFGameRules::ShouldShowPreRoundDoors() const
 {
+	if ((TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()))
+		return true;
+
 	const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( GetCurrentMatchGroup() );
 	if ( pMatchDesc )
 	{
@@ -18092,7 +18129,7 @@ bool CTFGameRules::ShouldRespawnQuickly( CBasePlayer *pPlayer )
 		return true;
 #endif // _DEBUG || STAGING_ONLY
 
-	if ( IsCompetitiveMode() && State_Get() == GR_STATE_BETWEEN_RNDS )
+	if ( ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) ) && State_Get() == GR_STATE_BETWEEN_RNDS )
 		return true;
 
 	return BaseClass::ShouldRespawnQuickly( pPlayer );
@@ -20144,7 +20181,7 @@ void CTFGameRules::BetweenRounds_Think( void )
 			ShouldResetScores( true, true );
 			ShouldResetRoundsPlayed( true );
 
-			if ( IsCompetitiveMode() )
+			if ( IsCompetitiveMode() || (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) )
 			{
 				m_flCompModeRespawnPlayersAtMatchStart = gpGlobals->curtime + 2.0;
 			}

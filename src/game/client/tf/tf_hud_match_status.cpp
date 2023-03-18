@@ -41,6 +41,9 @@ static ConVar tf_use_match_hud("tf_use_match_hud", "1", FCVAR_ARCHIVE);
 //-----------------------------------------------------------------------------
 bool ShouldUseMatchHUD()
 {
+	if ((TFGameRules()->IsMannVsMachineMode()))
+		return false;
+	
 	return tf_use_match_hud.GetBool();
 }
 
@@ -453,7 +456,7 @@ void CTFHudMatchStatus::OnThink()
 		C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 		bool bDisplayTimer = !( pPlayer && pPlayer->GetObserverMode() == OBS_MODE_FREEZECAM );
 
-		if ( TeamplayRoundBasedRules()->IsInWaitingForPlayers() )
+		if ( TeamplayRoundBasedRules()->IsInTournamentMode() && TeamplayRoundBasedRules()->IsInWaitingForPlayers() )
 		{
 			bDisplayTimer = false;
 		}
@@ -556,7 +559,7 @@ void CTFHudMatchStatus::FireGameEvent( IGameEvent * event )
 		}
 
 		const IMatchGroupDescription* pMatchDesc = GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
-		bool bForceDoors = true;
+		bool bForceDoors = (TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode());
 #ifdef STAGING_ONLY
 		bForceDoors = tf_test_match_summary.GetBool();
 #endif
@@ -611,6 +614,9 @@ ConVar tf_comp_door_bodygroup_override( "tf_comp_door_bodygroup_override", "-1",
 //-----------------------------------------------------------------------------
 void CTFHudMatchStatus::ShowMatchStartDoors()
 {
+	if (!(TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()))
+		return;
+
 	const IMatchGroupDescription* pMatchDesc = TFGameRules()->GetCurrentMatchGroup() == k_nMatchGroup_Invalid ? NULL : GetMatchGroupDescription( TFGameRules()->GetCurrentMatchGroup() );
 
 	int nSkin = 0;
@@ -658,6 +664,9 @@ void CTFHudMatchStatus::ShowMatchStartDoors()
 //-----------------------------------------------------------------------------
 void CTFHudMatchStatus::ShowRoundSign( int nRoundNumber )
 {
+	if (!(TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()))
+		return;
+
 	if ( !m_pRoundSignModel || !m_pRoundSignModel->m_pModelInfo )
 		return;
 

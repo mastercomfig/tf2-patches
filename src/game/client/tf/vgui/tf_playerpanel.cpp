@@ -153,6 +153,7 @@ bool CTFPlayerPanel::Update( void )
 
 				// Hide class info from the other team?
 				if ( !bObserver &&
+					(TFGameRules()->UsePlayerReadyStatusMode() && !TFGameRules()->IsMannVsMachineMode()) &&
 					 GetTeam() != g_TF_PR->GetTeam( pLocalPlayer->entindex() ) )
 				{
 					iClass = TF_CLASS_UNDEFINED;
