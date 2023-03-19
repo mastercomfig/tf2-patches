@@ -1898,7 +1898,8 @@ void CMaterialSystem::ReadConfigFromConVars( MaterialSystem_Config_t *pConfig )
 	pConfig->m_bSupportFlashlight = mat_supportflashlight.GetInt() != 0;
 	pConfig->m_bShadowDepthTexture = r_flashlightdepthtexture.GetBool();
 
-	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, HardwareConfig() && HardwareConfig()->GetHDREnabled() );
+	static ConVarRef mat_hdr_level("mat_hdr_level");
+	pConfig->SetFlag( MATSYS_VIDCFG_FLAGS_ENABLE_HDR, mat_hdr_level.IsValid() && mat_hdr_level.GetInt() > 1 );
 
 	// Render-to-texture shadows are disabled for dxlevel 70 because of material issues
 	if ( pConfig->dxSupportLevel < 80 )

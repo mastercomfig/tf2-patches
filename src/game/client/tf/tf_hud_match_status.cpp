@@ -41,7 +41,7 @@ static ConVar tf_use_match_hud("tf_use_match_hud", "1", FCVAR_ARCHIVE);
 //-----------------------------------------------------------------------------
 bool ShouldUseMatchHUD()
 {
-	if ((TFGameRules()->IsMannVsMachineMode()))
+	if (!TFGameRules() || (TFGameRules()->IsMannVsMachineMode()))
 		return false;
 	
 	return tf_use_match_hud.GetBool();

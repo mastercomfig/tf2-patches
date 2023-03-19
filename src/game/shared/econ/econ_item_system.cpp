@@ -520,11 +520,12 @@ public:
 		// Check if we're already up-to-date
 		m_nExpectedVersion = msg.Body().item_schema_version();
 		uint32 nCurrentSchemaVersion = ItemSystem()->GetItemSchema()->GetVersion();
-		if ( m_nExpectedVersion != 0 && m_nExpectedVersion == nCurrentSchemaVersion )
+		if ( m_nExpectedVersion != 0 && m_nExpectedVersion == nCurrentSchemaVersion || m_nExpectedVersion == 1265307132 && nCurrentSchemaVersion == 1797044324 )
 		{
 			Msg( "Current item schema is up-to-date with version %08X.\n", nCurrentSchemaVersion );
 			return true;
 		}
+		Warning( "Current item schema is outdated with version %d instead of %d.\n", nCurrentSchemaVersion, m_nExpectedVersion );
 
 		m_sSignature = msg.Body().signature();
 

@@ -338,6 +338,7 @@ int CTFViewModel::GetSkin()
 		CEconItemView *pItem = pWeapon->GetAttributeContainer()->GetItem();
 		if ( pItem->IsValid() )
 		{
+			CEconItemViewDataCacher dataCacher(pItem);
 			iItemSkin = pItem->GetSkin( pPlayer->GetTeamNumber(), true );
 		}
 
@@ -490,10 +491,11 @@ void CInvisProxy::OnBind( C_BaseEntity *pC_BaseEntity )
 
 	C_BaseEntity *pEnt = pC_BaseEntity;
 
+	// TODO: causes crashes
 	if ( pEnt != pCachedEntity )
 	{
 		pPlayer = NULL;
-		pCachedEntity = pEnt;
+		//pCachedEntity = pEnt;
 	}
 
 	if ( !pPlayer )

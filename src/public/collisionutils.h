@@ -222,9 +222,7 @@ bool IsBoxIntersectingBoxExtents( const Vector& boxCenter1, const Vector& boxHal
 						   const Vector& boxCenter2, const Vector& boxHalfDiagonal2 );
 
 
-#ifdef _X360
-// inline version:
-#include "mathlib/ssemath.h"
+#if defined(_X360) || USE_DXMATH
 inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 );
 #endif
@@ -259,9 +257,10 @@ bool FASTCALL IsBoxIntersectingRay( const Vector& boxMin, const Vector& boxMax,
 									const Vector& invDelta, float flTolerance = 0.0f );
 
 
+// UNDONE: with SSE2 on PC, we now can.
 // On the PC, we can't pass fltx4's in registers like this. On the x360, it is 
 // much better if we do.
-#ifdef _X360
+#if defined(_X360) || 1
 bool FASTCALL IsBoxIntersectingRay( fltx4 boxMin, fltx4 boxMax, 
 								   fltx4 origin, fltx4 delta, fltx4 invDelta, // ray parameters
 								   fltx4 vTolerance = LoadZeroSIMD() ///< eg from ReplicateX4(flTolerance)
@@ -428,7 +427,23 @@ bool RayHasFullyContainedIntersectionWithQuad( const Ray_t &ray,
 //-----------------------------------------------------------------------------
 
 
-#ifdef _X360
+#if USE_DXMATH
+inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1,
+								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 )
+{
+	fltx4 vecDelta, vecSize;
+
+	vecDelta = SubSIMD(boxCenter1, boxCenter2);
+	vecSize = AddSIMD(boxHalfDiagonal1, boxHalfDiagonal2);
+
+	uint condition;
+	DirectX::XMVectorInBoundsR(&condition, vecDelta, vecSize);
+	// we want the top three words to be all 1's ; that means in bounds
+
+
+	return DirectX::XMComparisonAllInBounds( condition );
+}
+#elif defined(_X360)
 inline bool IsBoxIntersectingBoxExtents( const fltx4 boxCenter1, const fltx4 boxHalfDiagonal1, 
 								 const fltx4 boxCenter2, const fltx4 boxHalfDiagonal2 )
 {

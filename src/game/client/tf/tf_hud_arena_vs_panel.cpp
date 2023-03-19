@@ -121,7 +121,7 @@ void CHudArenaVsPanel::FireGameEvent( IGameEvent * event )
 
 		if ( m_bVisible )
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "ArenaVsPanelOnShow" );			
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( this, "ArenaVsPanelOnShow", true, true );			
 
 			m_flHideTime = gpGlobals->curtime + 10.0f;
 

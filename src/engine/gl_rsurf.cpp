@@ -47,6 +47,7 @@
 #include "materialsystem/imaterialvar.h"
 #include "coordsize.h"
 #include "mempool.h"
+#include "mathlib/ssemath.h"
 #ifndef SWDS
 #include "Overlay.h"
 #endif
@@ -4839,10 +4840,12 @@ static bool EnumerateLeafInBox_R(mnode_t *node, EnumLeafBoxInfo_t& info )
 	}
 }
 
-#ifdef _X360
 
+#if defined(_X360) || USE_DXMATH
+#ifdef _DEBUG
 static fltx4 AlignThatVector(const Vector &vc)
 {
+#ifdef _X360
 	fltx4 out = __loadunalignedvector(vc.Base());
 
 	/*
@@ -4853,7 +4856,12 @@ static fltx4 AlignThatVector(const Vector &vc)
 
 	// squelch the w component 
 	return __vrlimi( out, __vzero(), 1, 0 );
+#elif USE_DXMATH
+	fltx4 out = LoadUnaligned3SIMD(vc.Base());
+	return DirectX::XMVectorSetW(out, 0);
+#endif
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Finds all leaves of the BSP tree within a particular volume
@@ -4864,9 +4872,11 @@ static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_
 	if (node->contents == CONTENTS_SOLID)
 		return true;		// solid
 
+#ifdef _X360
 	// speculatively get the children into the cache
 	__dcbt(0,node->children[0]);
 	__dcbt(0,node->children[1]);
+#endif
 
 	// constructing these here prevents LHS if we spill.
 	// it's not quite a quick enough operation to do extemporaneously.
@@ -4937,6 +4947,7 @@ static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_
 	fltx4 vecBoxMax = LoadAlignedSIMD(pInfo->m_vecBoxMax);
 	fltx4 cornermin, cornermax;
 	// by now planeNormal is ready...
+#ifdef _X360
 	fltx4 control = XMVectorGreaterOrEqual( planeNormal, __vzero() );
 	// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
 	cornermin = XMVectorSelect( vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
@@ -4945,6 +4956,7 @@ static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_
 	// compute dot products
 	fltx4 dotCornerMax = __vmsum3fp(planeNormal, cornermax); // vsumfp ignores w component
 	fltx4 dotCornerMin = __vmsum3fp(planeNormal, cornermin);
+
 	fltx4 vPlaneDist = ReplicateX4(plane->dist);
 	UINT conditionRegister;
 	XMVectorGreaterR(&conditionRegister,vPlaneDist,dotCornerMax);
@@ -4954,6 +4966,25 @@ static bool EnumerateLeafInBox_R(mnode_t * RESTRICT node, const EnumLeafBoxInfo_
 	XMVectorGreaterOrEqualR(&conditionRegister,dotCornerMin,vPlaneDist);
 	if ( XMComparisonAllTrue(conditionRegister) )
 		return EnumerateLeafInBox_R( node->children[0], pInfo );
+#elif USE_DXMATH
+	fltx4 control = DirectX::XMVectorGreaterOrEqual( planeNormal, LoadZeroSIMD() );
+	// now control[i] = planeNormal[i] > 0 ? 0xFF : 0x00
+	cornermin = DirectX::XMVectorSelect( vecBoxMax, vecBoxMin, control); // cornermin[i] = control[i] ? vecBoxMin[i] : vecBoxMax[i]
+	cornermax = DirectX::XMVectorSelect( vecBoxMin, vecBoxMax, control);
+	// compute dot products
+	fltx4 dotCornerMax = DirectX::XMVector3Dot(planeNormal, cornermax); // vsumfp ignores w component
+	fltx4 dotCornerMin = DirectX::XMVector3Dot(planeNormal, cornermin);
+
+	fltx4 vPlaneDist = ReplicateX4(plane->dist);
+	uint conditionRegister;
+	DirectX::XMVectorGreaterR(&conditionRegister,vPlaneDist,dotCornerMax);
+	if (DirectX::XMComparisonAllTrue(conditionRegister)) // plane->normal . cornermax <= plane->dist
+		return EnumerateLeafInBox_R( node->children[1], pInfo );
+
+	DirectX::XMVectorGreaterOrEqualR(&conditionRegister,dotCornerMin,vPlaneDist);
+	if ( DirectX::XMComparisonAllTrue(conditionRegister) )
+		return EnumerateLeafInBox_R( node->children[0], pInfo );
+#endif
 
 	return EnumerateLeafInBox_R( node->children[0], pInfo ) &&
 		   EnumerateLeafInBox_R( node->children[1], pInfo );
@@ -5326,7 +5357,7 @@ bool CEngineBSPTree::EnumerateLeavesInBox( const Vector& mins, const Vector& max
 	info.m_nContext = context;
 	info.m_vecBoxMax = maxs;
 	info.m_vecBoxMin = mins;
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	if (opt_EnumerateLeavesFastAlgorithm.GetBool())
 		return EnumerateLeafInBox_R( host_state.worldbrush->nodes, &info );
 	else
