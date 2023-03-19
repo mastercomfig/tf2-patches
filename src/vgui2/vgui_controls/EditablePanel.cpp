@@ -997,8 +997,12 @@ void EditablePanel::GetControlString(const char *controlName, char *buf, int buf
 //-----------------------------------------------------------------------------
 // Purpose: localization variables (used in constructing UI strings)
 //-----------------------------------------------------------------------------
-void EditablePanel::SetDialogVariable(const char *varName, const char *value)
+void EditablePanel::SetDialogVariable(const char *varName, const char *value, bool bForceUpdate)
 {
+	if (!bForceUpdate && !GetDialogVariables()->IsEmpty(varName) && !strcmp(GetDialogVariables()->GetString(varName), value ? value : ""))
+	{
+		return;
+	}
 	GetDialogVariables()->SetString(varName, value);
 	ForceSubPanelsToUpdateWithNewDialogVariables();
 }
@@ -1006,8 +1010,12 @@ void EditablePanel::SetDialogVariable(const char *varName, const char *value)
 //-----------------------------------------------------------------------------
 // Purpose: localization variables (used in constructing UI strings)
 //-----------------------------------------------------------------------------
-void EditablePanel::SetDialogVariable(const char *varName, const wchar_t *value)
+void EditablePanel::SetDialogVariable(const char *varName, const wchar_t *value, bool bForceUpdate)
 {
+	if (!bForceUpdate && !GetDialogVariables()->IsEmpty(varName) && !wcscmp(GetDialogVariables()->GetWString(varName), value ? value : L""))
+	{
+		return;
+	}
 	GetDialogVariables()->SetWString(varName, value);
 	ForceSubPanelsToUpdateWithNewDialogVariables();
 }
@@ -1015,8 +1023,12 @@ void EditablePanel::SetDialogVariable(const char *varName, const wchar_t *value)
 //-----------------------------------------------------------------------------
 // Purpose: localization variables (used in constructing UI strings)
 //-----------------------------------------------------------------------------
-void EditablePanel::SetDialogVariable(const char *varName, int value)
+void EditablePanel::SetDialogVariable(const char *varName, int value, bool bForceUpdate)
 {
+	if (!bForceUpdate && !GetDialogVariables()->IsEmpty(varName) && GetDialogVariables()->GetInt(varName) == value)
+	{
+		return;
+	}
 	GetDialogVariables()->SetInt(varName, value);
 	ForceSubPanelsToUpdateWithNewDialogVariables();
 }
@@ -1024,8 +1036,12 @@ void EditablePanel::SetDialogVariable(const char *varName, int value)
 //-----------------------------------------------------------------------------
 // Purpose: localization variables (used in constructing UI strings)
 //-----------------------------------------------------------------------------
-void EditablePanel::SetDialogVariable(const char *varName, float value)
+void EditablePanel::SetDialogVariable(const char *varName, float value, bool bForceUpdate)
 {
+	if (!bForceUpdate && !GetDialogVariables()->IsEmpty(varName) && GetDialogVariables()->GetFloat(varName) == value)
+	{
+		return;
+	}
 	GetDialogVariables()->SetFloat(varName, value);
 	ForceSubPanelsToUpdateWithNewDialogVariables();
 }

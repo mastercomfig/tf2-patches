@@ -1123,7 +1123,7 @@ void CInWorldCurrencyStatus::OnTick( void )
 
 	char szTmp[16];
 	Q_snprintf( szTmp, ARRAYSIZE( szTmp ), "$%d", nWorldMoney );
-	SetDialogVariable( "currency", szTmp );
+	SetDialogVariable( "currency", szTmp, false );
 }
 //-----------------------------------------------------------------------------
 // Purpose: 

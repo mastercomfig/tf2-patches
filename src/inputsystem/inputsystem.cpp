@@ -271,7 +271,7 @@ void CInputSystem::SleepUntilInput( int nMaxSleepTimeMS )
 #else
 #warning "need a SleepUntilInput impl"
 #endif
-}
+	}
 
 
 

@@ -650,6 +650,8 @@ C_BaseEntity *FindNearbyVguiScreen( const Vector &viewPosition, const QAngle &vi
 		// X360TBD: Turn this on if feature actually used
 		return NULL;
 	}
+	// Feature not used, causes crashes if entity exists anyway...
+	return NULL;
 
 	C_BasePlayer *pLocalPlayer = C_BasePlayer::GetLocalPlayer();
 

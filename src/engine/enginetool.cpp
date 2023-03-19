@@ -444,7 +444,7 @@ void CEngineTool::SetGamePaused( bool paused )
 
 float CEngineTool::GetTimescale()
 {
-	return host_timescale.GetFloat();
+	return host_timescale.GetFloat() ? host_timescale.GetFloat() : 1.0f;
 }
 
 void CEngineTool::SetTimescale( float scale )

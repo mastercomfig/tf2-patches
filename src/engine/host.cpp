@@ -585,7 +585,7 @@ static ConVar	host_profile( "host_profile","0" );
 
 ConVar	host_limitlocal( "host_limitlocal", "0", 0, "Apply cl_cmdrate and cl_updaterate to loopback connection" );
 ConVar	host_framerate( "host_framerate","0", 0, "Set to lock per-frame time elapse." );
-ConVar	host_timescale( "host_timescale","1.0", FCVAR_REPLICATED, "Prescale the clock by this amount." );
+ConVar	host_timescale( "host_timescale","0.0", FCVAR_REPLICATED, "Prescale the clock by this amount." );
 ConVar	host_speeds( "host_speeds","0", 0, "Show general system running times." );		// set for running times
 
 ConVar	host_flush_threshold( "host_flush_threshold", "20", 0, "Memory threshold below which the host should flush caches between server instances" );
@@ -1758,7 +1758,10 @@ void Host_ReadPreStartupConfiguration()
 	{
 		"sv_unlockedchapters",		// needed to display the startup graphic while loading
 		"snd_legacy_surround",		// needed to init the sound system
+#if defined( _X360 ) || defined( STAGING_ONLY )
 		"gameui_xbox",				// needed to initialize the correct UI
+#endif
+		"cl_hud_minmode",			// needed to initialize the correct UI
 		"save_in_memory"			// needed to preread data from the correct location in UI
 	};
 
@@ -1867,10 +1870,13 @@ void Host_AccumulateTime( float dt )
 		host_frametime	= host_state.interval_per_tick;
 	}
 
+	const bool bIsPlayingDemo = demoplayer->IsPlayingBack();
+	const float flDemoTimescale = bIsPlayingDemo ? demoplayer->GetPlaybackTimeScale() : 1.0f;
+
 #if 1
 	if ( host_framerate.GetFloat() > 0 
 #if !defined(SWDS)
-		&& ( CanCheat() || demoplayer->IsPlayingBack() ) 
+		&& ( CanCheat() || bIsPlayingDemo ) 
 #endif
 		)
 	{
@@ -1883,10 +1889,10 @@ void Host_AccumulateTime( float dt )
 
 #if !defined(SWDS) && defined( REPLAY_ENABLED )
 		extern IDemoPlayer *g_pReplayDemoPlayer;
-		if ( demoplayer->IsPlayingBack() && demoplayer == g_pReplayDemoPlayer )
+		if ( bIsPlayingDemo && demoplayer == g_pReplayDemoPlayer )
 		{
 			// adjust time scale if playing back demo
-			host_frametime *= demoplayer->GetPlaybackTimeScale();
+			host_frametime *= flDemoTimescale;
 		}
 #endif
 
@@ -1894,17 +1900,18 @@ void Host_AccumulateTime( float dt )
 	}
 	else if (host_timescale.GetFloat() > 0 
 #if !defined(SWDS)
-		&& ( CanCheat() || demoplayer->IsPlayingBack() ) 
+		&& ( CanCheat() || bIsPlayingDemo ) 
+		|| ( bIsPlayingDemo && flDemoTimescale != 1.0f )
 #endif
 		)
 	{
 		float fullscale = host_timescale.GetFloat();
 
 #if !defined(SWDS)
-		if ( demoplayer->IsPlayingBack() )
+		if ( bIsPlayingDemo )
 		{
 			// adjust time scale if playing back demo
-			fullscale *= demoplayer->GetPlaybackTimeScale();
+			fullscale *= flDemoTimescale;
 		}
 #endif
 

@@ -167,7 +167,7 @@ void CTFPVEWinPanel::OnTick()
 				// Do this only once
 				if ( bRespecVisible && !m_pRespecBackground->IsVisible() )
 				{
-					g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RespecEarnedPulseLoss" );
+					g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( m_pRespecContainerPanel, "RespecEarnedPulseLoss", true, true );
 				
 					C_TFPlayer *pLocalTFPlayer = C_TFPlayer::GetLocalTFPlayer();
 					if ( pLocalTFPlayer )

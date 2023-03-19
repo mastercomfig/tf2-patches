@@ -838,7 +838,7 @@ void AngleVectors( const QAngle &angles, Vector *forward, Vector *right, Vector 
 	
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( angles.Base() );
 	scale = ReplicateX4( M_PI_F / 180.f ); 
@@ -1984,7 +1984,7 @@ void AngleQuaternion( const QAngle &angles, Quaternion &outQuat )
 
 	float sr, sp, sy, cr, cp, cy;
 
-#if defined(_X360)
+#if defined(_X360) || USE_DXMATH
 	fltx4 radians, scale, sine, cosine;
 	radians = LoadUnaligned3SIMD( angles.Base() );
 	scale = ReplicateX4( 0.5f * M_PI_F / 180.f ); 

@@ -403,13 +403,10 @@ void Label::ComputeAlignment(int &tx0, int &ty0, int &tx1, int &ty1)
 	int maxX = 0, maxY = 0;
 
 	int actualXAlignment = _contentAlignment;
-	for (int i = 0; i < _imageDar.Count(); i++)
+	if (_isSimpleTextImage)
 	{
-		TImageInfo &imageInfo = _imageDar[i];
+		TImageInfo &imageInfo = *_cachedSimpleTextImage;
 		IImage *image = imageInfo.image;
-		if (!image)
-			continue; // skip over null images
-
 		// add up the bounds
 		int iWide, iTall;
 		image->GetSize(iWide, iTall);
@@ -422,6 +419,29 @@ void Label::ComputeAlignment(int &tx0, int &ty0, int &tx1, int &ty1)
 
 		// add the offset to x
 		maxX += imageInfo.offset;
+	}
+	else
+	{
+		for (int i = 0; i < _imageDar.Count(); i++)
+		{
+			TImageInfo &imageInfo = _imageDar[i];
+			IImage *image = imageInfo.image;
+			if (!image)
+				continue; // skip over null images
+
+			// add up the bounds
+			int iWide, iTall;
+			image->GetSize(iWide, iTall);
+			if (iWide > wide) // if the image is larger than the label just do a west alignment
+				actualXAlignment = Label::a_west;
+			
+			// get the max height
+			maxY = max(maxY, iTall);
+			maxX += iWide;
+
+			// add the offset to x
+			maxX += imageInfo.offset;
+		}
 	}
 
 	tWide = maxX;
@@ -824,11 +844,21 @@ void Label::OnSetText(KeyValues *params)
 //-----------------------------------------------------------------------------
 int Label::AddImage(IImage *image, int offset)
 {
+	if (_isSimpleTextImage)
+	{
+		_cachedSimpleTextImage = NULL;
+		_isSimpleTextImage = false;
+	}
 	int newImage = _imageDar.AddToTail();
 	_imageDar[newImage].image = image;
 	_imageDar[newImage].offset = (short)offset;
 	_imageDar[newImage].xpos = -1;
 	_imageDar[newImage].width = -1;
+	if (_imageDar.Count() == 1 && image != NULL)
+	{
+		_cachedSimpleTextImage = _imageDar.Base();
+		_isSimpleTextImage = true;
+	}
 	InvalidateLayout();
 	return newImage;
 }
@@ -1307,9 +1337,6 @@ void Label::PerformLayout()
 		}
 
 		HandleAutoSizing();
-
-		HandleAutoSizing();
-
 		return;
 	}
 

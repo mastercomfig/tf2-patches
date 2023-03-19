@@ -19,7 +19,7 @@ $Configuration
 	}
 	$Compiler [$WINDOWS]
 	{
-		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions (/arch:SSE)"
+		$EnableEnhancedInstructionSet	"Streaming SIMD Extensions 2 (/arch:SSE2)"
 	}
 }
 

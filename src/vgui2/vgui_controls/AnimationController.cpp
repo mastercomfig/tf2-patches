@@ -1042,7 +1042,7 @@ bool AnimationController::StartAnimationSequence(const char *sequenceName, bool 
 //-----------------------------------------------------------------------------
 // Purpose: starts an animation sequence script
 //-----------------------------------------------------------------------------
-bool AnimationController::StartAnimationSequence(Panel *pWithinParent, const char *sequenceName, bool bCanBeCancelled )
+bool AnimationController::StartAnimationSequence(Panel *pWithinParent, const char *sequenceName, bool bCanBeCancelled, bool bIncludeParent )
 {
 	Assert( pWithinParent );
 
@@ -1075,7 +1075,7 @@ bool AnimationController::StartAnimationSequence(Panel *pWithinParent, const cha
 	// execute the sequence
 	for (int cmdIndex = 0; cmdIndex < m_Sequences[i].cmdList.Count(); cmdIndex++)
 	{
-		ExecAnimationCommand(seqName, m_Sequences[i].cmdList[cmdIndex], pWithinParent, bCanBeCancelled);
+		ExecAnimationCommand(seqName, m_Sequences[i].cmdList[cmdIndex], pWithinParent, bCanBeCancelled, bIncludeParent);
 	}
 
 	return true;	
@@ -1277,11 +1277,11 @@ void AnimationController::RemoveQueuedAnimationByType(vgui::Panel *panel, UtlSym
 //-----------------------------------------------------------------------------
 // Purpose: runs a single line of the script
 //-----------------------------------------------------------------------------
-void AnimationController::ExecAnimationCommand(UtlSymId_t seqName, AnimCommand_t &animCommand, Panel *pWithinParent, bool bCanBeCancelled)
+void AnimationController::ExecAnimationCommand(UtlSymId_t seqName, AnimCommand_t &animCommand, Panel *pWithinParent, bool bCanBeCancelled, bool bIncludeParent)
 {
 	if (animCommand.commandType == CMD_ANIMATE)
 	{
-		StartCmd_Animate(seqName, animCommand.cmdData.animate, pWithinParent, bCanBeCancelled);
+		StartCmd_Animate(seqName, animCommand.cmdData.animate, pWithinParent, bCanBeCancelled, bIncludeParent);
 	}
 	else
 	{
@@ -1301,24 +1301,30 @@ void AnimationController::ExecAnimationCommand(UtlSymId_t seqName, AnimCommand_t
 //-----------------------------------------------------------------------------
 // Purpose: starts a variable animation
 //-----------------------------------------------------------------------------
-void AnimationController::StartCmd_Animate(UtlSymId_t seqName, AnimCmdAnimate_t &cmd, Panel *pWithinParent, bool bCanBeCancelled)
+void AnimationController::StartCmd_Animate(UtlSymId_t seqName, AnimCmdAnimate_t &cmd, Panel *pWithinParent, bool bCanBeCancelled, bool bIncludeParent)
 {
 	Assert( pWithinParent );
 	if ( !pWithinParent )
 		return;
 
+	const char* panelName = g_ScriptSymbols.String(cmd.panel);
+
 	// make sure the child exists
-	Panel *panel = pWithinParent->FindChildByName(g_ScriptSymbols.String(cmd.panel),true);
+	Panel *panel = pWithinParent->FindChildByName(panelName,true);
 	if ( !panel )
 	{
 		// Check the parent
-		Panel *parent = GetParent();
-		if ( !Q_stricmp( parent->GetName(), g_ScriptSymbols.String(cmd.panel) ) )
+		Panel *parent = bIncludeParent ? pWithinParent : GetParent();
+		if ( !Q_stricmp( parent->GetName(), panelName ) )
 		{
 			panel = parent;
 		}
 	}
 	if (!panel)
+		return;
+
+	// Block some panels (like HudScope). Unfortunately players are abusing animations with broad/null parents.
+	if ( !panel->CanAnimate() )
 		return;
 
 	StartCmd_Animate(panel, seqName, cmd, bCanBeCancelled);

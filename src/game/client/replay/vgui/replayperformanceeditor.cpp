@@ -909,7 +909,7 @@ public:
 		// the user is still holding downt he FF button at the end of the replay.
 		if ( m_pHostTimescale )
 		{
-			m_pHostTimescale->SetValue( 1.0f );
+			m_pHostTimescale->SetValue( 0.0f );
 		}
 
 		// Resume demo playback so that any demo played later won't start paused.

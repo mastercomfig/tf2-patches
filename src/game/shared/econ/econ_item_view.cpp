@@ -844,6 +844,9 @@ CEconItem *CEconItemView::GetSOCData( void ) const
 	if ( m_pNonSOEconItem )
 		return m_pNonSOEconItem;
 
+	if (m_pSOCDataCache)
+		return m_pSOCDataCache;
+
 #ifdef CLIENT_DLL
 	// We need to find the inventory that contains this item. If we're not connected 
 	// to a server, and the owner is the same as the local player, use the local inventory.
