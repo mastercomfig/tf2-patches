@@ -296,6 +296,12 @@ void CInventoryManager::OnPersonaStateChanged( PersonaStateChange_t *info )
 //-----------------------------------------------------------------------------
 bool CInventoryManager::Init( void )
 {
+#ifdef GAME_DLL
+	if ( engine->IsDedicatedServer() )
+#endif
+	{
+		InitializeInventory();
+	}
 	return true;
 }
 
@@ -304,12 +310,6 @@ bool CInventoryManager::Init( void )
 //-----------------------------------------------------------------------------
 void CInventoryManager::PostInit( void )
 {
-#ifdef GAME_DLL
-	if ( engine->IsDedicatedServer() )
-#endif
-	{
-		InitializeInventory();
-	}
 }
 
 void CInventoryManager::InitializeInventory()

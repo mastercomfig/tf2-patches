@@ -28,7 +28,7 @@ void CHudBaseAccount::LevelInit( void )
 	m_pszLastAnimationName = NULL;
 	m_pszQueuedAnimationName = NULL;
 
-	GetAnimationController()->StartAnimationSequence("AccountMoneyInvisible");
+	GetAnimationController()->StartAnimationSequence(this, "AccountMoneyInvisible", true, true);
 }
 
 void CHudBaseAccount::ApplySchemeSettings(vgui::IScheme *pScheme)
@@ -91,14 +91,14 @@ void CHudBaseAccount::Paint()
 		{
 			m_pszLastAnimationName = "AccountMoneyAdded";
 		}
-		GetAnimationController()->StartAnimationSequence( m_pszLastAnimationName );
+		GetAnimationController()->StartAnimationSequence( this, m_pszLastAnimationName, true, true );
 		m_flLastAnimationEnd = gpGlobals->curtime + GetAnimationController()->GetAnimationSequenceLength( m_pszLastAnimationName );
 
 		m_iPreviousAccount = account;
 	}
 	else if ( m_pszQueuedAnimationName )
 	{
-		GetAnimationController()->StartAnimationSequence( m_pszQueuedAnimationName );
+		GetAnimationController()->StartAnimationSequence( this, m_pszQueuedAnimationName, true, true );
 		m_pszQueuedAnimationName = NULL;
 	}
 

@@ -392,7 +392,7 @@ void CUtlBuffer::EatWhiteSpace()
 	{
 		while ( CheckGet( sizeof(char) ) )
 		{
-			if ( !isspace( *(const unsigned char*)PeekGet() ) )
+			if ( !V_isspace( *(const unsigned char*)PeekGet() ) )
 				break;
 			m_Get += sizeof(char);
 		}

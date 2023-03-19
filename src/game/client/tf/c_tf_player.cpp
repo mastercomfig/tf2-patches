@@ -2922,7 +2922,9 @@ public:
 		}
 
 		C_BaseEntity *pBaseEntity = pRend->GetIClientUnknown()->GetBaseEntity();
-		const CEconItemView *pItem = dynamic_cast< CEconItemView* >( pRend );
+		CEconItemView *pItem = dynamic_cast< CEconItemView* >( pRend );
+
+		CEconItemViewDataCacher itemDataCacher(pItem);
 
 		uint32 unAttrValue = 0;
 		uint32 unEffectValue = 0;
@@ -2974,6 +2976,7 @@ public:
 					if ( pWearable )
 					{
 						pItem = pWearable->GetAttributeContainer()->GetItem();
+						itemDataCacher.SetItem(pItem);
 						pTFPlayer = ToTFPlayer( pWearable->GetOwnerEntity() );
 						break;
 					}
@@ -2983,6 +2986,7 @@ public:
 						if ( pModel->GetOuter() )
 						{
 							pItem = pModel->GetOuter()->GetAttributeContainer()->GetItem();
+							itemDataCacher.SetItem(pItem);
 							pBaseEntity = pBaseEntity->GetOwnerEntity();
 							if ( pItem )
 							{
@@ -3005,6 +3009,7 @@ public:
 							if ( pWeapon )
 							{
 								pItem = pWeapon->GetAttributeContainer()->GetItem();
+								itemDataCacher.SetItem(pItem);
 								pBaseEntity = pWeapon;
 							}
 							bIsFirstPerson = true;
@@ -3017,6 +3022,7 @@ public:
 						if ( pWeapon )
 						{
 							pItem = pWeapon->GetAttributeContainer()->GetItem();
+							itemDataCacher.SetItem(pItem);
 							pBaseEntity = pWeapon;
 						}
 					}
@@ -3025,6 +3031,7 @@ public:
 			else
 			{
 				pItem = pWeapon->GetAttributeContainer()->GetItem();
+				itemDataCacher.SetItem(pItem);
 				pBaseEntity = pWeapon;
 				pTFPlayer = ToTFPlayer( pWeapon->GetOwner() );
 			}
@@ -3046,6 +3053,7 @@ public:
 					if ( pTFPlayer && pTFPlayer->m_Shared.GetDisguiseWeapon() )
 					{
 						pItem = pTFPlayer->m_Shared.GetDisguiseWeapon()->GetAttributeContainer()->GetItem();
+						itemDataCacher.SetItem(pItem);
 						pBaseEntity = pTFPlayer->m_Shared.GetDisguiseWeapon();
 					}
 				}
@@ -3170,11 +3178,13 @@ public:
 		int iShaderIndex = sheenParams.m_iShaderIndex;
 
 		// Australium weapons always use iShaderIndex 1
+		pItem->CacheSOCData();
 		const CEconStyleInfo *pStyle = pItem->GetStaticData()->GetStyleInfo( pItem->GetItemStyle() );
 		if ( pStyle && !pStyle->IsSelectable() )
 		{
 			iShaderIndex = 1;
 		}
+		pItem->UncacheSOCData();
 
 #ifdef STAGING_ONLY
 		if ( tf_sheen_shader_override.GetInt() > 0 )
@@ -3727,6 +3737,8 @@ public:
 		CEconItemView *pItem = GetEconItemViewFromProxyEntity( pC_BaseEntity );
 		if ( !pItem )
 			return;
+
+		CEconItemViewDataCacher dataCacher(pItem);
 
 		C_TFPlayer *pOwner = GetOwnerFromProxyEntity( pC_BaseEntity );
 		int desiredW = m_pBaseTextureOrig->GetActualWidth();
@@ -7493,8 +7505,8 @@ void C_TFPlayer::UpdateIDTarget()
 
 	trace_t tr;
 	Vector vecStart, vecEnd;
-	VectorMA( MainViewOrigin(), MAX_TRACE_LENGTH, MainViewForward(), vecEnd );
-	VectorMA( MainViewOrigin(), 10,   MainViewForward(), vecStart );
+	VectorMA( MainViewOrigin(), 8192.0f, MainViewForward(), vecEnd );
+	VectorMA( MainViewOrigin(), 10.0f,   MainViewForward(), vecStart );
 
 	// If we're in observer mode, ignore our observer target. Otherwise, ignore ourselves.
 	if ( IsObserver() )
@@ -7511,7 +7523,11 @@ void C_TFPlayer::UpdateIDTarget()
 			iReviveMedic = 1;
 		}
 
-		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
+		int nMask = MASK_SOLID;
+		if ( iReviveMedic == 1) 
+		{
+			nMask |= CONTENTS_DEBRIS;
+		}
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
 

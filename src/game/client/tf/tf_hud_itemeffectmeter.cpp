@@ -451,11 +451,11 @@ void CHudItemEffectMeter::Update( C_TFPlayer* pPlayer, const char* pSoundScript 
 	{
 		if ( ShowPercentSymbol() )
 		{
-			SetDialogVariable( "progresscount", VarArgs( "%d%%", iCount ) );
+			SetDialogVariable( "progresscount", VarArgs( "%d%%", iCount ), false );
 		}
 		else
 		{
-			SetDialogVariable( "progresscount", iCount );
+			SetDialogVariable( "progresscount", iCount, false );
 		}
 	}
 

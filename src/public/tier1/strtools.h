@@ -253,7 +253,34 @@ inline bool V_islower(char c) { return islower( (unsigned char)c ) != 0; }
 inline bool V_iscntrl(char c) { return iscntrl( (unsigned char)c ) != 0; }
 //#undef iscntrl
 //#define iscntrl use_V_iscntrl_instead_of_iscntrl
-inline bool V_isspace(char c) { return isspace( (unsigned char)c ) != 0; }
+inline bool V_isspace(int c)
+{
+	// The standard white-space characters are the following: space, tab, carriage-return, newline, vertical tab, and form-feed. In the C locale, V_isspace() returns true only for the standard white-space characters. 
+	//return c == ' ' || c == 9 /*horizontal tab*/ || c == '\r' || c == '\n' || c == 11 /*vertical tab*/ || c == '\f';
+	// codes of whitespace symbols: 9 HT, 10 \n, 11 VT, 12 form feed, 13 \r, 32 space
+
+	// easy to understand version, validated:
+	// return ((1 << (c-1)) & 0x80001F00) != 0 && ((c-1)&0xE0) == 0;
+	
+	// 5% faster on Core i7, 35% faster on Xbox360, no branches, validated:
+	#ifdef _X360
+	return ((1 << (c-1)) & 0x80001F00 & ~(-int((c-1)&0xE0))) != 0;
+	#else
+	// this is 11% faster on Core i7 than the previous, VC2005 compiler generates a seemingly unbalanced search tree that's faster
+	switch(c)
+	{
+	case ' ':
+	case 9:
+	case '\r':
+	case '\n':
+	case 11:
+	case '\f':
+		return true;
+	default:
+		return false;
+	}
+	#endif
+}
 //#undef isspace
 //#define isspace use_V_isspace_instead_of_isspace
 

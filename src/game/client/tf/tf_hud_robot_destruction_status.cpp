@@ -14,6 +14,7 @@
 #include "tf_logic_player_destruction.h"
 #include "c_tf_objective_resource.h"
 #include "c_func_capture_zone.h"
+#include "tf_hud_objectivestatus.h"
 
 #define ATTACK_BLINK_TIME 2.f
 
@@ -516,7 +517,8 @@ void CTFHUDRobotDestruction::PerformRobotLayout( RobotVector_t& vecRobots, int n
 //-----------------------------------------------------------------------------
 void CTFHUDRobotDestruction::Reset()
 {
-	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "FlagOutlineHide" );
+	CTFHudObjectiveStatus *pStatus = GET_HUDELEMENT( CTFHudObjectiveStatus );
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( pStatus, "FlagOutlineHide" );
 }
 
 //-----------------------------------------------------------------------------
@@ -562,8 +564,8 @@ void CTFHUDRobotDestruction::OnTick()
 	if ( !pRoboLogic )
 		return;
 
-	m_pRedScoreValueContainer->SetDialogVariable( "score", pRoboLogic->GetScore( TF_TEAM_RED ) );
-	m_pBlueScoreValueContainer->SetDialogVariable( "score", pRoboLogic->GetScore( TF_TEAM_BLUE ) );
+	m_pRedScoreValueContainer->SetDialogVariable( "score", pRoboLogic->GetScore( TF_TEAM_RED ), false );
+	m_pBlueScoreValueContainer->SetDialogVariable( "score", pRoboLogic->GetScore( TF_TEAM_BLUE ), false );
 
 #ifdef STAGING_ONLY
 	if ( rd_hud_test_bars.GetBool() )
@@ -574,8 +576,8 @@ void CTFHUDRobotDestruction::OnTick()
 		m_pBlueProgressBarEscrow->SetProgress( 0.f, true );
 		m_pRedProgressBarEscrow->SetProgress( 0.f, true );
 
-		m_pRedScoreValueContainer->SetDialogVariable( "score", flProgress );
-		m_pBlueScoreValueContainer->SetDialogVariable( "score", flProgress );
+		m_pRedScoreValueContainer->SetDialogVariable( "score", flProgress, false );
+		m_pBlueScoreValueContainer->SetDialogVariable( "score", flProgress, false );
 	}
 	else
 #endif
@@ -599,8 +601,8 @@ void CTFHUDRobotDestruction::OnTick()
 
 			if ( m_pProgressBarsContainer )
 			{
-				m_pProgressBarsContainer->SetDialogVariable( "red_escrow", nRedEscrow );
-				m_pProgressBarsContainer->SetDialogVariable( "blue_escrow", nBlueEscrow );
+				m_pProgressBarsContainer->SetDialogVariable( "red_escrow", nRedEscrow, false );
+				m_pProgressBarsContainer->SetDialogVariable( "blue_escrow", nBlueEscrow, false );
 			}
 
 			// update the team leader image
@@ -778,7 +780,7 @@ void CTFHUDRobotDestruction::OnTick()
 	}
 
 	SetPlayingToLabelVisible( true );
-	SetDialogVariable( "rounds", pRoboLogic->GetMaxPoints() );
+	SetDialogVariable( "rounds", pRoboLogic->GetMaxPoints(), false );
 	// HACK!  Fix the events
 	UpdateCarriedFlagStatus( NULL, NULL );
 }
@@ -865,7 +867,7 @@ void CTFHUDRobotDestruction::UpdateStolenPoints( int nTeam, EditablePanel* pCont
 		}
 		// Show the stolen panels if the stolen score is anything
 		pContainer->SetVisible( nStolenPoints > 0 );
-		pContainer->SetDialogVariable( "intelvalue", nStolenPoints );
+		pContainer->SetDialogVariable( "intelvalue", nStolenPoints, false );
 	}
 
 	// Find our stolen flag
@@ -947,7 +949,7 @@ void CTFHUDRobotDestruction::UpdateCarriedFlagStatus( C_BasePlayer *pNewOwner /*
 	if ( pPlayerFlag && !pPlayerFlag->IsMarkedForDeletion() && !pPlayerFlag->IsDormant() )
 	{
 		m_pCarriedContainer->SetVisible( true );
-		m_pCarriedContainer->SetDialogVariable( "flagvalue", pPlayerFlag->GetPointValue() );
+		m_pCarriedContainer->SetDialogVariable( "flagvalue", pPlayerFlag->GetPointValue(), false );
 		// make sure the panels are on, set the initial alpha values, 
 		// set the color of the flag we're carrying, and start the animations
 		if ( m_pCarriedImage && !m_pCarriedImage->IsVisible() )

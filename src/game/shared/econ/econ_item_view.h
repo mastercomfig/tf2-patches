@@ -358,6 +358,9 @@ public:
 	inline int					GetTeamNumber() const { return m_iTeamNumber; }
 	inline void					SetTeamNumber( int iTeamNumber ) { m_iTeamNumber = iTeamNumber; }
 
+	void						CacheSOCData() { if (!m_pSOCDataCache) m_pSOCDataCache = GetSOCData(); }
+	void						UncacheSOCData() { m_pSOCDataCache = NULL; }
+
 protected:
 	// Index of the item definition in the item script file.
 	CNetworkVar( item_definition_index_t,	m_iItemDefinitionIndex );	
@@ -394,6 +397,9 @@ protected:
 	// clients can also force an origin on an item view -- this is used for crafting item previews
 	eEconItemOrigin			m_unOverrideOrigin;
 #endif
+
+	// Can set this temporarily while calling several attribute getters to avoid looking up each time
+	CEconItem				*m_pSOCDataCache = NULL;
 
 	bool	m_bColorInit;
 	bool	m_bPaintOverrideInit;
@@ -451,5 +457,35 @@ private:
 bool DoesItemPassSearchFilter( const class IEconItemDescription *pDescription, const wchar_t* wszFilter );
 CBasePlayer *GetPlayerByAccountID( uint32 unAccountID );
 #endif // CLIENT_DLL
+
+/** There are some function calls which repeatedly call out to our underlying item, lets cache beforehand. */
+class CEconItemViewDataCacher
+{
+public:
+	CEconItemViewDataCacher(CEconItemView* pItem) : m_pItem(pItem)
+	{
+		if (!m_pItem) return;
+		pItem->CacheSOCData();
+	}
+
+	~CEconItemViewDataCacher()
+	{
+		if (!m_pItem) return;
+		m_pItem->UncacheSOCData();
+	}
+
+	void SetItem(CEconItemView* pItem)
+	{
+		if (pItem == m_pItem) return;
+		if (!pItem) return;
+		if (m_pItem) m_pItem->UncacheSOCData();
+		m_pItem = pItem;
+		m_pItem->CacheSOCData();
+	}
+
+private:
+
+	CEconItemView* m_pItem;
+};
 
 #endif // ECON_ITEM_CONSTANTS_H

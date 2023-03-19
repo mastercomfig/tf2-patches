@@ -124,7 +124,9 @@ IGameConsole *staticGameConsole = NULL;
 bool s_bWindowsInputEnabled = true;
 
 ConVar r_drawvgui( "r_drawvgui", "1", FCVAR_CHEAT, "Enable the rendering of vgui panels" );
+#if defined( _X360 ) || defined( STAGING_ONLY )
 ConVar gameui_xbox( "gameui_xbox", "0", 0 );
+#endif
 
 void Con_CreateConsolePanel( vgui::Panel *parent );
 void CL_CreateEntityReportPanel( vgui::Panel *parent );
@@ -2142,11 +2144,11 @@ void VGui_FindNamedPanels( CUtlVector< vgui::VPANEL >& panelList, char const *pa
 	VGui_RecursiveFindPanels( panelList, embedded, panelname );
 }
 
-CON_COMMAND( vgui_togglepanel, "show/hide vgui panel by name." )
+CON_COMMAND_F( vgui_togglepanel, "show/hide vgui panel by name.", FCVAR_CHEAT )
 {
 	if ( args.ArgC() < 2 )
 	{
-		ConMsg( "Usage:  vgui_showpanel panelname\n" );
+		ConMsg( "Usage:  vgui_togglepanel panelname\n" );
 		return;
 	}
 

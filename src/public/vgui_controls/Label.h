@@ -196,6 +196,8 @@ private:
 		short width;
 	};
 	CUtlVector<TImageInfo> _imageDar;
+	bool _isSimpleTextImage = false;
+	TImageInfo *_cachedSimpleTextImage;
 
 	int		   _textInset[2];
 	Color      _disabledFgColor1;

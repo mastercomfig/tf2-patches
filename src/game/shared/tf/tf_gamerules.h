@@ -1466,7 +1466,7 @@ inline float CTFGameRules::ItemTesting_GetBotAnimSpeed( void )
 		pHostTimescale = cvar->FindVar( "host_timescale" );
 	}
 
-	if ( pHostTimescale )
+	if ( pHostTimescale && pHostTimescale->GetFloat() > 0 )
 		return (m_flItemTesting_BotAnimSpeed * pHostTimescale->GetFloat());
 	return m_flItemTesting_BotAnimSpeed;
 }

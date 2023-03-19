@@ -50,7 +50,7 @@ public:
 
 	// starts an animation sequence script
 	bool StartAnimationSequence(const char *sequenceName, bool bCanBeCancelled = true );
-	bool StartAnimationSequence(Panel *pWithinParent, const char *sequenceName, bool bCanBeCancelled = true );
+	bool StartAnimationSequence(Panel *pWithinParent, const char *sequenceName, bool bCanBeCancelled = true, bool bIncludeParent = false );
 
 	bool StopAnimationSequence( Panel *pWithinParent, const char *sequenceName );
 	void CancelAnimationsForPanel( Panel *pWithinParent );
@@ -241,14 +241,14 @@ private:
 	CUtlVector<UtlSymId_t>	m_ScriptFileNames;
 
 	// runs a single line of the script
-	void ExecAnimationCommand(UtlSymId_t seqName, AnimCommand_t &animCommand, Panel *pWithinParent, bool bCanBeCancelled);
+	void ExecAnimationCommand(UtlSymId_t seqName, AnimCommand_t &animCommand, Panel *pWithinParent, bool bCanBeCancelled, bool bIncludeParent = false);
 	// removes all commands belonging to a script
 	void RemoveQueuedAnimationCommands(UtlSymId_t seqName, vgui::Panel *panel = NULL);
 	// removes an existing instance of a command
 	void RemoveQueuedAnimationByType(vgui::Panel *panel, UtlSymId_t variable, UtlSymId_t sequenceToIgnore);
 
 	// handlers
-	void StartCmd_Animate(UtlSymId_t seqName, AnimCmdAnimate_t &cmd, Panel *pWithinParent, bool bCanBeCancelled);
+	void StartCmd_Animate(UtlSymId_t seqName, AnimCmdAnimate_t &cmd, Panel *pWithinParent, bool bCanBeCancelled, bool bIncludeParent = false);
 	void StartCmd_Animate(Panel *panel, UtlSymId_t seqName, AnimCmdAnimate_t &cmd, bool bCanBeCancelled);
 	void RunCmd_RunEvent(PostedMessage_t &msg);
 	void RunCmd_StopEvent(PostedMessage_t &msg);

@@ -1349,6 +1349,8 @@ CEconItemView *CTFPlayerModelPanel::GetLoadoutItemFromMDLHandle( loadout_positio
 		if ( ( IsMiscSlot( iLoadoutSlot ) && IsMiscSlot( iPosition ) ) ||
 			 ( IsValidPickupWeaponSlot( iLoadoutSlot ) && iLoadoutSlot == iPosition ) )
 		{
+			// See if we need to cache for our style getters.
+			CEconItemViewDataCacher dataCacher(pItem->GetStaticData()->GetNumStyles() ? pItem : NULL);
 			const char * pDisplayModel = pItem->GetPlayerDisplayModel( m_iCurrentClassIndex, m_iTeam );
 			if ( pDisplayModel )
 			{
@@ -1491,6 +1493,8 @@ bool CTFPlayerModelPanel::UpdateCosmeticParticles(
 {
 	if ( m_aParticleSystems[ iSystem ] && m_aParticleSystems[ iSystem ]->m_bIsUpdateToDate )
 		return false;
+
+	CEconItemViewDataCacher dataCacher(pEconItem);
 
 	attachedparticlesystem_t *pParticleSystem = NULL;
 
