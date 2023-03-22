@@ -413,7 +413,7 @@ static void ReadMaterialSystemConfigFromRegistry( MaterialSystem_Config_t &confi
 	config.SetFlag( MATSYS_VIDCFG_FLAGS_WINDOWED, ReadVideoConfigInt( "ScreenWindowed", 0 ) != 0 );
 #if defined( USE_SDL ) && !defined( SWDS )
 	// Read the ScreenDisplayIndex and set sdl_displayindex if it's there.
-	ConVarRef conVar( "sdl_displayindex" );
+	static ConVarRef conVar( "sdl_displayindex" );
 	if ( conVar.IsValid() )
 	{
 		int displayIndex = 0;
@@ -532,7 +532,7 @@ static void WriteMaterialSystemConfigToRegistry( const MaterialSystem_Config_t &
 
 #if defined( USE_SDL ) && !defined( SWDS )
 	// Save sdl_displayindex out to ScreenDisplayIndex.
-	ConVarRef conVar( "sdl_displayindex" );
+	static ConVarRef conVar( "sdl_displayindex" );
 	if ( conVar.IsValid() && !UseVR() )
 	{
 		WriteVideoConfigInt( "ScreenDisplayIndex", conVar.GetInt() );
@@ -684,7 +684,7 @@ void OverrideMaterialSystemConfig( MaterialSystem_Config_t &config )
 {
 	// enable/disable flashlight support based on mod (user can also set this explicitly)
 	// FIXME: this is only here because dxsupport_override.cfg is currently broken
-	ConVarRef mat_supportflashlight( "mat_supportflashlight" );
+	static ConVarRef mat_supportflashlight( "mat_supportflashlight" );
 	if ( mat_supportflashlight.GetInt() == -1 )
 	{
 		const char * gameName = COM_GetModDirectory();
