@@ -2243,7 +2243,7 @@ void CTriggerPush::Activate()
 {
 	// Fix problems with triggers pushing too hard under sv_alternateticks.
 	// This is somewhat hacky, but it's simple and we're really close to shipping.
-	ConVarRef sv_alternateticks( "sv_alternateticks" );
+	static ConVarRef sv_alternateticks( "sv_alternateticks" );
 	if ( ( m_flAlternateTicksFix != 0 ) && sv_alternateticks.GetBool() )
 	{
 		m_flPushSpeed = m_flSpeed * m_flAlternateTicksFix;
