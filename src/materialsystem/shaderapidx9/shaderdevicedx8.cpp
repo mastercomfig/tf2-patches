@@ -2202,7 +2202,7 @@ IDirect3DDevice9* CShaderDeviceDx8::InvokeCreateDevice( void* hWnd, int nAdapter
 	// Create the device with multi-threaded safeguards if we're using mat_queue_mode 2.
 	// The logic to enable multithreaded rendering happens well after the device has been created, 
 	// so we replicate some of that logic here.
-	ConVarRef mat_queue_mode( "mat_queue_mode" );
+	static ConVarRef mat_queue_mode( "mat_queue_mode" );
 	if ( mat_queue_mode.GetInt() == 2 ||
 		 ( mat_queue_mode.GetInt() == -2 && GetCPUInformation()->m_nPhysicalProcessors >= 2 ) ||
 	     ( mat_queue_mode.GetInt() == -1 && GetCPUInformation()->m_nPhysicalProcessors >= 2 ) )

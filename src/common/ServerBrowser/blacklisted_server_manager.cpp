@@ -223,7 +223,7 @@ bool CBlacklistedServerManager::IsServerBlacklisted( uint32 serverIP, int server
 {
 	netadr_t netAdr( serverIP, serverPort );
 
-	ConVarRef sb_showblacklists( "sb_showblacklists" );
+	static ConVarRef sb_showblacklists( "sb_showblacklists" );
 
 	for ( int i = 0; i < m_Blacklist.Count(); i++ )
 	{

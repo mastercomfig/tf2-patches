@@ -178,7 +178,7 @@ void CEnvTonemapController::InputSetBloomScaleRange( inputdata_t &inputdata )
 void CEnvTonemapController::InputSetTonemapRate( inputdata_t &inputdata )
 {
 	// TODO: There should be a better way to do this.
-	ConVarRef mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate" );
+	static ConVarRef mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate" );
 	if ( mat_hdr_manual_tonemap_rate.IsValid() )
 	{
 		float flTonemapRate = inputdata.value.Float();
