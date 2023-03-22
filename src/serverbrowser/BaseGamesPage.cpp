@@ -2129,7 +2129,7 @@ void CDialogServerWarning::OnCommand(const char *command)
 //-----------------------------------------------------------------------------
 void CDialogServerWarning::OnButtonToggled(Panel *panel, int state)
 {
-	ConVarRef sb_dontshow_maxplayer_warning( "sb_dontshow_maxplayer_warning", true );
+	static ConVarRef sb_dontshow_maxplayer_warning( "sb_dontshow_maxplayer_warning", true );
 	if ( sb_dontshow_maxplayer_warning.IsValid() )
 	{
 		sb_dontshow_maxplayer_warning.SetValue( state );
@@ -2150,7 +2150,7 @@ void CBaseGamesPage::OnBeginConnect()
 	// Stop the current refresh
 	StopRefresh();
 
-	ConVarRef sb_dontshow_maxplayer_warning( "sb_dontshow_maxplayer_warning", true );
+	static ConVarRef sb_dontshow_maxplayer_warning( "sb_dontshow_maxplayer_warning", true );
 	if ( sb_dontshow_maxplayer_warning.IsValid() )
 	{
 		// If the server is above the suggested maxplayers, warn the player
