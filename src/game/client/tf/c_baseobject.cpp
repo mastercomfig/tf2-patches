@@ -795,11 +795,11 @@ void C_BaseObject::RecalculateIDString( void )
 		char szHealth[ MAX_ID_STRING ];
 		if ( m_bBuilding )
 		{
-			Q_snprintf( szHealth, sizeof(szHealth), "\nConstruction at %.0f percent\nHealth at %.0f percent", (m_flPercentageConstructed * 100), ceil(((float)m_iHealth / (float)m_iMaxHealth) * 100) );
+			Q_snprintf( szHealth, sizeof(szHealth), "\nConstruction at %.0f percent\nHealth at %.0f percent", (m_flPercentageConstructed * 100), Ceil2Int(((float)m_iHealth / (float)m_iMaxHealth) * 100) );
 		}
 		else
 		{
-			Q_snprintf( szHealth, sizeof(szHealth), "\nHealth at %.0f percent", ceil(((float)m_iHealth / (float)m_iMaxHealth) * 100) );
+			Q_snprintf( szHealth, sizeof(szHealth), "\nHealth at %.0f percent", Ceil2Int(((float)m_iHealth / (float)m_iMaxHealth) * 100) );
 		}
 		Q_strncat( m_szIDString, szHealth, sizeof(m_szIDString), COPY_ALL_CHARACTERS );
 	}

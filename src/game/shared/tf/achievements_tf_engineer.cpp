@@ -936,7 +936,7 @@ class CAchievementTFEngineer_BuildingCarry : public CBaseTFAchievement
 		if ( bUpdate )
 		{
 			float fMeters = pLocalPlayer->GetMetersRan();
-			IncrementCount( ceil( fMeters ) );
+			IncrementCount( Ceil2Int( fMeters ) );
 		}
 	}
 };

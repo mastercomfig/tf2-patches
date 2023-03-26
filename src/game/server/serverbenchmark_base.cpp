@@ -274,7 +274,7 @@ public:
 
 	void UpdateStartWaitCounter()
 	{
-		int nSecondsLeft = (int)ceil( m_flBenchmarkStartWaitTime - (Plat_FloatTime() - m_flBenchmarkStartTime) );
+		int nSecondsLeft = Ceil2Int( m_flBenchmarkStartWaitTime - (Plat_FloatTime() - m_flBenchmarkStartTime) );
 		if ( m_nStartWaitCounter != nSecondsLeft )
 		{
 			Msg( "Starting benchmark in %d seconds...\n", nSecondsLeft );

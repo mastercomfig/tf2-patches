@@ -1096,7 +1096,7 @@ bool CDynamicRecipePanel::IsInvPanelOnThisPage( unsigned nIndex ) const
 //-----------------------------------------------------------------------------
 int CDynamicRecipePanel::GetNumPages()
 {
-	return ceil( float(m_nNumRecipeItems) / float(GetNumBackpackPanelsPerPage()) );
+	return Ceil2Int( float(m_nNumRecipeItems) / float(GetNumBackpackPanelsPerPage()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -1139,7 +1139,7 @@ void CDynamicRecipePanel::SetCurrentInputPage( int nNewPage )
 //-----------------------------------------------------------------------------
 int CDynamicRecipePanel::GetNumInputPages() const
 {
-	return ceil( float(m_RecipeIterator.GetInputCount()) / float(GetNumInputPanelsPerPage()) );
+	return Ceil2Int( float(m_RecipeIterator.GetInputCount()) / float(GetNumInputPanelsPerPage()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -1147,7 +1147,7 @@ int CDynamicRecipePanel::GetNumInputPages() const
 //-----------------------------------------------------------------------------
 int CDynamicRecipePanel::GetNumOutputPage() const
 {
-	return ceil( float(m_RecipeIterator.GetOutputCount()) / float(GetNumOutputPanelsPerPage()) );
+	return Ceil2Int( float(m_RecipeIterator.GetOutputCount()) / float(GetNumOutputPanelsPerPage()) );
 }
 
 //-----------------------------------------------------------------------------

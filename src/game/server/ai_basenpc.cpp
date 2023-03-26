@@ -3608,7 +3608,7 @@ void CAI_BaseNPC::RebalanceThinks()
 		{
 			rebalanceCandidates.Sort( ThinkRebalanceCompare );
 
-			int iMaxThinkersPerTick = ceil( (float)( rebalanceCandidates.Count() + 1 ) / (float)iTicksPer10Hz ); // +1 to account for "this"
+			int iMaxThinkersPerTick = Ceil2Int( (float)( rebalanceCandidates.Count() + 1 ) / (float)iTicksPer10Hz ); // +1 to account for "this"
 
 			int iCurTickDistributing = MIN( gpGlobals->tickcount, rebalanceCandidates[0].iNextThinkTick );
 			int iRemainingThinksToDistribute = iMaxThinkersPerTick - 1; // Start with one fewer first time because "this" is 
