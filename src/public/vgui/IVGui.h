@@ -102,6 +102,9 @@ public:
 
 	// add a tick signal like above, but to the head of the list of tick signals
 	virtual void AddTickSignalToHead( VPANEL panel, int intervalMilliseconds = 0 ) = 0;
+
+	virtual void InvalidateMdlCache() = 0;
+	virtual uint32 GetMdlCacheTick() = 0;
 };
 
 #define VGUI_IVGUI_INTERFACE_VERSION "VGUI_ivgui008"

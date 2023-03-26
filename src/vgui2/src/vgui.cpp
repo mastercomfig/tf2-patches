@@ -173,6 +173,9 @@ public:
 	// to get the one normally used by VGUI
 	virtual void ActivateContext( HContext context );
 
+	virtual void InvalidateMdlCache();
+	virtual uint32 GetMdlCacheTick();
+
 	// enables VR mode
 	virtual void SetVRMode( bool bVRMode ) OVERRIDE
 	{
@@ -231,6 +234,7 @@ private:
 	bool m_bVRMode : 1;
 	bool m_bCanRemoveTickSignal : 1;
 	int m_nReentrancyCount;
+	uint32 m_nMdlTickCount = 0;
 
 	CUtlVector< Tick_t * > m_TickSignalVec;
 	CUtlLinkedList< Context_t >	m_Contexts;
@@ -406,6 +410,16 @@ void CVGui::ActivateContext( HContext context )
 			g_pInput->RunFrame( );
 		}
 	}
+}
+
+void CVGui::InvalidateMdlCache()
+{
+	m_nMdlTickCount = Plat_MSTime();
+}
+
+uint32 CVGui::GetMdlCacheTick()
+{
+	return m_nMdlTickCount;
 }
 
 //-----------------------------------------------------------------------------
