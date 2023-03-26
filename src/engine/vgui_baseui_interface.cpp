@@ -127,6 +127,7 @@ ConVar r_drawvgui( "r_drawvgui", "1", FCVAR_CHEAT, "Enable the rendering of vgui
 #if defined( _X360 ) || defined( STAGING_ONLY )
 ConVar gameui_xbox( "gameui_xbox", "0", 0 );
 #endif
+ConVar cl_hud_minmode( "cl_hud_minmode", "0", FCVAR_ARCHIVE);
 
 void Con_CreateConsolePanel( vgui::Panel *parent );
 void CL_CreateEntityReportPanel( vgui::Panel *parent );

@@ -1224,7 +1224,7 @@ FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 	return pResult[1];
 #else  // !X360
 	
-#if defined( PLATFORM_WINDOWS_PC64 )
+#if 1
 	uint nRet = ( uint ) f;
 	if ( nRet & 1 )
 	{
@@ -1298,7 +1298,7 @@ inline int Floor2Int( float a )
 //-----------------------------------------------------------------------------
 FORCEINLINE unsigned int FastFToC( float c )
 {
-#if defined( __i386__ )
+#if 0
 	// IEEE float bit manipulation works for values between [0, 1<<23)
 	union { float f; int i; } convert = { c*255.0f + (float)(1<<23) };
 	return convert.i & 255;
@@ -1313,7 +1313,7 @@ FORCEINLINE unsigned int FastFToC( float c )
 //-----------------------------------------------------------------------------
 FORCEINLINE int FastFloatToSmallInt( float c )
 {
-#if defined( __i386__ )
+#if 0
 	// IEEE float bit manipulation works for values between [-1<<22, 1<<22)
 	union { float f; int i; } convert = { c + (float)(3<<22) };
 	return (convert.i & ((1<<23)-1)) - (1<<22);

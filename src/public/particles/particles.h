@@ -1213,7 +1213,8 @@ protected:
 	void BloatBoundsUsingControlPoint();
 
 private:
-	void GenerateSortedIndexList( Vector vecCameraPos, CParticleVisibilityData *pVisibilityData, bool bSorted );
+	int GenerateCulledSortedIndexList( ParticleRenderData_t *pOut, Vector vecCamera, Vector vecFwd, CParticleVisibilityData *pVisibilityData, bool bSorted );
+	int GenerateSortedIndexList( ParticleRenderData_t *pOut, Vector vecCameraPos, CParticleVisibilityData *pVisibilityData, bool bSorted );
 
 	void Init( CParticleSystemDefinition *pDef, float flDelay, int nRandomSeed );
 	void InitStorage( CParticleSystemDefinition *pDef );

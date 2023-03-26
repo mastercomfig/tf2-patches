@@ -358,7 +358,7 @@ public:
 	inline int					GetTeamNumber() const { return m_iTeamNumber; }
 	inline void					SetTeamNumber( int iTeamNumber ) { m_iTeamNumber = iTeamNumber; }
 
-	void						CacheSOCData() { if (!m_pSOCDataCache) m_pSOCDataCache = GetSOCData(); }
+	bool						CacheSOCData() { if (!m_pSOCDataCache) { m_pSOCDataCache = GetSOCData(); return true; } return false; }
 	void						UncacheSOCData() { m_pSOCDataCache = NULL; }
 
 protected:
@@ -465,12 +465,12 @@ public:
 	CEconItemViewDataCacher(CEconItemView* pItem) : m_pItem(pItem)
 	{
 		if (!m_pItem) return;
-		pItem->CacheSOCData();
+		bRecursive = !m_pItem->CacheSOCData();
 	}
 
 	~CEconItemViewDataCacher()
 	{
-		if (!m_pItem) return;
+		if (!m_pItem || bRecursive) return;
 		m_pItem->UncacheSOCData();
 	}
 
@@ -478,14 +478,16 @@ public:
 	{
 		if (pItem == m_pItem) return;
 		if (!pItem) return;
-		if (m_pItem) m_pItem->UncacheSOCData();
+		if (m_pItem && !bRecursive) m_pItem->UncacheSOCData();
 		m_pItem = pItem;
-		m_pItem->CacheSOCData();
+		bRecursive = m_pItem->CacheSOCData();
 	}
 
 private:
 
 	CEconItemView* m_pItem;
+	/** Sometimes the item already has a cache, and we shouldn't mess with it. **/
+	bool bRecursive;
 };
 
 #endif // ECON_ITEM_CONSTANTS_H

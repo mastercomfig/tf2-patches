@@ -8517,7 +8517,7 @@ int C_TFPlayer::GetVisionFilterFlags( bool bWeaponsCheck /*= false */  )
 
 	// check for holidays and add them in to the mix
 	// Halloween / Fullmoon vision
-	if ( TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
+	if ( TFGameRules()->IsHolidayActive( kHoliday_HalloweenOrFullMoon ) )
 	{
 		nVisionOptInFlags |= TF_VISION_FILTER_HALLOWEEN;
 	}

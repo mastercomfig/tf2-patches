@@ -1222,7 +1222,7 @@ public:
 		}
 		else if ( FStrEq( pCommand, "nextpage" ) )
 		{
-			uint32 unNumPages = ceil( (float)m_publishedFiles.m_FileDetails.Count() / (float)MAX_ITEMS_VIEWABLE );
+			uint32 unNumPages = Ceil2Int( (float)m_publishedFiles.m_FileDetails.Count() / (float)MAX_ITEMS_VIEWABLE );
 			if ( m_unCurrentPage < unNumPages )
 			{
 				++m_unCurrentPage;
@@ -1374,7 +1374,7 @@ protected:
 			}
 
 			// paging
-			uint32 unNumPages = ceil( (float)m_publishedFiles.m_FileDetails.Count() / (float)MAX_ITEMS_VIEWABLE );
+			uint32 unNumPages = Ceil2Int( (float)m_publishedFiles.m_FileDetails.Count() / (float)MAX_ITEMS_VIEWABLE );
 			bool bMultiplePages = ( unNumPages > 1 );
 			if ( bMultiplePages )
 			{

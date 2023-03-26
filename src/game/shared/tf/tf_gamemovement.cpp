@@ -539,7 +539,7 @@ bool CTFGameMovement::ChargeMove()
 static ConVar tf_movement_stun_multiplier("tf_movement_stun_multiplier", "1", FCVAR_REPLICATED, "Multiplier for movement speed when stunned.");
 static ConVar tf_movement_stun_clip("tf_movement_stun_clip", "0.41421356237", FCVAR_REPLICATED, "Clip off stun amount.");
 #endif
-static ConVar tf_movement_stun_legacy_threshold("tf_movement_stun_legacy_threshold", "1.5", FCVAR_REPLICATED, "Relative point for legacy stun amount handling.");
+static ConVar tf_movement_stun_legacy_threshold("tf_movement_stun_legacy_threshold", "1.141", FCVAR_REPLICATED, "Relative point for legacy stun amount handling.");
 static ConVar tf_movement_stun_legacy_on_charge("tf_movement_stun_legacy_on_charge", "1", FCVAR_REPLICATED, "Always apply full stun to charging players.");
 
 //-----------------------------------------------------------------------------
