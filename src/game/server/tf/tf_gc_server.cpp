@@ -774,7 +774,7 @@ void CMatchInfo::GiveXPRewardToPlayerForAction( CSteamID steamID, CMsgTFXPSource
 	// Needs to be a positive number!
 	if ( nCount <= 0 )
 		return;
-	GiveXPDirectly( steamID, eType, ceil( (float)nCount * g_XPSourceDefs[ eType ].m_flValueMultiplier ), true );
+	GiveXPDirectly( steamID, eType, Ceil2Int( (float)nCount * g_XPSourceDefs[ eType ].m_flValueMultiplier ), true );
 }
 
 //-----------------------------------------------------------------------------
@@ -806,7 +806,7 @@ void CMatchInfo::GiveXPDirectly( CSteamID steamID, CMsgTFXPSource::XPSourceType 
 				PlayerMatchData_t::XPBonusPool_t& xpMultiplier = pMatchPlayer->m_vecXPBonusPools[ i ];
 			
 				// We do this so when specifying the multiplier, you can say you want the multiplier to be
-				int nBonusAmount = ceil( nAmount * xpMultiplier.m_flMultiplier );
+				int nBonusAmount = Ceil2Int( nAmount * xpMultiplier.m_flMultiplier );
 			
 				// If there's a maximum amount to give for this bonus, subtract from the total
 				// and remove this bonus if the pool is emptied

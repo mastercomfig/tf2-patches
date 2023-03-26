@@ -878,7 +878,7 @@ CNavArea *CNavMesh::GetNearestNavArea( const Vector &pos, bool anyZ, float maxDi
 	int originX = WorldToGridX( pos.x );
 	int originY = WorldToGridY( pos.y );
 
-	int shiftLimit = ceil(maxDist / m_gridCellSize);
+	int shiftLimit = Ceil2Int(maxDist / m_gridCellSize);
 
 	//
 	// Search in increasing rings out from origin, starting with cell

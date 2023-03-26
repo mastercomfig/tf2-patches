@@ -324,7 +324,7 @@ void CArmoryPanel::OnCommand( const char *command )
 	}
 	else if ( !Q_strnicmp( command, "nextpage", 8 ) )
 	{
-		int nMaxPages = MAX( 1, ceil(m_FilteredItemList.Count() / (float)(m_iThumbnailRows * m_iThumbnailColumns)) );
+		int nMaxPages = MAX( 1, Ceil2Int(m_FilteredItemList.Count() / (float)(m_iThumbnailRows * m_iThumbnailColumns)) );
 		if ( m_iFilterPage < (nMaxPages-1) )
 		{
 			m_iFilterPage++;
@@ -686,7 +686,7 @@ void CArmoryPanel::UpdateItemList( void )
 	delete pItemData;
 
 	char szTmp[16];
-	int nMaxPages = MAX( 1, ceil(m_FilteredItemList.Count() / (float)(m_iThumbnailRows * m_iThumbnailColumns)) );
+	int nMaxPages = MAX( 1, Ceil2Int(m_FilteredItemList.Count() / (float)(m_iThumbnailRows * m_iThumbnailColumns)) );
 	Q_snprintf(szTmp, 16, "%d/%d", m_iFilterPage+1, nMaxPages );
 	SetDialogVariable( "thumbnailpage", szTmp );
 

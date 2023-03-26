@@ -768,7 +768,7 @@ bool CObjectTeleporter::Command_Repair( CTFPlayer *pActivator, float flRepairMod
 	int iAmountToHeal = MIN( flTargetHeal, GetMaxHealth() - GetHealth() );
 		
 	// repair the building
-	int iRepairCost = ceil( (float)( iAmountToHeal ) * 0.2f );
+	int iRepairCost = Ceil2Int( (float)( iAmountToHeal ) * 0.2f );
 
 	TRACE_OBJECT( UTIL_VarArgs( "%0.2f CObjectTeleporter::Command_Repair ( %f / %d ) - cost = %d\n", gpGlobals->curtime, 
 		GetHealth(),
@@ -806,7 +806,7 @@ bool CObjectTeleporter::Command_Repair( CTFPlayer *pActivator, float flRepairMod
 			iAmountToHeal = MIN( flTargetHeal, pMatch->GetMaxHealth() - pMatch->GetHealth() );
 
 			// repair the building
-			iRepairCost = ceil( (float)( iAmountToHeal ) * 0.2f );
+			iRepairCost = Ceil2Int( (float)( iAmountToHeal ) * 0.2f );
 
 			TRACE_OBJECT( UTIL_VarArgs( "%0.2f CObjectTeleporter::Command_Repair ( %f / %d ) - cost = %d\n", gpGlobals->curtime, 
 				pMatch->GetHealth(),

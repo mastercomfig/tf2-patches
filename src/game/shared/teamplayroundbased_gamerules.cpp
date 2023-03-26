@@ -3503,11 +3503,11 @@ void CTeamplayRoundBasedRules::Update( float frametime )
 
 	if ( m_flRestartRoundTime > gpGlobals->curtime )
 	{
-		nTime = ceil( m_flRestartRoundTime - gpGlobals->curtime );
+		nTime = Ceil2Int( m_flRestartRoundTime - gpGlobals->curtime );
 	}
 	else if ( m_flCountdownTime > gpGlobals->curtime )
 	{
-		nTime = ceil( m_flCountdownTime - gpGlobals->curtime );
+		nTime = Ceil2Int( m_flCountdownTime - gpGlobals->curtime );
 	}
 
 	if ( nTime != m_nLastEventFiredTime )

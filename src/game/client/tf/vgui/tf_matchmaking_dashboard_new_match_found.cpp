@@ -58,7 +58,7 @@ public:
 
 		// Update the countdown label
 		double flTimeUntilAutoJoin = Max( 0., m_flAutoJoinTime - gpGlobals->curtime );
-		pwszAutoJoinTime = LocalizeNumberWithToken( "TF_Matchmaking_RollingQueue_AutojoinWarning", ceil( flTimeUntilAutoJoin ) );
+		pwszAutoJoinTime = LocalizeNumberWithToken( "TF_Matchmaking_RollingQueue_AutojoinWarning", Ceil2Int( flTimeUntilAutoJoin ) );
 		
 		SetDialogVariable( "auto_join", pwszAutoJoinTime );
 		

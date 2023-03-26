@@ -342,10 +342,10 @@ void CTFAmmoPack::PackTouch( CBaseEntity *pOther )
 	float flAmmoRatio = 0.5f;
 
 	int iMaxPrimary = pPlayer->GetMaxAmmo(TF_AMMO_PRIMARY);
-	GiveAmmo( ceil( iMaxPrimary * flAmmoRatio ), TF_AMMO_PRIMARY );
+	GiveAmmo( Ceil2Int( iMaxPrimary * flAmmoRatio ), TF_AMMO_PRIMARY );
 
 	int iMaxSecondary = pPlayer->GetMaxAmmo(TF_AMMO_SECONDARY);
-	GiveAmmo( ceil( iMaxSecondary * flAmmoRatio ), TF_AMMO_SECONDARY );
+	GiveAmmo( Ceil2Int( iMaxSecondary * flAmmoRatio ), TF_AMMO_SECONDARY );
 
 	int iAmmoTaken = 0;
 
@@ -386,7 +386,7 @@ void CTFAmmoPack::PackTouch( CBaseEntity *pOther )
 	if ( pPlayer->IsPlayerClass( TF_CLASS_ENGINEER ) )
 	{
 		int iMaxGrenades1 = pPlayer->GetMaxAmmo( TF_AMMO_GRENADES1 );
-		iAmmoTaken += pPlayer->GiveAmmo( ceil(iMaxGrenades1 * flAmmoRatio), TF_AMMO_GRENADES1 );
+		iAmmoTaken += pPlayer->GiveAmmo( Ceil2Int(iMaxGrenades1 * flAmmoRatio), TF_AMMO_GRENADES1 );
 	}
 
 	if ( m_PackType == AP_HALLOWEEN )

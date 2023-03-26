@@ -611,7 +611,7 @@ int CItemSelectionPanel::GetNumPages( void )
 		iNumItems = m_iItemsInSelection;
 	}
 
-	return (int)(ceil((float)iNumItems / (float)GetNumItemPanels()));
+	return Ceil2Int((float)iNumItems / (float)GetNumItemPanels());
 }
 
 

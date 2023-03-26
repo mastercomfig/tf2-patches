@@ -1736,7 +1736,7 @@ void CTFPlayer::RegenThink( void )
 	}
 	else if ( m_flAccumulatedHealthRegen < -1.f )
 	{
-		nHealAmount = ceil( m_flAccumulatedHealthRegen );
+		nHealAmount = Ceil2Int( m_flAccumulatedHealthRegen );
 		TakeDamage( CTakeDamageInfo( this, this, NULL, vec3_origin, WorldSpaceCenter(), nHealAmount * -1, DMG_GENERIC ) );
 	}
 
@@ -1865,7 +1865,7 @@ void CTFPlayer::RuneRegenThink( void )
 	}
 	else if ( m_flAccumulatedRuneHealthRegen < -1.0 )
 	{
-		nHealAmount = ceil( m_flAccumulatedRuneHealthRegen );
+		nHealAmount = Ceil2Int( m_flAccumulatedRuneHealthRegen );
 		TakeDamage( CTakeDamageInfo( this, this, NULL, vec3_origin, WorldSpaceCenter(), nHealAmount * -1, DMG_GENERIC ) );
 	}
 
