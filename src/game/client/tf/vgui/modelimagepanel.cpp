@@ -148,9 +148,9 @@ void CModelImagePanel::Paint()
 
 	// copy the rendered weapon skin from the render target
 	Assert( m_pCachedIcon == NULL );
-	CStudioHdr studioHdr( g_pMDLCache->GetStudioHdr( m_RootMDL.m_MDL.GetMDL() ), g_pMDLCache );
+	CStudioHdr* studioHdr = m_RootMDL.m_pStudioHdr;
 	char buffer[_MAX_PATH];
-	CUtlString strMDLName = V_GetFileName( studioHdr.pszName() );
+	CUtlString strMDLName = V_GetFileName( studioHdr->pszName() );
 	V_sprintf_safe( buffer, "proc/icon/mdl_%s_body%d_skin%d_w%d_h%d", strMDLName.StripExtension().Get(), m_RootMDL.m_MDL.m_nBody, m_RootMDL.m_MDL.m_nSkin, GetWide(), GetTall() );
 	SafeAssign( &m_pCachedIcon, new CIconRenderReceiver() );
 

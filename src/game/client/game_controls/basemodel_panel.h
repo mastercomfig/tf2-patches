@@ -181,6 +181,7 @@ public:
 	virtual void OnMouseWheeled( int delta );
 
 	studiohdr_t* GetStudioHdr( void ) { return m_RootMDL.m_MDL.GetStudioHdr(); }
+	CStudioHdr* GetStudioHdrFull( void ) { return m_RootMDL.m_pStudioHdr; }
 	void SetBody( unsigned int nBody ) { m_RootMDL.m_MDL.m_nBody = nBody; }
 
 	void		RotateYaw( float flDelta );
