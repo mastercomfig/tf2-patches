@@ -1382,7 +1382,7 @@ int CStorePage::AssignItemToPanel( CItemModelPanel *pPanel, int iIndex )
 //-----------------------------------------------------------------------------
 int CStorePage::GetNumPages( void )
 {
-	return ceil( (float)m_FilteredEntries.Count() / (float)GetNumItemPanels() );
+	return Ceil2Int( (float)m_FilteredEntries.Count() / (float)GetNumItemPanels() );
 }
 
 //-----------------------------------------------------------------------------

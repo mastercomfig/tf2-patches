@@ -66,19 +66,19 @@ bool CAmmoPack::MyTouch( CBasePlayer *pPlayer )
 		float flPackRatio = PackRatios[GetPowerupSize()];
 
 		int iMaxPrimary = pTFPlayer->GetMaxAmmo(TF_AMMO_PRIMARY);
-		if ( pTFPlayer->GiveAmmo( ceil(iMaxPrimary * flPackRatio), TF_AMMO_PRIMARY, true, kAmmoSource_Pickup ) )
+		if ( pTFPlayer->GiveAmmo( Ceil2Int(iMaxPrimary * flPackRatio), TF_AMMO_PRIMARY, true, kAmmoSource_Pickup ) )
 		{
 			bSuccess = true;
 		}
 
 		int iMaxSecondary = pTFPlayer->GetMaxAmmo(TF_AMMO_SECONDARY);
-		if ( pTFPlayer->GiveAmmo( ceil(iMaxSecondary * flPackRatio), TF_AMMO_SECONDARY, true, kAmmoSource_Pickup ) )
+		if ( pTFPlayer->GiveAmmo( Ceil2Int(iMaxSecondary * flPackRatio), TF_AMMO_SECONDARY, true, kAmmoSource_Pickup ) )
 		{
 			bSuccess = true;
 		}
 
 		int iMaxMetal = pTFPlayer->GetMaxAmmo(TF_AMMO_METAL);
-		if ( pTFPlayer->GiveAmmo( ceil(iMaxMetal * flPackRatio), TF_AMMO_METAL, true, kAmmoSource_Pickup ) )
+		if ( pTFPlayer->GiveAmmo( Ceil2Int(iMaxMetal * flPackRatio), TF_AMMO_METAL, true, kAmmoSource_Pickup ) )
 		{
 			bSuccess = true;
 		}
@@ -108,7 +108,7 @@ bool CAmmoPack::MyTouch( CBasePlayer *pPlayer )
 		if ( pTFPlayer->IsPlayerClass( TF_CLASS_ENGINEER ) )
 		{
 			int iMaxGrenades1 = pTFPlayer->GetMaxAmmo(TF_AMMO_GRENADES1);
-			if ( pTFPlayer->GiveAmmo( ceil(iMaxGrenades1 * flPackRatio), TF_AMMO_GRENADES1, true, kAmmoSource_Pickup ) )
+			if ( pTFPlayer->GiveAmmo( Ceil2Int(iMaxGrenades1 * flPackRatio), TF_AMMO_GRENADES1, true, kAmmoSource_Pickup ) )
 			{
 				bSuccess = true;
 			}

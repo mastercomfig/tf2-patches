@@ -1074,7 +1074,7 @@ void CBackpackPanel::PostShowPanel( bool bVisible )
 int CBackpackPanel::GetNumPages( void )
 {
 	int iMaxItems = InventoryManager()->GetLocalInventory()->GetMaxItemCount();
-	return (int)(ceil((float)iMaxItems / (float)BACKPACK_SLOTS_PER_PAGE));
+	return Ceil2Int((float)iMaxItems / (float)BACKPACK_SLOTS_PER_PAGE);
 }
 
 //-----------------------------------------------------------------------------

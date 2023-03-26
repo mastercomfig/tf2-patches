@@ -206,7 +206,7 @@ void CTFGiveawayItemPanel::PerformLayout( void )
 		else
 		{
 			iXPos += m_iPlayerXOffset;
-			iYPos = m_iPlayerYPos + (iPosition - ceil(m_iNumActivePlayers * 0.5)) * m_aPlayerList[i]->GetTall();
+			iYPos = m_iPlayerYPos + (iPosition - Ceil2Int(m_iNumActivePlayers * 0.5)) * m_aPlayerList[i]->GetTall();
 		}
 		m_aPlayerList[i]->SetPos( iXPos, iYPos );
 
