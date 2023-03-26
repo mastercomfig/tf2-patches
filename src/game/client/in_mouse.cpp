@@ -138,8 +138,8 @@ void CInput::ActivateMouse (void)
 		}
 		m_fMouseActive = true;
 
-		ResetMouse();
 #if !defined( PLATFORM_WINDOWS )
+		ResetMouse();
 		int dx, dy;
 		engine->GetMouseDelta( dx, dy, true );
 #endif
@@ -174,9 +174,10 @@ void CInput::DeactivateMouse (void)
 		}
 		m_fMouseActive = false;
 		vgui::surface()->SetCursor( vgui::dc_arrow );
-#if !defined( PLATFORM_WINDOWS )
 		// now put the mouse back in the middle of the screen
 		ResetMouse();
+#ifdef PLATFORM_WINDOWS
+		::ClipCursor(NULL);
 #endif
 
 		// Clear accumulated error, too
@@ -686,8 +687,10 @@ void CInput::MouseMove( CUserCmd *cmd )
 		// Add mouse X/Y movement to cmd
 		ApplyMouse( viewangles, cmd, mouse_x, mouse_y );
 
+#if !defined( PLATFORM_WINDOWS )
 		// Re-center the mouse.
 		ResetMouse();
+#endif
 	}
 
 	// Store out the new viewangles.

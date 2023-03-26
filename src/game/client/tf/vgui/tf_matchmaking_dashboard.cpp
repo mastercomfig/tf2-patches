@@ -314,10 +314,10 @@ void CTFMatchmakingPopup::OnTick()
 			m_bActive = false;
 			OnExit();
 		}
-	}
 
-	SetMouseInputEnabled( ShouldBeActve() );
-	SetKeyBoardInputEnabled( false ); // Never
+		SetMouseInputEnabled( bShouldBeActive );
+		SetKeyBoardInputEnabled( false ); // Never
+	}
 }
 
 

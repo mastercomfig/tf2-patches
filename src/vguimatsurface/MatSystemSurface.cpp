@@ -4108,6 +4108,8 @@ void CMatSystemSurface::CalculateMouseVisible()
 	int c = surface()->GetPopupCount();
 
 	VPANEL modalSubTree = input()->GetModalSubTree();
+	VPanel* p = nullptr;
+
 	if ( modalSubTree )
 	{
 		for (i = 0 ; i < c ; i++ )
@@ -4118,7 +4120,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 				continue;
 
 			bool isVisible=pop->IsVisible();
-			VPanel *p= pop->GetParent();
+			p= pop->GetParent();
 
 			while (p && isVisible)
 			{
@@ -4148,7 +4150,7 @@ void CMatSystemSurface::CalculateMouseVisible()
 			VPanel *pop = (VPanel *)surface()->GetPopup(i) ;
 			
 			bool isVisible=pop->IsVisible();
-			VPanel *p= pop->GetParent();
+			p= pop->GetParent();
 
 			while (p && isVisible)
 			{
@@ -4185,6 +4187,27 @@ void CMatSystemSurface::CalculateMouseVisible()
 	}
 	else
 	{
+#ifdef PLATFORM_WINDOWS
+		if (!IsCursorLocked() && p)
+		{
+			VPanel* contextPanel = p;
+			while (contextPanel->GetParent() && !contextPanel->Plat())
+			{
+				contextPanel = contextPanel->GetParent();
+			}
+			int absThis[4];
+			contextPanel->GetAbsPos(absThis[0], absThis[1]);
+			contextPanel->GetSize(absThis[2], absThis[3]);
+			absThis[2] += absThis[0];
+			absThis[3] += absThis[1];
+			RECT rect;
+			rect.left = absThis[0];
+			rect.top = absThis[1];
+			rect.right = absThis[2];
+			rect.bottom = absThis[3];
+			::ClipCursor(&rect);
+		}
+#endif
 		SetCursor(vgui::dc_none);
 		LockCursor();
 	}
