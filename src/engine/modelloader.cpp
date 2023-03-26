@@ -56,9 +56,11 @@
 #include "optimize.h"
 #include "networkstringtable.h"
 #include "tier1/callqueue.h"
+#include <vgui_controls/Controls.h>
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+#include "vgui/IVGui.h"
 
 ConVar mat_loadtextures( "mat_loadtextures", "1", FCVAR_CHEAT );
 
@@ -4855,6 +4857,8 @@ void CModelLoader::Studio_ReloadModels( CModelLoader::ReloadType_t reloadType )
 #if !defined( SWDS )
 	if ( g_ClientDLL )
 		g_ClientDLL->InvalidateMdlCache();
+	if ( vgui::ivgui() )
+		vgui::ivgui()->InvalidateMdlCache();
 #endif // SWDS
 	if ( serverGameDLL )
 		serverGameDLL->InvalidateMdlCache();

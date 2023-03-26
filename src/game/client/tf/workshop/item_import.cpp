@@ -2599,14 +2599,14 @@ int CImportPreviewItemPanel::GetSequence( const char *pszGesture )
 		return -1;
 	}
 
-	CStudioHdr studioHdr( m_pPlayerModelPanel->GetStudioHdr(), g_pMDLCache );
+	CStudioHdr *studioHdr = m_pPlayerModelPanel->GetStudioHdrFull();
 
 	// Look for the bind pose by label since it's not an activity
 	if ( !pszGesture && V_strcasecmp( m_sCurrentPose.Get(), "ref" ) == 0 )
 	{
-		for ( int iSeq = 0; iSeq < studioHdr.GetNumSeq(); ++iSeq )
+		for ( int iSeq = 0; iSeq < studioHdr->GetNumSeq(); ++iSeq )
 		{
-			mstudioseqdesc_t &seqDesc = studioHdr.pSeqdesc( iSeq );
+			mstudioseqdesc_t &seqDesc = studioHdr->pSeqdesc( iSeq );
 			if ( V_strcasecmp( seqDesc.pszLabel(), m_sCurrentPose.Get() ) == 0 )
 			{
 				return iSeq;
@@ -2635,7 +2635,7 @@ int CImportPreviewItemPanel::GetSequence( const char *pszGesture )
 	{
 		sActivity = pszActivityOverride;
 	}
-	return m_pPlayerModelPanel->FindSequenceFromActivity( &studioHdr, sActivity.Get() );
+	return m_pPlayerModelPanel->FindSequenceFromActivity( studioHdr, sActivity.Get() );
 }
 
 
@@ -2700,7 +2700,7 @@ void CImportPreviewItemPanel::StartGesture( const char *pszGesture )
 	int iSequence = GetSequence( pszGesture );
 	if ( iSequence >= 0 )
 	{
-		CStudioHdr studioHdr( m_pPlayerModelPanel->GetStudioHdr(), g_pMDLCache );
+		CStudioHdr* studioHdr = m_pPlayerModelPanel->GetStudioHdrFull();
 
 		MDLSquenceLayer_t	tmpSequenceLayers[1];
 		tmpSequenceLayers[0].m_nSequenceIndex = iSequence;
@@ -2709,7 +2709,7 @@ void CImportPreviewItemPanel::StartGesture( const char *pszGesture )
 		tmpSequenceLayers[0].m_flCycleBeganAt = 0.0f;
 		m_pPlayerModelPanel->SetSequenceLayers( tmpSequenceLayers, 1 );
 
-		float flGestureDuration = Studio_Duration( &studioHdr, iSequence, NULL );
+		float flGestureDuration = Studio_Duration( studioHdr, iSequence, NULL );
 		m_flGestureEndTime = gpGlobals->curtime + flGestureDuration;
 	}
 }

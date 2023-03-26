@@ -95,6 +95,7 @@ public:
 	int		GetMergeMDLIndex( MDLHandle_t handle );
 	CMDL	*GetMergeMDL(MDLHandle_t handle );
 	void	ClearMergeMDLs( void );
+	void	ValidateMDLs( void );
 
 	virtual void	SetupFlexWeights( void ) { return; }
 
@@ -114,6 +115,8 @@ protected:
 		matrix3x4_t	m_MDLToWorld;
 		bool		m_bDisabled;
 		float		m_flCycleStartTime;
+		CStudioHdr	*m_pStudioHdr = NULL;
+		uint32		m_nMdlCacheTickCount = 0;
 	};
 
 	MDLData_t				m_RootMDL;
