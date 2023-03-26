@@ -1150,7 +1150,7 @@ void CTeamRoundTimer::SetTimeRemaining( int iTimerSeconds )
 		{
 			float flStopWatchRemainingTime = pStopWatch->GetTimeRemaining();
 			flTimerSeconds = flStopWatchRemainingTime > 0 ? MIN( flTimerSeconds, flStopWatchRemainingTime ) : flTimerSeconds;
-			iTimerSeconds = (int)ceil( flTimerSeconds );
+			iTimerSeconds = Ceil2Int( flTimerSeconds );
 		}
 	}
 
@@ -1260,7 +1260,7 @@ void CTeamRoundTimer::AddTimerSeconds( int iSecondsToAdd, int iTeamResponsible /
 			{
 				// adjust to only add up to our stop watch timer
 				flSecondsToAdd = flStopWatchRemainingTime - flRemainingTime;
-				iSecondsToAdd = ( int )ceil( flSecondsToAdd );
+				iSecondsToAdd = Ceil2Int( flSecondsToAdd );
 			}
 		}
 	}

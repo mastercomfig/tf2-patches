@@ -583,7 +583,7 @@ void CControlPointIcon::OnTick( void )
 	int nTime = 0;
 	if ( m_flCPTimerTime - gpGlobals->curtime > 0 )
 	{
-		nTime = ceil( m_flCPTimerTime - gpGlobals->curtime );
+		nTime = Ceil2Int( m_flCPTimerTime - gpGlobals->curtime );
 	}
 
 	if ( nTime <= 10 ) // start flashing with 10 seconds left

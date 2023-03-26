@@ -1367,7 +1367,7 @@ class CAchievementTFScout_LongDistanceRunner : public CBaseTFAchievement
 		if ( bUpdate )
 		{
 			float fMeters = pLocalPlayer->GetMetersRan();
-			IncrementCount( ceil( fMeters ) );
+			IncrementCount( Ceil2Int( fMeters ) );
 		}
 	}
 };

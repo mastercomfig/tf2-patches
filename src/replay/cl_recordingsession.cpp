@@ -154,7 +154,7 @@ int CClientRecordingSession::UpdateLastBlockToDownload()
 
 	const int nCurBlock = pServerState->m_nCurrentBlock;
 	const int nDumpInterval = pServerState->m_nDumpInterval;		Assert( nDumpInterval > 0 );
-	const int nAddedBlocks = (int)ceil( replay_postdeathrecordtime.GetFloat() / nDumpInterval );	// Round up
+	const int nAddedBlocks = Ceil2Int( replay_postdeathrecordtime.GetFloat() / nDumpInterval );	// Round up
 	const int iPostDeathBlock = nCurBlock + nAddedBlocks;
 
 	IF_REPLAY_DBG( Warning( "nCurBlock: %i\n", nCurBlock ) );

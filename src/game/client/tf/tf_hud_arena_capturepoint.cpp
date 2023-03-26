@@ -134,7 +134,7 @@ void CHudArenaCapPointCountdown::OnTick( void )
 		return;
 	}
 
-	int iTimeLeft = ceil( TFGameRules()->GetCapturePointTime() - gpGlobals->curtime );
+	int iTimeLeft = Ceil2Int( TFGameRules()->GetCapturePointTime() - gpGlobals->curtime );
 	
 
 	if ( iTimeLeft > 5 || iTimeLeft <= 0 )

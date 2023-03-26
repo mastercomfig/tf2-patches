@@ -692,7 +692,7 @@ public:
 		// get list in cell that contains position
 		int originX = WorldToGridX( pos.x );
 		int originY = WorldToGridY( pos.y );
-		int shiftLimit = ceil( radius / m_gridCellSize );
+		int shiftLimit = Ceil2Int( radius / m_gridCellSize );
 		float radiusSq = radius * radius;
 		if ( radius == 0.0f )
 		{
