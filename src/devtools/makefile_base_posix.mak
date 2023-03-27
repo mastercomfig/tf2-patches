@@ -57,6 +57,7 @@ ifeq ($(CFG), release)
 	#  tonyp: The size increase was likely caused by -finline-functions and -fipa-cp-clone getting switched on with -O3.
 	# -fno-omit-frame-pointer: need this for stack traces with perf.
 	OptimizerLevel_CompilerSpecific = -O2 -fno-strict-aliasing -ffast-math -fno-omit-frame-pointer -ftree-vectorize
+	OptimizerLevel_CompilerSpecific += -fno-delete-null-pointer-checks
 	ifeq ($(CLANG_BUILD),1)
 		OptimizerLevel_CompilerSpecific += -funswitch-loops
 	else
