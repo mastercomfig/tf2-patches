@@ -7055,7 +7055,7 @@ float CTFGameRules::ApplyOnDamageAliveModifyRules( const CTakeDamageInfo &info, 
 			return -1;
 		}
 
-		if ( pAttacker == pVictimBaseEntity && (info.GetDamageType() & DMG_BLAST) &&
+		if ( pAttacker == pVictimBaseEntity && (info.GetDamageType() & DMG_BLAST || info.GetDamageCustom() == TF_DMG_CUSTOM_FLARE_EXPLOSION) &&
 			 info.GetDamagedOtherPlayers() == 0 && (info.GetDamageCustom() != TF_DMG_CUSTOM_TAUNTATK_GRENADE) )
 		{
 			// If we attacked ourselves, hurt no other players, and it is a blast,
