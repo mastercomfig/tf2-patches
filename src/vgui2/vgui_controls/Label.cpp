@@ -407,18 +407,21 @@ void Label::ComputeAlignment(int &tx0, int &ty0, int &tx1, int &ty1)
 	{
 		TImageInfo &imageInfo = *_cachedSimpleTextImage;
 		IImage *image = imageInfo.image;
-		// add up the bounds
-		int iWide, iTall;
-		image->GetSize(iWide, iTall);
-		if (iWide > wide) // if the image is larger than the label just do a west alignment
-			actualXAlignment = Label::a_west;
-		
-		// get the max height
-		maxY = max(maxY, iTall);
-		maxX += iWide;
+		if (image)
+		{
+			// add up the bounds
+			int iWide, iTall;
+			image->GetSize(iWide, iTall);
+			if (iWide > wide) // if the image is larger than the label just do a west alignment
+				actualXAlignment = Label::a_west;
+			
+			// get the max height
+			maxY = max(maxY, iTall);
+			maxX += iWide;
 
-		// add the offset to x
-		maxX += imageInfo.offset;
+			// add the offset to x
+			maxX += imageInfo.offset;
+		}
 	}
 	else
 	{
