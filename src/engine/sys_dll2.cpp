@@ -1311,6 +1311,10 @@ static void MoveConsoleWindowToFront()
 #endif
 }
 
+#if defined( PLATFORM_WINDOWS ) && !defined( USE_SDL )
+#define WM_TICKS_PASSED(A, B) ((int32)((B) - (A)) <= 0)
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: Message pump when running stand-alone
 //-----------------------------------------------------------------------------
@@ -1319,10 +1323,22 @@ void CEngineAPI::PumpMessages()
 	// This message pumping happens in SDL if SDL is enabled.
 #if defined( PLATFORM_WINDOWS ) && !defined( USE_SDL )
 	MSG msg;
+	DWORD iStartTick =  GetTickCount();
+	int new_messages = 0;
 	while ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 	{
 		TranslateMessage( &msg );
 		DispatchMessage( &msg );
+
+		// Replicating SDL workaround for Steam overlay / mouse input
+		if ( WM_TICKS_PASSED( msg.time, iStartTick ) )
+		{
+			const int MAX_NEW_MESSAGES = 3;
+			if (++new_messages > MAX_NEW_MESSAGES)
+			{
+				break;
+			}
+		}
 	}
 #endif
 
