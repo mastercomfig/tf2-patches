@@ -15,10 +15,6 @@
 
 #define DIRECTX_MATH_VERSION 318
 
-#if defined(_MSC_VER) && (_MSC_VER < 1910)
-#error DirectX Math requires Visual C++ 2017 or later.
-#endif
-
 #if defined(_MSC_VER) && !defined(_M_ARM) && !defined(_M_ARM64) && !defined(_M_HYBRID_X86_ARM64) && !defined(_M_ARM64EC) && (!_MANAGED) && (!_M_CEE) && (!defined(_M_IX86_FP) || (_M_IX86_FP > 1)) && !defined(_XM_NO_INTRINSICS_) && !defined(_XM_VECTORCALL_)
 #define _XM_VECTORCALL_ 1
 #endif
@@ -147,7 +143,11 @@
 #endif
 #endif // !_XM_NO_INTRINSICS_
 
-#include "sal.h"
+#ifdef _WIN32
+#include <sal.h>
+#else
+#include "../../dotnetrt/sal.h"
+#endif
 #include <assert.h>
 
 #ifdef _MSC_VER
