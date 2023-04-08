@@ -68,7 +68,7 @@ struct RagdollInfo_t
 	float		m_flSaveTime;
 	int			m_nNumBones;
 	Vector		m_rgBonePos[MAXSTUDIOBONES];
-	Quaternion	m_rgBoneQuaternion[MAXSTUDIOBONES];
+	QuaternionAligned	m_rgBoneQuaternion[MAXSTUDIOBONES];
 };
 
 
