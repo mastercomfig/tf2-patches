@@ -9,32 +9,50 @@
 
 #if defined( _X360 )
 #include <xboxmath.h>
+#else
+#include "dxmath.h"
+#if !USE_DXMATH
+#include <xmmintrin.h>
+#endif
+#define USE_SSE2
+#include "../thirdparty/sse_mathfun/sse_mathfun.h"
 #endif
 
 #if !defined( _X360 )
 
-// These globals are initialized by mathlib and redirected based on available fpu features
-extern float (*pfSqrt)(float x);
-extern float (*pfRSqrt)(float x);
-extern float (*pfRSqrtFast)(float x);
-extern void  (*pfFastSinCos)(float x, float *s, float *c);
-extern float (*pfFastCos)(float x);
+FORCEINLINE float RSqrt(float x)
+{
+	// The compiler will generate ideal instructions for a Newton-Raphson
+	// Specifying it directly results in worse assembly.
+	return 1.0f / sqrtf(x);
+}
+
+FORCEINLINE float RSqrtFast(float x)
+{
+	// This results in the compiler simplifying down to a plain rsqrtss
+	const __m128 vec = _mm_set_ss( x );
+	const __m128 r = _mm_rsqrt_ps( vec );
+	float temp;
+	_mm_store_ss(&temp, r);
+	return temp;
+}
+
+FORCEINLINE float CosFast(float x)
+{
+	// Compiler doesn't optimize ::cosf call, use a vectorized cos. This is better than DirectX::XMScalarCos
+	const __m128 vec = _mm_set_ss( x );
+	const __m128 r = cos_ps(vec);
+	float temp;
+	_mm_store_ss(&temp, r);
+	return temp;
+}
 
 // The following are not declared as macros because they are often used in limiting situations,
 // and sometimes the compiler simply refuses to inline them for some reason
-#define FastSqrt(x)			(*pfSqrt)(x)
-#define	FastRSqrt(x)		(*pfRSqrt)(x)
-#define FastRSqrtFast(x)    (*pfRSqrtFast)(x)
-#define FastSinCos(x,s,c)   (*pfFastSinCos)(x,s,c)
-#define FastCos(x)			(*pfFastCos)(x)
-
-#if defined(__i386__) || defined(_M_IX86)
-// On x86, the inline FPU or SSE sqrt instruction is faster than
-// the overhead of setting up a function call and saving/restoring
-// the FPU or SSE register state and can be scheduled better, too.
-#undef FastSqrt
-#define FastSqrt(x)			::sqrtf(x)
-#endif
+#define FastSqrt(x)			::sqrtf(x) // sqrt is optimized to an efficient SSE call with modern compilers
+#define	FastRSqrt(x)		RSqrt(x)
+#define FastRSqrtFast(x)    RSqrtFast(x)
+#define FastCos(x)			CosFast(x)
 
 #endif // !_X360
 

@@ -1570,7 +1570,7 @@ void FASTCALL CM_TraceToLeaf( TraceInfo_t * RESTRICT pTraceInfo, int ndxLeaf, fl
 		pCounters = pTraceInfo->GetDispCounters();
 		count = pTraceInfo->GetCount();
 
-		if (IsX360())
+		if (IsX360() || 1)
 		{
 			// set up some relatively constant variables we'll use in the loop below
 			fltx4 traceStart = LoadUnaligned3SIMD(pTraceInfo->m_start.Base());
