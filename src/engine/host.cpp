@@ -1761,7 +1761,10 @@ void Host_ReadPreStartupConfiguration()
 	{
 		"sv_unlockedchapters",		// needed to display the startup graphic while loading
 		"snd_legacy_surround",		// needed to init the sound system
+#if defined( _X360 ) || defined( STAGING_ONLY )
 		"gameui_xbox",				// needed to initialize the correct UI
+#endif
+		"cl_hud_minmode",			// needed to initialize the correct UI
 		"save_in_memory"			// needed to preread data from the correct location in UI
 	};
 
