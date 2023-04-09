@@ -2145,11 +2145,11 @@ void VGui_FindNamedPanels( CUtlVector< vgui::VPANEL >& panelList, char const *pa
 	VGui_RecursiveFindPanels( panelList, embedded, panelname );
 }
 
-CON_COMMAND( vgui_togglepanel, "show/hide vgui panel by name." )
+CON_COMMAND_F( vgui_togglepanel, "show/hide vgui panel by name.", FCVAR_CHEAT )
 {
 	if ( args.ArgC() < 2 )
 	{
-		ConMsg( "Usage:  vgui_showpanel panelname\n" );
+		ConMsg( "Usage:  vgui_togglepanel panelname\n" );
 		return;
 	}
 
