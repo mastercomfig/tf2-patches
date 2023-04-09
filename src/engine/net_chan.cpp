@@ -1876,12 +1876,12 @@ bool CNetChan::ProcessMessages( bf_read &buf  )
 	const char * showmsgname = net_showmsg.GetString();
 	const char * blockmsgname = net_blockmsg.GetString();
 
-	if ( !Q_strcmp(showmsgname, "0") )
+	if ( showmsgname[0] == '0' )
 	{
 		showmsgname = NULL;	// dont do strcmp all the time
 	}
 
-	if ( !Q_strcmp(blockmsgname, "0") )
+	if ( blockmsgname[0] == '0' )
 	{
 		blockmsgname = NULL;	// dont do strcmp all the time
 	}
