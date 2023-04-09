@@ -645,7 +645,8 @@ C_VGuiScreen *CVGuiScreenEnumerator::GetVGuiScreen( int index )
 //-----------------------------------------------------------------------------
 C_BaseEntity *FindNearbyVguiScreen( const Vector &viewPosition, const QAngle &viewAngle, int nTeam )
 {
-	if ( IsX360() )
+	// Feature not used, causes crashes if entity exists anyway...
+	if ( IsX360() || 1 )
 	{
 		// X360TBD: Turn this on if feature actually used
 		return NULL;
