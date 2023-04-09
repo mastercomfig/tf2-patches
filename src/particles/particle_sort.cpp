@@ -25,9 +25,10 @@ enum EParticleSortKeyType
 };
 
 
-template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPos, CParticleVisibilityData *pVisibilityData, CParticleCollection *pParticles )
+template<EParticleSortKeyType eSortKeyMode, bool bCull> void s_GenerateData( void *pOutData, Vector CameraPos, Vector *pCameraFwd, 
+																			 CParticleVisibilityData *pVisibilityData, CParticleCollection *pParticles )
 {
-	fltx4 *pOutUnSorted = reinterpret_cast<fltx4 *>( s_SortedIndexList );
+	fltx4 *pOutUnSorted = reinterpret_cast<fltx4 *>( pOutData );
 
 	C4VAttributeIterator pXYZ( PARTICLE_ATTRIBUTE_XYZ, pParticles );
 	CM128AttributeIterator pCreationTimeStamp( PARTICLE_ATTRIBUTE_CREATION_TIME, pParticles );
@@ -39,6 +40,9 @@ template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPo
 
 	FourVectors EyePos;
 	EyePos.DuplicateVector( CameraPos );
+	FourVectors v4Fwd;
+	if ( bCull )
+		v4Fwd.DuplicateVector( *pCameraFwd );
 
 
 	fltx4 fl4AlphaVis = ReplicateX4( pVisibilityData->m_flAlphaVisibility );
@@ -50,52 +54,12 @@ template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPo
 	fl4OutIdx = AddSIMD( fl4OutIdx, Four_2ToThe23s);							// fix as int
 
 	bool bUseVis = pVisibilityData->m_bUseVisibility;
-	bool bCameraBias = pVisibilityData->m_flCameraBias != 0.0f;
-	fltx4 fl4Bias = ReplicateX4( pVisibilityData->m_flCameraBias );
 
 	fltx4 fl4AlphaScale = ReplicateX4( 255.0 );
+	fltx4 fl4SortKey = Four_Zeros;
 
 	do
 	{
-		fltx4 fl4X = pXYZ->x;
-		fltx4 fl4Y = pXYZ->y;
-		fltx4 fl4Z = pXYZ->z;
-		
-		fltx4 fl4SortKey;
-		if ( eSortKeyMode == SORT_KEY_DISTANCE )
-		{
-			fltx4 Xdiff = SubSIMD( EyePos.x, fl4X );
-			fltx4 Ydiff = SubSIMD( EyePos.y, fl4Y );
-			fltx4 Zdiff = SubSIMD( EyePos.z, fl4Z );
-
-			if ( bCameraBias )
-			{
-				FourVectors v4CameraBias;
-				v4CameraBias.x = Xdiff;
-				v4CameraBias.y = Ydiff;
-				v4CameraBias.z = Zdiff;
-				//v4CameraBias = VectorNormalizeFast( v4CameraBias );
-				v4CameraBias.VectorNormalizeFast();
-				v4CameraBias *= fl4Bias;
-				fl4X = SubSIMD( fl4X, v4CameraBias.x );
-				fl4Y = SubSIMD( fl4Y, v4CameraBias.y );
-				fl4Z = SubSIMD( fl4Z, v4CameraBias.z );
-
-				Xdiff = SubSIMD( EyePos.x, fl4X );
-				Ydiff = SubSIMD( EyePos.y, fl4Y );
-				Zdiff = SubSIMD( EyePos.z, fl4Z );
-			}
-
-			fl4SortKey = AddSIMD( MulSIMD( Xdiff, Xdiff ),
-								  AddSIMD( MulSIMD( Ydiff, Ydiff ),
-										   MulSIMD( Zdiff, Zdiff ) ) );
-		}
-		else 
-		{
-			Assert ( eSortKeyMode == SORT_KEY_CREATION_TIME || eSortKeyMode == SORT_KEY_NONE );
-			fl4SortKey = *pCreationTimeStamp;
-		}
-
 		fltx4 fl4FinalAlpha = MulSIMD( *pAlpha, *pAlpha2 );
 		fltx4 fl4FinalRadius = *pRadius;
 
@@ -104,10 +68,36 @@ template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPo
 			fl4FinalAlpha = MaxSIMD ( Four_Zeros, MinSIMD( Four_Ones, MulSIMD( fl4FinalAlpha, fl4AlphaVis) ) );
 			fl4FinalRadius = MulSIMD( fl4FinalRadius, fl4RadVis );
 		}
-
 		// convert float 0..1 to int 0..255
 		fl4FinalAlpha = AddSIMD( MulSIMD( fl4FinalAlpha, fl4AlphaScale ), Four_2ToThe23s );
 
+		if ( eSortKeyMode == SORT_KEY_CREATION_TIME )
+		{
+			fl4SortKey = *pCreationTimeStamp;
+		}
+		if ( bCull || ( eSortKeyMode == SORT_KEY_DISTANCE ) )
+		{
+			fltx4 fl4X = pXYZ->x;
+			fltx4 fl4Y = pXYZ->y;
+			fltx4 fl4Z = pXYZ->z;
+			fltx4 Xdiff = SubSIMD( fl4X, EyePos.x );
+			fltx4 Ydiff = SubSIMD( fl4Y, EyePos.y );
+			fltx4 Zdiff = SubSIMD( fl4Z, EyePos.z );
+			if ( bCull )
+			{
+				fltx4 dot = AddSIMD( MulSIMD( Xdiff, v4Fwd.x ),
+									 AddSIMD(
+										 MulSIMD( Ydiff, v4Fwd.y ),
+										 MulSIMD( Zdiff, v4Fwd.z ) ) );
+				fl4FinalAlpha = AndSIMD( fl4FinalAlpha, CmpGeSIMD( dot, Four_Zeros ) );
+			}
+			if ( eSortKeyMode == SORT_KEY_DISTANCE )
+			{
+				fl4SortKey = AddSIMD( MulSIMD( Xdiff, Xdiff ),
+									  AddSIMD( MulSIMD( Ydiff, Ydiff ),
+											   MulSIMD( Zdiff, Zdiff ) ) );
+			}
+		}
 		// now, we will use simd transpose to write the output
 		fltx4 i4Indices = AndSIMD( fl4OutIdx, 	LoadAlignedSIMD( (float *) g_SIMD_Low16BitsMask ) );
 		TransposeSIMD( fl4SortKey, i4Indices, fl4FinalRadius, fl4FinalAlpha );
@@ -117,6 +107,7 @@ template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPo
 		pOutUnSorted[3] = fl4FinalAlpha;
 		
 		pOutUnSorted += 4;
+
 		fl4OutIdx = AddSIMD( fl4OutIdx, Four_Fours );
 
 		nParticles -= 4;
@@ -126,7 +117,6 @@ template<EParticleSortKeyType eSortKeyMode> void s_GenerateData( Vector CameraPo
 		++pAlpha2;
 		++pRadius;
 	} while( nParticles > 0 );								// we're not called with 0
-
 }
 
 
@@ -140,40 +130,51 @@ static bool SortLessFunc( const ParticleRenderData_t &left, const ParticleRender
 }
 
 
-void CParticleCollection::GenerateSortedIndexList( Vector vecCamera, CParticleVisibilityData *pVisibilityData, bool bSorted )
+int CParticleCollection::GenerateSortedIndexList( ParticleRenderData_t *pOut, Vector vecCamera, CParticleVisibilityData *pVisibilityData, bool bSorted )
 {
 	VPROF_BUDGET( "CParticleCollection::GenerateSortedIndexList", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
 
+	int nParticles = m_nActiveParticles;
 	if ( bSorted )
 	{
-		s_GenerateData<SORT_KEY_DISTANCE>( vecCamera, pVisibilityData, this );
+		s_GenerateData<SORT_KEY_DISTANCE, false>( pOut, vecCamera, NULL, pVisibilityData, this );
 	}
 	else
-		s_GenerateData<SORT_KEY_NONE>( vecCamera, pVisibilityData, this );
-
-// check data
-#if 0
-	bool bBad = false;
-	for( int i = 0; i < m_nActiveParticles; i++ )
-	{
-		Assert( s_SortedIndexList[i].m_nIndex == i );
-		if ( s_SortedIndexList[i].m_nIndex != i )
-			bBad = true;
-	}
-	if ( bBad )
-	{
-		s_GenerateData<SORT_KEY_NONE>( vecCamera, pVisibilityData, this );
-	}
-#endif
+		s_GenerateData<SORT_KEY_NONE, false>( pOut, vecCamera, NULL, pVisibilityData, this );
 
 #ifndef SWDS
 	if ( bSorted )
 	{
 		// sort the output in place
-		std::make_heap( s_SortedIndexList, s_SortedIndexList + m_nActiveParticles, SortLessFunc );
-		std::sort_heap( s_SortedIndexList, s_SortedIndexList + m_nActiveParticles, SortLessFunc );
+		std::make_heap( pOut, pOut + nParticles, SortLessFunc );
+		std::sort_heap( pOut, pOut + nParticles, SortLessFunc );
 	}
 #endif
+	return nParticles;
+}
+
+int CParticleCollection::GenerateCulledSortedIndexList( 
+	ParticleRenderData_t *pOut, Vector vecCamera, Vector vecFwd, CParticleVisibilityData *pVisibilityData, bool bSorted )
+{
+	VPROF_BUDGET( "CParticleCollection::GenerateSortedIndexList", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
+
+	int nParticles = m_nActiveParticles;
+	if ( bSorted )
+	{
+		s_GenerateData<SORT_KEY_DISTANCE, true>( pOut, vecCamera, &vecFwd, pVisibilityData, this );
+	}
+	else
+		s_GenerateData<SORT_KEY_NONE, true>( pOut, vecCamera, &vecFwd, pVisibilityData, this );
+
+#ifndef SWDS
+	if ( bSorted )
+	{
+		// sort the output in place
+		std::make_heap( pOut, pOut + nParticles, SortLessFunc );
+		std::sort_heap( pOut, pOut + nParticles, SortLessFunc );
+	}
+#endif
+	return nParticles;
 }
 
 
@@ -184,9 +185,24 @@ const ParticleRenderData_t *CParticleCollection::GetRenderList( IMatRenderContex
 
 	Vector vecCamera;
 	pRenderContext->GetWorldSpaceCameraPosition( &vecCamera );
-	*pNparticles = m_nActiveParticles;
-	GenerateSortedIndexList( vecCamera, pVisibilityData, bSorted );
-	return s_SortedIndexList+m_nActiveParticles;
+	ParticleRenderData_t *pOut = s_SortedIndexList;
+	// check if the camera is inside the bounding box to see whether culling is worth it
+	int nParticles;
+
+	if ( vecCamera.WithinAABox( m_MinBounds, m_MaxBounds ) )
+	{
+		Vector vecFwd, vecRight, vecUp;
+		pRenderContext->GetWorldSpaceCameraVectors( &vecFwd, &vecRight, &vecUp );
+		
+		nParticles = GenerateCulledSortedIndexList( pOut, vecCamera, vecFwd, pVisibilityData, bSorted );
+	}
+	else
+	{
+		// outside the bounds. don't bother agressive culling
+		nParticles = GenerateSortedIndexList( pOut, vecCamera, pVisibilityData, bSorted );
+	}
+	*pNparticles = nParticles;
+	return pOut + nParticles;
 }
 
 

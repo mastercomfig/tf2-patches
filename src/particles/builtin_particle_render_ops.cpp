@@ -938,10 +938,10 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 	float yaw = SubFloat( info.m_pYaw[ nGroup * info.m_nYawStride ], nOffset );
 
 	int nXYZIndex = nGroup * info.m_nXYZStride;
-	Vector vecWorldPos;
-	vecWorldPos.x = SubFloat( info.m_pXYZ[ nXYZIndex ], nOffset );
-	vecWorldPos.y = SubFloat( info.m_pXYZ[ nXYZIndex+1 ], nOffset );
-	vecWorldPos.z = SubFloat( info.m_pXYZ[ nXYZIndex+2 ], nOffset );
+	float x = SubFloat( info.m_pXYZ[ nXYZIndex ], nOffset );
+	float y = SubFloat( info.m_pXYZ[ nXYZIndex+1 ], nOffset );
+	float z = SubFloat( info.m_pXYZ[ nXYZIndex+2 ], nOffset );
+	Vector vecWorldPos{x, y, z};
 
 	if ( bCameraBias )
 	{
@@ -952,7 +952,7 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 	}
 
 	// Find the sample for this frame
-	const SheetSequenceSample_t *pSample = &s_DefaultSheetSequence;
+	const SheetSequenceSample_t *pSample;
 	if ( info.m_pSheet )
 	{
 		float flAgeScale = info.m_flAgeScale;
@@ -971,51 +971,35 @@ void C_OP_RenderSprites::RenderSpriteCard( CMeshBuilder &meshBuilder, C_OP_Rende
 			info.m_pParticles->m_flCurTime, 
 			flAgeScale, nSequence );
 	}
+	else
+	{
+		pSample = &s_DefaultSheetSequence;
+	}
 
 	const SequenceSampleTextureCoords_t *pSample0 = &(pSample->m_TextureCoordData[0]);
 	const SequenceSampleTextureCoords_t *pSecondTexture0 = &(pSample->m_TextureCoordData[1]);
 
-	// Submit 1 (instanced) or 4 (non-instanced) verts (if we're instancing, we don't produce indices either)
-	meshBuilder.Position3f( vecWorldPos.x, vecWorldPos.y, vecWorldPos.z );
-	meshBuilder.Color4ub( rc, gc, bc, ac );
-	meshBuilder.TexCoord4f( 0, pSample0->m_fLeft_U0, pSample0->m_fTop_V0, pSample0->m_fRight_U0, pSample0->m_fBottom_V0 );
-	meshBuilder.TexCoord4f( 1, pSample0->m_fLeft_U1, pSample0->m_fTop_V1, pSample0->m_fRight_U1, pSample0->m_fBottom_V1 );
-	meshBuilder.TexCoord4f( 2, pSample->m_fBlendFactor, rot, rad, yaw );
-	// FIXME: change the vertex decl (remove texcoord3/cornerid) if instancing - need to adjust elements beyond texcoord3 down, though
-	if ( !bUseInstancing )
-		meshBuilder.TexCoord2f( 3, 0, 0 );
-	meshBuilder.TexCoord4f( 4, pSecondTexture0->m_fLeft_U0, pSecondTexture0->m_fTop_V0, pSecondTexture0->m_fRight_U0, pSecondTexture0->m_fBottom_V0 );
-	meshBuilder.AdvanceVertex();
+	static float s_flCornerIds[] = { 0,0, 1,0, 1,1, 0,1 };
 
-	if ( !bUseInstancing )
+	float const *pIds = s_flCornerIds;
+
+	for( int i = 0; i < ( bUseInstancing ? 1 : 4 ); i++ )
 	{
-		meshBuilder.Position3f( vecWorldPos.x, vecWorldPos.y, vecWorldPos.z );
+		meshBuilder.Position3f( x, y, z );
 		meshBuilder.Color4ub( rc, gc, bc, ac );
 		meshBuilder.TexCoord4f( 0, pSample0->m_fLeft_U0, pSample0->m_fTop_V0, pSample0->m_fRight_U0, pSample0->m_fBottom_V0 );
 		meshBuilder.TexCoord4f( 1, pSample0->m_fLeft_U1, pSample0->m_fTop_V1, pSample0->m_fRight_U1, pSample0->m_fBottom_V1 );
 		meshBuilder.TexCoord4f( 2, pSample->m_fBlendFactor, rot, rad, yaw );
-		meshBuilder.TexCoord2f( 3, 1, 0 );
+		if ( ! bUseInstancing )
+		{
+			meshBuilder.TexCoord2fv( 3, pIds );
+			pIds += 2;
+		}
 		meshBuilder.TexCoord4f( 4, pSecondTexture0->m_fLeft_U0, pSecondTexture0->m_fTop_V0, pSecondTexture0->m_fRight_U0, pSecondTexture0->m_fBottom_V0 );
-		meshBuilder.AdvanceVertex();
-
-		meshBuilder.Position3f( vecWorldPos.x, vecWorldPos.y, vecWorldPos.z );
-		meshBuilder.Color4ub( rc, gc, bc, ac );
-		meshBuilder.TexCoord4f( 0, pSample0->m_fLeft_U0, pSample0->m_fTop_V0, pSample0->m_fRight_U0, pSample0->m_fBottom_V0 );
-		meshBuilder.TexCoord4f( 1, pSample0->m_fLeft_U1, pSample0->m_fTop_V1, pSample0->m_fRight_U1, pSample0->m_fBottom_V1 );
-		meshBuilder.TexCoord4f( 2, pSample->m_fBlendFactor, rot, rad, yaw );
-		meshBuilder.TexCoord2f( 3, 1, 1 );
-		meshBuilder.TexCoord4f( 4, pSecondTexture0->m_fLeft_U0, pSecondTexture0->m_fTop_V0, pSecondTexture0->m_fRight_U0, pSecondTexture0->m_fBottom_V0 );
-		meshBuilder.AdvanceVertex();
-
-		meshBuilder.Position3f( vecWorldPos.x, vecWorldPos.y, vecWorldPos.z );
-		meshBuilder.Color4ub( rc, gc, bc, ac );
-		meshBuilder.TexCoord4f( 0, pSample0->m_fLeft_U0, pSample0->m_fTop_V0, pSample0->m_fRight_U0, pSample0->m_fBottom_V0 );
-		meshBuilder.TexCoord4f( 1, pSample0->m_fLeft_U1, pSample0->m_fTop_V1, pSample0->m_fRight_U1, pSample0->m_fBottom_V1 );
-		meshBuilder.TexCoord4f( 2, pSample->m_fBlendFactor, rot, rad, yaw );
-		meshBuilder.TexCoord2f( 3, 0, 1 );
-		meshBuilder.TexCoord4f( 4, pSecondTexture0->m_fLeft_U0, pSecondTexture0->m_fTop_V0, pSecondTexture0->m_fRight_U0, pSecondTexture0->m_fBottom_V0 );
-		meshBuilder.AdvanceVertex();
-
+		meshBuilder.AdvanceVertexF<VTX_HAVEPOS | VTX_HAVECOLOR, 5>();
+	}
+	if ( ! bUseInstancing )
+	{
 		meshBuilder.FastQuad( info.m_nVertexOffset );
 		info.m_nVertexOffset += 4;
 	}
