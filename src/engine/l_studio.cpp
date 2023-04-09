@@ -2785,11 +2785,11 @@ struct rbatch_t
 // ----------------------------------------
 */
 
-inline int FindModel( const CUtlVector<rmodel_t> &list, const model_t *pModel )
+inline int FindModel( const rmodel_t* pList, int listCount, const model_t* pModel )
 {
-	for ( int j = list.Count(); --j >= 0 ; )
+	for ( int j = listCount; --j >= 0 ; )
 	{
-		if ( list[j].pModel == pModel )
+		if ( pList[j].pModel == pModel )
 			return j;
 	}
 	return -1;
@@ -2808,11 +2808,11 @@ int CModelRender::DrawStaticPropArrayFast( StaticPropRenderInfo_t *pProps, int c
 	CMatRenderContextPtr pRenderContext( materials );
 	const int MAX_OBJECTS = 1024;
 	CUtlSortVector<robject_t, CRobjectLess> objectList(0, MAX_OBJECTS);
-	CUtlVector<rmodel_t> modelList(0,256);
-	CUtlVector<short> lightObjects(0,256);
-	CUtlVector<short> shadowObjects(0,64);
-	CUtlVector<rdecalmodel_t> decalObjects(0,64);
-	CUtlVector<LightingState_t> lightStates(0,256);
+	CUtlVectorFixedGrowable<rmodel_t, 256> modelList;
+	CUtlVectorFixedGrowable<short, 256> lightObjects;
+	CUtlVectorFixedGrowable<short, 64> shadowObjects;
+	CUtlVectorFixedGrowable<rdecalmodel_t, 64> decalObjects;
+	CUtlVectorFixedGrowable<LightingState_t, 256> lightStates;
 	bool bForceCubemap = r_showenvcubemap.GetBool();
 	int drawnCount = 0;
 	int forcedLodSetting = r_lod.GetInt();
@@ -2826,7 +2826,7 @@ int CModelRender::DrawStaticPropArrayFast( StaticPropRenderInfo_t *pProps, int c
 	{
 		drawnCount++;
 		// UNDONE: This is a perf hit in some scenes!  Use a hash?
-		int modelIndex = FindModel( modelList, pProps[i].pModel );
+		int modelIndex = FindModel( modelList.Base(), modelList.Count(), pProps[i].pModel );
 		if ( modelIndex < 0 )
 		{
 			modelIndex = modelList.AddToTail();
