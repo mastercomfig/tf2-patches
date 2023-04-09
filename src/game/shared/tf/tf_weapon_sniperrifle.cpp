@@ -1517,12 +1517,14 @@ bool CSniperDot::GetRenderingPositions( C_TFPlayer *pPlayer, Vector &vecAttachme
 		{
 			// Take the owning player eye position and direction.
 			vecAttachment = pPlayer->EyePosition();
-			QAngle anglesEye = pPlayer->EyeAngles();
-			AngleVectors( anglesEye, &vecDir );
+			// UNDONE: trace out to the networked origin (which is more accurate than the networked view angles)
+			vecDir = GetAbsOrigin() - vecAttachment;
+			VectorNormalize( vecDir );
 		}
 
 		trace_t tr;
 		CTraceFilterIgnoreFriendlyCombatItems filter( pPlayer, COLLISION_GROUP_NONE, pPlayer->GetTeamNumber() );
+		// For our own angles, we can use them
 		UTIL_TraceLine( vecAttachment, vecAttachment + ( vecDir * flDist ), MASK_SHOT, &filter, &tr );
 
 		// Backup off the hit plane, towards the source
