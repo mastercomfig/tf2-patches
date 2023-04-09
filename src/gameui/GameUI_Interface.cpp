@@ -170,8 +170,12 @@ void CGameUI::Initialize( CreateInterfaceFn factory )
 
 	steamapicontext->Init();
 
+#if defined( _X360 ) || defined( STAGING_ONLY )
 	ConVarRef var( "gameui_xbox" );
 	m_bIsConsoleUI = var.IsValid() && var.GetBool();
+#else
+	m_bIsConsoleUI = false;
+#endif
 
 	vgui::VGui_InitInterfacesList( "GameUI", &factory, 1 );
 	vgui::VGui_InitMatSysInterfacesList( "GameUI", &factory, 1 );
