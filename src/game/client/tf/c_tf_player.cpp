@@ -7503,8 +7503,8 @@ void C_TFPlayer::UpdateIDTarget()
 
 	trace_t tr;
 	Vector vecStart, vecEnd;
-	VectorMA( MainViewOrigin(), MAX_TRACE_LENGTH, MainViewForward(), vecEnd );
-	VectorMA( MainViewOrigin(), 10,   MainViewForward(), vecStart );
+	VectorMA( MainViewOrigin(), 8192.0f, MainViewForward(), vecEnd );
+	VectorMA( MainViewOrigin(), 10.0f,   MainViewForward(), vecStart );
 
 	// If we're in observer mode, ignore our observer target. Otherwise, ignore ourselves.
 	if ( IsObserver() )
@@ -7513,14 +7513,6 @@ void C_TFPlayer::UpdateIDTarget()
 	}
 	else
 	{
-		// Add DEBRIS when a medic has revive (for tracing against revive markers)
-		int iReviveMedic = 0;
-		CALL_ATTRIB_HOOK_INT( iReviveMedic, revive );
-		if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() && pLocalPlayer->IsPlayerClass( TF_CLASS_MEDIC ) )
-		{
-			iReviveMedic = 1;
-		}
-
 		int nMask = MASK_SOLID | CONTENTS_DEBRIS;
 		UTIL_TraceLine( vecStart, vecEnd, nMask, this, COLLISION_GROUP_NONE, &tr );
 	}
