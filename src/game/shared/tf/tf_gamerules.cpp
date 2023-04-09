@@ -6186,7 +6186,7 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 	}
 
 	int iPierceResists = 0;
-	CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iPierceResists, mod_ignore_resists_absorbs );
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iPierceResists, mod_pierce_resists_absorbs );
 
 	// Use defense buffs if it's not a backstab or direct crush damage (telefrage, etc.)
 	if ( pVictim && info.GetDamageCustom() != TF_DMG_CUSTOM_BACKSTAB && ( info.GetDamageType() & DMG_CRUSH ) == 0 )
@@ -6836,10 +6836,11 @@ float CTFGameRules::ApplyOnDamageAliveModifyRules( const CTakeDamageInfo &info, 
 		// Check if we're immune
 		outParams.bPlayDamageReductionSound = CheckForDamageTypeImmunity( info.GetDamageType(), pVictim, flDamageBase, flDamageBonus );
 
+		// Reduce only the crit portion of the damage with crit resist
+			bool bCrit = ( info.GetDamageType() & DMG_CRITICAL ) > 0;
+
 		if ( !iPierceResists )
 		{
-			// Reduce only the crit portion of the damage with crit resist
-			bool bCrit = ( info.GetDamageType() & DMG_CRITICAL ) > 0;
 			if ( bCrit )
 			{
 				// Break the damage down and reassemble
@@ -6879,15 +6880,23 @@ float CTFGameRules::ApplyOnDamageAliveModifyRules( const CTakeDamageInfo &info, 
 					outParams.bPlayDamageReductionSound = CheckMedicResist( TF_COND_MEDIGUN_SMALL_BLAST_RESIST, TF_COND_MEDIGUN_UBER_BLAST_RESIST, pVictim, flRawDamage, flDamageBase, bCrit, flDamageBonus );
 				}
 			}
+		}
 
-			if ( info.GetDamageType() & (DMG_BULLET|DMG_BUCKSHOT) )
+		if ( info.GetDamageType() & (DMG_BULLET|DMG_BUCKSHOT) )
+		{
+			float flResist = 1.0f;
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pVictim, flResist, mult_dmgtaken_from_bullets );
+			// If the resist is actually a vulnerability, apply it even if we're piercing resists
+			if ( flResist > 1.0f || !iPierceResists )
 			{
-				CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pVictim, flDamageBase, mult_dmgtaken_from_bullets );
-
+				flDamageBase *= flResist;
 				// Check for medic resist
 				outParams.bPlayDamageReductionSound = CheckMedicResist( TF_COND_MEDIGUN_SMALL_BULLET_RESIST, TF_COND_MEDIGUN_UBER_BULLET_RESIST, pVictim, flRawDamage, flDamageBase, bCrit, flDamageBonus );
 			}
+		}
 
+		if ( !iPierceResists )
+		{
 			if ( info.GetDamageType() & DMG_MELEE )
 			{
 				CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pVictim, flDamageBase, mult_dmgtaken_from_melee );
