@@ -121,6 +121,10 @@ void CUpgrades::UpgradeTouch( CBaseEntity *pOther )
 			if ( pOther->IsPlayer() )
 			{
 				CTFPlayer *pTFPlayer = ToTFPlayer( pOther );
+				if ( !pTFPlayer->m_Shared.IsInUpgradeZone() && TFGameRules()->State_Get() == GR_STATE_BETWEEN_RNDS )
+				{
+					pTFPlayer->SpeakConceptIfAllowed( MP_CONCEPT_MVM_ENCOURAGE_UPGRADE );
+				}
 				pTFPlayer->m_Shared.SetInUpgradeZone( true );
 			}
 		}

@@ -1252,6 +1252,8 @@ void CPopulationManager::WaveEnd( bool bSuccess )
 
 	if ( bSuccess )
 	{
+		TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed( MP_CONCEPT_MVM_WAVE_WIN, TF_TEAM_PVE_DEFENDERS );
+
 		if ( m_bBonusRound )
 		{
 			if ( m_hBonusBoss )
@@ -1311,6 +1313,10 @@ void CPopulationManager::WaveEnd( bool bSuccess )
 			TFGameRules()->State_Transition( GR_STATE_GAME_OVER );
 			return;
 		}
+	}
+	else
+	{
+		TFGameRules()->HaveAllPlayersSpeakConceptIfAllowed( MP_CONCEPT_MVM_WAVE_LOSE, TF_TEAM_PVE_DEFENDERS );
 	}
 
 	if ( !IsInEndlessWaves() )
