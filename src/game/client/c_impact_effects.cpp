@@ -47,8 +47,8 @@ PMaterialHandle g_Mat_BloodPuff[2] = { NULL, NULL };
 PMaterialHandle g_Mat_SMG_Muzzleflash[4] = { NULL, NULL, NULL, NULL };
 PMaterialHandle g_Mat_Combine_Muzzleflash[3] = { NULL, NULL, NULL };
 
-static ConVar fx_drawimpactdebris( "fx_drawimpactdebris", "1", FCVAR_DEVELOPMENTONLY, "Draw impact debris effects." );
-static ConVar fx_drawimpactdust( "fx_drawimpactdust", "1", FCVAR_DEVELOPMENTONLY, "Draw impact dust effects." );
+static ConVar fx_drawimpactdebris( "fx_drawimpactdebris", "1", 0, "Draw impact debris effects." );
+static ConVar fx_drawimpactdust( "fx_drawimpactdust", "1", 0, "Draw impact dust effects." );
 
 void FX_CacheMaterialHandles( void )
 {

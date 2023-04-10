@@ -1775,10 +1775,10 @@ static ConVar mat_picmip(			"mat_picmip", "1", FCVAR_ARCHIVE, "", true, 0, true,
 #else
 static ConVar mat_picmip(			"mat_picmip", "0", FCVAR_ARCHIVE, "", true, -1, true, 4 );
 #endif
-static ConVar mat_slopescaledepthbias_normal( "mat_slopescaledepthbias_normal", "0.0f", FCVAR_CHEAT );
-static ConVar mat_depthbias_normal( "mat_depthbias_normal", "0.0f", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );
-static ConVar mat_slopescaledepthbias_decal( "mat_slopescaledepthbias_decal", "-0.5", FCVAR_CHEAT );		// Reciprocals of these biases sent to API
-static ConVar mat_depthbias_decal(	"mat_depthbias_decal", "-262144", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );						//
+static ConVar mat_slopescaledepthbias_normal( "mat_slopescaledepthbias_normal", "0.0f", 0 );
+static ConVar mat_depthbias_normal( "mat_depthbias_normal", "0.0f", FCVAR_ALLOWED_IN_COMPETITIVE );
+static ConVar mat_slopescaledepthbias_decal( "mat_slopescaledepthbias_decal", "-0.5", 0 );		// Reciprocals of these biases sent to API
+static ConVar mat_depthbias_decal(	"mat_depthbias_decal", "-262144", FCVAR_ALLOWED_IN_COMPETITIVE );						//
 
 static ConVar mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap", "16", FCVAR_CHEAT );
 static ConVar mat_depthbias_shadowmap(	"mat_depthbias_shadowmap", "0.0005", FCVAR_CHEAT  );
@@ -1973,7 +1973,6 @@ static const char *pConvarsAllowedInDXSupport[]={
 	"mat_trilinear",
 	"mat_vsync",
 	"props_break_max_pieces",
-	"r_VehicleViewDampen",
 	"r_decal_cullsize",
 	"r_dopixelvisibility",
 	"r_drawdetailprops",
@@ -1993,7 +1992,6 @@ static const char *pConvarsAllowedInDXSupport[]={
 	"r_waterforcereflectentities",
 	"sv_alternateticks",
 	"mat_dxlevel",
-	"mat_fallbackEyeRefract20",
 	"r_shader_srgb",
 	"mat_motion_blur_enabled",
 	"r_flashlightdepthtexture",
