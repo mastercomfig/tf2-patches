@@ -5922,7 +5922,7 @@ int idsp_speaker;
 int idsp_spatial;
 int idsp_automatic;
 
-ConVar dsp_off		("dsp_off", "0", FCVAR_CHEAT | FCVAR_ALLOWED_IN_COMPETITIVE );						// set to 1 to disable all dsp processing
+ConVar dsp_off		("dsp_off", "0", 0 );						// set to 1 to disable all dsp processing
 ConVar dsp_slow_cpu ("dsp_slow_cpu", "0", FCVAR_ARCHIVE|FCVAR_DEMO );	// set to 1 if cpu bound - ie: does not process dsp_room fx
 ConVar snd_profile	("snd_profile", "0", FCVAR_DEMO );					// 1 - profile dsp, 2 - mix, 3 - load sound, 4 - all sound
 ConVar dsp_volume	("dsp_volume", "1.0", FCVAR_ARCHIVE|FCVAR_DEMO );	// 0.0 - 2.0; master dsp volume control
