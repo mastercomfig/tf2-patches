@@ -2710,6 +2710,7 @@ void CTFPlayerShared::ConditionGameRulesThink( void )
 		if ( m_pOuter->IsAllowedToRemoveTaunt() && gpGlobals->curtime > m_pOuter->GetTauntRemoveTime() )
 		{
 			RemoveCond( TF_COND_TAUNTING );
+			m_pOuter->m_bAllowMoveDuringTaunt = false; // Make sure we clear out this flag
 		}
 	}
 
