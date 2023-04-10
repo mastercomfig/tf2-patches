@@ -103,6 +103,7 @@ private:
 	Vector m_vCollisionMaxs;
 
 	float m_flLastPingTime;
+	float m_flLastPlayerDamageCallout;
 
 	static float m_flLastTankAlert;
 

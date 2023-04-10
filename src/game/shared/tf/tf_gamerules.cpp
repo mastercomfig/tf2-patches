@@ -20173,10 +20173,10 @@ void CTFGameRules::BetweenRounds_Think( void )
 		bool bStartFinalCountdown = ( PlayerReadyStatus_ShouldStartCountdown() || ( m_flRestartRoundTime > 0 && (int)( m_flRestartRoundTime - gpGlobals->curtime ) == mp_tournament_readymode_countdown.GetInt() ) );
 
 		// It's the FINAL COUNTDOOOWWWNNnnnnnnnnn
-		float flDropDeadTime = gpGlobals->curtime + mp_tournament_readymode_countdown.GetFloat() + 0.1f;
+		float flDelay = IsMannVsMachineMode() ? 14.f : mp_tournament_readymode_countdown.GetFloat();
+		float flDropDeadTime = gpGlobals->curtime + flDelay + 0.1f;
 		if ( bStartFinalCountdown && ( m_flRestartRoundTime < 0 || m_flRestartRoundTime >= flDropDeadTime ) )
 		{
-			float flDelay = IsMannVsMachineMode() ? 10.f : mp_tournament_readymode_countdown.GetFloat();
 			m_flRestartRoundTime.Set( gpGlobals->curtime + flDelay );
 			ShouldResetScores( true, true );
 			ShouldResetRoundsPlayed( true );
