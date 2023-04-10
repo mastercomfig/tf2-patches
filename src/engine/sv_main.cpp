@@ -2909,12 +2909,6 @@ void SV_Frame( bool finalTick )
 		return;
 	}
 
-	// let the steam auth server process new connections
-	if ( IsPC() && sv.IsMultiplayer() )
-	{
-		Steam3Server().RunFrame();
-	}
-
 	g_ServerGlobalVariables.frametime = host_state.interval_per_tick;
 
 	bool bIsSimulating = SV_IsSimulating();
@@ -2961,5 +2955,11 @@ void SV_Frame( bool finalTick )
 
 	// lock string tables
 	networkStringTableContainerServer->Lock( true );
+
+	// let the steam auth server process new connections
+	if ( IsPC() && sv.IsMultiplayer() )
+	{
+		Steam3Server().RunFrame();
+	}
 }
 
