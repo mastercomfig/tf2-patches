@@ -17120,6 +17120,7 @@ void CTFPlayer::Taunt( taunts_t iTauntIndex, int iTauntConcept )
 					m_Shared.ActivateRageBuff( this, iBuffType );
 
 					// Pyro needs high defense while he's taunting
+					m_bAllowMoveDuringTaunt = true; // Don't allow the taunt to be cancelled
 					//m_Shared.AddCond( TF_COND_DEFENSEBUFF_HIGH, 3.0f );
 					m_Shared.AddCond( TF_COND_INVULNERABLE_USER_BUFF, 2.60f );
 					m_Shared.AddCond( TF_COND_MEGAHEAL, 2.60f );
