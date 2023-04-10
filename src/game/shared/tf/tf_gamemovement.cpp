@@ -287,6 +287,8 @@ unsigned int CTFGameMovement::PlayerSolidMask( bool brushOnly )
 	return ( uMask | BaseClass::PlayerSolidMask( brushOnly ) );
 }
 
+static ConVar tf_movement_maxspeed("tf_movement_maxspeed", V_STRINGIFY(TF_MAX_SPEED), FCVAR_REPLICATED, "Maximum movement speed for players.");
+
 //-----------------------------------------------------------------------------
 // Purpose: Overridden to allow players to run faster than the maxspeed
 //-----------------------------------------------------------------------------
