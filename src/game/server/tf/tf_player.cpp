@@ -17007,7 +17007,7 @@ void CTFPlayer::Taunt( taunts_t iTauntIndex, int iTauntConcept )
 				if ( m_Shared.GetRageMeter() >= 100.f )
 				{
 					m_Shared.m_bRageDraining = true;
-					EmitSound( "Heavy.Battlecry03" );
+					SpeakConceptIfAllowed( MP_CONCEPT_MVM_DEPLOY_RAGE );
 					return;
 				}
 
