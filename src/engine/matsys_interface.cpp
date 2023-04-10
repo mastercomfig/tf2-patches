@@ -137,10 +137,6 @@ ConVar r_waterforceexpensive( "r_waterforceexpensive", "0", FCVAR_ARCHIVE );
 #endif
 ConVar r_waterforcereflectentities( "r_waterforcereflectentities", "0" );
 
-// Note: this is only here so we can ship an update without changing materialsystem.dll.
-// Once we ship materialsystem.dll again, we can get rid of this and make the only one exist in materialsystem.dll.
-ConVar mat_depthbias_normal( "mat_depthbias_normal", "0.0f", FCVAR_CHEAT );
-
 // This is here so that the client and the materialsystem can both see this.
 ConVar mat_show_ab_hdr( "mat_show_ab_hdr", "0" );
 
