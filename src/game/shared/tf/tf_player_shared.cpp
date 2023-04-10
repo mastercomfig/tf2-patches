@@ -10561,12 +10561,17 @@ float CTFPlayer::TeamFortress_CalculateMaxSpeed( bool bIgnoreSpecialAbility /*= 
 	if ( playerclass == TF_CLASS_HEAVYWEAPONS )
 	{
 		float heavy_max_speed = default_speed * 1.35f;
-		if ( m_Shared.InCond( TF_COND_ENERGY_BUFF ) )
+		// We don't stack with other speed boosts like the GRU, they make berzerker mode too fast
+		// but if we are already faster than the berzerker speed, then we won't shift the speed back down
+		// (like with MvM upgrades)
+		if ( m_Shared.InCond( TF_COND_ENERGY_BUFF ) && maxfbspeed <= heavy_max_speed )
 		{
+			// If we aren't already above the cap, then boost our speed by 35%, but only up to 135%.
+			// this means if we are slower than normal, we boost relative to that, but if we are faster
+			// than normal, we only boost up to the cap.
 			maxfbspeed *= 1.35f;
 			if ( maxfbspeed > heavy_max_speed )
 			{
-				// Prevent other speed modifiers like GRU from making berzerker mode too fast.
 				maxfbspeed = heavy_max_speed;
 			}
 		}
