@@ -95,6 +95,7 @@ ConVar tf_dingaling_lasthit_pitchmaxdmg( "tf_dingaling_lasthit_pitchmaxdmg", "10
 ConVar tf_dingaling_lasthit_pitch_override( "tf_dingaling_lasthit_pitch_override", "-1", FCVAR_NONE, "If set, pitch for last hit sounds." );
 
 ConVar tf_dingalingaling_repeat_delay( "tf_dingalingaling_repeat_delay", "0.0", FCVAR_ARCHIVE, "Desired repeat delay of the hit sound.  Set to 0 to play a sound for every instance of damage dealt.", true, 0.f, false, 0.f );
+ConVar tf_dingaling_lasthit_repeat_delay( "tf_dingaling_lasthit_repeat_delay", "0.0", FCVAR_ARCHIVE, "Desired repeat delay of the last hit sound.  Set to 0 to play a sound for every last hit.", true, 0.f, false, 0.f );
 
 ConVar hud_damagemeter( "hud_damagemeter", "0", FCVAR_CHEAT, "Display damage-per-second information in the lower right corner of the screen." );
 ConVar hud_damagemeter_period( "hud_damagemeter_period", "0", FCVAR_NONE, "When set to zero, average damage-per-second across all recent damage events, otherwise average damage across defined period (number of seconds)." );
@@ -558,17 +559,14 @@ public:
 				bool bHitEnabled = ( tf_dingalingaling.GetBool() );
 				bool bLastHitEnabled = ( tf_dingalingaling_lasthit.GetBool() );
 				bool bLastHit = ( iHealth <= 0 ) || bDeadRingerSpy;
-				if ( bLastHitEnabled && bLastHit )
-				{
-					// Always allow the last hit sound
-					m_flLastDingTime = 0.f;
-				}
-				
+
+				const float flDingTime = bLastHit ? m_flLastKillDingTime : m_flLastDingTime;
+				const float flDingDelay = bLastHit ? tf_dingaling_lasthit_repeat_delay.GetFloat() : tf_dingalingaling_repeat_delay.GetFloat();
+
 				// Play hitbeeps 
 				if ( ( bHitEnabled || bLastHitEnabled ) && 
-					 ( gpGlobals->curtime > ( m_flLastDingTime + tf_dingalingaling_repeat_delay.GetFloat() ) || tf_dingalingaling_repeat_delay.GetFloat() == 0.f ) )
+					 ( gpGlobals->curtime > ( flDingTime + flDingDelay ) || flDingDelay == 0.f ) )
 				{
-					m_flLastDingTime = gpGlobals->curtime;
 
 					CSoundParameters params;
 					CLocalPlayerFilter filter;
@@ -577,6 +575,7 @@ public:
 
 					if ( bLastHit && bLastHitEnabled )
 					{
+						m_flLastKillDingTime = gpGlobals->curtime;
 						pszSound = g_LastHitSounds[tf_dingalingaling_last_effect.GetInt()].m_pszName;
 						pHitSound = &g_LastHitSounds[tf_dingalingaling_last_effect.GetInt()];
 						if ( pszSound && pHitSound && CBaseEntity::GetParametersForSound( pszSound, params, NULL ) )
@@ -589,6 +588,7 @@ public:
 					}
 					else if ( bHitEnabled )
 					{
+						m_flLastDingTime = gpGlobals->curtime;
 						pszSound = g_HitSounds[tf_dingalingaling_effect.GetInt()].m_pszName;
 						pHitSound = &g_HitSounds[tf_dingalingaling_effect.GetInt()];
 						if ( pszSound && pHitSound && CBaseEntity::GetParametersForSound( pszSound, params, NULL ) )
@@ -838,6 +838,7 @@ private:
 		m_flDamagePerSecond = 0.f;
 		m_flDamageMeterTotal = 0.f;
 		m_flLastDingTime = 0.f;
+		m_flLastKillDingTime = 0.f;
 	}
 
 private:
@@ -856,6 +857,7 @@ private:
 
 	// Dings
 	float				m_flLastDingTime;
+	float 			m_flLastKillDingTime;
 };
 
 //-----------------------------------------------------------------------------
