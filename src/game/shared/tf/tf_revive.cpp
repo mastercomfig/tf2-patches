@@ -384,8 +384,12 @@ bool CTFReviveMarker::ReviveOwner( void )
 
 	m_hOwner->ForceRespawn();
 
-	// Increment stat
-	CTF_GameStats.Event_PlayerRevived( m_hOwner );
+	// Don't count revives when the game isn't in active play
+	if ( TFGameRules()->State_Get() != GR_STATE_BETWEEN_RNDS )
+	{
+		// Increment stat
+		CTF_GameStats.Event_PlayerRevived( m_hOwner );
+	}
 
 	// If the medic's gone, or dead, stay in the spawn room
 	if ( !m_pReviver || !m_pReviver->IsAlive() )
