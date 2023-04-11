@@ -741,7 +741,7 @@ static void PrintCvar( const ConVar *var, bool logging, FileHandle_t& fh )
 	char tempbuff[512] = { 0 };
 
 	// Clean up integers
-	if ( var->GetInt() == (int)var->GetFloat() )   
+	if ( fabs( (float)var->GetInt() - var->GetFloat() ) < 0.000001 )
 	{
 		Q_snprintf(valstr, sizeof( valstr ), "%-8i", var->GetInt() );
 	}
