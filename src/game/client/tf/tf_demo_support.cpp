@@ -19,7 +19,7 @@ static CTFDemoSupport g_DemoSupport;
 
 extern ConVar mp_tournament;
 
-ConVar ds_enable( "ds_enable", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - enable automatic .dem file recording and features. 0 - Manual, 1 - Auto-record competitive matches, 2 - Auto-record all matches, 3 - Auto-record tournament (mp_tournament) matches", true, 0, true, 3 ); 
+ConVar ds_enable( "ds_enable", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - enable automatic .dem file recording and features. 0 - Manual, 1 - Auto-record matchmaking matches, 2 - Auto-record all matches, 3 - Auto-record tournament (mp_tournament) matches, 4 - Auto-record competitive matches", true, 0, true, 3 ); 
 ConVar ds_dir( "ds_dir", "demos", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - will put all files into this folder under the gamedir. 24 characters max." );
 ConVar ds_prefix( "ds_prefix", "", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - will prefix files with this string. 24 characters max." );
 ConVar ds_min_streak( "ds_min_streak", "4", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - minimum kill streak count before being recorded.", true, 2, false, 0 );
@@ -139,12 +139,23 @@ void CTFDemoSupport::Update( float frametime )
 		{
 			if ( ds_enable.GetInt() == 1 )
 			{
+				// IsCompetitiveMode got updated to include Casual. So ds_enable 1 just means "if we're in a matchmaking match"
 				if ( TFGameRules() && !TFGameRules()->IsCompetitiveMode() )
 					return;
 			}
 			else if ( ds_enable.GetInt() == 3 )
 			{
 				if ( !mp_tournament.GetBool() )
+					return;
+			}
+			else if ( ds_enable.GetInt() == 4 )
+			{
+				if ( !TFGameRules() )
+					return;
+				// If we have mp_tournament enabled, but we're not in MvM and we are using team based ready status, then we're most likely in a community competitive match.
+				const bool bIsCommunityCompetitive = mp_tournament.GetBool() && !TFGameRules()->IsMannVsMachineMode() && !TFGameRules()->UsePlayerReadyStatusMode();
+				// If it's not competitive matchmaking AND it's not a community competitive match, then we don't auto record.
+				if ( !TFGameRules()->IsMatchTypeCompetitive() && !bIsCommunityCompetitive )
 					return;
 			}
 
