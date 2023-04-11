@@ -437,7 +437,7 @@ void CWingedEdgeList::ResetActiveEdgeList()
 
 	// Don't bother with edges below the screen edge
 	m_flNextDiscontinuity = WingedEdge( 0 ).m_vecPosition.y;
-	m_flNextDiscontinuity = max( m_flNextDiscontinuity, -1.0f );
+	m_flNextDiscontinuity = MAX( m_flNextDiscontinuity, -1.0f );
 
 	m_StartTerminal.m_pNextActiveEdge = &m_EndTerminal;
 	m_EndTerminal.m_pPrevActiveEdge = &m_StartTerminal;
@@ -2571,7 +2571,9 @@ void COcclusionSystem::SetView( const Vector &vecCameraPos, float flFOV, const V
 	m_NearClipPlane.type = 3;
 	m_bEdgeListDirty = true;
 	m_flNearPlaneDist = -( DotProduct( vecCameraPos, m_NearClipPlane.normal ) - m_NearClipPlane.dist );
-	Assert( m_flNearPlaneDist > 0.0f );
+	// Due to FP precision issues this value can sometimes drop slightly below 0.0f
+	Assert( m_flNearPlaneDist > 0.125f );
+	m_flNearPlaneDist = MAX(m_flNearPlaneDist, 0.0f);
 	m_flFOVFactor = m_flNearPlaneDist * tan( flFOV * 0.5f * M_PI / 180.0f );
 	m_flFOVFactor = m_flNearPlaneDist / m_flFOVFactor;
 	m_flFOVFactor *= m_flFOVFactor;
@@ -2629,20 +2631,20 @@ struct EdgeInfo_t
 // NOTE: The face indices here have to very carefully ordered for the algorithm
 // to work. They must be ordered so that vert0 -> vert1 is clockwise
 // for the first face listed and vert1 -> vert0 is clockwise for the 2nd face listed
-static EdgeInfo_t s_pEdges[12] = 
+static EdgeInfo_t s_pEdges[12] =
 {
-	{ { 0, 1 }, { 2, 4 }, 0, 0 },		// 0: Edge between -y + -z
-	{ { 2, 0 }, { 0, 4 }, 0, 0 },		// 1: Edge between -x + -z
-	{ { 1, 3 }, { 1, 4 }, 0, 0 },		// 2: Edge between +x + -z
-	{ { 3, 2 }, { 3, 4 }, 0, 0 },		// 3: Edge between +y + -z
-	{ { 0, 4 }, { 0, 2 }, 0, 0 },		// 4: Edge between -x + -y
-	{ { 5, 1 }, { 1, 2 }, 0, 0 },		// 5: Edge between +x + -y
-	{ { 6, 2 }, { 0, 3 }, 0, 0 },		// 6: Edge between -x + +y
-	{ { 3, 7 }, { 1, 3 }, 0, 0 },		// 7: Edge between +x + +y
-	{ { 5, 4 }, { 2, 5 }, 0, 0 },		// 8: Edge between -y + +z
-	{ { 4, 6 }, { 0, 5 }, 0, 0 },		// 9: Edge between -x + +z
-	{ { 7, 5 }, { 1, 5 }, 0, 0 },		// 10:Edge between +x + +z
-	{ { 6, 7 }, { 3, 5 }, 0, 0 },		// 11:Edge between +y + +z
+	{ 0, 1, 2, 4, 0, 0 },		// 0: Edge between -y + -z
+	{ 2, 0, 0, 4, 0, 0 },		// 1: Edge between -x + -z
+	{ 1, 3, 1, 4, 0, 0 },		// 2: Edge between +x + -z
+	{ 3, 2, 3, 4, 0, 0 },		// 3: Edge between +y + -z
+	{ 0, 4, 0, 2, 0, 0 },		// 4: Edge between -x + -y
+	{ 5, 1, 1, 2, 0, 0 },		// 5: Edge between +x + -y
+	{ 6, 2, 0, 3, 0, 0 },		// 6: Edge between -x + +y
+	{ 3, 7, 1, 3, 0, 0 },		// 7: Edge between +x + +y
+	{ 5, 4, 2, 5, 0, 0 },		// 8: Edge between -y + +z
+	{ 4, 6, 0, 5, 0, 0 },		// 9: Edge between -x + +z
+	{ 7, 5, 1, 5, 0, 0 },		// 10:Edge between +x + +z
+	{ 6, 7, 3, 5, 0, 0 },		// 11:Edge between +y + +z
 };
 
 static int s_pFaceEdges[6][4] = 
