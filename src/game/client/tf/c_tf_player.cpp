@@ -7371,7 +7371,7 @@ int C_TFPlayer::DrawModel( int flags )
 	// Don't draw the model at all if we're fully invisible
 	if ( GetEffectiveInvisibilityLevel() >= 1.0f )
 	{
-		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 ) && !m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
+		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 || g_pMaterialSystemHardwareConfig->PreferReducedFillrate() ) && !m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
 		{
 			m_hHalloweenBombHat->SetEffects( EF_NODRAW );
 		}
@@ -7379,7 +7379,7 @@ int C_TFPlayer::DrawModel( int flags )
 	}
 	else
 	{
-		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 ) && m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
+		if ( m_hHalloweenBombHat && ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 90 || g_pMaterialSystemHardwareConfig->PreferReducedFillrate() ) && m_hHalloweenBombHat->IsEffectActive( EF_NODRAW ) )
 		{
 			m_hHalloweenBombHat->RemoveEffects( EF_NODRAW );
 		}
