@@ -2181,13 +2181,45 @@ void CTFPlayerShared::OnConditionRemoved( ETFCond eCond )
 	}
 }
 
+// FIXME: copied from tf_weapon_medigun... move to a common place
+float GetOverhealBonus( float flOverheal, float flMod )
+{
+	// Handle bonuses as additive, penalties as percentage...
+	float flOverhealBonus = flOverheal - 1.0f;
+	if ( flMod >= 1.0f )
+	{
+		flOverhealBonus += flMod;
+	}
+	else if ( flMod < 1.0f && flOverhealBonus > 0.0f )
+	{
+		flOverhealBonus *= flMod;
+		flOverhealBonus += 1.0f;
+	}
+
+	// Safety net
+	if ( flOverhealBonus <= 1.0f )
+	{
+		flOverhealBonus = 1.0f;
+	}
+
+	return flOverhealBonus;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Returns the overheal bonus the specified healer is capable of buffing to
 //-----------------------------------------------------------------------------
 int CTFPlayerShared::GetMaxBuffedHealth( bool bIgnoreAttributes /*= false*/, bool bIgnoreHealthOverMax /*= false*/ )
 {
+	float flPatientOverheal = 1.0f;
+	if ( !bIgnoreAttributes )
+	{
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_pOuter, flPatientOverheal, mult_patient_overheal_penalty );
+		// TODO: active
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_pOuter, flPatientOverheal, mult_patient_overheal_penalty_active );
+	}
+
 	// Find the healer we have who's providing the most overheal
-	float flBoostMax = m_pOuter->GetMaxHealthForBuffing() * tf_max_health_boost.GetFloat();
+	float flBoostMax = m_pOuter->GetMaxHealthForBuffing() * GetOverhealBonus( tf_max_health_boost.GetFloat(), flPatientOverheal );
 #ifdef GAME_DLL
 	if ( !bIgnoreAttributes )
 	{
