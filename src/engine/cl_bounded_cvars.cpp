@@ -95,7 +95,17 @@ public:
 			}
 
 			// Then we clamp to the min/max values the server has set.
-			return clamp( flCmdRate, sv_mincmdrate.GetFloat(), sv_maxcmdrate.GetFloat() );
+			float fCmdRate = clamp( flCmdRate, sv_mincmdrate.GetFloat(), sv_maxcmdrate.GetFloat() );
+			// If we're near a tick interval, round to it (since we're clamped to int)
+			float fSnapshotInterval = 1.0f / fCmdRate;
+			float fTickInterval = host_state.interval_per_tick * ( TIME_TO_TICKS( fSnapshotInterval ) );
+
+			if ( fSnapshotInterval - fTickInterval < 1.0f )
+			{
+				fSnapshotInterval = fTickInterval;
+			}
+
+			return 1.0f / fSnapshotInterval;
 		}
 		else
 		{
@@ -119,7 +129,7 @@ public:
 	CBoundedCvar_UpdateRate() :
 	  ConVar_ServerBounded( 
 		  "cl_updaterate",
-		  "33", 
+		  "66", 
 		  FCVAR_ARCHIVE | FCVAR_USERINFO | FCVAR_NOT_CONNECTED, 
 		  "Number of packets per second of updates you are requesting from the server" )
 	{
@@ -132,7 +142,17 @@ public:
 		// This cvar only takes effect on the server anyway, and this is done there too,
 		// but we have this here so they'll get the **note thing telling them the value 
 		// isn't functioning the way they set it.		
-		return clamp( GetBaseFloatValue(), sv_minupdaterate.GetFloat(), sv_maxupdaterate.GetFloat() );
+		float fUpdateRate = clamp( GetBaseFloatValue(), sv_minupdaterate.GetFloat(), sv_maxupdaterate.GetFloat() );
+		// If we're near a tick interval, round to it (since we're clamped to int)
+		float fSnapshotInterval = 1.0f / fUpdateRate;
+		float fTickInterval = host_state.interval_per_tick * ( TIME_TO_TICKS( fSnapshotInterval ) );
+
+		if ( fSnapshotInterval - fTickInterval < 1.0f )
+		{
+			fSnapshotInterval = fTickInterval;
+		}
+
+		return 1.0f / fSnapshotInterval;
 	}
 };
 
