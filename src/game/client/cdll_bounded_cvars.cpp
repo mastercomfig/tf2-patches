@@ -99,7 +99,7 @@ class CBoundedCvar_Interp : public ConVar_ServerBounded
 public:
 	CBoundedCvar_Interp() :
 	  ConVar_ServerBounded( "cl_interp", 
-		  "0.1", 
+		  "0.0", 
 		  FCVAR_USERINFO | FCVAR_NOT_CONNECTED | FCVAR_ARCHIVE, 
 		  "Sets the interpolation amount (bounded by server interp ratio settings).", true, 0.0f, true, 0.2f )
 	  {
@@ -107,7 +107,7 @@ public:
 
 	  virtual float GetFloat() const
 	  {
-		  static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
+		  static const ConVar_ServerBounded *pUpdateRate = static_cast<const ConVar_ServerBounded*>( g_pCVar->FindVar( "cl_updaterate" ) );
 		  static const ConVar *pMin = g_pCVar->FindVar( "sv_client_min_interp_ratio" );
 		  static const ConVar *pMax = g_pCVar->FindVar( "sv_client_max_interp_ratio" );
 		  if ( pUpdateRate && pMin && pMin->GetFloat() != -1 && pMax )
@@ -126,7 +126,7 @@ ConVar_ServerBounded *cl_interp = &cl_interp_var;
 
 float GetClientInterpAmount()
 {
-	static const ConVar *pUpdateRate = g_pCVar->FindVar( "cl_updaterate" );
+	static const ConVar_ServerBounded *pUpdateRate = static_cast<const ConVar_ServerBounded*>( g_pCVar->FindVar( "cl_updaterate" ) );
 	if ( pUpdateRate )
 	{
 		// #define FIXME_INTERP_RATIO
