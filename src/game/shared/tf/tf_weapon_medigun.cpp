@@ -1219,6 +1219,14 @@ bool CWeaponMedigun::FindAndHealTargets( void )
 			{
 #ifdef GAME_DLL
 				int iBoostMax = floor( pTFPlayer->m_Shared.GetMaxBuffedHealth() * 0.95);
+
+				// Make sure the boost is at least the max health (if < max health, we aren't fully healed)
+				int iMaxHealth = pTFPlayer->GetMaxHealthForBuffing();
+				if ( iBoostMax < iMaxHealth )
+				{
+					iBoostMax = iMaxHealth;
+				}
+
 				float flChargeModifier = 1.f;
 
 				// Reduced charge for healing fully healed guys
