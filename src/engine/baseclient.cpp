@@ -203,7 +203,16 @@ void CBaseClient::SetUpdateRate(int udpaterate, bool bForce)
 {
 	udpaterate = clamp( udpaterate, 1.0f, 133.0f );
 
-	m_fSnapshotInterval = MAX( 1.0f / udpaterate, host_state.interval_per_tick );
+	float fSnapshotInterval = MAX( 1.0f / udpaterate, host_state.interval_per_tick );
+	float fTickInterval = host_state.interval_per_tick * ( TIME_TO_TICKS( fSnapshotInterval ) );
+
+	// If we're near a tick interval, round to it (since we're clamped to int)
+	if ( fSnapshotInterval - fTickInterval < 1.0f )
+	{
+		fSnapshotInterval = fTickInterval;
+	}
+
+	m_fSnapshotInterval = fSnapshotInterval;
 }
 
 int CBaseClient::GetUpdateRate(void) const
