@@ -707,7 +707,7 @@ void CHudUpgradePanel::PlayerInventoryChanged( C_TFPlayer *pPlayer )
 				continue;
 
 			// If the item has changed since the panel was created, cancel out of the upgrade screen
-			if ( pItemSlotBuyPanel->GetItemID() != pCurrentItem->GetItemID() )
+			if ( pItemSlotBuyPanel->GetItemID() != pCurrentItem->GetItemDefIndex() )
 			{
 				OnCommand( "cancel" );
 				return;
@@ -1140,7 +1140,7 @@ void CHudUpgradePanel::UpdateUpgradeButtons( void )
 				CEconItemView *pCurItemData = CTFPlayerSharedUtils::GetEconItemViewByLoadoutSlot( m_hPlayer, pItemSlotBuyPanel->nSlot );
 				if ( pCurItemData )
 				{
-					pItemSlotBuyPanel->SetItemID( pCurItemData->GetItemID() );
+					pItemSlotBuyPanel->SetItemID( pCurItemData->GetItemDefIndex() );
 				}
 
 				if ( !m_bInspectMode )
