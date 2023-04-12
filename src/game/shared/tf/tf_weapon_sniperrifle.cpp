@@ -1161,8 +1161,10 @@ void CTFSniperRifle::ExplosiveHeadShot( CTFPlayer *pAttacker, CTFPlayer *pVictim
 		flStunAmt = pTFPlayer->IsMiniBoss() ? 0.5f : RemapValClamped( iExplosiveShot, 1, 3, 0.5f, 0.8f );
 		pTFPlayer->m_Shared.StunPlayer( flStunDuration, flStunAmt, TF_STUN_MOVEMENT, pAttacker );
 
-		// DoT
-		pTFPlayer->m_Shared.MakeBleed( pAttacker, this, 0.1f, flDmg );
+		// Radial damage
+		CTakeDamageInfo info( this, pAttacker, NULL, flDmg, DMG_BULLET );
+		info.SetDamageCustom( TF_DMG_CUSTOM_NONE );
+		pTFPlayer->TakeDamage( info );
 
 		// Shoot a beam at them
 		CPVSFilter filter( pTFPlayer->WorldSpaceCenter() );
