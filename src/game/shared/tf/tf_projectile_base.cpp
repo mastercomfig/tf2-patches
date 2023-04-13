@@ -33,10 +33,8 @@ IMPLEMENT_NETWORKCLASS_ALIASED( TFBaseProjectile, DT_TFBaseProjectile )
 BEGIN_NETWORK_TABLE( CTFBaseProjectile, DT_TFBaseProjectile )
 #ifdef CLIENT_DLL
 	RecvPropVector( RECVINFO( m_vInitialVelocity ) ),
-	RecvPropEHandle( RECVINFO( m_hLauncher ) )
 #else
 	SendPropVector( SENDINFO( m_vInitialVelocity ), 20 /*nbits*/, 0 /*flags*/, -3000 /*low value*/, 3000 /*high value*/	),
-	SendPropEHandle( SENDINFO( m_hLauncher ) )
 #endif
 END_NETWORK_TABLE()
 

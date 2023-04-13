@@ -66,12 +66,10 @@ BEGIN_NETWORK_TABLE( CTFGrenadePipebombProjectile, DT_TFProjectile_Pipebomb )
 #ifdef CLIENT_DLL
 RecvPropInt( RECVINFO( m_bTouched ) ),
 RecvPropInt( RECVINFO( m_iType ) ),
-RecvPropEHandle( RECVINFO( m_hLauncher ) ),
 RecvPropBool( RECVINFO( m_bDefensiveBomb ) ),
 #else
 SendPropBool( SENDINFO( m_bTouched ) ),
 SendPropInt( SENDINFO( m_iType ), 3 ),
-SendPropEHandle( SENDINFO( m_hLauncher ) ),
 SendPropBool( SENDINFO( m_bDefensiveBomb ) ),
 #endif
 END_NETWORK_TABLE()
@@ -175,7 +173,7 @@ bool CTFGrenadePipebombProjectile::ShouldMiniCritOnReflect() const
 void CTFGrenadePipebombProjectile::UpdateOnRemove( void )
 {
 	// Tell our launcher that we were removed
-	CTFPipebombLauncher *pLauncher = dynamic_cast<CTFPipebombLauncher*>( m_hLauncher.Get() );
+	CTFPipebombLauncher *pLauncher = dynamic_cast<CTFPipebombLauncher*>( GetOriginalLauncher() );
 
 	if ( pLauncher )
 	{
@@ -592,10 +590,10 @@ void CTFGrenadePipebombProjectile::Detonate()
 {
 	if ( gpGlobals->curtime > m_flDetonateTime )
 	{
-		if ( GetLauncher() )
+		if ( GetOriginalLauncher() )
 		{
 			float flFizzle = 0;
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetLauncher(), flFizzle, stickybomb_fizzle_time );
+			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flFizzle, stickybomb_fizzle_time );
 			if ( flFizzle )
 			{
 				Fizzle();
@@ -807,7 +805,7 @@ void CTFGrenadePipebombProjectile::PipebombTouch( CBaseEntity *pOther )
 
 					// Add this guy to our donk list.  If this grenade explodes and hits anyone on our launcher's
 					// donk list, they get minicrit
-					CTFGrenadeLauncher* pLauncher =  dynamic_cast<CTFGrenadeLauncher*>( GetLauncher() );
+					CTFGrenadeLauncher* pLauncher =  dynamic_cast<CTFGrenadeLauncher*>( GetOriginalLauncher() );
 					if( pLauncher )
 					{
 						pLauncher->AddDonkVictim( pOther );
@@ -885,9 +883,9 @@ void CTFGrenadePipebombProjectile::VPhysicsCollision( int index, gamevcollisione
 			SetDamage( GetDamageScaleOnWorldContact() * GetDamage() );
 
 			int iNoBounce = 0;
-			if ( GetLauncher() )
+			if ( GetOriginalLauncher() )
 			{
-				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetLauncher(), iNoBounce, grenade_no_bounce )
+				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iNoBounce, grenade_no_bounce )
 				if ( iNoBounce )
 				{
 					Vector velocity;
@@ -938,7 +936,7 @@ void CTFGrenadePipebombProjectile::VPhysicsCollision( int index, gamevcollisione
 		m_flTouchedTime = gpGlobals->curtime;
 
 		float flFizzle = 0;
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetLauncher(), flFizzle, stickybomb_fizzle_time );
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flFizzle, stickybomb_fizzle_time );
 		if ( flFizzle > 0 )
 		{
 			SetDetonateTimerLength( flFizzle );
@@ -1182,7 +1180,7 @@ float CTFGrenadePipebombProjectile::GetLiveTime( void )
 {
 	float flLiveTime = tf_grenadelauncher_livetime.GetFloat();
 
-	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetLauncher(), flLiveTime, sticky_arm_time );
+	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flLiveTime, sticky_arm_time );
 
 	if ( TFGameRules() && TFGameRules()->IsPowerupMode() )
 	{
@@ -1235,7 +1233,7 @@ void CTFGrenadePipebombProjectile::Deflected( CBaseEntity *pDeflectedBy, Vector&
 		info.SetAttacker( pDeflectedBy );
 		info.SetDamageForce( vecForce );
 		info.SetDamageType( DMG_SONIC );
-		info.SetWeapon( pTFDeflector->GetActiveTFWeapon() );
+		//info.SetWeapon( pTFDeflector->GetActiveTFWeapon() );
 		OnTakeDamage( info );
 	}
 	else
@@ -1373,9 +1371,9 @@ int CTFGrenadePipebombProjectile::GetDamageCustom()
 float CTFGrenadePipebombProjectile::GetDamageScaleOnWorldContact()
 {
 	float flGrenadeDamageScaleOnWorldContact = 1.f;
-	if ( GetLauncher() )
+	if ( GetOriginalLauncher() )
 	{
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetLauncher(),flGrenadeDamageScaleOnWorldContact, grenade_damage_reduction_on_world_contact );
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(),flGrenadeDamageScaleOnWorldContact, grenade_damage_reduction_on_world_contact );
 	}
 	return flGrenadeDamageScaleOnWorldContact;
 }

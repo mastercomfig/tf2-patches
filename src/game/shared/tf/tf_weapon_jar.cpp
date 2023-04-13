@@ -449,7 +449,10 @@ void JarExplode( int iEntIndex, CTFPlayer *pAttacker, CBaseEntity *pOriginalWeap
 
 				// Return some percentage of the jar to the thrown weapon if extinguishing an ally
 				auto pLauncher = dynamic_cast< CTFWeaponBase* >( pOriginalWeapon );
-				if ( pLauncher && pAttacker != pPlayer && pLauncher->HasEffectBarRegeneration() )
+				auto pCurrentLauncher = dynamic_cast< CTFWeaponBase* >( pWeapon );
+				// Only reward the original thrower's self or allies for extinguishing teammates. An enemy extinguishing their enemy allies should not reduce our cooldown.
+				const bool bSniperOnSameTeamAsReflector = pLauncher->GetTeamNumber() == pCurrentLauncher->GetTeamNumber();
+				if ( bSniperOnSameTeamAsReflector && pLauncher && pAttacker != pPlayer && pLauncher->HasEffectBarRegeneration() )
 				{
 					float fCooldown = 1.0f;
 					CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pLauncher, fCooldown, extinguish_reduces_cooldown );
