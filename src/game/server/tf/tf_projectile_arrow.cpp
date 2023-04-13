@@ -578,7 +578,7 @@ bool CTFProjectile_Arrow::StrikeTarget( mstudiobbox_t *pBox, CBaseEntity *pOther
 					}
 				}
 
-				CTakeDamageInfo info( this, pAttacker, m_hLauncher, vecVelocity, vecOrigin, GetDamage(), nDamageType, nDamageCustom );
+				CTakeDamageInfo info( this, pAttacker, GetOriginalLauncher(), vecVelocity, vecOrigin, GetDamage(), nDamageType, nDamageCustom );
 				pOther->TakeDamage( info );
 
 				// Play an impact sound.
@@ -714,7 +714,7 @@ void CTFProjectile_Arrow::BuildingHealingArrow( CBaseEntity *pOther )
 		return;
 
 	int iArrowsHealBuildings = 0;
-	CALL_ATTRIB_HOOK_INT_ON_OTHER( pAttacker, iArrowsHealBuildings, arrow_heals_buildings );
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iArrowsHealBuildings, arrow_heals_buildings );
 	if ( iArrowsHealBuildings == 0 )
 		return;
 
@@ -1210,6 +1210,8 @@ void CTFProjectile_Arrow::IncrementDeflected( void )
 		m_flTrailLife = 1.0f;
 	}
 	CreateTrail();
+
+	m_nSkin = GetArrowSkin();
 }
 
 //-----------------------------------------------------------------------------

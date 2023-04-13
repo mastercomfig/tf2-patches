@@ -42,7 +42,6 @@ RecvPropVector( RECVINFO( m_vInitialVelocity ) ),
 RecvPropVector( RECVINFO_NAME( m_vecNetworkOrigin, m_vecOrigin ) ),
 RecvPropQAngles( RECVINFO_NAME( m_angNetworkAngles, m_angRotation ) ),
 RecvPropInt( RECVINFO( m_iDeflected ) ),
-RecvPropEHandle( RECVINFO( m_hLauncher ) ),
 
 // Server specific.
 #else
@@ -54,7 +53,6 @@ SendPropExclude( "DT_BaseEntity", "m_angRotation" ),
 SendPropVector	(SENDINFO(m_vecOrigin), -1,  SPROP_COORD_MP_INTEGRAL|SPROP_CHANGES_OFTEN, 0.0f, HIGH_DEFAULT, SendProxy_Origin ),
 SendPropQAngles	(SENDINFO(m_angRotation), 6, SPROP_CHANGES_OFTEN, SendProxy_Angles ),
 SendPropInt( SENDINFO( m_iDeflected ), 4, SPROP_UNSIGNED ),
-SendPropEHandle( SENDINFO( m_hLauncher ) ),
 
 #endif
 END_NETWORK_TABLE()
@@ -444,7 +442,7 @@ void CTFBaseRocket::Explode( trace_t *pTrace, CBaseEntity *pOther )
 	int iCustomParticleIndex = INVALID_STRING_INDEX;
 	item_definition_index_t ownerWeaponDefIndex = INVALID_ITEM_DEF_INDEX;
 	// if the owner is a Sentry, Check its owner
-	CBaseEntity *pPlayerOwner = GetOwnerPlayer();
+	CBaseEntity *pPlayerOwner = GetOriginalLauncher() ? GetOriginalLauncher()->GetOwnerEntity() : nullptr;
 
 	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
@@ -542,7 +540,10 @@ void CTFBaseRocket::CheckForStunOnImpact( CTFPlayer* pTarget )
 	if ( !m_bStunOnImpact )
 		return;
 
-	CTFPlayer *pAttacker = ToTFPlayer( GetOwnerPlayer() );
+	if ( !GetOriginalLauncher() )
+		return;
+
+	CTFPlayer *pAttacker = ToTFPlayer( GetOriginalLauncher()->GetOwnerEntity() );
 	if ( !pAttacker )
 		return;
 
@@ -573,7 +574,10 @@ void CTFBaseRocket::CheckForStunOnImpact( CTFPlayer* pTarget )
 //-----------------------------------------------------------------------------
 int CTFBaseRocket::GetStunLevel( void )
 {
-	CTFPlayer *pAttacker = ToTFPlayer( GetOwnerPlayer() );
+	if ( !GetOriginalLauncher() )
+		return 0;
+
+	CTFPlayer *pAttacker = ToTFPlayer( GetOriginalLauncher()->GetOwnerEntity() );
 	if ( !pAttacker )
 		return 0;
 
@@ -642,9 +646,11 @@ void CTFBaseRocket::DrawRadius( float flRadius )
 float CTFBaseRocket::GetRadius() 
 { 
 	float flRadius = TF_ROCKET_RADIUS;
-	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_hLauncher, flRadius, mult_explosion_radius );
+	if ( !GetOriginalLauncher() )
+		return flRadius;
+	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flRadius, mult_explosion_radius );
 
-	CBaseEntity *pAttacker = GetOwnerPlayer();
+	CBaseEntity *pAttacker = GetOriginalLauncher()->GetOwnerEntity();
 	if ( pAttacker )
 	{
 		int iRocketSpecialist = 0;
@@ -681,7 +687,7 @@ float CTFBaseRocket::GetRadius()
 
 
 //-----------------------------------------------------------------------------
-// Checks if the owner is a sentry gun, if so returns the sentry guns owner
+// Checks if the owner is a sentry gun, if so returns the sentry guns owner. Not original launcher aware.
 //-----------------------------------------------------------------------------
 CBaseEntity *CTFBaseRocket::GetOwnerPlayer( void ) const
 {

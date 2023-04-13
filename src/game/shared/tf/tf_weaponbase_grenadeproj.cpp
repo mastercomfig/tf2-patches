@@ -142,7 +142,7 @@ void CTFWeaponBaseGrenadeProj::BounceOff( IPhysicsObject *pPhysics )
 float CTFWeaponBaseGrenadeProj::GetDamageRadius() 
 { 
 	float flRadius = m_DmgRadius;
-	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( m_hLauncher, flRadius, mult_explosion_radius );
+	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flRadius, mult_explosion_radius );
 	return flRadius; 
 }	
 
@@ -340,7 +340,7 @@ void CTFWeaponBaseGrenadeProj::Explode( trace_t *pTrace, int bitsDamageType )
 	int iCustomParticleIndex = GetCustomParticleIndex();
 	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
-		CALL_ATTRIB_HOOK_INT_ON_OTHER( m_hLauncher, iHalloweenSpell, halloween_pumpkin_explosions );
+		CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iHalloweenSpell, halloween_pumpkin_explosions );
 		if ( iHalloweenSpell > 0 )
 		{
 			iCustomParticleIndex = GetParticleSystemIndex( "halloween_explosion" );
@@ -348,7 +348,7 @@ void CTFWeaponBaseGrenadeProj::Explode( trace_t *pTrace, int bitsDamageType )
 	}
 
 	int iLargeExplosion = 0;
-	CALL_ATTRIB_HOOK_INT_ON_OTHER( m_hLauncher, iLargeExplosion, use_large_smoke_explosion );
+	CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iLargeExplosion, use_large_smoke_explosion );
 	if ( iLargeExplosion > 0 )
 	{
 		DispatchParticleEffect( "explosionTrail_seeds_mvm", GetAbsOrigin(), GetAbsAngles() );
@@ -381,7 +381,7 @@ void CTFWeaponBaseGrenadeProj::Explode( trace_t *pTrace, int bitsDamageType )
 	// Use the thrower's position as the reported position
 	Vector vecReported = GetThrower() ? GetThrower()->GetAbsOrigin() : vec3_origin;
 	int nCustomDamage = GetDamageCustom();
-	CTakeDamageInfo info( this, GetThrower(), m_hLauncher, GetBlastForce(), GetAbsOrigin(), m_flDamage, bitsDamageType, nCustomDamage, &vecReported );
+	CTakeDamageInfo info( this, GetThrower(), GetOriginalLauncher(), GetBlastForce(), GetAbsOrigin(), m_flDamage, bitsDamageType, nCustomDamage, &vecReported );
 
 	float flRadius = GetDamageRadius();
 
