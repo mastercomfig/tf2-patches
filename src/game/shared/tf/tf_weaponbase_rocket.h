@@ -75,13 +75,11 @@ public:
 	virtual void	PostDataUpdate( DataUpdateType_t type );
 	virtual void	OnDataChanged(DataUpdateType_t updateType);
 	virtual void	CreateTrails( void ) { }
-	CBaseEntity		*GetLauncher( void ) { return m_hLauncher; }
 
 protected:
 
 	float	 m_flSpawnTime;
 	int		m_iCachedDeflect;
-	CNetworkHandle( CBaseEntity, m_hLauncher );
 
 //=============================================================================
 //
@@ -123,9 +121,6 @@ public:
 
 	void			SetHomingTarget( CBaseEntity *pHomingTarget );
 
-	virtual void	SetLauncher( CBaseEntity *pLauncher ) OVERRIDE { m_hLauncher = pLauncher; BaseClass::SetLauncher( pLauncher ); }
-	CBaseEntity		*GetLauncher( void ) { return m_hLauncher; }
-
 	virtual bool	IsDestroyable( void ){ return gpGlobals->curtime > m_flDestroyableTime; }
 
 	CBaseEntity		*GetOwnerPlayer( void ) const;
@@ -134,8 +129,6 @@ protected:
 
 	// Not networked.
 	float					m_flDamage;
-
-	CNetworkHandle( CBaseEntity, m_hLauncher );
 
 	float					m_flDestroyableTime;
 	bool					m_bCritical;

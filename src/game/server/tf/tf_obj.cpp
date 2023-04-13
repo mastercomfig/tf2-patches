@@ -2469,11 +2469,16 @@ void CBaseObject::Killed( const CTakeDamageInfo &info )
 		Explode();
 	}
 
-	// Stats tracking for strange items.
-	EconEntity_OnOwnerKillEaterEvent( dynamic_cast<CEconEntity *>( info.GetWeapon() ),
-									  pScorer,
-									  GetOwner(),
-									  kKillEaterEvent_BuildingDestroyed );
+	CTFWeaponBase *pTFWeapon = GetKilleaterWeaponFromDamageInfo( &info );
+
+	if ( pTFWeapon )
+	{
+		// Stats tracking for strange items.
+		EconEntity_OnOwnerKillEaterEvent( pTFWeapon,
+										  pScorer,
+										  GetOwner(),
+										  kKillEaterEvent_BuildingDestroyed );
+	}
 
 	UTIL_Remove( this );
 }

@@ -58,8 +58,6 @@ public:
 	void				SetCritical( bool bCritical ) { m_bCritical = bCritical; }
 	virtual int			GetDamageType();
 
-	virtual void		SetLauncher( CBaseEntity *pLauncher ) OVERRIDE { m_hLauncher = pLauncher; BaseClass::SetLauncher( pLauncher ); }
-	CBaseEntity			*GetLauncher( void ) { return m_hLauncher; }
 	virtual void		IncrementDeflected( void ) { m_iDeflected++; }
 	void				ResetDeflected( void ) { m_iDeflected = 0; }
 	int					GetDeflected( void ) { return m_iDeflected; }
@@ -70,8 +68,6 @@ public:
 	virtual int			GetCustomParticleIndex() { return INVALID_STRING_INDEX; }
 	void				BounceOff( IPhysicsObject *pPhysics );
 
-protected:
-	CNetworkHandleForDerived( CBaseEntity, m_hLauncher );
 
 private:
 

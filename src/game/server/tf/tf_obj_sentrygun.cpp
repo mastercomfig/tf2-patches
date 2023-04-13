@@ -1359,6 +1359,7 @@ bool CObjectSentrygun::FireRocket()
 		CTFProjectile_SentryRocket *pProjectile = CTFProjectile_SentryRocket::Create( vecSrc, angAimDir, this, GetBuilder() );
 		if ( pProjectile )
 		{
+			pProjectile->SetLauncher( this );
 			int iDamage = 100;
 			CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOwner(), iDamage, mult_engy_sentry_damage );
 			pProjectile->SetDamage( iDamage );

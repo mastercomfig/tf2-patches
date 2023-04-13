@@ -334,7 +334,7 @@ void CTFProjectile_EnergyBall::Explode( trace_t *pTrace, CBaseEntity *pOther )
 			}
 		}
 
-		CTakeDamageInfo info( this, pAttacker, m_hLauncher, vec3_origin, vecOrigin, GetDamage(), GetDamageType(), GetDamageCustom() );
+		CTakeDamageInfo info( this, pAttacker, GetOriginalLauncher(), vec3_origin, vecOrigin, GetDamage(), GetDamageType(), GetDamageCustom() );
 		CTFRadiusDamageInfo radiusinfo( &info, vecOrigin, flRadius, NULL, m_bChargedShot ? TF_ROCKET_RADIUS_FOR_RJS*1.33 : TF_ROCKET_RADIUS_FOR_RJS );
 		TFGameRules()->RadiusDamage( radiusinfo );
 	}
