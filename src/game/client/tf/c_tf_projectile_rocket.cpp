@@ -77,7 +77,7 @@ void C_TFProjectile_Rocket::CreateTrails( void )
 		// Halloween Spell Effect Check
 		int iHalloweenSpell = 0;
 		// if the owner is a Sentry, Check its owner
-		CBaseObject *pSentry = GetOwnerEntity() && GetOwnerEntity()->IsBaseObject() ? assert_cast<CBaseObject*>( GetOwnerEntity() ) : NULL;
+		CBaseObject *pSentry = GetOriginalLauncher() && GetOriginalLauncher()->IsBaseObject() ? assert_cast<CBaseObject*>( GetOriginalLauncher() ) : NULL;
 		if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 		{
 			if ( pSentry )
@@ -86,7 +86,7 @@ void C_TFProjectile_Rocket::CreateTrails( void )
 			}
 			else
 			{
-				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOwnerEntity(), iHalloweenSpell, halloween_pumpkin_explosions );
+				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iHalloweenSpell, halloween_pumpkin_explosions );
 			}
 		}
 
@@ -98,10 +98,10 @@ void C_TFProjectile_Rocket::CreateTrails( void )
 		}
 		else if ( !pSentry )
 		{
-			if ( GetLauncher() )
+			if ( GetOriginalLauncher() )
 			{
 				int iMiniRocket = 0;
-				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetLauncher(), iMiniRocket, mini_rockets );
+				CALL_ATTRIB_HOOK_INT_ON_OTHER( GetOriginalLauncher(), iMiniRocket, mini_rockets );
 				if ( iMiniRocket )
 				{
 					ParticleProp()->Create( "rockettrail_airstrike", PATTACH_POINT_FOLLOW, iAttachment );
