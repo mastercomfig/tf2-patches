@@ -25,14 +25,12 @@
 		}																\
 		else															\
 		{																\
-#ifndef VALVE_PURE														\
 			DevWarning( "%s\n", msg.String() );							\
 			/*
 				todo(maximsmol):
 				we do not support upstream item schema
 			*/															\
 			return false;												\
-#endif																	\
 			pVecErrors->AddToTail( msg );								\
 		}																\
 		return false;													\
