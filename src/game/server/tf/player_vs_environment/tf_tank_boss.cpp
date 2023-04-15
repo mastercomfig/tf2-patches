@@ -937,6 +937,16 @@ void CTFTankBoss::ModifyDamage( CTakeDamageInfo *info ) const
 		const float minigunFactor = 0.25f;
 		info->SetDamage( info->GetDamage() * minigunFactor );
 	}
+
+	// Community request: Mannpower power ups in MvM
+	bool bIsObject = info->GetInflictor() && info->GetInflictor()->IsBaseObject(); 
+	CBaseEntity *pAttacker = info->GetAttacker();
+	CTFPlayer *pTFAttacker = ToTFPlayer( pAttacker );
+	// If attacker has Strength Powerup Rune, apply damage multiplier, but not if you're a building
+	if ( !bIsObject && pTFAttacker && pTFAttacker->m_Shared.GetCarryingRuneType() == RUNE_STRENGTH )
+	{
+		info->ScaleDamage( 2.f );
+	}
 }
 
 void CTFTankBoss::UpdateCollisionBounds( void )
