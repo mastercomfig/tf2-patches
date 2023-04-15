@@ -136,6 +136,9 @@ src/thirdparty/libpng-1.5.2/pngtest
 # ignore generated protobufs
 generated_proto*/
 
+src/unittests/rt_test/rt_test.exe
+src/unittests/testprocess/testprocess.exe
+
 !src/thirdparty/dxsdk/lib/D3DCSX.lib
 !src/thirdparty/dxsdk/lib/D3DCSXd.lib
 !src/thirdparty/dxsdk/lib/DxErr.lib
@@ -295,7 +298,6 @@ generated_proto*/
 !src/lib/common/ubuntu12_32_gcc48/libcrypto.a
 !src/lib/common/ubuntu12_32_gcc48/libcryptopp.a
 !src/lib/common/unicows.lib
-!src/lib/common/vtuneapi.lib
 !src/lib/common/win32/2015/debug/
 !src/lib/common/win32/2015/debug/libclient.lib
 !src/lib/common/win32/2015/debug/libp4sslstub.lib
@@ -309,21 +311,17 @@ generated_proto*/
 !src/lib/common/win32/2015/release/hk_math.lib
 !src/lib/common/win32/2015/release/ivp_compactbuilder.lib
 !src/lib/common/win32/2015/release/ivp_physics.lib
-!src/lib/common/win32/2015/release/jpeglib.lib
 !src/lib/common/win32/2015/release/libclient.lib
 !src/lib/common/win32/2015/release/libjpeg.lib
 !src/lib/common/win32/2015/release/libp4sslstub.lib
 !src/lib/common/win32/2015/release/libpng.lib
 !src/lib/common/win32/2015/release/librpc.lib
 !src/lib/common/win32/2015/release/libsupp.lib
-!src/lib/common/win32/2015/release/lua.lib
-!src/lib/common/win32/2015/release/mxtoolkitwin32.lib
 !src/lib/osx/libcelt.a
 !src/lib/osx32/libcelt.a
 !src/lib/osx32/replay_common.a
 !src/lib/public/SDL2.lib
 !src/lib/public/ati_compress_mt_vc10.lib
-!src/lib/public/fgdlib.lib
 !src/lib/public/ftol3.obj
 !src/lib/public/itemtest_controls.lib
 !src/lib/public/itemtest_lib.lib
@@ -351,9 +349,7 @@ generated_proto*/
 !src/lib/public/linux32/tier2_srv.a
 !src/lib/public/linux32/tier3_srv.a
 !src/lib/public/linux32/vtf_srv.a
-!src/lib/public/mdlobjects.lib
 !src/lib/public/nvtc.lib
-!src/lib/public/nvtristrip.lib
 !src/lib/public/openvr_api.lib
 !src/lib/public/osx32/libSDL2-2.0.0.dylib
 !src/lib/public/osx32/libSDL2.dylib
@@ -368,13 +364,10 @@ generated_proto*/
 !src/lib/public/osx32/libsteamnetworkingsockets.dylib
 !src/lib/public/python/valvePython_python2.5.lib
 !src/lib/public/sdktoolslib.lib
-!src/lib/public/sfmobjects.lib
 !src/lib/public/socketlib.lib
 !src/lib/public/steam_api.lib
 !src/lib/public/steamnetworkingsockets.lib
 !src/lib/public/togl.lib
-!src/lib/public/toolutils.lib
-!src/lib/public/unitlib.lib
 !src/lib/public/vmpi.lib
 !src/lib/public/win64/appframework.lib
 !src/lib/public/win64/ati_compress_mt_vc10.lib

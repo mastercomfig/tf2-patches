@@ -20,7 +20,7 @@ $Project "dx_proxy_dx10_v00_pc"
 }
 
 
-$Group "dx_proxy" "source" "everything"
+$Group "dx_proxy" "source"
 {
 	"dx_proxy_dx10_v00_pc"
 	

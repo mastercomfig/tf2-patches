@@ -40,7 +40,7 @@ $Configuration
 
 	$Linker
 	{
-		$AdditionalDependencies			"$BASE xgraphics.lib d3d9.lib legacy_stdio_definitions.lib"
+		$AdditionalDependencies			"$BASE d3d9.lib legacy_stdio_definitions.lib"
 		$AdditionalDependencies			"$BASE xmaencoder.lib" [!$VS2015]
 		$AdditionalLibraryDirectories	"$BASE;$SRCDIR\x360xdk\lib\win32\vs2005"
 	}

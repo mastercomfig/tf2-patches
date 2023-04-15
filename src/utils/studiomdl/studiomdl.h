@@ -694,6 +694,10 @@ struct s_autolayer_t
 	float			end;
 };
 
+struct s_modifier_t
+{
+	char			name[MAXSTUDIONAME];
+};
 
 class s_sequence_t
 {
@@ -707,6 +711,9 @@ public:
 
 	int				activity;
 	int				actweight;
+
+	int				numactivitymodifiers;
+	s_modifier_t	activitymodifier[MAXSTUDIOANIMS];
 
 	int				numevents;
 	s_event_t		event[MAXSTUDIOEVENTS];
