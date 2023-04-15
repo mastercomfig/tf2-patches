@@ -519,6 +519,8 @@ int CTFBaseBoss::OnTakeDamage_Alive( const CTakeDamageInfo &rawInfo )
 		gameeventmanager->FireEvent( event );
 	}
 
+	int iPrevHealth = GetHealth();
+
 	int result = BaseClass::OnTakeDamage_Alive( info );
 
 	// emit injury outputs
@@ -570,6 +572,12 @@ int CTFBaseBoss::OnTakeDamage_Alive( const CTakeDamageInfo &rawInfo )
 		pAttacker->OnDealtDamage( this, info );
 
 		CTF_GameStats.Event_BossDamage( pAttacker, info.GetDamage() );
+
+		// Give crit chance from damage
+		if ( rawInfo.GetAttacker() != this )
+		{
+			pAttacker->RecordDamageEvent( info, GetHealth() <= 0, iPrevHealth );
+		}
 	}
 
 	return result;
