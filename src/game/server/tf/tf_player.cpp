@@ -218,8 +218,8 @@ ConVar tf_mvm_death_penalty( "tf_mvm_death_penalty", "0", FCVAR_NOTIFY | FCVAR_C
 extern ConVar tf_populator_damage_multiplier;
 extern ConVar tf_mvm_skill;
 
-#ifdef STAGING_ONLY
 ConVar tf_debug_ballistics( "tf_debug_ballistics", "0", FCVAR_CHEAT );
+#ifdef STAGING_ONLY
 ConVar tf_debug_ballistic_targeting( "tf_debug_ballistic_targeting", "0", FCVAR_CHEAT );
 ConVar tf_debug_ballistic_targeting_tolerance( "tf_debug_ballistic_targeting_tolerance", "5", FCVAR_CHEAT );
 static Vector tf_debug_ballistic_target( 0, 0, 0 );
@@ -259,7 +259,7 @@ ConVar tf_halloween_giant_health_scale( "tf_halloween_giant_health_scale", "10",
 ConVar tf_grapplinghook_los_force_detach_time( "tf_grapplinghook_los_force_detach_time", "1", FCVAR_CHEAT );
 ConVar tf_powerup_max_charge_time( "tf_powerup_max_charge_time", "30", FCVAR_CHEAT );
 
-ConVar tf_unlag_teammates( "tf_unlag_teammates", "2", FCVAR_NOTIFY, "Controls lag compensation for teammates. 0: Disable, 1: Enable, 2: Melee weapons only" );
+ConVar tf_unlag_teammates( "tf_unlag_teammates", "1", FCVAR_NOTIFY, "Controls lag compensation for teammates. 0: Disable, 1: Enable, 2: Melee weapons only" );
 
 extern ConVar tf_powerup_mode;
 extern ConVar tf_mvm_buybacks_method;
@@ -1976,8 +1976,25 @@ Vector CTFPlayer::EstimateProjectileImpactPosition( CTFWeaponBaseGun *weapon )
 
 	const QAngle &angles = EyeAngles();
 
-	float initVel = weapon->IsWeapon( TF_WEAPON_PIPEBOMBLAUNCHER ) ? 900.0f : weapon->GetProjectileSpeed();  
+	if ( weapon->IsWeapon( TF_WEAPON_PIPEBOMBLAUNCHER ) )
+	{
+		CTFPipebombLauncher *pPipebombLauncher = static_cast< CTFPipebombLauncher* >( weapon );
+		float charge = pPipebombLauncher->GetChargeBeginTime() == 0 ? 0.0f : gpGlobals->curtime - pPipebombLauncher->GetChargeBeginTime();
+		float maxCharge = pPipebombLauncher->GetChargeMaxTime();
+		if ( charge > maxCharge )
+		{
+			charge = maxCharge;
+		}
+		return EstimateStickybombProjectileImpactPosition( angles.x, angles.y, charge );
+	}
+
+	float initVel = weapon->GetProjectileSpeed();  
 	CALL_ATTRIB_HOOK_FLOAT( initVel, mult_projectile_range );
+
+	if ( !initVel )
+	{
+		return GetAbsOrigin();
+	}
 
 	return EstimateProjectileImpactPosition( angles.x, angles.y, initVel );
 }
@@ -1991,6 +2008,11 @@ Vector CTFPlayer::EstimateStickybombProjectileImpactPosition( float pitch, float
 	// estimate impact spot
 	float initVel = charge * ( TF_PIPEBOMB_MAX_CHARGE_VEL - TF_PIPEBOMB_MIN_CHARGE_VEL ) + TF_PIPEBOMB_MIN_CHARGE_VEL;
 	CALL_ATTRIB_HOOK_FLOAT( initVel, mult_projectile_range );
+
+	if ( !initVel )
+	{
+		return GetAbsOrigin();
+	}
 
 	return EstimateProjectileImpactPosition( pitch, yaw, initVel );
 }
@@ -2046,21 +2068,17 @@ Vector CTFPlayer::EstimateProjectileImpactPosition( float pitch, float yaw, floa
 
 		if ( trace.DidHit() )
 		{
-#ifdef STAGING_ONLY
 			if ( tf_debug_ballistics.GetBool() )
 			{
 				NDebugOverlay::Cross3D( trace.endpos, 10.0f, 100, 255, 0, true, NDEBUG_PERSIST_TILL_NEXT_SERVER );
 			}
-#endif
 			break;
 		}
 
-#ifdef STAGING_ONLY
 		if ( tf_debug_ballistics.GetBool() )
 		{
 			NDebugOverlay::Line( lastPos, pos, 0, 255, 0, false, NDEBUG_PERSIST_TILL_NEXT_SERVER );
 		}
-#endif
 
 		lastPos = pos;
 	}
@@ -2129,7 +2147,6 @@ void CTFPlayer::PreThink()
 		}
 	}
 
-#ifdef STAGING_ONLY 
 	// show ballistic path for currently equipped weapon (ie: grenades)
 	if ( tf_debug_ballistics.GetBool() )
 	{
@@ -2137,6 +2154,7 @@ void CTFPlayer::PreThink()
 		EstimateProjectileImpactPosition( myWeapon );
 	}
 
+#ifdef STAGING_ONLY
 	if ( tf_debug_ballistic_targeting.GetBool() )
 	{
 		CTFWeaponBaseGun *myWeapon = dynamic_cast< CTFWeaponBaseGun * >( m_Shared.GetActiveTFWeapon() );
