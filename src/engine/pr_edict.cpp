@@ -205,6 +205,39 @@ edict_t *ED_Alloc( int iForceEdictIndex )
 	// Allocate a new edict.
 	if ( sv.num_edicts >= sv.max_edicts )
 	{
+		if ( sv.max_edicts != 0 )
+		{
+			// We don't have any available edicts that are newer than
+			// EDICT_FREETIME. Rather than crash/restart try to find an edict that
+			// was deleted less than EDICT_FREETIME ago. This will protect us
+			// against potential server hacks like those used to crash
+			// dota2 servers.
+			iBit = -1;
+			for ( ;; )
+			{
+				iBit = g_FreeEdicts.FindNextSetBit( iBit + 1 );
+				if ( iBit < 0 )
+					break;
+
+				edict_t *pEdict = &sv.edicts[ iBit ];
+
+				// If this assert goes off, someone most likely called pedict->ClearFree() and not ED_ClearFreeFlag()?
+				Assert( pEdict->IsFree() );
+				Assert( iBit == pEdict->m_EdictIndex );
+				// If we have no freetime, we've had AllowImmediateReuse() called. We need
+				// to explicitly delete this old entity.
+				if ( pEdict->freetime == 0 && sv_useexplicitdelete.GetBool() )
+				{
+					//Warning("ADDING SLOT to snapshot: %d\n", i );
+					framesnapshotmanager->AddExplicitDelete( iBit );
+				}
+				--sv.free_edicts;
+				g_FreeEdicts.Clear( pEdict->m_EdictIndex );
+				ED_ClearEdict( pEdict );
+				return pEdict;
+			}
+		}
+
 		AssertMsg( 0, "Can't allocate edict" );
 
 		SpewEdicts(); // Log the entities we have before we die
