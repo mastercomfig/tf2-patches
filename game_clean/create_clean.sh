@@ -16,36 +16,86 @@ mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
 cp -rf copy/* ${CLEAN_DIR}
 cp -rf copy/* ${DEV_DIR}
 
-declare -a FILES=(
-                  {hl2,srcds}.exe
-                 )
+declare -a EXES=(
+  {hl2,srcds}
+  bin/shadercompile
+  bin/splitskybox
+  bin/hammer
+  bin/vvis
+  bin/vrad
+  bin/vbsp
+  bin/bspzip
+  bin/vpk
+  bin/modelbrowser
+  bin/dmxedit
+  bin/dmxconvert
+  bin/elementviewer
+  bin/captioncompiler
+  bin/glview
+  bin/motionmapper
+  bin/scenemanager
+  bin/MakeScenesImage
+  bin/qc_eyes
+  bin/hlmv
+  bin/studiomdl
+  bin/vtex
+  bin/pfm2tgas
+  bin/vtf2tga
+  bin/dist2alpha
+  bin/height2ssbump
+  bin/height2normal
+  bin/normal2ssbump
+  bin/mksheet
+  bin/inputtest
+  bin/matsys_regressiontest
+  bin/materialsystemtest
+  bin/panel_zoo
+  bin/newdat
+  bin/simdtest
+  bin/shaderapitest
+  bin/unittest
+)
 
 declare -a DLLS_CI=(
-                  bin/engine
-                  bin/replay
-                  bin/launcher
-                  bin/inputsystem
-                  bin/{Material,SoundEmitter}System
-                  bin/dedicated
-                  bin/{shaderapi,stdshader_}dx9
-                  bin/vgui{matsurface,2}
-                  bin/{data,scenefile}cache
-                  bin/sourcevr
-                  bin/StudioRender
-                  bin/bsppack
-                  bin/FileSystem_Stdio
-                  bin/vstdlib
-                  bin/tier0
-                  tf/bin/{client,server}
-                 )
+  bin/engine
+  bin/replay
+  bin/launcher
+  bin/inputsystem
+  bin/{Material,SoundEmitter}System
+  bin/soundsystem
+  bin/dedicated
+  bin/shaderapi{dx9,empty}
+  bin/stdshader_{dx6,dx7,dx8,dx9,dbg}
+  bin/vgui{matsurface,2}
+  bin/{data,scenefile}cache
+  bin/sourcevr
+  bin/StudioRender
+  bin/bsppack
+  bin/FileSystem_Stdio
+  bin/vstdlib
+  bin/tier0
+  bin/unicode
+  bin/vvis_dll
+  bin/vrad_dll
+  bin/hammer_dll
+  bin/shadercompile_dll
+  bin/texturecompile_dll
+  bin/AdminServer
+  bin/mdllib
+  bin/tools/commedit
+  bin/tools/pet
+  bin/tools/vmt
+  tf/bin/{client,server}
+)
 
 declare -a DLLS=(
-                  bin/GameUI
-                  bin/ServerBrowser
-                 )
+  bin/GameUI
+  bin/ServerBrowser
+  bin/FileSystemOpenDialog
+)
 
-for F in "${FILES[@]}"; do
-  cp -f ${DEV_DIR}/${F} ${CLEAN_DIR}/${F}
+for F in "${EXES[@]}"; do
+  cp -f ${DEV_DIR}/${F}.exe ${CLEAN_DIR}/${F}.exe
 done
 
 for F in "${DLLS_CI[@]}"; do
