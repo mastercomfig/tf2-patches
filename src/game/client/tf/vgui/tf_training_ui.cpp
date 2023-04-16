@@ -1765,24 +1765,24 @@ public:
 		ivgui()->RemoveTickSignal( GetVPanel() );
 	}
 
-	virtual void SetDialogVariable( const char *pVarName, const char *pValue )
+	virtual void SetDialogVariable( const char *pVarName, const char *pValue, bool bForceUpdate = true )
 	{
-		m_pContainer->SetDialogVariable( pVarName, pValue );
+		m_pContainer->SetDialogVariable( pVarName, pValue, bForceUpdate );
 	}
 
-	virtual void SetDialogVariable( const char *pVarName, const wchar_t *pValue )
+	virtual void SetDialogVariable( const char *pVarName, const wchar_t *pValue, bool bForceUpdate = true )
 	{
-		m_pContainer->SetDialogVariable( pVarName, pValue );
+		m_pContainer->SetDialogVariable( pVarName, pValue, bForceUpdate  );
 	}
 
-	virtual void SetDialogVariable( const char *pVarName, int nValue )
+	virtual void SetDialogVariable( const char *pVarName, int nValue, bool bForceUpdate = true )
 	{
-		m_pContainer->SetDialogVariable( pVarName, nValue );
+		m_pContainer->SetDialogVariable( pVarName, nValue, bForceUpdate  );
 	}
 
-	virtual void SetDialogVariable( const char *pVarName, float flValue )
+	virtual void SetDialogVariable( const char *pVarName, float flValue, bool bForceUpdate = true )
 	{
-		m_pContainer->SetDialogVariable( pVarName, flValue );
+		m_pContainer->SetDialogVariable( pVarName, flValue, bForceUpdate  );
 	}
 
 	void SetupButton( const char *pPanelName, CExButton **ppOut = NULL )

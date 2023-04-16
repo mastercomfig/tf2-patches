@@ -562,7 +562,7 @@ void CTFHudTimeStatus::SetExtraTimePanels()
 				CheckClockLabelLength( m_pOvertimeLabel, m_pOvertimeBG );
 			}
 		}
-		else
+		else if ( m_pOvertimeLabel->IsVisible() )
 		{
 			m_pOvertimeBG->SetVisible( false );
 			m_pOvertimeLabel->SetVisible( false );

@@ -641,37 +641,37 @@ void CTFHudFlagObjectives::OnTick()
 	}
 
 	// are we playing captures for rounds?
-	if ( !TFGameRules() || ( !TFGameRules()->IsPlayingHybrid_CTF_CP() && !TFGameRules()->IsPlayingSpecialDeliveryMode() && !TFGameRules()->IsMannVsMachineMode() ) )
+	if ( TFGameRules() && ( !TFGameRules()->IsPlayingHybrid_CTF_CP() && !TFGameRules()->IsPlayingSpecialDeliveryMode() && !TFGameRules()->IsMannVsMachineMode() ) )
 	{
 		if ( tf_flag_caps_per_round.GetInt() > 0 )
 		{
 			C_TFTeam *pTeam = GetGlobalTFTeam( TF_TEAM_BLUE );
 			if ( pTeam )
 			{
-				SetDialogVariable( "bluescore", pTeam->GetFlagCaptures() );
+				SetDialogVariable( "bluescore", pTeam->GetFlagCaptures(), false );
 			}
 
 			pTeam = GetGlobalTFTeam( TF_TEAM_RED );
 			if ( pTeam )
 			{
-				SetDialogVariable( "redscore", pTeam->GetFlagCaptures() );
+				SetDialogVariable( "redscore", pTeam->GetFlagCaptures(), false );
 			}
 
 			SetPlayingToLabelVisible( true );
-			SetDialogVariable( "rounds", tf_flag_caps_per_round.GetInt() );
+			SetDialogVariable( "rounds", tf_flag_caps_per_round.GetInt(), false );
 		}
 		else // we're just playing straight score
 		{
 			C_TFTeam *pTeam = GetGlobalTFTeam( TF_TEAM_BLUE );
 			if ( pTeam )
 			{
-				SetDialogVariable( "bluescore", pTeam->Get_Score() );
+				SetDialogVariable( "bluescore", pTeam->Get_Score(), false );
 			}
 
 			pTeam = GetGlobalTFTeam( TF_TEAM_RED );
 			if ( pTeam )
 			{
-				SetDialogVariable( "redscore", pTeam->Get_Score() );
+				SetDialogVariable( "redscore", pTeam->Get_Score(), false );
 			}
 
 			SetPlayingToLabelVisible( false );

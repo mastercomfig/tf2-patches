@@ -74,10 +74,10 @@ public:
 
 	// localization variables (used in constructing UI strings)
 	// after the variable is set, causes all the necessary sub-panels to update
-	virtual void SetDialogVariable(const char *varName, const char *value);
-	virtual void SetDialogVariable(const char *varName, const wchar_t *value);
-	virtual void SetDialogVariable(const char *varName, int value);
-	virtual void SetDialogVariable(const char *varName, float value);
+	virtual void SetDialogVariable(const char *varName, const char *value, bool bForceUpdate = true);
+	virtual void SetDialogVariable(const char *varName, const wchar_t *value, bool bForceUpdate = true);
+	virtual void SetDialogVariable(const char *varName, int value, bool bForceUpdate = true);
+	virtual void SetDialogVariable(const char *varName, float value, bool bForceUpdate = true);
 
 	// Focus handling
 	// Delegate focus to a sub panel

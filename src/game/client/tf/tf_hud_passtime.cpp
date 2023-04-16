@@ -218,8 +218,8 @@ void CTFHudTeamScore::OnTick()
 			tf_passtime_scores_per_round.GetInt() );
 	}
 
-	SetDialogVariable( "bluescore", iBlueScore );
-	SetDialogVariable( "redscore", iRedScore );
+	SetDialogVariable( "bluescore", iBlueScore, false );
+	SetDialogVariable( "redscore", iRedScore, false );
 }
 
 //-----------------------------------------------------------------------------

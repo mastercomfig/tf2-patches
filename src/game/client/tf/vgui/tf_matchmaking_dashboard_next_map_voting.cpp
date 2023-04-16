@@ -225,6 +225,12 @@ private:
 
 	void UpdateVoteCounts()
 	{
+#ifndef STAGING_ONLY
+		if ( !TFGameRules() )
+		{
+			return;
+		}
+#endif
 		int nVotes[ CTFGameRules::EUserNextMapVote::NUM_VOTE_STATES ];
 		memset( nVotes, 0, sizeof( nVotes ) );
 		int nTotalVotes = 0;
@@ -257,7 +263,7 @@ private:
 			if ( pMapChoicePanel )
 			{
 				// Update the label with the % total
-				pMapChoicePanel->SetDialogVariable( "votes", CFmtStr( "%3.0f%%", flPercent ) );
+				pMapChoicePanel->SetDialogVariable( "votes", CFmtStr( "%3.0f%%", flPercent ), false );
 				// Do a color change animation
 				if ( g_pClientMode && g_pClientMode->GetViewport() )
 				{
