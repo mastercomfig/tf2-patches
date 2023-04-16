@@ -267,10 +267,10 @@ void CTFProjectile_Jar::SetCustomPipebombModel()
 {
 	// Check for Model Override
 	int iProjectile = 0;
-	if ( GetLauncher() )
+	CTFPlayer *pThrower = ToTFPlayer( GetThrower() );
+	if ( pThrower && pThrower->GetActiveWeapon() )
 	{
-		CTFWeaponBase *pTFWeapon = dynamic_cast<CTFWeaponBase*>( GetLauncher() );
-		CALL_ATTRIB_HOOK_INT_ON_OTHER( pTFWeapon, iProjectile, override_projectile_type );
+		CALL_ATTRIB_HOOK_INT_ON_OTHER( pThrower->GetActiveWeapon(), iProjectile, override_projectile_type );
 		switch ( iProjectile )
 		{
 		case TF_PROJECTILE_FESTIVE_JAR :
