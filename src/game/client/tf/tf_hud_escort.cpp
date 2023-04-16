@@ -696,7 +696,7 @@ void CTFHudEscort::UpdateAlarmAnimations( void )
 void CTFHudEscort::OnTick()
 {
 	// don't need to do this on non-escort maps (unless we're trying to override the HUD type)
-	if ( TFGameRules() && ( TFGameRules()->GetGameType() != TF_GAMETYPE_ESCORT ) && ( TFGameRules()->GetHUDType() != TF_HUDTYPE_ESCORT ) )
+	if ( !TFGameRules() || ( TFGameRules()->GetGameType() != TF_GAMETYPE_ESCORT ) && ( TFGameRules()->GetHUDType() != TF_HUDTYPE_ESCORT ) )
 		return;
 
 	if ( !BaseClass::IsVisible() ) // intentionally skipping our version of IsVisible() to bypass the !m_bHaveValidPointPositions check
@@ -831,14 +831,14 @@ void CTFHudEscort::OnTick()
 	if ( flSecondsToRecede > 0.0f && flSecondsToRecede <= TF_ESCORT_RECEDE_COUNTDOWN )
 	{
 		int iDisplaySeconds = (int)( flSecondsToRecede ) + 1;
-		m_pEscortItemPanel->SetDialogVariable( "recede", VarArgs( "%d", iDisplaySeconds ) );
+		m_pEscortItemPanel->SetDialogVariable( "recede", VarArgs( "%d", iDisplaySeconds ), false );
 
 		// we should not be showing the blocked image if we're showing the countdown
 		m_pBlocked->SetVisible( false );
 	}
 	else
 	{
-		m_pEscortItemPanel->SetDialogVariable( "recede", "" );
+		m_pEscortItemPanel->SetDialogVariable( "recede", "", false );
 	}
 
 	// Debug string

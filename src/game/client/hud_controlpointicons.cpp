@@ -551,7 +551,7 @@ void CControlPointIcon::PerformLayout( void )
 			if ( m_pCapNumPlayers )
 			{
 				m_pCapNumPlayers->SetVisible( (iPlayers>1) );
-				SetDialogVariable( "numcappers", iPlayers );
+				SetDialogVariable( "numcappers", iPlayers, false );
 
 				m_pCapNumPlayers->SetFgColor( Color(0,0,0,255) );
 			}

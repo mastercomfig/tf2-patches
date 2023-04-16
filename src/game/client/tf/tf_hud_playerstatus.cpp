@@ -866,11 +866,11 @@ void CTFHudPlayerHealth::SetHealth( int iNewHealth, int iMaxHealth, int	iMaxBuff
 	// set our health display value
 	if ( m_nHealth > 0 )
 	{
-		SetDialogVariable( "Health", m_nHealth );
+		SetDialogVariable( "Health", m_nHealth, false );
 	}
 	else
 	{
-		SetDialogVariable( "Health", "" );
+		SetDialogVariable( "Health", "", false );
 	}	
 }
 
