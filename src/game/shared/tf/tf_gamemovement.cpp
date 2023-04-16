@@ -287,8 +287,6 @@ unsigned int CTFGameMovement::PlayerSolidMask( bool brushOnly )
 	return ( uMask | BaseClass::PlayerSolidMask( brushOnly ) );
 }
 
-static ConVar tf_movement_maxspeed("tf_movement_maxspeed", V_STRINGIFY(TF_MAX_SPEED), FCVAR_REPLICATED, "Maximum movement speed for players.");
-
 //-----------------------------------------------------------------------------
 // Purpose: Overridden to allow players to run faster than the maxspeed
 //-----------------------------------------------------------------------------
@@ -314,7 +312,7 @@ void CTFGameMovement::ProcessMovement( CBasePlayer *pBasePlayer, CMoveData *pMov
 	mv = pMove;
 
 	// The max speed is currently set to the scout - if this changes we need to change this!
-	mv->m_flMaxSpeed = tf_movement_maxspeed.GetFloat();
+	mv->m_flMaxSpeed = TF_MAX_SPEED;
 
 	// Handle charging demomens
 	ChargeMove();
