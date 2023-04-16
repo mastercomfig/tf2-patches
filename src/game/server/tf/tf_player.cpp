@@ -3057,6 +3057,8 @@ void CTFPlayer::Precache()
 	BaseClass::Precache();
 }
 
+ConVar sv_max_usercmd_future_ticks( "sv_max_usercmd_future_ticks", "8", 0, "Prevents clients from running usercmds too far in the future." );
+
 //-----------------------------------------------------------------------------
 // Purpose: Allow pre-frame adjustments on the player
 //-----------------------------------------------------------------------------
@@ -3068,6 +3070,14 @@ void CTFPlayer::PlayerRunCommand( CUserCmd *ucmd, IMoveHelper *moveHelper )
 
 	if ( !sv_runcmds.GetInt() )
 		return;
+
+	// don't run commands in the future
+	if ( !IsEngineThreaded() && 
+		( ucmd->tick_count > (gpGlobals->tickcount + sv_max_usercmd_future_ticks.GetInt() ) ) )
+	{
+		DevMsg( "Client cmd out of sync (delta %i).\n", ucmd->tick_count - gpGlobals->tickcount );
+		return;
+	}
 
 	if ( m_Shared.InCond( TF_COND_HALLOWEEN_KART ) )
 	{
