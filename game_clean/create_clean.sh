@@ -11,8 +11,8 @@ CLEAN_DIR=../game_dist
 CLEAN_DEBUG_DIR=${CLEAN_DIR}_debug
 rm -rf ${CLEAN_DIR}
 rm -rf ${CLEAN_DEBUG_DIR}
-mkdir -p ${CLEAN_DIR}/{bin,tf/bin}
-mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin}
+mkdir -p ${CLEAN_DIR}/{bin,tf/bin,bin/tools}
+mkdir -p ${CLEAN_DEBUG_DIR}/{bin,tf/bin,bin/tools}
 cp -rf copy/* ${CLEAN_DIR}
 cp -rf copy/* ${DEV_DIR}
 
