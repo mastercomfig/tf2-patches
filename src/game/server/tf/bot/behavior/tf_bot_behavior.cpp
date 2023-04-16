@@ -1427,7 +1427,14 @@ void CTFBotMainAction::FireWeaponAtEnemy( CTFBot *me )
 
 					float hitRange = trace.fraction * 1.1f * threatRange;
 
-					if ( hitRange < TF_ROCKET_RADIUS )
+					// Accurate enough base damage
+					float flExplosiveDamage = 100.0f;
+					// Don't factor overheal
+					float flCurrentHealth = MIN( me->GetHealth(), me->GetMaxHealth() );
+					// Don't hit ourselves if the explosion will do a noticeable amount of our health
+					bool bTooMuchSelfDamage = flExplosiveDamage > 0.3f * flCurrentHealth;
+
+					if ( bTooMuchSelfDamage && hitRange < TF_ROCKET_RADIUS )
 					{
 						// shot will impact very near us
 						if ( !trace.m_pEnt || ( trace.m_pEnt && !trace.m_pEnt->MyCombatCharacterPointer() ) )
