@@ -241,6 +241,8 @@ public:
 	static CTFProjectile_SentryRocket *Create( const Vector &vecOrigin, const QAngle &vecAngles, CBaseEntity *pOwner = NULL, CBaseEntity *pScorer = NULL );	
 
 	virtual void Spawn();
+
+	void SetLauncher(CBaseEntity* pLauncher) override { m_hLauncher = pLauncher; };
 };
 
 #endif // TF_OBJ_SENTRYGUN_H
