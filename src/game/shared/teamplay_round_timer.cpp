@@ -97,10 +97,13 @@ static void RecvProxy_TimerPaused( const CRecvProxyData *pData, void *pStruct, v
 
 	bool bTimerPaused = ( pData->m_Value.m_Int > 0 );
 
+	// UNDONE: Unused HUD animation
+#if 0
 	if ( bTimerPaused == false )
 	{
 		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "TimerFlash" ); 
 	}
+#endif
 
 	if ( pTimer )
 	{

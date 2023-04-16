@@ -14,6 +14,7 @@
 #include "tf_logic_player_destruction.h"
 #include "c_tf_objective_resource.h"
 #include "c_func_capture_zone.h"
+#include "tf_hud_objectivestatus.h"
 
 #define ATTACK_BLINK_TIME 2.f
 
@@ -516,7 +517,8 @@ void CTFHUDRobotDestruction::PerformRobotLayout( RobotVector_t& vecRobots, int n
 //-----------------------------------------------------------------------------
 void CTFHUDRobotDestruction::Reset()
 {
-	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "FlagOutlineHide" );
+	CTFHudObjectiveStatus *pStatus = GET_HUDELEMENT( CTFHudObjectiveStatus );
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( pStatus, "FlagOutlineHide" );
 }
 
 //-----------------------------------------------------------------------------

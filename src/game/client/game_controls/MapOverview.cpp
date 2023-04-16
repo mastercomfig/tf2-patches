@@ -1019,7 +1019,7 @@ void CMapOverview::SetMode(int mode)
 	{
 		ShowPanel( false );
 
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "MapOff" );
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( this, "MapOff", true, true );
 	}
 	else if ( mode == MAP_MODE_INSET )
 	{
@@ -1041,7 +1041,7 @@ void CMapOverview::SetMode(int mode)
 
 		if ( mode != m_nMode && RunHudAnimations() )
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "MapZoomToSmall" );
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( this, "MapZoomToSmall", true, true );
 		}
 	}
 	else if ( mode == MAP_MODE_FULL )
@@ -1061,7 +1061,7 @@ void CMapOverview::SetMode(int mode)
 
 		if ( mode != m_nMode && RunHudAnimations() )
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "MapZoomToLarge" );
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( this, "MapZoomToLarge", true, true );
 		}
 	}
 

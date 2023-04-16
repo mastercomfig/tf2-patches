@@ -256,12 +256,12 @@ void CHudMenu::SelectMenuItem( int menu_item )
 
 		m_nSelectedItem = menu_item;
 		// Pulse the selection
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuPulse");
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuPulse", true, true);
 
 		// remove the menu quickly
 		m_bMenuTakesInput = false;
 		m_flShutoffTime = gpGlobals->realtime + m_flOpenCloseTime;
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuClose");
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuClose", true, true);
 	}
 }
 
@@ -365,7 +365,7 @@ void CHudMenu::HideMenu( void )
 {
 	m_bMenuTakesInput = false;
 	m_flShutoffTime = gpGlobals->realtime + m_flOpenCloseTime;
-	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuClose");
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuClose", true, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -384,7 +384,7 @@ void CHudMenu::ShowMenu( const char * menuName, int validSlots )
 
 	Q_strncpy( g_szPrelocalisedMenuString, menuName, sizeof( g_szPrelocalisedMenuString ) );
 
-	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuOpen");
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuOpen", true, true);
 	m_nSelectedItem = -1;
 
 	// we have the whole string, so we can localise it now
@@ -409,7 +409,7 @@ void CHudMenu::ShowMenu_KeyValueItems( KeyValues *pKV )
 	m_fWaitingForMore = 0;
 	m_bitsValidSlots = 0;
 
-	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuOpen");
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuOpen", true, true);
 	m_nSelectedItem = -1;
 	
 	g_szMenuString[0] = '\0';
@@ -489,7 +489,7 @@ void CHudMenu::MsgFunc_ShowMenu( bf_read &msg)
 
 		if ( !NeedMore )
 		{  
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("MenuOpen");
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence(this, "MenuOpen", true, true);
 			m_nSelectedItem = -1;
 			
 			// we have the whole string, so we can localise it now
