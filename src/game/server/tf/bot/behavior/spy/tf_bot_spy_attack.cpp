@@ -251,6 +251,8 @@ ActionResult< CTFBot >	CTFBotSpyAttack::Update( CTFBot *me, float interval )
 	{
 		// aim our pistol
 		me->GetBodyInterface()->AimHeadTowards( playerThreat, IBody::MANDATORY, 0.1f, NULL, "Aiming my pistol" );
+		// fire our pistol
+		me->PressFireButton();
 	}
 
 	if ( isMovingTowardVictim )
