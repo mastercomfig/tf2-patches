@@ -1269,7 +1269,7 @@ void CInput::CreateMove ( int sequence_number, float input_sample_frametime, boo
 
 	m_flLastForwardMove = cmd->forwardmove;
 
-	cmd->random_seed = MD5_PseudoRandom( sequence_number ) & 0x7fffffff;
+	cmd->random_seed = MD5_PseudoRandom( C_BasePlayer::GetLocalPlayer()->m_nFinalPredictedTick ) & 0x7fffffff;
 
 	HLTVCamera()->CreateMove( cmd );
 #if defined( REPLAY_ENABLED )
@@ -1315,7 +1315,8 @@ void CInput::DecodeUserCmdFromBuffer( bf_read& buf, int sequence_number )
 	CUserCmd nullcmd;
 	CUserCmd *cmd = &m_pCommands[ sequence_number % MULTIPLAYER_BACKUP];
 
-	ReadUsercmd( &buf, cmd, &nullcmd );
+	// TODO: demos sync with time base?
+	ReadUsercmd( &buf, cmd, &nullcmd, nullptr );
 }
 
 void CInput::ValidateUserCmd( CUserCmd *usercmd, int sequence_number )

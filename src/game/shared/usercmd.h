@@ -174,7 +174,7 @@ public:
 
 };
 
-void ReadUsercmd( bf_read *buf, CUserCmd *move, CUserCmd *from );
+void ReadUsercmd( bf_read *buf, CUserCmd *move, CUserCmd *from, CBasePlayer *player );
 void WriteUsercmd( bf_write *buf, const CUserCmd *to, const CUserCmd *from );
 
 #endif // USERCMD_H

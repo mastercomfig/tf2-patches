@@ -3122,7 +3122,7 @@ float CServerGameClients::ProcessUsercmds( edict_t *player, bf_read *buf, int nu
 	for ( i = totalcmds - 1; i >= 0; i-- )
 	{
 		to = &cmds[ i ];
-		ReadUsercmd( buf, to, from );
+		ReadUsercmd( buf, to, from, pPlayer );
 		from = to;
 	}
 

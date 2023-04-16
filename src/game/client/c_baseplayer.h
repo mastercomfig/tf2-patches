@@ -313,6 +313,7 @@ public:
 
 	float					GetTimeBase( void ) const;
 	float					GetFinalPredictedTime() const;
+	int		GetTickBase() const { return m_nTickBase; }
 
 	bool					IsInVGuiInputMode() const;
 	bool					IsInViewModelVGuiInputMode() const;
@@ -572,6 +573,8 @@ private:
 	friend class CHL2GameMovement;
 	friend class CDODGameMovement;
 	friend class CPortalGameMovement;
+
+	friend class CInput;
 	
 	// Accessors for gamemovement
 	float GetStepSize( void ) const { return m_Local.m_flStepSize; }

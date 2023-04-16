@@ -725,6 +725,7 @@ public:
 	// Bot accessors...
 	void	SetTimeBase( float flTimeBase );
 	float	GetTimeBase() const;
+	int		GetTickBase() const { return m_nTickBase; }
 	void	SetLastUserCommand( const CUserCmd &cmd );
 	const CUserCmd *GetLastUserCommand( void );
 	
