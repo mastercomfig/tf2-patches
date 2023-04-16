@@ -442,7 +442,7 @@ void CTFBaseRocket::Explode( trace_t *pTrace, CBaseEntity *pOther )
 	int iCustomParticleIndex = INVALID_STRING_INDEX;
 	item_definition_index_t ownerWeaponDefIndex = INVALID_ITEM_DEF_INDEX;
 	// if the owner is a Sentry, Check its owner
-	CBaseEntity *pPlayerOwner = GetOriginalLauncher()->GetOwnerEntity();
+	CBaseEntity *pPlayerOwner = GetOriginalLauncher() ? GetOriginalLauncher()->GetOwnerEntity() : nullptr;
 
 	if ( TF_IsHolidayActive( kHoliday_HalloweenOrFullMoon ) || true )
 	{
@@ -540,6 +540,9 @@ void CTFBaseRocket::CheckForStunOnImpact( CTFPlayer* pTarget )
 	if ( !m_bStunOnImpact )
 		return;
 
+	if ( !GetOriginalLauncher() )
+		return;
+
 	CTFPlayer *pAttacker = ToTFPlayer( GetOriginalLauncher()->GetOwnerEntity() );
 	if ( !pAttacker )
 		return;
@@ -571,6 +574,9 @@ void CTFBaseRocket::CheckForStunOnImpact( CTFPlayer* pTarget )
 //-----------------------------------------------------------------------------
 int CTFBaseRocket::GetStunLevel( void )
 {
+	if ( !GetOriginalLauncher() )
+		return 0;
+
 	CTFPlayer *pAttacker = ToTFPlayer( GetOriginalLauncher()->GetOwnerEntity() );
 	if ( !pAttacker )
 		return 0;
@@ -638,8 +644,10 @@ void CTFBaseRocket::DrawRadius( float flRadius )
 // Purpose: 
 //-----------------------------------------------------------------------------
 float CTFBaseRocket::GetRadius() 
-{ 
+{
 	float flRadius = TF_ROCKET_RADIUS;
+	if ( !GetOriginalLauncher() )
+		return flRadius;
 	CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( GetOriginalLauncher(), flRadius, mult_explosion_radius );
 
 	CBaseEntity *pAttacker = GetOriginalLauncher()->GetOwnerEntity();
