@@ -259,7 +259,7 @@ ConVar tf_halloween_giant_health_scale( "tf_halloween_giant_health_scale", "10",
 ConVar tf_grapplinghook_los_force_detach_time( "tf_grapplinghook_los_force_detach_time", "1", FCVAR_CHEAT );
 ConVar tf_powerup_max_charge_time( "tf_powerup_max_charge_time", "30", FCVAR_CHEAT );
 
-ConVar tf_unlag_teammates( "tf_unlag_teammates", "2", FCVAR_NOTIFY, "Controls lag compensation for teammates. 0: Disable, 1: Enable, 2: Melee weapons only" );
+ConVar tf_unlag_teammates( "tf_unlag_teammates", "1", FCVAR_NOTIFY, "Controls lag compensation for teammates. 0: Disable, 1: Enable, 2: Melee weapons only" );
 
 extern ConVar tf_powerup_mode;
 extern ConVar tf_mvm_buybacks_method;
@@ -19247,6 +19247,7 @@ bool CTFPlayer::WantsLagCompensationOnEntity( const CBasePlayer *pPlayer, const 
 	float fDistance = vHisOrigin.DistTo( vMyOrigin );
 
 	// teammates are only lag compensated for melee attacks for tf_unlag_teammates 2
+	// the July 7, 2022 Patch introduced this functionality
 	if ( iUnlagTeammates == 2 )
 	{
 		if ( fDistance > 512 )
