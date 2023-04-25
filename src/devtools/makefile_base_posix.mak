@@ -57,6 +57,7 @@ ifeq ($(CFG), release)
 	#  tonyp: The size increase was likely caused by -finline-functions and -fipa-cp-clone getting switched on with -O3.
 	# -fno-omit-frame-pointer: need this for stack traces with perf.
 	OptimizerLevel_CompilerSpecific = -O2 -fno-strict-aliasing -ffast-math -fno-omit-frame-pointer -ftree-vectorize
+	OptimizerLevel_CompilerSpecific += -fno-delete-null-pointer-checks
 	ifeq ($(CLANG_BUILD),1)
 		OptimizerLevel_CompilerSpecific += -funswitch-loops
 	else
@@ -92,9 +93,13 @@ ifeq ($(CLANG_BUILD),1)
 	BASE_CXXFLAGS += -ftemplate-depth=900
 	# Needed for older versions of clang (newer versions are compatible with gcc syntax)
 	PCH_CXXFLAGS += -emit-pch
+
+	PCH_CXXFLAGS += -fcolor-diagnostics
 else
 	# GCC specific - better PCH behavior w/ccache and better debugging information
 	BASE_CFLAGS += -fpch-preprocess -fvar-tracking-assignments
+
+	BASE_CFLAGS+= -fdiagnostics-color=always
 endif
 
 DEFINES += -DVPROF_LEVEL=1 -DGNUC -DNO_HOOK_MALLOC
@@ -138,7 +143,7 @@ else ifeq ($(USE_VALVE_BINDIR),1)
 	CRYPTOPPDIR=linux32
 else
 	# Not using chroot, use old steam-runtime. (gcc 4.6.3)
-	export STEAM_RUNTIME_PATH ?= /valve/steam-runtime
+	export STEAM_RUNTIME_PATH ?= /usr
 	GCC_VER =
 	P4BIN = p4
 	CRYPTOPPDIR=ubuntu12_32
@@ -183,7 +188,7 @@ endif
 
 # If not specified by environment, use steam runtime compilers + in-tree ccache
 ifneq ($(filter default undefined,$(origin AR)),)
-	AR = $(STEAM_RUNTIME_PATH)/bin/ar crs
+	AR = $(STEAM_RUNTIME_PATH)/bin/ar
 endif
 ifneq ($(filter default undefined,$(origin CC)),)
 	CC = $(CCACHE) $(STEAM_RUNTIME_PATH)/bin/gcc$(GCC_VER)
@@ -217,6 +222,37 @@ endif
 WARN_FLAGS += -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-value
 WARN_FLAGS += -Wno-invalid-offsetof -Wno-float-equal -Wno-reorder -Werror=return-type
 WARN_FLAGS += -fdiagnostics-show-option -Wformat -Wformat-security
+
+# note(replaycoding): Ideally we would fix the code to get rid of these
+# warnings, there are likely some nasty bugs hiding behind this, especially on
+# newer compilers.
+WARN_FLAGS += \
+	-Wno-misleading-indentation \
+	-Wno-maybe-uninitialized \
+	-Wno-class-memaccess \
+	-Wno-sign-compare \
+	-Wno-deprecated-declarations \
+	-Wno-int-in-bool-context \
+	-Wno-ignored-attributes \
+	-Wno-stringop-truncation \
+	-Wno-stringop-overflow \
+	-Wno-unused-but-set-variable \
+	-Wno-switch \
+	-Wno-packed-not-aligned \
+	-Wno-nonnull-compare \
+	-Wno-delete-non-virtual-dtor \
+	-Wno-address \
+	-Wno-comment \
+	-Wno-conversion-null \
+	-Wno-format-overflow \
+	-Wno-catch-value \
+	-Wno-unused-local-typedefs \
+	-Wno-placement-new \
+	-Wno-sequence-point \
+	-Wno-logical-not-parentheses \
+	-Wno-uninitialized \
+	-Wno-cpp \
+	-Wno-parentheses
 
 ifeq ($(TARGET_PLATFORM),linux64)
 	# nocona = pentium4 + 64bit + MMX, SSE, SSE2, SSE3 - no SSSE3 (that's three s's - added in core2)
@@ -421,7 +457,7 @@ else
 endif
 
 ifneq "$(origin VALVE_NO_AUTO_P4)" "undefined"
-	P4_EDIT_START = chmod -R +w
+	P4_EDIT_START = chmod -fR +w
 	P4_EDIT_END = || true
 	P4_REVERT_START = true
 	P4_REVERT_END =
@@ -541,7 +577,7 @@ endif
 
 $(LIB_File): $(OTHER_DEPENDENCIES) $(OBJS) 
 	$(QUIET_PREFIX) -$(P4_EDIT_START) $(LIB_File) $(P4_EDIT_END); 
-	$(QUIET_PREFIX) $(AR) $(LIB_File) $(OBJS) $(LIBFILES);
+	$(QUIET_PREFIX) $(AR) crs $(LIB_File) $(OBJS) $(LIBFILES);
 	$(SHELL) -c "$(POSTBUILDCOMMAND)"
 
 SO_GameOutputFile = $(GAMEOUTPUTFILE)
@@ -559,8 +595,10 @@ $(GAMEOUTPUTFILE): $(OUTPUTFILE)
 	$(QUIET_PREFIX) rm -f $(GAMEOUTPUTFILE) $(QUIET_ECHO_POSTFIX);
 	$(QUIET_PREFIX) cp -v $(OUTPUTFILE) $(GAMEOUTPUTFILE) $(QUIET_ECHO_POSTFIX);
 	$(QUIET_PREFIX) -$(P4_EDIT_START) $(GAMEOUTPUTFILE)$(SYM_EXT) $(P4_EDIT_END);
-	$(QUIET_PREFIX) $(GEN_SYM) $(GAMEOUTPUTFILE); 
-	$(QUIET_PREFIX) -$(STRIP) $(GAMEOUTPUTFILE);
+	$(QUIET_PREFIX) -if [ "$(CONFTYPE)" != "lib" ]; then\
+		$(GEN_SYM) $(GAMEOUTPUTFILE);\
+		$(STRIP) $(GAMEOUTPUTFILE);\
+	fi;
 	$(QUIET_PREFIX) $(VSIGN) -signvalve $(GAMEOUTPUTFILE);
 	$(QUIET_PREFIX) if [ "$(COPY_DLL_TO_SRV)" = "1" ]; then\
 		echo "----" $(QUIET_ECHO_POSTFIX);\

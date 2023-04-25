@@ -113,6 +113,7 @@ CTargetID::CTargetID( const char *pElementName ) :
 	m_hFont = g_hFontTrebuchet24;
 	m_flLastChangeTime = 0;
 	m_iLastEntIndex = 0;
+	m_iTargetEntIndex = 0;
 	m_nOriginalY = 0;
 	m_bArenaPanelVisible = false;
 

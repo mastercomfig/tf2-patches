@@ -688,20 +688,27 @@ void Button::SetReleasedSound(const char *sound)
 	}
 }
 
+inline int MouseCodeToMask( MouseCode code )
+{
+	// MouseCodes do not start at zero. Make them start at zero before trying to fit them into a 32 bit mask..
+	// Otherwise, you would be trying to set bit 107 of an integer, and that would be bad.
+	const int recode = code - MOUSE_FIRST;
+	AssertMsg1( recode >= 0 && recode < 32, "MouseCode %d is invalid and cannot fit into a 32-bit mask\n", code );
+	return 1 << recode ;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Set button to be mouse clickable or not.
 //-----------------------------------------------------------------------------
 void Button::SetMouseClickEnabled(MouseCode code,bool state)
 {
-	if(state)
+	if (state)
 	{
-		//set bit to 1
-		_mouseClickMask|=1<<((int)(code+1));
+		_mouseClickMask |= MouseCodeToMask(code); //set bit to 1
 	}
 	else
 	{
-		//set bit to 0
-		_mouseClickMask&=~(1<<((int)(code+1)));
+		_mouseClickMask &= ~MouseCodeToMask(code); //set bit to 0
 	}	
 }
 
@@ -710,7 +717,7 @@ void Button::SetMouseClickEnabled(MouseCode code,bool state)
 //-----------------------------------------------------------------------------
 bool Button::IsMouseClickEnabled(MouseCode code)
 {
-	if(_mouseClickMask&(1<<((int)(code+1))))
+	if ( _mouseClickMask & MouseCodeToMask(code) ) 
 	{
 		return true;
 	}
