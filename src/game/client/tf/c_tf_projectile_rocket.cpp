@@ -42,7 +42,7 @@ void C_TFProjectile_Rocket::OnDataChanged(DataUpdateType_t updateType)
 	BaseClass::OnDataChanged(updateType);
 }
 
-ConVar tf_rocket_trail("tf_rocket_trail", "1", FCVAR_NONE);
+ConVar tf_rocket_trail("tf_rocket_trail", "1", FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
