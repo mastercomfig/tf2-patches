@@ -994,6 +994,8 @@ CTFPlayer::CTFPlayer()
 
 	SetDefLessFunc( m_PlayersExtinguished );
 
+	SetDefLessFunc( m_mapNoiseMakerUses );
+
 	m_flLastAutobalanceTime = 0.f;
 }
 
@@ -4737,6 +4739,12 @@ CEconItemView *CTFPlayer::GetLoadoutItem( int iClass, int iSlot, bool bReportWhi
 //-----------------------------------------------------------------------------
 void CTFPlayer::UseActionSlotItemPressed( void )
 {
+	if ( !IsAlive() )
+		return;
+
+	if ( GetTeamNumber() < FIRST_GAME_TEAM )
+		return;
+
 	m_bUsingActionSlot = true;
 
 	if ( TryToPickupDroppedWeapon() )
@@ -16327,8 +16335,39 @@ void CTFPlayer::DoNoiseMaker( void )
 	int iUnlimitedQuantity = 0;
 	CALL_ATTRIB_HOOK_INT( iUnlimitedQuantity, unlimited_quantity );
 
-	if ( pItem->GetItemQuantity() <= 0 && !iUnlimitedQuantity )
-		return;
+	if ( !iUnlimitedQuantity )
+	{
+		const int iGCQuantity = pItem->GetItemQuantity();
+		// Don't even try to use if the item quantity is already 0.
+		if ( iGCQuantity <= 0 )
+			return;
+
+		// Validate on our side that the item quantity is consistent.
+		itemid_t iItemID = pItem->GetItemID();
+		int iIndex = m_mapNoiseMakerUses.Find( iItemID );
+		if ( iIndex != m_mapNoiseMakerUses.InvalidIndex() )
+		{
+			int iQuantity = m_mapNoiseMakerUses[iIndex];
+			// If it's happening legit, we should see a decrement.
+			if ( iQuantity > iGCQuantity )
+			{
+				iQuantity = iGCQuantity;
+				m_mapNoiseMakerUses[iIndex] = iQuantity;
+			}
+			else
+			{
+				// Otherwise, decrement it ourselves.
+				iQuantity--;
+				m_mapNoiseMakerUses[iIndex] = iQuantity;
+				if ( iQuantity <= 0 )
+					return;
+			}
+		}
+		else
+		{
+			m_mapNoiseMakerUses.Insert( iItemID, iGCQuantity );
+		}
+	}
 
 	perteamvisuals_t* vis = pItem->GetStaticData()->GetPerTeamVisual( 0 );
 	if ( !vis )
@@ -16362,6 +16401,10 @@ void CTFPlayer::DoNoiseMaker( void )
 		TE_TFParticleEffect( filter, 0.0, particleEffectName, PATTACH_POINT_FOLLOW, this, "head" );
 	}
 
+	// TODO: SV_GetSoundDuration is not implemented for dedicated, just use a 5 second delay for now
+#if 1
+	float flDelay = 5.0f;
+#else
 	float flDelay = 1.0f;
 
 	// Duck Badge Cooldown is based on badge level.  Noisemaker is more like an easter egg
@@ -16372,6 +16415,7 @@ void CTFPlayer::DoNoiseMaker( void )
 	{
 		flDelay = 5.0f;
 	}
+#endif
 	
 	// Throttle the usage rate to sound duration plus some dead time.
 	m_Shared.SetNextNoiseMakerTime( gpGlobals->curtime + flSoundLength + flDelay );

@@ -1356,6 +1356,8 @@ private:
 
 	CUtlMap<int, float> m_PlayersExtinguished;	// userID and most recent time they were extinguished for bonus points
 
+	CUtlMap<itemid_t, int> m_mapNoiseMakerUses;		// noise maker item index and number of uses
+
 	float m_flLastAutobalanceTime;
 	
 	// begin passtime

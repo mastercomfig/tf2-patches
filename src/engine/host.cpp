@@ -2924,20 +2924,22 @@ void _Host_RunFrame_Sound()
 #endif
 }
 
+float SV_GetSoundDuration(const char *pSample);
+#ifndef SWDS
+float AudioSource_GetSoundDuration(CSfxTable *pSfx);
+#endif
+
 float Host_GetSoundDuration( const char *pSample )
 {
 #ifndef SWDS
 	if (!sv.IsDedicated())
 	{
-		extern float SV_GetSoundDuration(const char *pSample);
-		extern float AudioSource_GetSoundDuration(CSfxTable *pSfx);
 		int index = cl.LookupSoundIndex(pSample);
 		if (index >= 0)
 			return AudioSource_GetSoundDuration(cl.GetSound(index));
-		return SV_GetSoundDuration(pSample);
 	}
 #endif
-	return 0.0f;
+	return SV_GetSoundDuration(pSample);
 }
 
 CON_COMMAND( host_runofftime, "Run off some time without rendering/updating sounds\n" )
