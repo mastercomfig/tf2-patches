@@ -18139,7 +18139,7 @@ void CTFGameRules::SendHudNotification( IRecipientFilter &filter, HudNotificatio
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CTFGameRules::SendHudNotification( IRecipientFilter &filter, const char *pszText, const char *pszIcon, int iTeam /*= TEAM_UNASSIGNED*/ )
+void CTFGameRules::SendHudNotification( IRecipientFilter &filter, const char *pszText, const char *pszIcon, int iTeam /*= TEAM_UNASSIGNED*/, bool bForceShow /*= false*/ )
 {
 	if ( IsInWaitingForPlayers() )
 		return;
@@ -18148,6 +18148,7 @@ void CTFGameRules::SendHudNotification( IRecipientFilter &filter, const char *ps
 		WRITE_STRING( pszText );
 		WRITE_STRING( pszIcon );
 		WRITE_BYTE( iTeam );
+		WRITE_BOOL( bForceShow );
 	MessageEnd();
 }
 
