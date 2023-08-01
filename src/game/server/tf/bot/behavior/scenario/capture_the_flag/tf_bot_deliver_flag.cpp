@@ -414,6 +414,10 @@ EventDesiredResult< CTFBot > CTFBotPushToCapturePoint::OnNavAreaChanged( CTFBot 
 				{
 					return TrySuspendFor( new CTFBotNavEntMoveTo( prereq ), RESULT_IMPORTANT, "Prerequisite commands me to move to an entity" );
 				}
+				else if ( prereq->IsTask( CFuncNavPrerequisite::TASK_DESTROY_ENTITY ) )
+				{
+					return TrySuspendFor( new CTFBotNavEntDestroyEntity( prereq ), RESULT_IMPORTANT, "Prerequisite commands me to destroy" );
+				}
 			}
 		}
 	}
