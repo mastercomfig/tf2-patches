@@ -966,10 +966,9 @@ void CTFRobotDestructionLogic::PlaySoundInfoForScoreEvent( CTFPlayer* pPlayer, b
 	eMethod = eMethod == SCORE_UNDEFINED ? (RDScoreMethod_t)m_eWinningMethod[ nTeam ] : eMethod;
 
 	EmitSound_t params;
-	float soundlen = 0;
 	params.m_flSoundTime = 0;
 	params.m_pSoundName = NULL;
-	params.m_pflSoundDuration = &soundlen;
+	params.m_pflSoundDuration = 0;
 
 	switch ( eMethod )
 	{
@@ -1039,11 +1038,10 @@ void CTFRobotDestructionLogic::ClientThink()
 		{
 			bool bLastTick = flSoonestFinale <= 1.f;
 			float flExcitementScale = RemapValClamped( Bias( 1.f - ( flSoonestFinale / tf_rd_finale_beep_time.GetFloat() ), 0.2f ), 0.f, 1.f, 0.3f, 1.f );
-			float soundlen = 0;
 			EmitSound_t params;
 			params.m_flSoundTime = 0;
 			params.m_pSoundName = bLastTick ? "Weapon_Grenade_Det_Pack.Timer" : "RD.FinaleBeep";
-			params.m_pflSoundDuration = &soundlen;
+			params.m_pflSoundDuration = 0;
 			params.m_flVolume = flExcitementScale;
 			params.m_nPitch = bLastTick ? PITCH_NORM : PITCH_NORM * ( 1.f + flExcitementScale );
 			params.m_nFlags |= SND_CHANGE_VOL | SND_CHANGE_PITCH;
@@ -1099,11 +1097,10 @@ void CTFRobotDestructionLogic::FireGameEvent( IGameEvent * event )
 					// Remember who has heard the sound
 					m_vecEducatedPlayers.AddToTail( pPlayer );
 
-					float soundlen = 0;
 					EmitSound_t params;
 					params.m_flSoundTime = 0;
 					params.m_pSoundName = "Announcer.HowToPlayRD";
-					params.m_pflSoundDuration = &soundlen;
+					params.m_pflSoundDuration = 0;
 					PlaySoundInPlayersEars( pPlayer, params );
 				}
 			}
@@ -1124,11 +1121,10 @@ void CTFRobotDestructionLogic::FireGameEvent( IGameEvent * event )
 			// Remember who heard the sound
 			m_vecEducatedPlayers.AddToTail( pPlayer );
 
-			float soundlen = 0;
 			EmitSound_t params;
 			params.m_flSoundTime = 0;
 			params.m_pSoundName = "Announcer.HowToPlayRD";
-			params.m_pflSoundDuration = &soundlen;
+			params.m_pflSoundDuration = 0;
 			PlaySoundInPlayersEars( pPlayer, params );
 		}
 	}

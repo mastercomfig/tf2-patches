@@ -15100,7 +15100,7 @@ void CTFGameRules::SpawnPlayerInHell( CTFPlayer *pPlayer, const char *pszSpawnPo
 extern ISoundEmitterSystemBase *soundemitterbase;
 void CTFGameRules::PlayHelltowerAnnouncerVO( int iRedLine, int iBlueLine )
 {
-	static float flRedAnnouncerTalkingUntil = 0.00f, flBlueAnnouncerTalkingUntil = 0.00f;
+	static float flRedAnnouncerTalkingUntil = 0.0f, flBlueAnnouncerTalkingUntil = 0.0f;
 	
 	// 01 is the first line for the VO
 	int iRandomVORed = RandomInt( 1, g_pszHelltowerAnnouncerLines[iRedLine].m_nCount );	
@@ -15140,7 +15140,8 @@ void CTFGameRules::PlayHelltowerAnnouncerVO( int iRedLine, int iBlueLine )
 	}	
 	
 	CSoundParameters params;
-	float flSoundDuration = 0;
+	// This could have a 2 sec cooldown, but the lines are pretty unique and triggered on certain events so it's not necessary really.
+	float flSoundDuration = 0.0f;
 
 	if ( gpGlobals->curtime > flRedAnnouncerTalkingUntil || bForceVO )
 	{
@@ -15152,7 +15153,7 @@ void CTFGameRules::PlayHelltowerAnnouncerVO( int iRedLine, int iBlueLine )
 		}
 		else
 		{
-			flRedAnnouncerTalkingUntil = 0.00;
+			flRedAnnouncerTalkingUntil = 0.0f;
 		}	
 	}
 	if ( gpGlobals->curtime > flBlueAnnouncerTalkingUntil || bForceVO )
@@ -15165,7 +15166,7 @@ void CTFGameRules::PlayHelltowerAnnouncerVO( int iRedLine, int iBlueLine )
 		}
 		else
 		{
-			flBlueAnnouncerTalkingUntil = 0.00;
+			flBlueAnnouncerTalkingUntil = 0.0f;
 		}
 	}
 }

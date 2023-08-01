@@ -259,10 +259,9 @@ void CTFMiniGame::ScorePointsForTeam( int nTeamNum, int nPoints )
 		for( CTFPlayer *pPlayer : vecPlayer )
 		{
 			EmitSound_t params;
-			float soundlen = 0;
 			params.m_flSoundTime = 0;
 			params.m_pSoundName = NULL;
-			params.m_pflSoundDuration = &soundlen;
+			params.m_pflSoundDuration = 0;
 			params.m_pSoundName = pPlayer->GetTeamNumber() == nTeamNum ? m_iszYourTeamScoreSound.ToCStr() : m_iszEnemyTeamScoreSound.ToCStr();
 			params.m_nPitch = RemapValClamped( nTeamPoints, m_nMaxScoreForMiniGame * 0.75, m_nMaxScoreForMiniGame, 100, 120 );
 			params.m_nFlags |= SND_CHANGE_PITCH;
@@ -1252,7 +1251,7 @@ void CTFHalloweenFortuneTeller::ApplyFortuneEffect()
 
 void CTFHalloweenFortuneTeller::SpeakThink()
 {
-	float flSoundDuration = 0.0f;
+	float flSoundDuration = 2.0f;
 
 	if ( m_pActiveFortune )
 	{

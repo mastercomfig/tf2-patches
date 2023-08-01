@@ -14410,16 +14410,15 @@ void CTFPlayer::PlayFlinch( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 float CTFPlayer::PlayCritReceivedSound( void )
 {
-	float flCritPainLength = 0;
 	// Play a custom pain sound to the guy taking the damage
 	CSingleUserRecipientFilter receiverfilter( this );
 	EmitSound_t params;
 	params.m_flSoundTime = 0;
 	params.m_pSoundName = "TFPlayer.CritPain";
-	params.m_pflSoundDuration = &flCritPainLength;
+	params.m_pflSoundDuration = 0;
 	EmitSound( receiverfilter, entindex(), params );
 
-	return flCritPainLength;
+	return 2.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -14634,7 +14633,6 @@ void CTFPlayer::StunSound( CTFPlayer* pAttacker, int iStunFlags, int iOldStunFla
 
 	pExpresser->AllowMultipleScenes();
 
-	float flStunSoundLength = 0;
 	EmitSound_t params;
 	params.m_flSoundTime = 0;
 	if ( iStunFlags & TF_STUN_SPECIAL_SOUND )
@@ -14649,7 +14647,7 @@ void CTFPlayer::StunSound( CTFPlayer* pAttacker, int iStunFlags, int iOldStunFla
 	{
 		params.m_pSoundName = "TFPlayer.StunImpact";
 	}
-	params.m_pflSoundDuration = &flStunSoundLength;
+	params.m_pflSoundDuration = 0;
 
 	if ( pAttacker )
 	{
@@ -16385,11 +16383,10 @@ void CTFPlayer::DoNoiseMaker( void )
 
 	int rand = RandomInt( 0, iNumSounds-1 );
 
-	float flSoundLength = 0;
 	EmitSound_t params;
 	params.m_flSoundTime = 0;
 	params.m_pSoundName = vis->pszCustomSounds[rand];
-	params.m_pflSoundDuration = &flSoundLength;
+	params.m_pflSoundDuration = 0;
 
 	CPASFilter filter( GetAbsOrigin() );
 	EmitSound( filter, entindex(), params );
@@ -16401,24 +16398,10 @@ void CTFPlayer::DoNoiseMaker( void )
 		TE_TFParticleEffect( filter, 0.0, particleEffectName, PATTACH_POINT_FOLLOW, this, "head" );
 	}
 
-	// TODO: SV_GetSoundDuration is not implemented for dedicated, just use a 5 second delay for now
-#if 1
 	float flDelay = 5.0f;
-#else
-	float flDelay = 1.0f;
 
-	// Duck Badge Cooldown is based on badge level.  Noisemaker is more like an easter egg
-	CSchemaAttributeDefHandle pAttr_DuckLevelBadge( "duck badge level" );
-	uint32 iDuckBadgeLevel = 0;
-
-	if ( FindAttribute_UnsafeBitwiseCast<attrib_value_t>( pItem, pAttr_DuckLevelBadge, &iDuckBadgeLevel ) )
-	{
-		flDelay = 5.0f;
-	}
-#endif
-	
-	// Throttle the usage rate to sound duration plus some dead time.
-	m_Shared.SetNextNoiseMakerTime( gpGlobals->curtime + flSoundLength + flDelay );
+	// Throttle the usage rate
+	m_Shared.SetNextNoiseMakerTime( gpGlobals->curtime + flDelay );
 }
 
 //-----------------------------------------------------------------------------

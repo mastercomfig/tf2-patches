@@ -1006,11 +1006,10 @@ void CTFProjectile_Arrow::ImpactSound( const char *pszSoundName, bool bLoudForAt
 
 	if ( bLoudForAttacker )
 	{
-		float soundlen = 0;
 		EmitSound_t params;
 		params.m_flSoundTime = 0;
 		params.m_pSoundName = pszSoundName;
-		params.m_pflSoundDuration = &soundlen;
+		params.m_pflSoundDuration = 0;
 		CPASFilter filter( GetAbsOrigin() );
 		filter.RemoveRecipient( ToTFPlayer(pAttacker) );
 		EmitSound( filter, entindex(), params );
