@@ -2628,7 +2628,12 @@ bool CBasePlayer::SetObserverTarget(CBaseEntity *target)
 	m_hObserverTarget.Set( target ); 
 
 	// reset fov to default
-	SetFOV( this, 0 );	
+	SetFOV( this, 0 );
+	// reset roll
+	QAngle angles = pl.v_angle;
+	angles.z = 0;
+	SetLocalAngles( angles );
+	SnapEyeAngles( angles );
 	
 	if ( m_iObserverMode == OBS_MODE_ROAMING )
 	{
