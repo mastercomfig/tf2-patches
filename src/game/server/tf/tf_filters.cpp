@@ -53,6 +53,8 @@ LINK_ENTITY_TO_CLASS( filter_activator_tfteam, CFilterTFTeam );
 //-----------------------------------------------------------------------------
 bool CFilterTFTeam::PassesFilterImpl( CBaseEntity *pCaller, CBaseEntity *pEntity )
 {
+	if ( pEntity == NULL )
+		return false;
 	// is the entity we're asking about on the winning 
 	// team during the bonus time? (winners pass all filters)
 	if (  TFGameRules() &&
@@ -319,6 +321,8 @@ public:
 
 	bool PassesFilterImpl( CBaseEntity *pCaller, CBaseEntity *pEntity )
 	{
+		if ( pEntity == NULL )
+			return false;
 		if ( !pEntity->IsPlayer() )
 			return false;
 
@@ -352,6 +356,8 @@ public:
 
 	bool PassesFilterImpl( CBaseEntity *pCaller, CBaseEntity *pEntity )
 	{
+		if ( pEntity == NULL )
+			return false;
 		if ( !pEntity->IsPlayer() )
 			return false;
 
