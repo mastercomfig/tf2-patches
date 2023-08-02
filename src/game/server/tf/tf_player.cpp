@@ -15608,7 +15608,10 @@ CBaseEntity *CTFPlayer::FindNextObserverTarget(bool bReverse)
 	int	currentIndex = startIndex;
 	int iDir = bReverse ? -1 : 1; 
 
-	int iMax = m_hObservableEntities.Count()-1;
+	int iCount = m_hObservableEntities.Count();
+	if ( iCount == 0 )
+		return NULL;
+	int iMax = iCount-1;
 
 	// Make sure the current index is within the max. Can happen if we were previously
 	// spectating an object which has been destroyed.
