@@ -923,7 +923,6 @@ float CMatRenderContextBase::ComputePixelDiameterOfSphere( const Vector& vecAbsO
 }
 
 ConVar mat_accelerate_adjust_exposure_down( "mat_accelerate_adjust_exposure_down", "3.0", FCVAR_CHEAT );
-ConVar mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate", "1.0" );
 ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT );
 ConVar mat_tonemap_algorithm( "mat_tonemap_algorithm", "1", FCVAR_CHEAT, "0 = Original Algorithm 1 = New Algorithm" );
 
@@ -933,6 +932,7 @@ void CMatRenderContextBase::TurnOnToneMapping(void)
 	{
 		float elapsed_time = m_FrameTime;
 		float goalScale = m_GoalToneMapScale;
+		static ConVarRef mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate" );
 		float rate = mat_hdr_manual_tonemap_rate.GetFloat();
 		
 		if ( mat_tonemap_algorithm.GetInt() == 1 )

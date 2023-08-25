@@ -12,6 +12,7 @@
 #include "tier0/memdbgon.h"
 
 ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT, "The HDR tonemap scale. 1 = Use autoexposure, 0 = eyes fully closed, 16 = eyes wide open." );
+ConVar mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate", "1.0", FCVAR_REPLICATED );
 
 // 0 - eyes fully closed / fully black
 // 1 - nominal 
@@ -178,12 +179,8 @@ void CEnvTonemapController::InputSetBloomScaleRange( inputdata_t &inputdata )
 void CEnvTonemapController::InputSetTonemapRate( inputdata_t &inputdata )
 {
 	// TODO: There should be a better way to do this.
-	static ConVarRef mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate" );
-	if ( mat_hdr_manual_tonemap_rate.IsValid() )
-	{
-		float flTonemapRate = inputdata.value.Float();
-		mat_hdr_manual_tonemap_rate.SetValue( flTonemapRate );
-	}
+	float flTonemapRate = inputdata.value.Float();
+	mat_hdr_manual_tonemap_rate.SetValue( flTonemapRate );
 }
 
 //-----------------------------------------------------------------------------
