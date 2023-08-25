@@ -25,6 +25,9 @@
 
 #include "tier0/memdbgon.h"
 
+#if defined( INST_CJOBTHREAD )
+static FILE* instOutput = nullptr;
+#endif
 
 class CJobThread;
 
@@ -336,6 +339,10 @@ public:
 		m_pOwner( pOwner ),
 		m_iThread( iThread )
 	{
+#if defined( INST_CJOBTHREAD )
+		if (instOutput == nullptr)
+			instOutput = fopen("inst_cjobthread.csv", "w");
+#endif
 	}
 
 	CThreadEvent &GetIdleEvent()
@@ -369,6 +376,10 @@ private:
 		waitHandles[SHARED_QUEUE]		= m_SharedQueue.GetEventHandle().GetHandle();
 		waitHandles[DIRECT_QUEUE] 		= m_DirectQueue.GetEventHandle().GetHandle();
 		
+#if defined( INST_CJOBTHREAD )
+		std::chrono::steady_clock::time_point waitStart = std::chrono::steady_clock::now();
+#endif
+
 #ifdef _DEBUG
 		while ( ( waitResult = WaitForMultipleObjects( ARRAYSIZE(waitHandles), waitHandles, FALSE, 10 ) ) == WAIT_TIMEOUT )
 		{
@@ -396,6 +407,11 @@ private:
 		else
 			waitResult = WAIT_OBJECT_0;
 #endif
+
+#if defined( INST_CJOBTHREAD )
+		std::chrono::nanoseconds waitDur = std::chrono::steady_clock::now() - waitStart;
+		fprintf(instOutput, "wait,%lld\n", waitDur.count());
+#endif
 		return waitResult;
 	}
 
@@ -415,6 +431,10 @@ private:
 		{
 			if ( PeekCall() )
 			{
+#if defined( INST_CJOBTHREAD )
+				fprintf(instOutput, "goodWakeup,call\n");
+#endif
+
 				CFunctor *pFunctor = NULL;
 				tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s PeekCall():%d", __FUNCTION__, GetCallParam() );
 
@@ -461,10 +481,26 @@ private:
 					{
 						if ( !m_SharedQueue.Pop( &pJob ) )
 						{
+#if defined( INST_CJOBTHREAD )
+							fprintf(instOutput, "badWakeup\n");
+#endif
 							// Nothing to process, return to wait state
 							break;
 						}
+#if defined( INST_CJOBTHREAD )
+						fprintf(instOutput, "goodWakeup,shared\n");
+#endif
 					}
+#if defined( INST_CJOBTHREAD )
+					else
+					{
+						fprintf(instOutput, "goodWakeup,direct\n");
+					}
+
+					std::chrono::nanoseconds latency = std::chrono::steady_clock::now() - pJob->instQueuedAt;
+					fprintf(instOutput, "jobLatency,%lld\n", latency.count());
+#endif
+
 					if ( !bTookJob )
 					{
 						m_IdleEvent.Reset();
@@ -735,6 +771,8 @@ void CThreadPool::AddJob( CJob *pJob )
 void CThreadPool::InsertJobInQueue( CJob *pJob )
 {
 	CJobQueue *pQueue;
+
+	pJob->instQueuedAt = std::chrono::steady_clock::now();
 
 	if ( !( pJob->GetFlags() & JF_SERIAL ) )
 	{

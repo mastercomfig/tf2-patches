@@ -59,6 +59,12 @@
 #pragma once
 #endif
 
+#define INST_CJOBTHREAD
+
+#if defined( INST_CJOBTHREAD )
+#include <chrono>
+#endif
+
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
@@ -521,6 +527,10 @@ public:
 			m_szDescription[ 0 ] = 0;
 		}
 	}
+
+#if defined( INST_CJOBTHREAD )
+	std::chrono::steady_clock::time_point instQueuedAt;
+#endif
 
 private:
 	//-----------------------------------------------------
