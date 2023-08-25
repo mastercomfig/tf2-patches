@@ -1172,6 +1172,17 @@ void CDescribeData::DumpDescription( datamap_t *pMap )
 
 void CLCD::DumpPlayer()
 {
+	// This guard could break some external software like some community vote kick lists,
+	// which uses g15_dumpplayer, but fixing it to filter out the g_PR pred desc map is complicated
+	// and could break the legitimate G15 usecase. Ideally, to fix cheating in all cases (including G15 users)
+	// we would filter out sensitive variables (for example, from the enemy team, like their health).
+	// The IsConnected check is to ensure we just don't have the DLL without the hardware.
+	// Change this to 1 to enforce the check.
+#if 0
+	if ( !m_lcd || !m_lcd->IsConnected() )
+		return;
+#endif
+
 	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
 	if ( !player )
 		return;
@@ -1192,6 +1203,8 @@ void CLCD::DumpPlayer()
 		helper.DumpDescription( team->GetPredDescMap() );
 	}
 
+	// Change this to 0 to exclude player resource
+#if 1
 	Msg( "(playerresource)\n\n" );
 
 	if ( g_PR )
@@ -1199,6 +1212,7 @@ void CLCD::DumpPlayer()
 		CDescribeData helper( g_PR );
 		helper.DumpDescription( g_PR->GetPredDescMap() );
 	}
+#endif
 
 	Msg( "(localplayerweapon)\n\n" );
 	// Get the player's weapons, too
