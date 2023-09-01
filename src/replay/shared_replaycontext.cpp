@@ -83,6 +83,10 @@ bool CSharedReplayContext::InitThreadPool()
 	}
 	Log( "succeeded.\n" );
 
+#if defined( TRACE_CJOBTHREAD )
+	pThreadPool->SetName("Shared Replay Context");
+#endif
+
 	// Jon says: The client only really needs a single "ReplayContext" thread, so that the replay editor can write
 	//  data asynchronously. The game server does in fact require 4 threads, and can be configured to use more
 	//	via the replay_max_publish_threads convar.
