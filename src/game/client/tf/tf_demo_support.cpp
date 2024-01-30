@@ -24,11 +24,16 @@ ConVar ds_dir( "ds_dir", "demos", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARC
 ConVar ds_prefix( "ds_prefix", "", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - will prefix files with this string. 24 characters max." );
 ConVar ds_min_streak( "ds_min_streak", "4", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - minimum kill streak count before being recorded.", true, 2, false, 0 );
 ConVar ds_kill_delay( "ds_kill_delay", "15", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - maximum time between kills for tracking kill streaks.", true, 5, false, 0 );
-ConVar ds_log( "ds_log", "1", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - log kill streak and bookmark events to an associated .txt file.", true, 0, true, 1 );
+ConVar ds_log( "ds_log", "1", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - log kill streak and bookmark events to an associated .txt file. 1 - global, 2 - per demo, 3 - per map", true, 0, true, 1 );
 ConVar ds_sound( "ds_sound", "1", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - play start/stop sound for demo recording.", true, 0, true, 1 ); 
 ConVar ds_notify( "ds_notify", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - text output when recording start/stop/bookmark events : 0 - console, 1 - console and chat, 2 - console and HUD.", true, 0, true, 2 ); 
 ConVar ds_screens( "ds_screens", "1", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - take screenshot of the scoreboard for non-competitive matches or the match summary stats for competitive matches. For competitive matches, it will not capture the screenshot if you disconnect from the server before the medal awards have completed.", true, 0, true, 1 );
 ConVar ds_autodelete( "ds_autodelete", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - automatically delete .dem files with no associated bookmark or kill streak events.", true, 0, true, 1 ); 
+ConVar ds_rounds_only( "ds_rounds_only", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - only record during the rounds of a match, no pre or post-game.", true, 0, true, 1 );
+ConVar ds_name_format( "ds_name_format", "%prefix%%date%", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - format string for demo file names. Available formats: %prefix%, %date%, %map%, %team%" );
+ConVar ds_date_format( "ds_date_format", "%Y-%m-%d_%H-%M-%S", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - format string for %date% in demo file names." );
+ConVar ds_autotvstatus( "ds_autostatus", "0", FCVAR_CLIENTDLL | FCVAR_DONTRECORD | FCVAR_ARCHIVE, "Demo support - automatically show SourceTV status for the scoreboard screenshot.", true, 0, true, 1 );
+ConVar ds_nextname( "ds_nextname", "", FCVAR_CLIENTDLL | FCVAR_DONTRECORD, "Demo support - next demo file name to use. 24 characters max, overriding format. If set, will record the next match automatically even with ds_enable 0." );
 
 CON_COMMAND_F( ds_mark, "Demo support - bookmark (with optional single-word description) the current tick count for the demo being recorded.", FCVAR_CLIENTDLL | FCVAR_DONTRECORD )
 {
@@ -48,6 +53,12 @@ CON_COMMAND_F( ds_stop, "Demo support - stop recording a demo.", FCVAR_CLIENTDLL
 CON_COMMAND_F( ds_status, "Demo support - show the current recording status.", FCVAR_CLIENTDLL | FCVAR_DONTRECORD )
 {
 	g_DemoSupport.Status();
+}
+
+CON_COMMAND_F( ds_tvstatus, "Demo support - show the current SourceTV status.", FCVAR_CLIENTDLL | FCVAR_DONTRECORD )
+{
+	// TODO: Unimplemented
+	// Con_NPrint maybe?
 }
 
 //-----------------------------------------------------------------------------
@@ -99,6 +110,8 @@ bool CTFDemoSupport::Init()
 	ListenForGameEvent( "client_disconnect" );
 	ListenForGameEvent( "ds_screenshot" );
 	ListenForGameEvent( "ds_stop" );
+	ListenForGameEvent( "teamplay_game_over" );
+	ListenForGameEvent( "tf_game_over" );
 	return true;
 }
 
@@ -159,6 +172,15 @@ void CTFDemoSupport::Update( float frametime )
 					return;
 			}
 
+			if (ds_rounds_only.GetBool())
+			{
+				if ( !TFGameRules() )
+					return;
+
+				if ( TFGameRules()->State_Get() != GR_STATE_PREROUND || TFGameRules()->State_Get() != GR_STATE_RND_RUNNING )
+					return;
+			}
+
 			if ( ( m_flNextRecordStartCheckTime < 0 ) || ( m_flNextRecordStartCheckTime < gpGlobals->curtime ) )
 			{
 				CTFPlayer *pLocalPlayer = CTFPlayer::GetLocalTFPlayer();
@@ -186,6 +208,11 @@ void CTFDemoSupport::Update( float frametime )
 	if ( ( m_flScreenshotTime > 0 ) && ( m_flScreenshotTime < gpGlobals->curtime ) )
 	{
 		m_flScreenshotTime = -1.f;
+
+		if ( ds_autotvstatus.GetBool() )
+		{
+			engine->ClientCmd_Unrestricted( "ds_tvstatus" );
+		}
 
 		if ( ds_screens.GetBool() )
 		{
@@ -416,6 +443,11 @@ void CTFDemoSupport::FireGameEvent( IGameEvent * event )
 			float flDelay = event->GetFloat( "delay" );
 			m_flScreenshotTime = gpGlobals->curtime + flDelay;
 		}
+	}
+	else if ( ds_rounds_only.GetBool() && ( FStrEq( pszEvent, "teamplay_game_over" ) || FStrEq( pszEvent, "tf_game_over" ) ) )
+	{
+		// Last branch so we can check ds_rounds_only without messing up else logic.
+		StopRecording();
 	}
 }
 
